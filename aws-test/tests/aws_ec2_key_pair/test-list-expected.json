@@ -1,0 +1,6 @@
+[
+  {
+    "key_name": "{{resourceName}}",
+    "key_pair_id": "{{ output.resource_id.value }}"
+  }
+]

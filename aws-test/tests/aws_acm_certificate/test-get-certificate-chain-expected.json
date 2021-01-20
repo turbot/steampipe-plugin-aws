@@ -1,0 +1,6 @@
+[
+  {
+    "certificate": "{{ output.certificate_body.value }}",
+    "certificate_chain": "{{ output.certificate_body.value }}"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "akas": [
+      "arn:{{ output.aws_partition.value }}:ec2:{{ output.aws_region.value }}:{{ output.account_id.value }}:snapshot/{{ output.snapshot_id.value }}"
+    ],
+    "create_volume_permissions": [
+      {
+        "Group": null,
+        "UserId": "388460667113"
+      }
+    ],
+    "snapshot_id": "{{ output.snapshot_id.value }}",
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{ output.snapshot_id.value }}"
+  }
+]

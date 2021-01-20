@@ -1,0 +1,14 @@
+[
+  {
+    "attachments": null,
+    "encrypted": false,
+    "multi_attach_enabled": false,
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "volume_id": "{{ output.resource_id.value }}"
+  }
+]

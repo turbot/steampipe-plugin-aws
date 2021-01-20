@@ -1,0 +1,17 @@
+[
+  {
+    "association_state": "associated",
+    "resource_id": "{{ output.vpc_id.value }}",
+    "resource_owner_id": "{{ output.account_id.value }}",
+    "resource_type": "vpc",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "transit_gateway_attachment_id": "{{ output.resource_id.value }}",
+    "transit_gateway_id": "{{ output.transit_gateway_id.value }}",
+    "transit_gateway_owner_id": "{{ output.account_id.value }}"
+  }
+]

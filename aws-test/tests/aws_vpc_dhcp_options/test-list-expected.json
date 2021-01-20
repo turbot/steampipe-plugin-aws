@@ -1,0 +1,16 @@
+[
+  {
+    "akas": [
+      "{{output.resource_aka.value}}"
+    ],
+    "dhcp_options_id": "{{output.resource_id.value}}",
+    "tags": {"Name":"{{resourceName}}"},
+    "tags_raw": [
+      {
+        "Key":"Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "title": "{{resourceName}}"
+  }
+]

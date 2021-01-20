@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}",
+    "vpn_gateway_id": "{{ output.resource_id.value }}"
+  }
+]

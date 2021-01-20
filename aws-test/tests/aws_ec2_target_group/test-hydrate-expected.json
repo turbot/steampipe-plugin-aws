@@ -1,0 +1,19 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "target_group_arn": "{{ output.resource_aka.value }}",
+    "target_health_descriptions": null,
+    "title": "{{resourceName}}"
+  }
+]

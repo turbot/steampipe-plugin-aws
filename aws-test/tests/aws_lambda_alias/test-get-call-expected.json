@@ -1,0 +1,11 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "alias_arn": "{{ output.resource_aka.value }}",
+    "description": "",
+    "function_name": "{{resourceName}}",
+    "function_version": "$LATEST",
+    "name": "{{resourceName}}",
+    "title": "{{resourceName}}"
+  }
+]

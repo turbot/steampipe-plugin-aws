@@ -1,0 +1,10 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}:$LATEST"],
+    "arn": "{{ output.resource_aka.value}}:$LATEST",
+    "function_name": "{{resourceName}}",
+    "runtime": "python3.7",
+    "title": "$LATEST",
+    "version": "$LATEST"
+  }
+]

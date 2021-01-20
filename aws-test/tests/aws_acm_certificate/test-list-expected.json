@@ -1,0 +1,10 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "certificate_arn": "{{ output.resource_aka.value }}",
+    "domain_name": "turbot.com",
+    "title": "{{ output.resource_aka.value.split('/').pop() }}"
+  }
+]

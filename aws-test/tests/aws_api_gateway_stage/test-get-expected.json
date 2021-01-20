@@ -1,0 +1,13 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "name": "{{ resourceName }}",
+    "rest_api_id": "{{ output.rest_api_id.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}"
+  }
+]

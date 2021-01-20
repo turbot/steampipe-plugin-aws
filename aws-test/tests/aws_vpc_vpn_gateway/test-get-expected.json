@@ -1,0 +1,20 @@
+[
+  {
+    "amazon_side_asn": 64512,
+    "state": "available",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "type": "ipsec.1",
+    "vpc_attachments": [
+      {
+        "State": "attached",
+        "VpcId": "{{ output.attached_vpc_id.value }}"
+      }
+    ],
+    "vpn_gateway_id": "{{ output.resource_id.value }}"
+  }
+]

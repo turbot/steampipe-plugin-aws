@@ -1,0 +1,58 @@
+[
+  {
+    "delay_seconds": "0",
+    "max_message_size": "262144",
+    "message_retention_seconds": "345600",
+    "partition": "aws",
+    "policy": {
+      "Id": "sqspolicy",
+      "Statement": [
+        {
+          "Action": "sqs:SendMessage",
+          "Condition": {
+            "ArnEquals": {
+              "aws:SourceArn": "{{ output.sns_topic_arn.value }}"
+            }
+          },
+          "Effect": "Allow",
+          "Principal": "*",
+          "Resource": "{{ output.resource_aka.value }}",
+          "Sid": "First"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "policy_std": {
+      "Id": "sqspolicy",
+      "Statement": [
+        {
+          "Action": [
+            "sqs:sendmessage"
+          ],
+          "Condition": {
+            "ArnEquals": {
+              "aws:sourcearn": [
+                "{{ output.sns_topic_arn.value }}"
+              ]
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": [
+              "*"
+            ]
+          },
+          "Resource": [
+            "{{ output.resource_aka.value }}"
+          ],
+          "Sid": "First"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "queue_arn": "{{output.resource_aka.value}}",
+    "queue_url": "{{output.queue_url.value}}",
+    "receive_wait_time_seconds": "0",
+    "tags": {"name":"{{resourceName}}"}
+  }
+]

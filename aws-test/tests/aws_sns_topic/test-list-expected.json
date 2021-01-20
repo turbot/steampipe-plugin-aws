@@ -1,0 +1,96 @@
+[
+  {
+    "display_name": "{{ resourceName }}",
+    "effective_delivery_policy": {
+      "http": {
+        "defaultHealthyRetryPolicy": {
+          "backoffFunction": "linear",
+          "maxDelayTarget": 20,
+          "minDelayTarget": 20,
+          "numMaxDelayRetries": 0,
+          "numMinDelayRetries": 0,
+          "numNoDelayRetries": 0,
+          "numRetries": 3
+        },
+        "disableSubscriptionOverrides": false
+      }
+    },
+    "owner": "{{output.account_id.value}}",
+    "policy": {
+      "Id": "__default_policy_ID",
+      "Statement": [
+        {
+          "Action": [
+            "SNS:Subscribe",
+            "SNS:SetTopicAttributes",
+            "SNS:RemovePermission",
+            "SNS:Receive",
+            "SNS:Publish",
+            "SNS:ListSubscriptionsByTopic",
+            "SNS:GetTopicAttributes",
+            "SNS:DeleteTopic",
+            "SNS:AddPermission"
+          ],
+          "Condition": {
+            "StringEquals": {
+              "AWS:SourceOwner": "{{output.account_id.value}}"
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Resource": "{{ output.resource_aka.value}}",
+          "Sid": "__default_statement_ID"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "policy_std": {
+      "Id": "__default_policy_ID",
+      "Statement": [
+        {
+          "Action": [
+            "sns:addpermission",
+            "sns:deletetopic",
+            "sns:gettopicattributes",
+            "sns:listsubscriptionsbytopic",
+            "sns:publish",
+            "sns:receive",
+            "sns:removepermission",
+            "sns:settopicattributes",
+            "sns:subscribe"
+          ],
+          "Condition": {
+            "StringEquals": {
+              "aws:sourceowner": [
+                "{{ output.account_id.value }}"
+              ]
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": [
+              "*"
+            ]
+          },
+          "Resource": [
+            "{{ output.resource_aka.value}}"
+          ],
+          "Sid": "__default_statement_ID"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "subscriptions_confirmed": 0,
+    "subscriptions_deleted": 0,
+    "subscriptions_pending": 0,
+    "tags_raw": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "topic_arn": "{{ output.resource_aka.value }}"
+  }
+]

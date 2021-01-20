@@ -1,0 +1,12 @@
+[
+  {
+    "flow_log_id": "{{ output.resource_id.value }}",
+    "turbot_akas": [
+      "{{ output.resource_aka.value.replace(':vpc-flow-log/', ':flow-log/') }}"
+    ],
+    "turbot_tags": {
+      "Name": "{{resourceName}}"
+    },
+    "turbot_title": "{{resourceName}}"
+  }
+]

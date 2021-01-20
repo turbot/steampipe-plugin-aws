@@ -1,0 +1,17 @@
+[
+  {
+    "attachments": [
+      {
+        "State": "attached",
+        "VpcId": "{{ output.vpc_id.value }}"
+      }
+    ],
+    "id": "{{ output.resource_id.value }}",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

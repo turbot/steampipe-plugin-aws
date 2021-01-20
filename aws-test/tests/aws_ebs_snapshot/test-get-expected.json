@@ -1,0 +1,16 @@
+[
+  {
+    "description": "Test snapshot",
+    "encrypted": false,
+    "owner_id": "{{ output.account_id.value }}",
+    "snapshot_id": "{{ output.snapshot_id.value }}",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "volume_id": "{{ output.volume_id.value }}",
+    "volume_size": 1
+  }
+]

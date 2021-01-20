@@ -1,0 +1,8 @@
+[
+  {
+    "id": "{{output.resource_id.value}}",
+    "name": "{{resourceName}}",
+    "rest_api_id": "{{output.rest_api_id.value}}",
+    "title": "{{resourceName}}"
+  }
+]

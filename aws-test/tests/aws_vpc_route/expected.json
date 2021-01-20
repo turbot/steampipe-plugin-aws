@@ -1,0 +1,3 @@
+[
+  { "route_table_id": "{{output.resource_id.value}}" }
+]

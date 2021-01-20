@@ -1,0 +1,14 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "arn": "{{ output.resource_aka.value }}",
+    "groups": null,
+    "name":  "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "path": "/",
+    "title": "{{ resourceName }}"
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+   "arn": "{{ output.resource_aka.value }}",
+   "description": "",
+   "name": "{{ resourceName }}",
+   "role": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/{{resourceName}}",
+   "version": "$LATEST"
+  }
+]

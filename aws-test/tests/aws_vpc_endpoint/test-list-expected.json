@@ -1,0 +1,19 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "Name": "{{ resourceName }}"
+    },
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "title": "{{ resourceName }}",
+    "vpc_endpoint_id": "{{ output.resource_id.value }}",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

@@ -1,0 +1,53 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "policy": {
+      "Statement": [
+        {
+          "Action": "execute-api:Invoke",
+          "Condition": {
+            "IpAddress": {
+              "aws:SourceIp": "123.123.123.123/32"
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Resource": "{{ output.resource_aka.value }}"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "policy_std": {
+      "Statement": [
+        {
+          "Action": [
+            "execute-api:invoke"
+          ],
+          "Condition": {
+            "IpAddress": {
+              "aws:sourceip": [
+                "123.123.123.123/32"
+              ]
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": [
+              "*"
+            ]
+          },
+          "Resource": [
+            "{{ output.resource_aka.value }}"
+          ]
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "title": "{{resourceName}}"
+  }
+]

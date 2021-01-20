@@ -1,0 +1,11 @@
+[
+  {
+    "name": "{{resourceName}}",
+    "tags_raw": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

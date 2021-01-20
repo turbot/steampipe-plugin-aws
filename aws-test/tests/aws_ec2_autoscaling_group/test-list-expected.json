@@ -1,0 +1,22 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "autoscaling_group_arn": "{{ output.resource_aka.value }}",
+    "availability_zones": ["us-east-1a"],
+    "launch_configuration_name": "{{resourceName}}",
+    "name": "{{ resourceName }}",
+    "tags": {
+      "Name": "{{ resourceName }}"
+    },
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "PropagateAtLaunch": true,
+        "ResourceId": "{{ resourceName }}",
+        "ResourceType": "auto-scaling-group",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "title": "{{ resourceName }}"
+  }
+]

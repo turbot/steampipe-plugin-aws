@@ -1,0 +1,11 @@
+[
+  {
+    "db_snapshot_attributes": [
+      {
+        "AttributeName": "restore",
+        "AttributeValues": null
+      }
+    ],
+    "db_snapshot_identifier": "{{resourceName}}"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "attachment_count": 0,
+    "default_version_id": "v1",
+    "is_attachable": true,
+    "name": "{{resourceName}}",
+    "path": "/",
+    "permissions_boundary_usage_count": 0,
+    "title": "{{resourceName}}"
+  }
+]

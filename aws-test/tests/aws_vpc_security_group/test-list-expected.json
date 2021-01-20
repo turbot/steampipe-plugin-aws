@@ -1,0 +1,6 @@
+[
+  {
+    "group_id": "{{ output.resource_id.value }}",
+    "group_name": "{{resourceName}}"
+  }
+]
