@@ -1,0 +1,21 @@
+[
+  {
+    "acceptance_required": false,
+    "manages_vpc_endpoints": false,
+    "owner": "{{ output.account_id.value }}",
+    "service_id": "{{ output.resource_id.value }}",
+    "service_name": "{{ output.service_name.value }}",
+    "service_type": [
+      {
+        "ServiceType": "Interface"
+      }
+    ],
+    "tags": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "vpc_endpoint_policy_supported": false
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "description": "Test Network Interface.",
+    "interface_type": "interface",
+    "network_interface_id": "{{ output.resource_id.value }}",
+    "owner_id": "{{ output.account_id.value}}",
+    "requester_managed": false,
+    "source_dest_check": true
+  }
+]

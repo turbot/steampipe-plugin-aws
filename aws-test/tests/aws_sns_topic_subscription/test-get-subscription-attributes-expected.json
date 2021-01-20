@@ -1,0 +1,11 @@
+[
+  {
+    "confirmation_was_authenticated": true,
+    "delivery_policy": null,
+    "effective_delivery_policy": null,
+    "filter_policy": null,
+    "pending_confirmation": false,
+    "raw_message_delivery": false,
+    "redrive_policy": null
+  }
+]

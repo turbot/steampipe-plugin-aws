@@ -1,0 +1,23 @@
+[
+  {
+    "allows_vpc_and_non_vpc_instance_memberships": false,
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "Terraform created resource to verify table",
+    "engine_name": "sqlserver-ee",
+    "major_engine_version": "11.00",
+    "name": "{{resourceName}}",
+    "options": [
+      {
+        "DBSecurityGroupMemberships": null,
+        "OptionDescription": "SQL Server - Transparent Data Encryption",
+        "OptionName": "TDE",
+        "OptionSettings": null,
+        "OptionVersion": null,
+        "Permanent": false,
+        "Persistent": true,
+        "Port": null,
+        "VpcSecurityGroupMemberships": null
+      }
+    ]
+  }
+]

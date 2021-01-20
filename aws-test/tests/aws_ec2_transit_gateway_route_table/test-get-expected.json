@@ -1,0 +1,14 @@
+[
+  {
+    "default_association_route_table": false,
+    "default_propagation_route_table": false,
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "transit_gateway_id": "{{ output.transit_gateway_id.value }}",
+    "transit_gateway_route_table_id": "{{ output.resource_id.value }}"
+  }
+]

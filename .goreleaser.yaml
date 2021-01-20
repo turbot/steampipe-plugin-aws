@@ -1,0 +1,38 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+      - GOPRIVATE=github.com/turbotio
+    goos:
+      - linux
+      - darwin
+      #- windows #- not yet.....
+    goarch:
+      - amd64
+      - arm64
+    #ignore:
+    #  - goos: darwin # docs suggest that darwin arm64 should compile, but doesnt...
+    #    goarch: arm64 
+
+    id: "steampipe-aws"
+    binary: '{{ .ProjectName }}.plugin'  
+
+archives:
+  - format: gz 
+    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - none*
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

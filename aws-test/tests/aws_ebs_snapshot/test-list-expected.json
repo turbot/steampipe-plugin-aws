@@ -1,0 +1,6 @@
+[
+  {
+    "snapshot_id": "{{ output.snapshot_id.value }}",
+    "volume_id":"{{ output.volume_id.value }}"
+  }
+]

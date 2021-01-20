@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "subnet_id": "{{ output.resource_id.value }}",
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]

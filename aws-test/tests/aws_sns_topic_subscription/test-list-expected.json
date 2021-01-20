@@ -1,0 +1,9 @@
+[
+  {
+    "endpoint": "{{ output.endpoint.value }}",
+    "owner": "{{ output.account_id.value }}",
+    "protocol": "sqs",
+    "subscription_arn": "{{ output.resource_aka.value }}",
+    "topic_arn": "{{ output.topic_arn.value }}"
+  }
+]

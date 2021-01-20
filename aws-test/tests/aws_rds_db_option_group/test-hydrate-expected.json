@@ -1,0 +1,11 @@
+[
+  {
+    "name": "{{resourceName}}",
+    "tag_list": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

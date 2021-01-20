@@ -1,0 +1,6 @@
+[
+  {
+    "flow_log_id": "{{ output.resource_id.value }}",
+    "traffic_type": "ALL"
+  }
+]

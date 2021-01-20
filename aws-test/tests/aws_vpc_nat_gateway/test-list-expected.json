@@ -1,0 +1,13 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "nat_gateway_id": "{{ output.resource_id.value }}",
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

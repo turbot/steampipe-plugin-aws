@@ -1,0 +1,55 @@
+[
+  {
+    "aliases": [
+      {
+        "AliasArn": "{{ output.alias_arn.value }}",
+        "AliasName": "{{ output.key_title.value }}",
+        "TargetKeyId": "{{ output.resource_id.value }}"
+      }
+    ],
+    "key_manager": "CUSTOMER",
+    "key_rotation_enabled": false,
+    "policy": {
+      "Id": "key-default-1",
+      "Statement": [
+        {
+          "Action": "kms:*",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:root"
+          },
+          "Resource": "*",
+          "Sid": "Enable IAM User Permissions"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "policy_std": {
+      "Id": "key-default-1",
+      "Statement": [
+        {
+          "Action": [
+            "kms:*"
+          ],
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": [
+              "arn:aws:iam::013122550996:root"
+            ]
+          },
+          "Resource": [
+            "*"
+          ],
+          "Sid": "Enable IAM User Permissions"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "tags_raw": [
+      {
+        "TagKey": "Name",
+        "TagValue": "{{ resourceName }}"
+      }
+    ]
+  }
+]

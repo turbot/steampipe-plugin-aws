@@ -1,0 +1,24 @@
+[
+  {
+    "allocated_storage": 20,
+    "arn": "{{ output.resource_aka.value }}",
+    "db_instance_identifier": "{{ output.db_instance_identifier.value }}",
+    "db_snapshot_identifier": "{{resourceName}}",
+    "encrypted": false,
+    "engine": "mysql",
+    "engine_version": "8.0.20",
+    "iam_database_authentication_enabled": false,
+    "license_model": "general-public-license",
+    "master_user_name": "turbottest",
+    "port": 3306,
+    "storage_type": "gp2",
+    "tag_list": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "type": "manual",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "Terraform created resource to verify table",
+    "name": "{{resourceName}}",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

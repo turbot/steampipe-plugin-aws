@@ -1,0 +1,24 @@
+[
+  {
+    "attached_policy_arns": [
+      "{{ output.attached_policy_arn.value }}"
+    ],
+    "group_id": "{{ output.group_id.value }}",
+    "inline_policies": [
+      {
+        "PolicyDocument": {
+          "Statement":[
+            {
+              "Action":["ec2:Describe*"],
+              "Effect":"Allow",
+              "Resource":"*"}
+          ],
+          "Version":"2012-10-17"
+        },
+        "PolicyName":"{{ resourceName }}"
+      }
+    ],
+    "name": "{{ resourceName }}",
+    "users": null
+  }
+]

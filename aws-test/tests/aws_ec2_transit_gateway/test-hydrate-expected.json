@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}",
+    "transit_gateway_id": "{{ output.transit_gateway_id.value }}"
+  }
+]

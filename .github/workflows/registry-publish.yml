@@ -1,0 +1,293 @@
+
+# This workflow will build a steampipe plugin image and publish it to Google Container Registry
+#
+# To configure this workflow:
+#
+# 1. Set up secrets in your workspace:   
+#   - STEAMPIPE_REGISTRY_SA_KEY with the Base64 encoded JSON service account key (https://github.com/GoogleCloudPlatform/github-actions/tree/docs/service-account-key/setup-gcloud#inputs).
+#   - CODY_MODS_GH_PAT the token for the turbot-mods github user.  This is required to pull dependencies from turbot private repos.  
+#         Once the repos are public, this can be removed
+# 2. Change the values for the environment variables (below).
+
+name: Build and Deploy OCI Image 
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PROJECT_ID: steampipe
+  PLUGIN_NAME: aws
+  ORG: turbot
+  PLUGIN_REPO: us-docker.pkg.dev/steampipe/plugins
+  CONFIG_SCHEMA_VERSION: "2020-11-18"
+
+jobs:
+  build: 
+    name: Build 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14
+
+      - name: Get latest version tag
+        run: |-
+          echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Trim tag
+        run: |-
+          echo $VERSION
+          trim=${VERSION#"v"}
+          echo $trim
+          echo "VERSION=${trim}" >> $GITHUB_ENV
+
+      - name: Validate Version String
+        run: |-
+          if [[ $VERSION =~  ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version OK: $VERSION"
+          else
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+
+      - name: Ensure Version Does Not Exist
+        run: |-
+          URL=https://$(echo $PLUGIN_REPO | sed 's/\//\/v2\//')/$ORG/$PLUGIN_NAME/tags/list
+          IDX=$(curl -L $URL | jq ".tags | index(\"$VERSION\")")
+          if [ $IDX == "null" ]; then
+            echo "OK - Version does not exist: $VERSION"
+          else
+            echo "Version already exists: $VERSION"
+            exit 1
+          fi
+
+      - name: Hook private repo
+        run: git config --global url."https://turbot-mods:${{ secrets.TURBOT_MODS_GH_PAT }}@github.com".insteadOf "https://github.com"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist --skip-publish
+        env:
+          GOPRIVATE: github.com/turbotio
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List Build Artifacts
+        run: ls -laR ./dist
+
+      - name: Save Linux Build Artifact - AMD64
+        uses: actions/upload-artifact@v2
+        with:
+          name: steampipe-aws_linux_amd64
+          path: ./dist/steampipe-plugin-aws_linux_amd64.gz
+          if-no-files-found: error
+
+      - name: Save Linux Build Artifact - ARM64
+        uses: actions/upload-artifact@v2
+        with:
+          name: steampipe-aws_linux_arm64
+          path: ./dist/steampipe-plugin-aws_linux_arm64.gz
+          if-no-files-found: error
+
+      - name: Save MacOS Build Artifact - AMD64
+        uses: actions/upload-artifact@v2
+        with:
+          name: steampipe-aws_darwin_amd64
+          path: ./dist/steampipe-plugin-aws_darwin_amd64.gz
+          if-no-files-found: error
+
+  # test-amd64:
+  #   name: Integration Test
+  #   runs-on: ${{ matrix.os }}
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest, windows-latest]
+  #   steps:
+ 
+
+    
+  # test-darwin-amd64:
+  #   name: Test MacOS (AMD64)
+  #   runs-on: macos-latest
+  #   needs: build
+
+  # test-linux-amd64:
+  #   name: Test Linux (AMD64)
+  #   runs-on: ubuntu-latest
+  #   needs: build
+
+  # test-windows-amd64:
+  #   name: Test Windows (AMD64)
+  #   runs-on: windows-latest
+  #   needs: build
+
+  # There are no runners for amd64 - would need to run our own...
+
+  publish-deploy:
+    name: Publish and Deploy
+    runs-on: ubuntu-latest
+    needs: 
+      - build
+      # - test-darwin-amd64
+      # - test-linux-amd64
+      # - test-windows-amd64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@v0.2.0
+      with:
+        service_account_key: ${{ secrets.STEAMPIPE_REGISTRY_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+        
+    - run: gcloud config list
+
+    - run: gcloud components install beta
+
+    # Configure Docker to use the gcloud command-line tool as a credential
+    # helper for authentication
+    - run: |-
+        gcloud beta auth configure-docker us-docker.pkg.dev
+      
+    - run: oras version   # oras is pre-installed on the image...
+
+    - name: Download steampipe-aws_linux_amd64
+      uses: actions/download-artifact@v2
+      with:
+        name: steampipe-aws_linux_amd64
+        
+    - name: Download steampipe-aws_linux_arm64
+      uses: actions/download-artifact@v2
+      with:
+        name: steampipe-aws_linux_arm64
+        
+    - name: Download steampipe-aws_darwin_amd64
+      uses: actions/download-artifact@v2
+      with:
+        name: steampipe-aws_darwin_amd64
+
+    - name: List files
+      run: ls -l
+
+    # create the config file
+    - run: |-
+        JSON_STRING=$( jq -n \
+                  --arg name "$PLUGIN_NAME" \
+                  --arg organization "$ORG" \
+                  --arg version "$VERSION" \
+                  --arg schemaVersion "$CONFIG_SCHEMA_VERSION" \
+                  '{schemaVersion: $schemaVersion, plugin: { name: $name, organization: $organization, version: $version} }' )
+
+        echo $JSON_STRING > config.json
+
+    - run: cat config.json
+
+    # create the annotations file
+    - run: |-
+        JSON_STRING=$( jq -n \
+                  --arg title "$PLUGIN_NAME" \
+                  --arg desc "$ORG" \
+                  --arg version "$VERSION" \
+                  --arg timestamp "$(date +%FT%T%z)" \
+                  --arg repo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+                  --arg commit "$GITHUB_SHA" \
+                  --arg vendor "Turbot HQ, Inc." \
+                '{ 
+                  "$manifest": { 
+                      "org.opencontainers.image.title": $title, 
+                      "org.opencontainers.image.description": $desc,
+                      "org.opencontainers.image.version": $version, 
+                      "org.opencontainers.image.created": $timestamp,
+                      "org.opencontainers.image.source": $repo, 
+                      "org.opencontainers.image.revision": $commit, 
+                      "org.opencontainers.image.vendor":  $vendor
+                  }
+                }' )
+
+          echo $JSON_STRING > annotations.json
+
+    - run: cat annotations.json 
+
+    - run: cat README.md
+
+    # push to the registry
+    - run: |-
+        REF="$PLUGIN_REPO/$ORG/$PLUGIN_NAME:$GITHUB_RUN_ID"
+        oras push $REF \
+          --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
+          --manifest-annotations annotations.json \
+          steampipe-plugin-aws_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
+          steampipe-plugin-aws_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
+          steampipe-plugin-aws_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
+          docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
+          config:application/vnd.turbot.steampipe.plugin.spc.layer.v1+tar 
+
+  tag-versions:
+    name: Set Version tags
+    runs-on: ubuntu-latest
+    needs: 
+      - publish-deploy
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@v0.2.0
+      with:
+        service_account_key: ${{ secrets.STEAMPIPE_REGISTRY_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    - run: gcloud config list --quiet
+
+    - run: gcloud components install alpha --quiet
+
+    - name: Get latest version tag
+      run: |-
+        echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+    - name: Trim tag
+      run: |-
+        echo $VERSION
+        trim=${VERSION#"v"}
+        echo $trim
+        echo "VERSION=${trim}" >> $GITHUB_ENV
+
+    - name: Validate Version String
+      run: |-
+        if [[ $VERSION =~  ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Version OK: $VERSION"
+        else
+          echo "Invalid version: $VERSION"
+          exit 1
+        fi
+
+    - name: Ensure Version Does Not Exist
+      run: |-
+        URL=https://$(echo $PLUGIN_REPO | sed 's/\//\/v2\//')/$ORG/$PLUGIN_NAME/tags/list
+        IDX=$(curl -L $URL | jq ".tags | index(\"$VERSION\")")
+        if [ $IDX == "null" ]; then
+          echo "OK - Version does not exist: $VERSION"
+        else
+          echo "Version already exists: $VERSION"
+          exit 1
+        fi
+
+    - name: Set version tags
+      uses: ./.github/actions/semver-tags 
+      id: semver
+      with:
+        image-to-tag: "${{ env.PLUGIN_REPO }}/${{ env.ORG }}/${{ env.PLUGIN_NAME }}:${{ github.run_id  }}"
+        image-version: ${{ env.VERSION }}

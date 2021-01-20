@@ -1,0 +1,6 @@
+[
+  {
+    "target_group_arn": "{{ output.resource_aka.value }}",
+    "target_group_name": "{{resourceName}}"
+  }
+]

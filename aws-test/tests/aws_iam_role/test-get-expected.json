@@ -1,0 +1,60 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "arn:aws:iam::{{ output.account_id.value }}:role/{{resourceName}}"
+    ],
+    "arn": "{{ output.resource_aka.value }}",
+    "assume_role_policy": {
+      "Statement": [
+        {
+          "Action": "sts:AssumeRole",
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ec2.amazonaws.com"
+          },
+          "Sid": "test"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "assume_role_policy_std": {
+      "Statement": [
+        {
+          "Action": [
+            "sts:assumerole"
+          ],
+          "Effect": "Allow",
+          "Principal": {
+            "Service": [
+              "ec2.amazonaws.com"
+            ]
+          },
+          "Sid": "test"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "attached_policy_arns": null,
+    "description": "Test Role",
+    "inline_policies": null,
+    "max_session_duration": 3600,
+    "name": "{{resourceName}}",
+    "partition": "{{ output.aws_partition.value }}",
+    "path": "/",
+    "permissions_boundary_arn": null,
+    "permissions_boundary_type": null,
+    "role_last_used_date": null,
+    "role_last_used_region": null,
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "tags_raw": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "title": "{{resourceName}}"
+  }
+]

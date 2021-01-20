@@ -1,0 +1,55 @@
+[
+  {
+    "policy": {
+      "Id": "default",
+      "Statement": [
+        {
+          "Action": "lambda:InvokeFunction",
+          "Condition": {
+            "ArnLike": {
+              "AWS:SourceArn": "{{ output.sns_arn.value }}"
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "sns.amazonaws.com"
+          },
+          "Resource": "{{ output.resource_aka.value }}",
+          "Sid": "AllowExecutionFromSNS"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "policy_std": {
+      "Id": "default",
+      "Statement": [
+        {
+          "Action": [
+            "lambda:invokefunction"
+          ],
+          "Condition": {
+            "ArnLike": {
+              "aws:sourcearn": [
+                "{{ output.sns_arn.value }}"
+              ]
+            }
+          },
+          "Effect": "Allow",
+          "Principal": {
+            "Service": [
+              "sns.amazonaws.com"
+            ]
+          },
+          "Resource": [
+            "{{ output.resource_aka.value }}"
+          ],
+          "Sid": "AllowExecutionFromSNS"
+        }
+      ],
+      "Version": "2012-10-17"
+    },
+    "tags": {
+      "name": "{{resourceName}}"
+    }
+  }
+]

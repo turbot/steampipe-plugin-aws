@@ -1,0 +1,20 @@
+[
+  {
+    "attribute_definitions": [
+      {
+        "AttributeName": "userId",
+        "AttributeType": "S"
+      }
+    ],
+    "key_schema": [
+      {
+        "AttributeName": "userId",
+        "KeyType": "HASH"
+      }
+    ],
+    "name": "{{resourceName}}",
+    "read_capacity": 20,
+    "table_arn": "{{output.resource_aka.value}}",
+    "write_capacity": 20
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "ip_address_type": "ipv4",
+    "name": "{{resourceName}}",
+    "scheme": "internet-facing",
+    "state_code": "active",
+    "type": "application",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

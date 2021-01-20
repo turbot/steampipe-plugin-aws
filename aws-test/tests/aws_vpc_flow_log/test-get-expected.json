@@ -1,0 +1,17 @@
+[
+  {
+    "deliver_logs_permission_arn": "{{ output.role_arn.value }}",
+    "flow_log_id": "{{ output.resource_id.value }}",
+    "log_destination": "{{ output.log_group_arn.value }}",
+    "log_destination_type": "cloud-watch-logs",
+    "log_format": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
+    "log_group_name": "{{resourceName}}",
+    "tags": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "traffic_type": "ALL"
+  }
+]

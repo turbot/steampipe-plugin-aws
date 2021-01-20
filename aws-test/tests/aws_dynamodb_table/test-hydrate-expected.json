@@ -1,0 +1,10 @@
+[
+  {
+    "continuous_backups_status": "ENABLED",
+    "point_in_time_recovery_description": {
+      "EarliestRestorableDateTime": null,
+      "LatestRestorableDateTime": null,
+      "PointInTimeRecoveryStatus": "DISABLED"
+    }
+  }
+]

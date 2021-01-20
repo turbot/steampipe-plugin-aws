@@ -1,0 +1,6 @@
+[
+  {
+    "interface_type": "interface",
+    "network_interface_id": "{{ output.resource_id.value }}"
+  }
+]

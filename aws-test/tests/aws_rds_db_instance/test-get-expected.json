@@ -1,0 +1,31 @@
+[
+  {
+    "allocated_storage": 5,
+    "arn": "{{ output.resource_aka.value }}",
+    "auto_minor_version_upgrade": true,
+    "class": "db.m5.large",
+    "copy_tags_to_snapshot": false,
+    "customer_owned_ip_enabled": false,
+    "db_instance_identifier": "{{resourceName}}",
+    "db_subnet_group_name": "{{resourceName}}",
+    "deletion_protection": false,
+    "endpoint_port": 3306,
+    "engine": "mysql",
+    "engine_version": "8.0.20",
+    "iam_database_authentication_enabled": false,
+    "master_user_name": "master",
+    "multi_az": false,
+    "performance_insights_enabled": false,
+    "port": 0,
+    "publicly_accessible": false,
+    "resource_id": "{{ output.resource_id.value }}",
+    "storage_encrypted": true,
+    "storage_type": "gp2",
+    "tag_list": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

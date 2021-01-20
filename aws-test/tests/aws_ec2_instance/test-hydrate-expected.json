@@ -1,0 +1,18 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "disable_api_termination": false,
+    "instance_id": "{{ output.resource_id.value }}",
+    "instance_initiated_shutdown_behavior": "stop",
+    "kernel_id": null,
+    "ram_disk_id": null,
+    "sriov_net_support": "simple",
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}",
+    "user_data": "dHVyYm90"
+  }
+]

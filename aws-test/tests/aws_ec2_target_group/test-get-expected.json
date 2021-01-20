@@ -1,0 +1,19 @@
+[
+  {
+    "health_check_enabled": true,
+    "health_check_interval_seconds": 30,
+    "health_check_path": "/",
+    "health_check_port": "traffic-port",
+    "health_check_protocol": "HTTP",
+    "health_check_timeout_seconds": 5,
+    "healthy_threshold_count": 5,
+    "matcher_http_code": "200",
+    "port": 80,
+    "protocol": "HTTP",
+    "target_group_arn": "{{ output.resource_aka.value }}",
+    "target_group_name": "{{resourceName}}",
+    "target_type": "instance",
+    "unhealthy_threshold_count": 2,
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

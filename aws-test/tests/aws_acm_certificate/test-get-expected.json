@@ -1,0 +1,8 @@
+[
+  {
+    "certificate_arn": "{{ output.resource_aka.value}}",
+    "domain_name": "turbot.com",
+    "in_use_by": [],
+    "issuer": "Turbot HQ Pvt. Ltd."
+  }
+]

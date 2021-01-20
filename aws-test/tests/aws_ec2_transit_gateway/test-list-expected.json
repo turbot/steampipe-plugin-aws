@@ -1,0 +1,6 @@
+[
+  {
+    "transit_gateway_arn": "{{ output.resource_aka.value }}",
+    "transit_gateway_id": "{{ output.transit_gateway_id.value }}"
+  }
+]

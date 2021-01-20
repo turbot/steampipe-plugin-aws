@@ -1,0 +1,13 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "arn:{{ output.aws_partition.value }}::ap-south-1:{{ output.account_id.value }}"
+    ],
+    "name": "ap-south-1",
+    "opt_in_status": "opt-in-not-required",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "global",
+    "title": "ap-south-1"
+  }
+]

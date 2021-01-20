@@ -1,0 +1,22 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "image_id": "{{ output.resource_id.value }}",
+    "launch_permissions": [
+      {
+        "Group":null,
+        "UserId":"013122550996"
+      },
+      {
+        "Group":null,
+        "UserId":"388460667113"
+      }
+    ],
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]

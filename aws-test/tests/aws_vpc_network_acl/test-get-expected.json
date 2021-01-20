@@ -1,0 +1,62 @@
+[
+  {
+    "entries": [
+      {
+        "CidrBlock": "10.3.0.0/18",
+        "Egress": true,
+        "IcmpTypeCode": null,
+        "Ipv6CidrBlock": null,
+        "PortRange": {
+          "From": 443,
+          "To": 443
+        },
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "RuleNumber": 200
+      },
+      {
+        "CidrBlock": "0.0.0.0/0",
+        "Egress": true,
+        "IcmpTypeCode": null,
+        "Ipv6CidrBlock": null,
+        "PortRange": null,
+        "Protocol": "-1",
+        "RuleAction": "deny",
+        "RuleNumber": 32767
+      },
+      {
+        "CidrBlock": "10.3.0.0/18",
+        "Egress": false,
+        "IcmpTypeCode": null,
+        "Ipv6CidrBlock": null,
+        "PortRange": {
+          "From": 80,
+          "To": 80
+        },
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "RuleNumber": 100
+      },
+      {
+        "CidrBlock": "0.0.0.0/0",
+        "Egress": false,
+        "IcmpTypeCode": null,
+        "Ipv6CidrBlock": null,
+        "PortRange": null,
+        "Protocol": "-1",
+        "RuleAction": "deny",
+        "RuleNumber": 32767
+      }
+    ],
+    "is_default": false,
+    "network_acl_id": "{{ output.resource_id.value }}",
+    "owner_id": "{{ output.account_id.value }}",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "ebs_optimized": false,
+    "image_id": "{{ output.image_id.value }}",
+    "instance_monitoring_enabled": true,
+    "instance_type": "t2.nano",
+    "launch_configuration_arn": "{{ output.resource_aka.value }}",
+    "name": "{{resourceName}}"
+  }
+]

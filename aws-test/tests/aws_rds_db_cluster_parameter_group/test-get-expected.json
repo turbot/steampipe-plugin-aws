@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "db_parameter_group_family": "aurora5.6",
+    "description": "Terraform created resource to verify table",
+    "name": "{{resourceName}}"
+  }
+]

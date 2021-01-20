@@ -1,0 +1,14 @@
+[
+  {
+    "akas": [
+      "{{output.resource_aka.value}}"
+    ],
+    "api_endpoint": "{{output.api_endpoint.value}}",
+    "api_id": "{{output.resource_id.value}}",
+    "name": "{{resourceName}}",
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]

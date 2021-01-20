@@ -1,0 +1,13 @@
+[
+  {
+    "akas": [
+      "arn:{{ output.aws_partition.value }}:ec2:{{ output.region_name.value }}:{{ output.account_id.value }}:key-pair/{{resourceName}}"
+    ],
+    "key_name": "{{resourceName}}",
+    "key_pair_id": "{{ output.resource_id.value }}",
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]

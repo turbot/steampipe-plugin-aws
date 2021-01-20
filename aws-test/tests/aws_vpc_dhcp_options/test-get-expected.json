@@ -1,0 +1,11 @@
+[
+  {
+    "dhcp_options_id": "{{output.resource_id.value}}",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

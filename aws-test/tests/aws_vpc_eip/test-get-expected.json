@@ -1,0 +1,14 @@
+[
+  {
+    "allocation_id": "{{ output.resource_id.value }}",
+    "domain": "vpc",
+    "public_ip": "{{ output.public_ip.value }}",
+    "public_ipv4_pool": "amazon",
+    "tags_raw": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

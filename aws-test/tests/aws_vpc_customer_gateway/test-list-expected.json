@@ -1,0 +1,6 @@
+[
+  {
+    "customer_gateway_id": "{{ output.resource_id.value }}",
+    "type": "ipsec.1"
+  }
+]

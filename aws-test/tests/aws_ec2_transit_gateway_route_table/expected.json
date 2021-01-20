@@ -1,0 +1,6 @@
+[
+  {
+    "transit_gateway_id": "{{ output.transit_gateway_id.value }}",
+    "transit_gateway_route_table_id": "{{ output.resource_id.value }}"
+  }
+]

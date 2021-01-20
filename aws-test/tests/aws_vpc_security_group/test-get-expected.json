@@ -1,0 +1,15 @@
+[
+  {
+    "description": "Test Security Group.",
+    "group_id": "{{ output.resource_id.value }}",
+    "group_name": "{{resourceName}}",
+    "owner_id": "{{ output.account_id.value }}",
+    "tags_raw": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]
