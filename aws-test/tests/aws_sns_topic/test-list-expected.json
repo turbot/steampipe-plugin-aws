@@ -85,7 +85,7 @@
     "subscriptions_confirmed": 0,
     "subscriptions_deleted": 0,
     "subscriptions_pending": 0,
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

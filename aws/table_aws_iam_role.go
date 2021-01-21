@@ -110,7 +110,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Description: "Contains the region in which the IAM role was used",
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags that are attached to the role",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

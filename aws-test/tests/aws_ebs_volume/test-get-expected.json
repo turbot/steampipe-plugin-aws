@@ -3,7 +3,7 @@
     "attachments": null,
     "encrypted": false,
     "multi_attach_enabled": false,
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{ resourceName }}"

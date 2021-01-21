@@ -30,7 +30,7 @@
     "root_device_name": "/dev/sda1",
     "root_device_type": "ebs",
     "sriov_net_support": "simple",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

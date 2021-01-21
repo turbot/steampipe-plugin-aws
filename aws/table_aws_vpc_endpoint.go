@@ -101,7 +101,7 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_DATETIME,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to the VPC endpoint",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

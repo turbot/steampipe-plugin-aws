@@ -98,7 +98,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags that are attached to the user",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserData,

@@ -51,7 +51,7 @@
     "is_default": false,
     "network_acl_id": "{{ output.resource_id.value }}",
     "owner_id": "{{ output.account_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

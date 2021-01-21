@@ -59,7 +59,7 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_IPADDR,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags that are attached to customer gateway",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

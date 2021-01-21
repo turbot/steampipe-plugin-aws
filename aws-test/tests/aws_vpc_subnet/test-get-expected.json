@@ -7,7 +7,7 @@
     "owner_id": "{{ output.account_id.value }}",
     "subnet_arn": "{{ output.resource_aka.value }}",
     "subnet_id": "{{ output.resource_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

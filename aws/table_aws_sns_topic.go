@@ -74,7 +74,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.KmsMasterKeyId"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "The list of tags associated with the topic",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,

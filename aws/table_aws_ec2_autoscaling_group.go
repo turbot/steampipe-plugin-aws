@@ -223,7 +223,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to the Auto Scaling Group",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

@@ -14,7 +14,7 @@
     "connection_draining_timeout": 300,
     "connection_settings_idle_timeout": 60,
     "cross_zone_load_balancing_enabled": true,
-    "tags_raw":  [
+    "tags_src":  [
       {
         "Key": "Name",
         "Value": "{{ resourceName }}"

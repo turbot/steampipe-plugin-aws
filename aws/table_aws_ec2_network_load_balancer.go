@@ -111,7 +111,7 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the load balancer",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2NetworkLoadBalancerTags,

@@ -4,7 +4,7 @@
     "domain": "vpc",
     "public_ip": "{{ output.public_ip.value }}",
     "public_ipv4_pool": "amazon",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

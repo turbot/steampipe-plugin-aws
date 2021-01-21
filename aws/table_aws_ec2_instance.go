@@ -246,7 +246,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to the instance",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

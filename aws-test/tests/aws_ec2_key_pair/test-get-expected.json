@@ -3,7 +3,7 @@
     "key_fingerprint": "{{ output.key_fingerprint.value }}",
     "key_name": "{{resourceName}}",
     "key_pair_id": "{{ output.resource_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

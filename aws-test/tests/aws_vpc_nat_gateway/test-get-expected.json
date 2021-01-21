@@ -10,7 +10,7 @@
      ],
     "nat_gateway_id": "{{ output.resource_id.value }}",
     "subnet_id": "{{ output.subnet_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

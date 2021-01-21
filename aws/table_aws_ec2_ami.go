@@ -155,7 +155,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("LaunchPermissions"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the AMI",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

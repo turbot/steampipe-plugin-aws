@@ -7,7 +7,7 @@
     "description": "Test transit gateway",
     "dns_support": "enable",
     "owner_id": "{{ output.account_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

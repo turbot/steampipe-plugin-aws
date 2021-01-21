@@ -8,7 +8,7 @@
     "instance_id": "{{ output.resource_id.value }}",
     "instance_type": "t2.micro",
     "monitoring_state": "disabled",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

@@ -6,7 +6,7 @@
     "name": "{{resourceName}}",
     "permissions_boundary_arn": "",
     "permissions_boundary_type": "",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

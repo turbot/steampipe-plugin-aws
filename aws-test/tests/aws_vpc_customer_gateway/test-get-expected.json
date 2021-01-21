@@ -3,7 +3,7 @@
     "bgp_asn": "65000",
     "customer_gateway_id": "{{ output.resource_id.value }}",
     "ip_address": "172.83.124.10",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

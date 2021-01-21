@@ -5,7 +5,7 @@
     ],
     "dhcp_options_id": "{{output.resource_id.value}}",
     "tags": {"Name":"{{resourceName}}"},
-    "tags_raw": [
+    "tags_src": [
       {
         "Key":"Name",
         "Value": "{{resourceName}}"

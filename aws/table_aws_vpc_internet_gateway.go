@@ -39,7 +39,7 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "tags assigned to the internet gateway",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

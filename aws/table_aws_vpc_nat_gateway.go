@@ -75,7 +75,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ProvisionedBandwidth"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags that are attached to NAT gateway",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
