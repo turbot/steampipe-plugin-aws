@@ -102,8 +102,10 @@ github.com/tkrajina/go-reflector v0.5.4 h1:dS9aJEa/eYNQU/fwsb5CSiATOxcNyA/gG/A7a
 github.com/tkrajina/go-reflector v0.5.4/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
 github.com/turbot/go-kit v0.0.0-20210119154454-db924443f736 h1:j/cfIwIBSX4Z23k50mgu7eLOGVcPi62ebV1Wm98OCyU=
 github.com/turbot/go-kit v0.0.0-20210119154454-db924443f736/go.mod h1:hO/mY90fJXLWAJnAoDkYMvi3LVZ/r+z1tiz3E1uPSNA=
-github.com/turbot/steampipe-plugin-sdk v0.0.0-20210119154656-52569ae6f10d h1:/h1X0W74GUatUoaNxoS951scw+DK60CIZ49brL+uzaY=
-github.com/turbot/steampipe-plugin-sdk v0.0.0-20210119154656-52569ae6f10d/go.mod h1:jhmUevBAJQhpxCtwP+pnpYI13/ODrZb7eCI8MKd8jZA=
+github.com/turbot/go-kit v0.1.0 h1:XioAB9/2rN5dbL7honmvhqyF4Wxh/k2VhL5rqyMhFx8=
+github.com/turbot/go-kit v0.1.0/go.mod h1:hO/mY90fJXLWAJnAoDkYMvi3LVZ/r+z1tiz3E1uPSNA=
+github.com/turbot/steampipe-plugin-sdk v0.1.0 h1:M84UVDXVBAyK9MTJaydpMVROVOavNqaFfhC+mrfnUTo=
+github.com/turbot/steampipe-plugin-sdk v0.1.0/go.mod h1:jhmUevBAJQhpxCtwP+pnpYI13/ODrZb7eCI8MKd8jZA=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
