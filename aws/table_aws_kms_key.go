@@ -323,7 +323,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	if keyTags.Tags != nil {
-		tagsData["TagsRaw"] = keyTags.Tags
+		tagsData["TagsSrc"] = keyTags.Tags
 
 		turbotTagsMap := make(map[string]string)
 		for _, t := range keyTags.Tags {

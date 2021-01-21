@@ -223,7 +223,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return map[string]interface{}{
-		"TagsRaw":                 tags,
+		"TagsSrc":                 tags,
 		"Tags":                    turbotTags,
 		"PermissionsBoundaryArn":  PermissionsBoundaryArn,
 		"PermissionsBoundaryType": PermissionsBoundaryType,
