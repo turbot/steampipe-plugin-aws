@@ -48,7 +48,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date_time",
 				Description: "The date and time when the table was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("CreationDateTime"),
 			},

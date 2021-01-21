@@ -47,7 +47,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_date",
 				Description: "The timestamp when the stage was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Stage.CreatedDate"),
 			},
 			{
@@ -101,7 +101,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_updated_date",
 				Description: "The timestamp when the stage last updated",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Stage.LastUpdatedDate"),
 			},
 			{

@@ -57,7 +57,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 			// Other Columns
 			{
 				Name:        "create_date",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Description: "The date and time when the role was created",
 			},
 			{
@@ -98,7 +98,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 			},
 			{
 				Name: "role_last_used_date",
-				Type: proto.ColumnType_DATETIME,
+				Type: proto.ColumnType_TIMESTAMP,
 				Description: "Contains information about the last time that an IAM role was used. " +
 					"Activity is only reported for the trailing 400 days. This period can be " +
 					"shorter if your Region began supporting these features within the last year. " +

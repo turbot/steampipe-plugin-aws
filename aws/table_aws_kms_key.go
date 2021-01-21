@@ -50,7 +50,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date",
 				Description: "The date and time when the CMK was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.CreationDate"),
 			},
@@ -85,7 +85,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 			{
 				Name:        "deletion_date",
 				Description: "The date and time after which AWS KMS deletes the CMK",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.DeletionDate"),
 			},
@@ -113,7 +113,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 			{
 				Name:        "valid_to",
 				Description: "The time at which the imported key material expires",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.ValidTo"),
 			},

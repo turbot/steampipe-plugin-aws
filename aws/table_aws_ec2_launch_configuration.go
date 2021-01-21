@@ -38,7 +38,7 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_time",
 				Description: "The creation date and time for the launch configuration",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "image_id",

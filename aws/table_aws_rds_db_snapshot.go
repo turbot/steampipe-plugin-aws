@@ -53,7 +53,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "Specifies when the snapshot was taken",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("SnapshotCreateTime"),
 			},
 			{
@@ -101,7 +101,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "instance_create_time",
 				Description: "Specifies the time when the DB instance, from which the snapshot was taken, was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "iops",

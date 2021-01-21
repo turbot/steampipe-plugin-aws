@@ -53,7 +53,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "start_time",
 				Description: "The time stamp when the snapshot was initiated",
-				Type:        pb.ColumnType_DATETIME,
+				Type:        pb.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "description",

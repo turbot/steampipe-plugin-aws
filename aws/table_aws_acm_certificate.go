@@ -56,7 +56,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_at",
 				Description: "The time at which the certificate was requested. This value exists only when the certificate type is AMAZON_ISSUED",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Certificate.CreatedAt"),
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
@@ -91,7 +91,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			{
 				Name:        "issued_at",
 				Description: "A list of ARNs for the AWS resources that are using the certificate. A certificate can be used by multiple AWS resources",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Certificate.IssuedAt"),
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
@@ -112,14 +112,14 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			{
 				Name:        "not_after",
 				Description: "The time after which the certificate is not valid",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Certificate.NotAfter"),
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
 				Name:        "not_before",
 				Description: "The time before which the certificate is not valid",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Certificate.NotBefore"),
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
@@ -133,7 +133,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			{
 				Name:        "revoked_at",
 				Description: "The time at which the certificate was revoked. This value exists only when the certificate status is REVOKED",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Certificate.RevokedAt"),
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},

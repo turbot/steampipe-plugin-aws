@@ -44,7 +44,7 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date_time",
 				Description: "The creation time of the global table",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getDynamboDbGlobalTable,
 			},
 			{

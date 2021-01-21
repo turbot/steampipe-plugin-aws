@@ -44,7 +44,7 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_date",
 				Description: "The date when the access key was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "title",

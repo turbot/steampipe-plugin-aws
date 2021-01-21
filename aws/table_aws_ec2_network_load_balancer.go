@@ -58,7 +58,7 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_time",
 				Description: "The date and time the load balancer was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "customer_owned_ipv4_pool",

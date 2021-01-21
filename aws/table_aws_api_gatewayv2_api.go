@@ -58,7 +58,7 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_date",
 				Description: "The timestamp when the API was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "tags",

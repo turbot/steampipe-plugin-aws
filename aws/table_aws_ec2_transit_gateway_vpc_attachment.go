@@ -46,7 +46,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_time",
 				Description: "The creation time of the transit gateway attachment",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "resource_id",

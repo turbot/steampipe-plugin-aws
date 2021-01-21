@@ -44,7 +44,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_time",
 				Description: "The date and time group was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "new_instances_protected_from_scale_in",

@@ -59,7 +59,7 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "The time when the snapshot was taken",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("SnapshotCreateTime"),
 			},
 			{
@@ -70,7 +70,7 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "cluster_create_time",
 				Description: "Specifies the time when the DB cluster was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "engine",
