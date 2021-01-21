@@ -64,13 +64,13 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 			{
 				Name:        "backup_creation_datetime",
 				Description: "Time at which the backup was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("BackupCreationDateTime"),
 			},
 			{
 				Name:        "backup_expiry_datetime",
 				Description: "Time at which the automatic on-demand backup created by DynamoDB will expire",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("BackupExpiryDateTime"),
 			},
 			{

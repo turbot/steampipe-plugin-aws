@@ -35,7 +35,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_time",
 				Description: "The creation time of the metric filter",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("CreationTime").Transform(convertTimestamp),
 			},
 			{

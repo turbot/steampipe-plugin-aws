@@ -74,7 +74,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date",
 				Description: "The date and tiem when bucket was created.",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "bucket_policy_is_public",

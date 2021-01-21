@@ -57,7 +57,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_date",
 				Description: "The date and time, when the group was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "inline_policies",

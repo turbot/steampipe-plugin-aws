@@ -187,7 +187,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "Provides the date and time the DB instance was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("InstanceCreateTime"),
 			},
 			{
@@ -203,7 +203,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "latest_restorable_time",
 				Description: "Specifies the latest time to which a database can be restored with point-in-time restore",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "license_model",

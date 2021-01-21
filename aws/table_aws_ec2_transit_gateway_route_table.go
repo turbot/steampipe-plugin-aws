@@ -45,7 +45,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_time",
 				Description: "The creation time of transit gateway route table",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "default_association_route_table",

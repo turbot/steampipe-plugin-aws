@@ -53,7 +53,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "Specifies the time when the DB cluster was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("ClusterCreateTime"),
 			},
 			{
@@ -146,12 +146,12 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "earliest_backtrack_time",
 				Description: "The earliest time to which a DB cluster can be backtracked",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "earliest_restorable_time",
 				Description: "The earliest time to which a database can be restored with point-in-time restore",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "endpoint",
@@ -208,7 +208,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "latest_restorable_time",
 				Description: "Specifies the latest time to which a database can be restored with point-in-time restore",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "master_user_name",

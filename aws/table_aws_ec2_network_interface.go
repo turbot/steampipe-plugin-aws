@@ -126,7 +126,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 			{
 				Name:        "attachment_time",
 				Description: "The timestamp indicating when the attachment initiated",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Attachment.AttachTime"),
 			},
 			{

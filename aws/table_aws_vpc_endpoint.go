@@ -98,7 +98,7 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_timestamp",
 				Description: "The date and time that the VPC endpoint was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "tags_src",

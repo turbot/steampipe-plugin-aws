@@ -60,12 +60,12 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_date",
 				Description: "The date and time, when the policy was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "update_date",
 				Description: "The date and time, when the policy was last updated",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "attachment_count",

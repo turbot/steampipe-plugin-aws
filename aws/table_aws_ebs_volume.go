@@ -42,7 +42,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "The time stamp when volume creation was initiated",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "auto_enable_io",

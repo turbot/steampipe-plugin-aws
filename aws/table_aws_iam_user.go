@@ -57,12 +57,12 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_date",
 				Description: "The date and time, when the user was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "password_last_used",
 				Description: "The date and time, when the user's password was last used to sign in to an AWS website",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "permissions_boundary_arn",

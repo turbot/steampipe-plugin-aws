@@ -41,7 +41,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_time",
 				Description: "The date and time the NAT gateway was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "vpc_id",
@@ -56,7 +56,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 			{
 				Name:        "delete_time",
 				Description: "The date and time the NAT gateway was deleted, if applicable",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "failure_code",

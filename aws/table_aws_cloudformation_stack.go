@@ -48,7 +48,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_time",
 				Description: "The time at which the stack was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "disable_rollback",
@@ -63,7 +63,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_updated_time",
 				Description: "The time the stack was last updated. This field will only be returned if the stack has been updated at least once",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "parent_id",

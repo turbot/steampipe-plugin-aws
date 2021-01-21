@@ -55,7 +55,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date",
 				Description: "The date and time when the image was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "architecture",

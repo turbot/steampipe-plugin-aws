@@ -55,7 +55,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_time",
 				Description: "The date and time when transit gateway was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "amazon_side_asn",

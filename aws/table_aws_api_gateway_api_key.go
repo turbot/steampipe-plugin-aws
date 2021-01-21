@@ -43,12 +43,12 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_date",
 				Description: "The timestamp when the API Key was created",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "last_updated_date",
 				Description: "The timestamp when the API Key was last updated",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "customer_id",
