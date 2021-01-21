@@ -1,40 +1,55 @@
 <p align="center">
-    <h2 align="center">Steampipe Plugin for AWS</h2>
+    <h1 align="center">AWS Plugin for Steampipe</h1>
 </p>
 
 <p align="center">
-  <a aria-label="Turbot logo" href="https://turbot.com">
-    <img src="https://steampipe.io/images/made-by-turbot-badge.svg" height="28">
-  </a>
-  <a aria-label="Plugin version" href="https://steampipe.io/download">
-    <img alt="" src="https://img.shields.io/static/v1?label=steampipe&message=plugin&style=for-the-badge&labelColor=000000&color=1D3C71">
+  <a aria-label="Steampipe logo" href="https://steampipe.io">
+    <img src="https://steampipe.io/images/steampipe_logo_wordmark_padding.svg" height="28">
   </a>
   <a aria-label="Plugin version" href="https://hub.steampipe.io/plugins/turbot/aws">
-    <img alt="" src="https://img.shields.io/static/v1?label=turbot/aws&message=v0.1.0&style=for-the-badge&labelColor=000000&color=C7272E">
+    <img alt="" src="https://img.shields.io/static/v1?label=turbot/aws&message=v0.1.0&style=for-the-badge&labelColor=777777&color=F3F1F0">
   </a>
-  <a aria-label="License" href="https://github.com/turbot/steampipe/license.md">
-    <img alt="" src="https://img.shields.io/static/v1?label=license&message=mozilla&style=for-the-badge&labelColor=000000&color=27C7C0">
+  &nbsp;
+  <a aria-label="License" href="LICENSE">
+    <img alt="" src="https://img.shields.io/static/v1?label=license&message=MPL-2.0&style=for-the-badge&labelColor=777777&color=F3F1F0">
   </a>
 </p>
 
-## About AWS plugin
+## Query AWS with SQL
 
-This plugin defines the interface and table schemas for support of the AWS service.
+Use SQL to query IAM users, EC2 instances and more from your AWS account. For example:
 
-## Plugin Documentation
+```sql
+select
+  name,
+  user_id,
+  path,
+  create_date,
+  password_last_used
+from
+  aws_iam_user;
+```
 
-Visit [https://hub.steampipe.io/plugins/turbot/aws](https://hub.steampipe.io/plugins/turbot/aws) to view the full documentation.
+Learn about [Steampipe](https://steampipe.io/).
 
-## Just getting Started with Steampipe?
+## Get started
 
-Visit <a aria-label="steampipe" href="https://steampipe.io/">https://steampipe.io/</a> to get started with Steampipe.
+**[Table documentation and examples &rarr;](https://hub.steampipe.io/plugins/turbot/aws)**
 
-## Community
+Install the plugin:
+
+```shell
+steampipe plugin install aws
+```
+
+## Get involved
+
+### Community
 
 The Steampipe community can be found on [GitHub Discussions](https://github.com/turbot/steampipe/discussions), where you can ask questions, voice ideas, and share your projects.
 
 Our [Code of Conduct](https://github.com/turbot/steampipe/CODE_OF_CONDUCT.md) applies to all Steampipe community channels.
 
-## Contributing
+### Contributing
 
-Please see our [contributing.md](https://github.com/turbot/steampipe/contributing.md).
+Please see [CONTRIBUTING.md](https://github.com/turbot/steampipe/CONTRIBUTING.md).
