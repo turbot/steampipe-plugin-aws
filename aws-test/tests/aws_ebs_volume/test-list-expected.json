@@ -6,7 +6,7 @@
     "tags": {
       "Name": "{{ resourceName }}"
     },
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{ resourceName }}"

@@ -4,7 +4,7 @@
     "encrypted": false,
     "owner_id": "{{ output.account_id.value }}",
     "snapshot_id": "{{ output.snapshot_id.value }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{ resourceName }}"

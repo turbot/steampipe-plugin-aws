@@ -6,7 +6,7 @@
     ],
     "launch_configuration_name": "{{ resourceName }}",
     "name": "{{ resourceName }}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "PropagateAtLaunch": true,

@@ -3,7 +3,7 @@
     "cidr_block": "10.0.0.0/16",
     "is_default": false,
     "owner_id": "{{ output.account_id.value}}",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

@@ -176,7 +176,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ReplicationConfiguration"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to bucket",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketTagging,

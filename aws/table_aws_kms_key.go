@@ -144,7 +144,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags attached to key",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyTagging,

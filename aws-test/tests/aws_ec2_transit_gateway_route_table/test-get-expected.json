@@ -2,7 +2,7 @@
   {
     "default_association_route_table": false,
     "default_propagation_route_table": false,
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

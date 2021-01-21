@@ -108,7 +108,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Hydrate:     getVolumeProductCodes,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to the volume",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

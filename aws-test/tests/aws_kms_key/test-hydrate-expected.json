@@ -45,7 +45,7 @@
       ],
       "Version": "2012-10-17"
     },
-    "tags_raw": [
+    "tags_src": [
       {
         "TagKey": "Name",
         "TagValue": "{{ resourceName }}"

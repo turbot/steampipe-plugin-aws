@@ -58,7 +58,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

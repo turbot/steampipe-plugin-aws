@@ -121,7 +121,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsEc2TargetGroupTargetHealthDescription,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags associated with target group",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2TargetGroupTags,

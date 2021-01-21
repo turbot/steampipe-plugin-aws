@@ -166,7 +166,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags associated with certificate",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForAcmCertificate,

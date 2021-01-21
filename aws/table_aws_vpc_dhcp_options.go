@@ -63,7 +63,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "ntp-servers"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags that are attached to vpc dhcp options",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

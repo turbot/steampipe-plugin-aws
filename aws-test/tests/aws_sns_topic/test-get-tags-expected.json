@@ -1,6 +1,6 @@
 [
   {
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{ resourceName }}"

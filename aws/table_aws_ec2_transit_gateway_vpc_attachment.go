@@ -76,7 +76,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Association.TransitGatewayRouteTableId"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),

@@ -161,7 +161,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ContinuousBackupsDescription.PointInTimeRecoveryDescription"),
 			},
 			{
-				Name:        "tags_raw",
+				Name:        "tags_src",
 				Description: "A list of tags assigned to the table",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,

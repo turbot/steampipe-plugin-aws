@@ -4,7 +4,7 @@
     "resource_id": "{{ output.vpc_id.value }}",
     "resource_owner_id": "{{ output.account_id.value }}",
     "resource_type": "vpc",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

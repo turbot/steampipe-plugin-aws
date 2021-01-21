@@ -2,7 +2,7 @@
   {
     "amazon_side_asn": 64512,
     "state": "available",
-    "tags_raw": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"
