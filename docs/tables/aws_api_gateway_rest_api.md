@@ -49,16 +49,45 @@ where
 ```
 
 
-### List of rest APIs without application tag key
+### List of APIs policy statements that grant external access
 
 ```sql
 select
   name,
-  api_id,
-  api_key_source,
-  tags
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
 from
-  aws_api_gateway_rest_api
+  aws_api_gateway_rest_api,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  string_to_array(p, ':') as pa,
+  jsonb_array_elements_text(s -> 'Action') as a
 where
-  not tags :: JSONB ? 'application';
+  s ->> 'Effect' = 'Allow'
+  and (
+    pa [5] != account_id
+    or p = '*'
+  );
+```
+
+
+### API policy statements that grant anonymous access
+
+```sql
+select
+  title,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
+from
+  aws_api_gateway_rest_api,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
+where
+  p = '*'
+  and s ->> 'Effect' = 'Allow';
 ```
