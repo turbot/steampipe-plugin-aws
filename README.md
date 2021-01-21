@@ -9,7 +9,7 @@
   <a aria-label="Plugin version" href="https://steampipe.io/download">
     <img alt="" src="https://img.shields.io/static/v1?label=steampipe&message=plugin&style=for-the-badge&labelColor=000000&color=1D3C71">
   </a>
-  <a aria-label="Plugin version" href="https://steampipe.io/download">
+  <a aria-label="Plugin version" href="https://hub.steampipe.io/plugins/turbot/aws">
     <img alt="" src="https://img.shields.io/static/v1?label=turbot/aws&message=v0.1.0&style=for-the-badge&labelColor=000000&color=C7272E">
   </a>
   <a aria-label="License" href="https://github.com/turbot/steampipe/license.md">
