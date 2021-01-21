@@ -69,7 +69,7 @@ jobs:
           fi
 
       - name: Hook private repo
-        run: git config --global url."https://turbot-mods:${{ secrets.TURBOT_MODS_GH_PAT }}@github.com".insteadOf "https://github.com"
+        run: git config --global url."https://turbot-mods:${{ secrets.GH_ACCESS_TOKEN }}@github.com".insteadOf "https://github.com"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
