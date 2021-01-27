@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/turbot/steampipe-plugin-sdk/connection"
@@ -421,6 +422,27 @@ func SQSService(ctx context.Context, connectionManager *connection.Manager, regi
 		return nil, err
 	}
 	svc := sqs.New(sess)
+	connectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// SsmService returns the service connection for AWS SSM service
+func SsmService(ctx context.Context, connectionManager *connection.Manager, region string) (*ssm.SSM, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SsmService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ssm-%s", region)
+	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ssm.SSM), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	if err != nil {
+		return nil, err
+	}
+	svc := ssm.New(sess)
 	connectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil

@@ -82,6 +82,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sns_topic":                          tableAwsSnsTopic(ctx),
 			"aws_sns_topic_subscription":             tableAwsSnsTopicSubscription(ctx),
 			"aws_sqs_queue":                          tableAwsSqsQueue(ctx),
+			"aws_ssm_parameter":                      tableAwsSSMParameter(ctx),
 			"aws_vpc":                                tableAwsVpc(ctx),
 			"aws_vpc_customer_gateway":               tableAwsVpcCustomerGateway(ctx),
 			"aws_vpc_dhcp_options":                   tableAwsVpcDhcpOptions(ctx),
