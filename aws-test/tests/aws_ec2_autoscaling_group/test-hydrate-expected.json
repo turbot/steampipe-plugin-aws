@@ -1,0 +1,24 @@
+[
+  {
+    "name": "{{resourceName}}",
+    "policies": [
+      {
+        "AdjustmentType": "ChangeInCapacity",
+        "Alarms": null,
+        "AutoScalingGroupName": "{{resourceName}}",
+        "Cooldown": 300,
+        "Enabled": true,
+        "EstimatedInstanceWarmup": null,
+        "MetricAggregationType": null,
+        "MinAdjustmentMagnitude": null,
+        "MinAdjustmentStep": null,
+        "PolicyARN": "{{ output.policy_arn.value }}",
+        "PolicyName": "{{resourceName}}",
+        "PolicyType": "SimpleScaling",
+        "ScalingAdjustment": 4,
+        "StepAdjustments": null,
+        "TargetTrackingConfiguration": null
+      }
+    ]
+  }
+]

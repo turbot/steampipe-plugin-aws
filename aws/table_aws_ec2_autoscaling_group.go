@@ -213,6 +213,13 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "policies",
+				Description: "A set of scaling policies for the specified Auto Scaling group",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEc2AutoscalingGroupPolicy,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "termination_policies",
 				Description: "The termination policies for the group",
 				Type:        proto.ColumnType_JSON,
@@ -317,6 +324,36 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	return nil, nil
+}
+
+func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsEc2AutoscalingGroupPolicy")
+	defaultRegion := GetDefaultRegion()
+	asg := h.Item.(*autoscaling.Group)
+
+	// Create Session
+	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	var policies []*autoscaling.ScalingPolicy
+	err = svc.DescribePoliciesPages(
+		&autoscaling.DescribePoliciesInput{
+			AutoScalingGroupName: asg.AutoScalingGroupName,
+		},
+		func(page *autoscaling.DescribePoliciesOutput, isLast bool) bool {
+			policies = append(policies, page.ScalingPolicies...)
+			return true
+		},
+	)
+	if err != nil {
+		logger.Debug("getAwsEc2AutoscalingGroupPolicy", "ERROR", err)
+		return nil, err
+	}
+
+	return policies, nil
 }
 
 //// TRANSFORM FUNCTIONS
