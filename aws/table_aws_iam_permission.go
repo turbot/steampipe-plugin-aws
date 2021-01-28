@@ -46,8 +46,8 @@ func tableAwsIamPermission(_ context.Context) *plugin.Table {
 }
 
 type awsIamPermissionData struct {
-	Action *string `json:"action"`
-	Level  *string `json:"level"`
+	Action string `json:"action"`
+	Level  string `json:"level"`
 }
 
 //// ITEM FROM KEY
@@ -56,7 +56,7 @@ func permissionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	quals := d.KeyColumnQuals
 	action := quals["action"].GetStringValue()
 	item := &awsIamPermissionData{
-		Action: &action,
+		Action: action,
 	}
 	return item, nil
 }
