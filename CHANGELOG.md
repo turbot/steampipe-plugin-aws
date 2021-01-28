@@ -1,8 +1,5 @@
-# CHANGELOG for AWS Plugin for Steampipe
-
 ## v0.2.0 [2021-01-28]
 
-​
 _What's new?_
 ​
 
