@@ -109,7 +109,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			// extract partition from arn
 			Partition: strings.Split(*callerIdentity.Arn, ":")[1],
 			AccountId: *callerIdentity.Account,
-			Region:    GetDefaultRegion(),
+			Region:    GetDefaultAwsRegion(),
 		}
 
 		// save to extension cache
