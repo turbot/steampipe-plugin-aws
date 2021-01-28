@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ssm"
 
@@ -16,8 +17,8 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_parameter",
 		Description: "AWS SSM Parameter",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed"}),
+			KeyColumns:        plugin.SingleColumn("name"),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
 			Hydrate:           getAwsSSMParameter,
 		},
 		List: &plugin.ListConfig{
@@ -65,16 +66,18 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "Policies",
-				Description: "A list of policies associated with a parameter.",
+				Name:        "policies",
+				Description: "A list of policies associated with a parameter. Parameter policies help you manage a growing set of parameters by enabling you to assign specific criteria to a parameter such as an expiration date or time to live. Parameter policies are especially helpful in forcing you to update or delete passwords and configuration data stored in Parameter Store.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Policies"),
 			},
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: "A list of tags assigned to the snapshot",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("Tags"),
-			// },
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the parameter",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMParameterTags,
+				Transform:   transform.FromField("TagList"),
+			},
 
 			/// Standard columns for all tables
 			{
@@ -83,19 +86,20 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
-			// {
-			// 	Name:        "tags",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.From(ec2SnapshotTurbotTags),
-			// },
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getAwsEBSSnapshotAka,
-			// 	Transform:   transform.FromValue(),
-			// },
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMParameterTags,
+				Transform:   transform.FromField("TagList").Transform(ssmTagListToTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMParameterAkas,
+				Transform:   transform.FromValue(),
+			},
 		}),
 	}
 }
@@ -168,24 +172,68 @@ func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	return nil, nil
 }
 
-// func getAwsEBSSnapshotAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("getAwsEBSSnapshotAka")
-// 	snapshotData := h.Item.(*ec2.Snapshot)
-// 	c, err := getCommonColumns(ctx, d, h)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	commonColumnData := c.(*awsCommonColumnData)
+func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsSSMParameterTags")
 
-// 	// Get the resource akas
-// 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId}
+	defaultRegion := GetDefaultRegion()
+	parameterData := h.Item.(*ssm.ParameterMetadata)
 
-// 	return akas, nil
-// }
+	// Create Session
+	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	if err != nil {
+		return nil, err
+	}
 
-// //// TRANSFORM FUNCTIONS
+	// Build the params
+	params := &ssm.ListTagsForResourceInput{
+		ResourceType: types.String("Parameter"),
+		ResourceId:   parameterData.Name,
+	}
 
-// func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	snapshot := d.HydrateItem.(*ec2.Snapshot)
-// 	return ec2TagsToMap(snapshot.Tags)
-// }
+	// Get call
+	op, err := svc.ListTagsForResource(params)
+	if err != nil {
+		logger.Debug("getAwsSSMParameterTags", "ERROR", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsSSMParameterAkas")
+	parameterData := h.Item.(*ssm.ParameterMetadata)
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":parameter"
+
+	if strings.HasPrefix(*parameterData.Name, "/") {
+		aka = aka + *parameterData.Name
+	} else {
+		aka = aka + "/" + *parameterData.Name
+	}
+
+	return []string{aka}, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func ssmTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("ssmTagListToTurbotTags")
+	tagList := d.Value.([]*ssm.Tag)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
+}
