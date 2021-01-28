@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -244,6 +245,13 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "security_groups",
 				Description: "The security groups for the instance",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "instance_status",
+				Description: "The status of an instance. Instance status includes schedulted events, status checks and instance state information",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getInstanceStatus,
+				Transform:   transform.FromField("InstanceStatuses[0]"),
 			},
 			{
 				Name:        "tags_src",
@@ -499,6 +507,30 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return instanceData, nil
+}
+
+func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getInstanceStatus")
+	defaultRegion := GetDefaultRegion()
+	instance := h.Item.(*ec2.Instance)
+
+	// create service
+	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &ec2.DescribeInstanceStatusInput{
+		InstanceIds:         []*string{instance.InstanceId},
+		IncludeAllInstances: types.Bool(true),
+	}
+
+	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
 		return nil, err
 	}
