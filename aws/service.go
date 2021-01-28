@@ -253,7 +253,7 @@ func IAMService(ctx context.Context, connectionManager *connection.Manager) (*ia
 		return cachedData.(*iam.IAM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	sess, err := getSession(ctx, connectionManager, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -434,7 +434,7 @@ func StsService(ctx context.Context, connectionManager *connection.Manager) (*st
 		return cachedData.(*sts.STS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	sess, err := getSession(ctx, connectionManager, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +473,23 @@ func GetDefaultRegion() string {
 	// region := os.Getenv("AWS_REGION")
 	region := *session.Config.Region
 	if region == "" {
-		panic("AWS_REGION must be set to use the aws extension")
+		panic("\n\nYou must specify a region. You can configure your region by running \"aws configure\" or setting AWS_REGION environment variable.")
+	}
+	return region
+}
+
+// GetDefaultAwsRegion returns the default region for AWS partiton
+// if not set by Env variable or in aws profile
+func GetDefaultAwsRegion() string {
+	os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
+	session, err := session.NewSession(aws.NewConfig())
+	if err != nil {
+		panic(err)
+	}
+
+	region := *session.Config.Region
+	if region == "" {
+		region = "us-east-1"
 	}
 	return region
 }
