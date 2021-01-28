@@ -1,0 +1,26 @@
+[
+  {
+    "data_type": "text",
+    "key_id": "alias/aws/ssm",
+    "name": "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "policies": [
+      {
+        "PolicyStatus": "Pending",
+        "PolicyText": "{\"Type\":\"Expiration\",\"Version\":\"1.0\",\"Attributes\":{\"Timestamp\":\"{{ output.date_time.value }}\"}}",
+        "PolicyType": "Expiration"
+      }
+    ],
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "name": "test"
+    },
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "test"
+      }
+    ],
+    "tier": "Advanced"
+  }
+]
