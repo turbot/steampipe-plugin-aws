@@ -1,25 +1,25 @@
 
 variable "resource_name" {
-  type    = string
-  default = "turbot-test-20200125-create-update"
+  type        = string
+  default     = "turbot-test-20200125-create-update"
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "integration-tests"
+  type        = string
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -101,8 +101,24 @@ resource "aws_autoscaling_group" "named_test_resource" {
   }
 }
 
+resource "aws_autoscaling_policy" "bat" {
+  name                   = var.resource_name
+  scaling_adjustment     = 4
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.named_test_resource.name
+}
+
 output "resource_aka" {
   value = aws_autoscaling_group.named_test_resource.arn
+}
+
+output "policy_name" {
+  value = aws_autoscaling_policy.bat.name
+}
+
+output "policy_arn" {
+  value = aws_autoscaling_policy.bat.arn
 }
 
 output "resource_id" {
