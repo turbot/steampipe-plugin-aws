@@ -22,10 +22,10 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:  plugin.SingleColumn("certificate_arn"),
 			ItemFromKey: certificateFromKey,
-			Hydrate:     getAwsAcmCertificateAttributes,
+			Hydrate:     MultiRegionGet(getAwsAcmCertificateAttributes),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsAcmCertificates,
+			Hydrate: MultiRegionList(listAwsAcmCertificates),
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
