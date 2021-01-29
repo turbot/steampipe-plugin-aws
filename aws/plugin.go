@@ -64,6 +64,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_policy":                         tableAwsIamPolicy(ctx),
 			"aws_iam_role":                           tableAwsIamRole(ctx),
 			"aws_iam_user":                           tableAwsIamUser(ctx),
+			"aws_iam_virtual_mfa_device":             tableAwsIamVirtualMfaDevice(ctx),
 			"aws_kms_key":                            tableAwsKmsKey(ctx),
 			"aws_lambda_alias":                       tableAwsLambdaAlias(ctx),
 			"aws_lambda_function":                    tableAwsLambdaFunction(ctx),
