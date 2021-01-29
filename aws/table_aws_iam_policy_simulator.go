@@ -51,7 +51,7 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 				Transform:   transform.FromGo(),
 			},
 			{
-				Name:        "evaluation_result",
+				Name:        "result",
 				Type:        proto.ColumnType_JSON,
 				Description: "The result of this policy simulation",
 				Transform:   transform.FromGo(),
