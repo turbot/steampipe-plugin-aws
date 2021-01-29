@@ -1,0 +1,97 @@
+package aws
+
+import (
+	"context"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+type awsIamPolicySimulatorResult struct {
+	PrincipalArn string
+	Action       string
+	ResourceArn  string
+	Decision     *string
+	Result       *iam.EvaluationResult
+}
+
+func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_iam_policy_simulator",
+		Description: "AWS IAM Policy Simulator",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.AllColumns([]string{"principal_arn", "action", "resource_arn"}),
+			Hydrate:    getIamPolicySimulation,
+		},
+		Columns: []*plugin.Column{
+			// "Key" Columns
+			{
+				Name:        "principal_arn",
+				Description: "The principal Amazon Resource Name (ARN) for this policy simulation",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "action",
+				Description: "The action for this policy simulation",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "resource_arn",
+				Type:        proto.ColumnType_STRING,
+				Description: "The resource for this policy simulation",
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "decision",
+				Type:        proto.ColumnType_STRING,
+				Description: "The decision for this policy simulation",
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "evaluation_result",
+				Type:        proto.ColumnType_JSON,
+				Description: "The result of this policy simulation",
+				Transform:   transform.FromGo(),
+			},
+		},
+	}
+}
+
+func getIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getIamPolicySimulation")
+	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
+	action := d.KeyColumnQuals["action"].GetStringValue()
+	resourceArn := d.KeyColumnQuals["resource_arn"].GetStringValue()
+
+	// Create Session
+	svc, err := IAMService(ctx, d.ConnectionManager)
+	if err != nil {
+		return nil, err
+	}
+
+	var params = &iam.SimulatePrincipalPolicyInput{
+		PolicySourceArn: &principalArn,
+		ActionNames:     []*string{&action},
+		ResourceArns:    []*string{&resourceArn},
+	}
+	op, err := svc.SimulatePrincipalPolicy(params)
+	if err != nil {
+		return nil, err
+	}
+
+	evalResults := op.EvaluationResults
+	resultForAction := evalResults[0]
+
+	row := awsIamPolicySimulatorResult{
+		PrincipalArn: principalArn,
+		Action:       action,
+		ResourceArn:  resourceArn,
+		Decision:     resultForAction.EvalDecision,
+		Result:       resultForAction,
+	}
+
+	return row, nil
+}

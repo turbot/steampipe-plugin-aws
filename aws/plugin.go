@@ -62,6 +62,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_group":                          tableAwsIamGroup(ctx),
 			"aws_iam_policy":                         tableAwsIamPolicy(ctx),
+			"aws_iam_policy_simulator":               tableAwsIamPolicySimulator(ctx),
 			"aws_iam_role":                           tableAwsIamRole(ctx),
 			"aws_iam_user":                           tableAwsIamUser(ctx),
 			"aws_kms_key":                            tableAwsKmsKey(ctx),
