@@ -36,6 +36,20 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "value",
+				Description: "The value of parameter.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMParameterDetails,
+				Transform:   transform.FromField("Parameter.Value"),
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the parameter.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMParameterDetails,
+				Transform:   transform.FromField("Parameter.ARN"),
+			},
+			{
 				Name:        "data_type",
 				Description: "The data type of the parameter, such as text or aws:ec2:image. The default is text.",
 				Type:        proto.ColumnType_STRING,
@@ -59,6 +73,20 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 				Name:        "version",
 				Description: "The parameter version.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "selector",
+				Description: "Either the version number or the label used to retrieve the parameter value.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMParameterDetails,
+				Transform:   transform.FromField("Parameter.Selector"),
+			},
+			{
+				Name:        "source_result",
+				Description: "SourceResult is the raw result or response from the source. Applies to parameters that reference information in other AWS services.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMParameterDetails,
+				Transform:   transform.FromField("Parameter.SourceResult"),
 			},
 			{
 				Name:        "tier",
@@ -170,6 +198,35 @@ func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	return nil, nil
+}
+
+func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsSSMParameter")
+
+	defaultRegion := GetDefaultRegion()
+	parameterData := h.Item.(*ssm.ParameterMetadata)
+
+	// Create Session
+	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &ssm.GetParameterInput{
+		Name:           parameterData.Name,
+		WithDecryption: types.Bool(true),
+	}
+
+	// Get call
+	op, err := svc.GetParameter(params)
+	if err != nil {
+		logger.Debug("getAwsSSMParameterDetails", "ERROR", err)
+		return nil, err
+	}
+
+	return op, nil
 }
 
 func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
