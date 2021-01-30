@@ -11,16 +11,18 @@ import (
 
 func tableAwsVpc(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_vpc",
-		Description: "AWS VPC",
+		Name:             "aws_vpc",
+		Description:      "AWS VPC",
+		DefaultTransform: transform.From(unwrapFromCamel),
+
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpc_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
 			ItemFromKey:       vpcFromKey,
-			Hydrate:           getVpc,
+			Hydrate:           MultiRegionGet(getVpc),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listVpcs,
+			Hydrate: MultiRegionList(listVpcs),
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -72,7 +74,8 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags that are attached to the vpc",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromP(unwrapFromField, "Tags"),
+				//Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -86,7 +89,6 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Default:     transform.FromField("VpcId"),
 				Transform:   transform.From(getVpcTurbotTitle),
 			},
 			{
@@ -113,13 +115,13 @@ func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 
 //// LIST FUNCTION
 
-func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("[TRACE] listVpcs", "AWS_REGION", defaultRegion)
+	region := h.Params["region"]
+	plugin.Logger(ctx).Trace("[TRACE] listVpcs", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +131,8 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 		&ec2.DescribeVpcsInput{},
 		func(page *ec2.DescribeVpcsOutput, isLast bool) bool {
 			for _, vpc := range page.Vpcs {
-				d.StreamListItem(ctx, vpc)
+				//d.StreamListItem(ctx, vpc)
+				d.StreamListItem(ctx, wrapItem(vpc, region))
 			}
 			return !isLast
 		},
@@ -144,10 +147,11 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpc")
 	vpc := h.Item.(*ec2.Vpc)
-	defaultRegion := GetDefaultRegion()
+	region := h.Params["region"]
+	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
 	if err != nil {
 		return nil, err
 	}
@@ -159,20 +163,28 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 
 	// Get call
 	op, err := svc.DescribeVpcs(params)
-	if err != nil {
+
+	if err != nil && !errorIsNotFound(ctx, err) {
 		logger.Debug("getVpc__", "ERROR", err)
 		return nil, err
 	}
 
 	if op.Vpcs != nil && len(op.Vpcs) > 0 {
-		return op.Vpcs[0], nil
+		//return op.Vpcs[0], nil
+		return &WrappedItem{
+			Item:   op.Vpcs[0],
+			Region: region,
+		}, nil
+
 	}
 	return nil, nil
 }
 
 func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsVpcTurbotData")
-	vpc := h.Item.(*ec2.Vpc)
+	item := h.Item.(*WrappedItem)
+	vpc := item.Item.(*ec2.Vpc)
+
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -188,7 +200,9 @@ func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpc := d.HydrateItem.(*ec2.Vpc)
+	item := d.HydrateItem.(*WrappedItem)
+	vpc := item.Item.(*ec2.Vpc)
+
 	var turbotTagsMap map[string]string
 	if vpc.Tags != nil {
 		turbotTagsMap = map[string]string{}
@@ -200,24 +214,17 @@ func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	return nil, nil
 }
 
-func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpc := d.HydrateItem.(*ec2.Vpc)
-	vpcData := d.HydrateResults
-	var title string
+func getVpcTurbotTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	item := d.HydrateItem.(*WrappedItem)
+	vpc := item.Item.(*ec2.Vpc)
+
 	if vpc.Tags != nil {
 		for _, i := range vpc.Tags {
 			if *i.Key == "Name" {
-				title = *i.Value
+				return *i.Value, nil
 			}
 		}
 	}
 
-	if title == "" {
-		if vpcData["getVpc"] != nil {
-			title = *vpcData["getVpc"].(*ec2.Vpc).VpcId
-		} else {
-			title = *vpcData["listVpcs"].(*ec2.Vpc).VpcId
-		}
-	}
-	return title, nil
+	return vpc.VpcId, nil
 }

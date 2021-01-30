@@ -89,9 +89,17 @@ type awsCommonColumnData struct {
 }
 
 // get columns which are returned with all tables: region, partition and account
-func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	cacheKey := "commonColumnData"
+	// If the item is multi-region wrapped item, get the region
+	region := "global"
+	item, ok := h.Item.(*WrappedItem)
+	if ok {
+		region = item.Region
+	}
+	plugin.Logger(ctx).Trace("getCommonColumns", "region", region)
+
+	cacheKey := "commonColumnData" + region
 	var commonColumnData *awsCommonColumnData
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
@@ -109,7 +117,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			// extract partition from arn
 			Partition: strings.Split(*callerIdentity.Arn, ":")[1],
 			AccountId: *callerIdentity.Account,
-			Region:    GetDefaultAwsRegion(),
+			Region:    region,
 		}
 
 		// save to extension cache
