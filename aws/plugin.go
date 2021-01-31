@@ -61,6 +61,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
+			"aws_iam_account_summary":                tableAwsIamAccountSummary(ctx),
 			//"aws_iam_credential_report":              tableAwsIamCredentialReport(ctx),
 			"aws_iam_group":                        tableAwsIamGroup(ctx),
 			"aws_iam_permission":                   tableAwsIamPermission(ctx),
