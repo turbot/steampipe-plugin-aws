@@ -78,6 +78,20 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Hydrate: getAwsIamUserData,
 			},
 			{
+				Name:        "mfa_enabled",
+				Description: "The MFA status of the user",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsIamUserMfaDevices,
+				Transform:   transform.From(userMfaStatus),
+			},
+			{
+				Name:        "mfa_devices",
+				Description: "A list of MFA devices attached to the user",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserMfaDevices,
+				Transform:   transform.FromField("MFADevices"),
+			},
+			{
 				Name:        "groups",
 				Description: "A list of groups attached to the user",
 				Type:        proto.ColumnType_JSON,
@@ -282,6 +296,28 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return userData, nil
 }
 
+func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsIamUserMfaDevices")
+	user := h.Item.(*iam.User)
+
+	// create service
+	svc, err := IAMService(ctx, d.ConnectionManager)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.ListMFADevicesInput{
+		UserName: user.UserName,
+	}
+
+	userData, _ := svc.ListMFADevices(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return userData, nil
+}
+
 func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
@@ -385,4 +421,15 @@ func getUserInlinePolicy(policyName *string, userName *string, svc *iam.IAM) (ma
 	}
 
 	return userPolicy, nil
+}
+
+//// TRANSFORM FUNCTION
+
+func userMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*iam.ListMFADevicesOutput)
+	if data.MFADevices != nil && len(data.MFADevices) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
