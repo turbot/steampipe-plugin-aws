@@ -145,7 +145,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The lifecycle configuration information of the bucket",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLifecycle,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("Rules"),
 			},
 			{
 				Name:        "logging",
