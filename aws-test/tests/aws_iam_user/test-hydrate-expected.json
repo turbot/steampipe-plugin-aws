@@ -3,6 +3,7 @@
     "arn": "{{ output.resource_aka.value }}",
     "attached_policy_arns": null,
     "inline_policies": null,
+    "mfa_enabled": false,
     "name": "{{resourceName}}",
     "permissions_boundary_arn": "",
     "permissions_boundary_type": "",
