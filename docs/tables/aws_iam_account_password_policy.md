@@ -1,6 +1,6 @@
 # Table: aws_iam_account_password_policy
 
-Retrieves the password policy for the AWS account. For more information about using a password policy, go to [Managing an IAM Password Policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_ManagingPasswordPolicies.html).
+The password policy for the AWS account. For more information about using a password policy, go to [Managing an IAM Password Policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_ManagingPasswordPolicies.html).
 
 ## Examples
 
