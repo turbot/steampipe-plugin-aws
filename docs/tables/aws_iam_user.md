@@ -17,7 +17,6 @@ from
   aws_iam_user;
 ```
 
-
 ### Groups details to which the IAM user belongs
 
 ```sql
@@ -30,7 +29,6 @@ from
   aws_iam_user
   cross join jsonb_array_elements(groups) as iam_group;
 ```
-
 
 ### List all the users having Administrator access
 
@@ -45,6 +43,18 @@ where
   split_part(attachments, '/', 2) = 'AdministratorAccess';
 ```
 
+### List all the users for whom MFA is not enabled
+
+```sql
+select
+  name,
+  user_id,
+  mfa_enabled
+from
+  aws.aws_iam_user
+where
+  not mfa_enabled;
+```
 
 ### List the policies attached to each IAM user
 
