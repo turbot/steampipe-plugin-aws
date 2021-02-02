@@ -91,11 +91,9 @@ type awsCommonColumnData struct {
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// If the item is multi-region wrapped item, get the region
-	region := "global"
-	item, ok := h.Item.(*WrappedItem)
-	if ok {
-		region = item.Region
+	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
+	if region == "" {
+		region = "global"
 	}
 	plugin.Logger(ctx).Trace("getCommonColumns", "region", region)
 

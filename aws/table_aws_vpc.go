@@ -11,19 +11,18 @@ import (
 
 func tableAwsVpc(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:             "aws_vpc",
-		Description:      "AWS VPC",
-		DefaultTransform: transform.From(unwrapFromCamel),
+		Name:        "aws_vpc",
+		Description: "AWS VPC",
 
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpc_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       vpcFromKey,
-			Hydrate:           MultiRegionGet(getVpc),
+			Hydrate:           getVpc,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: MultiRegionList(listVpcs),
+			Hydrate: listVpcs,
 		},
+		FetchMetadata: BuildFetchMetadataList(),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
@@ -74,8 +73,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags that are attached to the vpc",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(unwrapFromField, "Tags"),
-				//Transform:   transform.FromField("Tags"),
+				Transform: transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -117,7 +115,7 @@ func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := h.Params["region"]
+	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
 	plugin.Logger(ctx).Trace("[TRACE] listVpcs", "AWS_REGION", region)
 
 	// Create session
@@ -131,8 +129,7 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 		&ec2.DescribeVpcsInput{},
 		func(page *ec2.DescribeVpcsOutput, isLast bool) bool {
 			for _, vpc := range page.Vpcs {
-				//d.StreamListItem(ctx, vpc)
-				d.StreamListItem(ctx, wrapItem(vpc, region))
+				d.StreamListItem(ctx, vpc)
 			}
 			return !isLast
 		},
@@ -146,8 +143,9 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpc")
-	vpc := h.Item.(*ec2.Vpc)
-	region := h.Params["region"]
+
+	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
+	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
 	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
@@ -158,32 +156,25 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 
 	// Build the params
 	params := &ec2.DescribeVpcsInput{
-		VpcIds: []*string{vpc.VpcId},
+		VpcIds: []*string{&vpcID},
 	}
 
 	// Get call
 	op, err := svc.DescribeVpcs(params)
-
-	if err != nil && !errorIsNotFound(ctx, err) {
+	if err != nil {
 		logger.Debug("getVpc__", "ERROR", err)
 		return nil, err
 	}
 
 	if op.Vpcs != nil && len(op.Vpcs) > 0 {
-		//return op.Vpcs[0], nil
-		return &WrappedItem{
-			Item:   op.Vpcs[0],
-			Region: region,
-		}, nil
-
+		return op.Vpcs[0], nil
 	}
 	return nil, nil
 }
 
 func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsVpcTurbotData")
-	item := h.Item.(*WrappedItem)
-	vpc := item.Item.(*ec2.Vpc)
+	vpc := h.Item.(*ec2.Vpc)
 
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -200,8 +191,7 @@ func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	item := d.HydrateItem.(*WrappedItem)
-	vpc := item.Item.(*ec2.Vpc)
+	vpc := d.HydrateItem.(*ec2.Vpc)
 
 	var turbotTagsMap map[string]string
 	if vpc.Tags != nil {
@@ -215,8 +205,7 @@ func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 }
 
 func getVpcTurbotTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	item := d.HydrateItem.(*WrappedItem)
-	vpc := item.Item.(*ec2.Vpc)
+	vpc := d.HydrateItem.(*ec2.Vpc)
 
 	if vpc.Tags != nil {
 		for _, i := range vpc.Tags {
