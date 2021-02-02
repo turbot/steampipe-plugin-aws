@@ -15,7 +15,7 @@ import (
 type awsIamCredentialReportResult struct {
 	GeneratedTime             *time.Time `csv:"-"`
 	Arn                       string     `csv:"arn"`
-	User                      string     `csv:"user"`
+	UserName                  string     `csv:"user"`
 	UserCreationTime          string     `csv:"user_creation_time"`
 	AccessKey1Active          bool       `csv:"access_key_1_active"`
 	AccessKey1LastRotated     string     `csv:"access_key_1_last_rotated"`
@@ -31,7 +31,7 @@ type awsIamCredentialReportResult struct {
 	Cert1LastRotated          string     `csv:"cert_1_last_rotated"`
 	Cert2Active               bool       `csv:"cert_2_active"`
 	Cert2LastRotated          string     `csv:"cert_2_last_rotated"`
-	MFAActiveP                bool       `csv:"mfa_active"`
+	MFAActive                 bool       `csv:"mfa_active"`
 	PasswordEnabled           string     `csv:"password_enabled"`
 	PasswordLastChanged       string     `csv:"password_last_changed"`
 	PasswordLastUsed          string     `csv:"password_last_used"`
@@ -48,7 +48,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			// "Key" Columns
 			{
-				Name:        "user",
+				Name:        "user_name",
 				Description: "The friendly name of the user",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
@@ -193,7 +193,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 
 func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listAccountSummary")
+	logger.Trace("listCredentialReports")
 
 	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
@@ -218,35 +218,12 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	content := string(resp.Content[:])
 
-	logger.Info("Content Raw", resp.Content)
-	logger.Info("Content Str", content)
-
 	rows := []*awsIamCredentialReportResult{}
 
 	if err := gocsv.UnmarshalString(content, &rows); err != nil {
 
 		return nil, err
 	}
-
-	logger.Info("Rows", rows)
-
-	//var l int
-	//b := make([]byte, base64.StdEncoding.DecodedLen(len(resp.Content)))
-	//l, err = base64.StdEncoding.Decode(b, resp.Content)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//decodedContent, err := base64.StdEncoding.DecodeString(string(resp.Content))
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//credentialReport := &awsIamCredentialReportResult{
-	//	GeneratedTime: resp.GeneratedTime,
-	//	ReportFormat:  resp.ReportFormat,
-	//	Content:       string(resp.Content),
-	//}
 
 	for _, row := range rows {
 		row.GeneratedTime = resp.GeneratedTime
