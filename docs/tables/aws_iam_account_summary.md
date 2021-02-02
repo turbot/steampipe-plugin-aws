@@ -11,7 +11,7 @@ The number and size of IAM resources in an AWS account are limited. For more inf
 select * from aws_iam_account_summary;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.13 Ensure MFA is enabled for the "root" account (Scored)
+### Ensure MFA is enabled for the "root" account (CIS v1.1.13)
 ```sql
 select
   account_mfa_enabled as cis_v1_1_13

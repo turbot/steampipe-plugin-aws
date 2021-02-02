@@ -22,7 +22,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.05 Ensure IAM password policy requires at least one uppercase letter (Scored)
+### Ensure IAM password policy requires at least one uppercase letter (CIS v1.1.05)
 ```sql
 select
   require_uppercase_characters as cis_v1_1_05
@@ -30,7 +30,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.06 Ensure IAM password policy requires at least one lowercase letter (Scored)
+### Ensure IAM password policy requires at least one lowercase letter (CIS v1.1.06)
 ```sql
 select
     require_lowercase_characters  as cis_v1_1_06
@@ -38,7 +38,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.07 Ensure IAM password policy requires at least one symbol (Scored)
+### Ensure IAM password policy requires at least one symbol (CIS v1.1.07)
 ```sql
 select
     require_symbols as cis_v1_1_07
@@ -46,7 +46,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.08 Ensure IAM password policy require at least one number (Scored)
+### Ensure IAM password policy require at least one number (CIS v1.1.08)
 ```sql
 select
     require_numbers as cis_v1_1_08
@@ -54,7 +54,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.09 Ensure IAM password policy requires minimum length of 14 or greater (Scored)
+### Ensure IAM password policy requires minimum length of 14 or greater (CIS v1.1.09)
 ```sql
 select
     minimum_password_length >= 14 as cis_v1_1_09
@@ -62,7 +62,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.10 Ensure IAM password policy prevents password reuse (Scored)
+### Ensure IAM password policy prevents password reuse (CIS v1.1.10)
 ```sql
 select
     password_reuse_prevention as cis_v1_1_10
@@ -70,7 +70,7 @@ from
     aws_iam_account_password_policy;
 ```
 
-### CIS v1 > 1 Identity and Access Management > 1.11 Ensure IAM password policy expires passwords within 90 days or less (Scored)
+### Ensure IAM password policy expires passwords within 90 days or less (CIS v1.1.11)
 ```sql
 select
     (expire_passwords and max_password_age <= 90) as cis_v1_1_11

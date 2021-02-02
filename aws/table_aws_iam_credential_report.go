@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gocarina/gocsv"
 	"github.com/turbot/go-kit/types"
@@ -54,7 +53,7 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 				Transform:   transform.FromGo(),
 			},
 			{
-				Name:        "arn",
+				Name:        "user_arn",
 				Description: "The Amazon Resource Name (ARN) of the user.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
@@ -202,19 +201,21 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	resp, err := svc.GetCredentialReport(&iam.GetCredentialReportInput{})
-
 	if err != nil {
-		if err.Error() == "ReportNotPresent" {
-			return nil, errors.New("No credential report present. Requested generation of report - please try again shortly")
-		}
-		if err.Error() == "ReportExpired" {
-			return nil, errors.New("Existing credential report expired. Requested generation of report - please try again shortly")
-		}
-		if err.Error() == "ReportInProgress" {
-			return nil, errors.New("Credential report generation in progress. Please try again shortly")
-		}
 		return nil, err
 	}
+	//if err != nil {
+	//	if err.Error() == "ReportNotPresent" {
+	//		return nil, errors.New("No credential report present. Requested generation of report - please try again shortly")
+	//	}
+	//	if err.Error() == "ReportExpired" {
+	//		return nil, errors.New("Existing credential report expired. Requested generation of report - please try again shortly")
+	//	}
+	//	if err.Error() == "ReportInProgress" {
+	//		return nil, errors.New("Credential report generation in progress. Please try again shortly")
+	//	}
+	//	return nil, err
+	//}
 
 	content := string(resp.Content[:])
 
