@@ -8,14 +8,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-type awsIamPolicySimulatorResult struct {
-	PrincipalArn string
-	Action       string
-	ResourceArn  string
-	Decision     *string
-	Result       *iam.EvaluationResult
-}
-
 func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_policy_simulator",
@@ -90,6 +82,20 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 	}
 }
 
+type awsIamPolicySimulatorResult struct {
+	Action                            string
+	Decision                          *string
+	DecisionDetails                   map[string]*string
+	MatchedStatements                 []*iam.Statement
+	MissingContextValues              []*string
+	OrganizationsDecisionDetail       *iam.OrganizationsDecisionDetail
+	PermissionsBoundaryDecisionDetail *iam.PermissionsBoundaryDecisionDetail
+	PrincipalArn                      string
+	ResourceArn                       string
+	ResourceSpecificResults           []*iam.ResourceSpecificResult
+	Result                            *iam.EvaluationResult
+}
+
 func getIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamPolicySimulation")
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
@@ -116,11 +122,17 @@ func getIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.
 	resultForAction := evalResults[0]
 
 	row := awsIamPolicySimulatorResult{
-		PrincipalArn: principalArn,
-		Action:       action,
-		ResourceArn:  resourceArn,
-		Decision:     resultForAction.EvalDecision,
-		Result:       resultForAction,
+		Action:                            action,
+		Decision:                          resultForAction.EvalDecision,
+		DecisionDetails:                   resultForAction.EvalDecisionDetails,
+		MatchedStatements:                 resultForAction.MatchedStatements,
+		MissingContextValues:              resultForAction.MissingContextValues,
+		OrganizationsDecisionDetail:       resultForAction.OrganizationsDecisionDetail,
+		PermissionsBoundaryDecisionDetail: resultForAction.PermissionsBoundaryDecisionDetail,
+		PrincipalArn:                      principalArn,
+		ResourceArn:                       resourceArn,
+		ResourceSpecificResults:           resultForAction.ResourceSpecificResults,
+		Result:                            resultForAction,
 	}
 
 	return row, nil
