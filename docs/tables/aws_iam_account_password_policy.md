@@ -19,7 +19,7 @@ select
   require_symbols,
   require_uppercase_characters
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy requires at least one uppercase letter (CIS v1.1.05)
@@ -27,53 +27,53 @@ from
 select
   require_uppercase_characters
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy requires at least one lowercase letter (CIS v1.1.06)
 ```sql
 select
-    require_lowercase_characters
+  require_lowercase_characters
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy requires at least one symbol (CIS v1.1.07)
 ```sql
 select
-    require_symbols
+  require_symbols
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy require at least one number (CIS v1.1.08)
 ```sql
 select
-    require_numbers
+  require_numbers
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy requires minimum length of 14 or greater (CIS v1.1.09)
 ```sql
 select
-    minimum_password_length >= 14
+  minimum_password_length >= 14
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy prevents password reuse (CIS v1.1.10)
 ```sql
 select
-    password_reuse_prevention
+  password_reuse_prevention
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```
 
 ### Ensure IAM password policy expires passwords within 90 days or less (CIS v1.1.11)
 ```sql
 select
-    (expire_passwords and max_password_age <= 90)
+  (expire_passwords and max_password_age <= 90)
 from
-    aws_iam_account_password_policy;
+  aws_iam_account_password_policy;
 ```

@@ -10,19 +10,22 @@ _Please note_: This table requires a valid credential report to exist. To genera
 
 ### Who has logged into the console in the past 90 days?
 ```sql
-select user_name
-from aws_iam_credential_report
-where password_enabled
-and password_last_used > (current_date - interval '90' day);
+select
+  user_name
+from
+  aws_iam_credential_report
+where
+  password_enabled
+  and password_last_used > (current_date - interval '90' day);
 ```
 
 ### Who has console access and has never logged in?
 ```sql
 select
-    user_name
+  user_name
 from
-    aws_iam_credential_report
+  aws_iam_credential_report
 where
-    password_enabled
-and password_last_used is null;
+  password_enabled
+  and password_last_used is null;
 ```

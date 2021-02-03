@@ -117,7 +117,6 @@ func getIamAction(ctx context.Context, _ *plugin.QueryData, h *plugin.HydrateDat
 				}, nil
 			}
 		}
-
 	}
 	return nil, nil
 }

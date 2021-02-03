@@ -8,7 +8,10 @@ The number and size of IAM resources in an AWS account are limited. For more inf
 
 ### List the IAM summary for the account 
 ```sql
-select * from aws_iam_account_summary;
+select
+  *
+from
+  aws_iam_account_summary;
 ```
 
 ### Ensure MFA is enabled for the "root" account (CIS v1.1.13)
