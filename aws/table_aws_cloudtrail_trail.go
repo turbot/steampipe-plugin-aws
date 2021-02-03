@@ -18,6 +18,7 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 			KeyColumns:  plugin.SingleColumn("name"),
 			ItemFromKey: trailFromKey,
 			Hydrate:     getCloudtrailTrail,
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudtrailTrails,
