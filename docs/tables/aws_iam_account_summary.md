@@ -14,7 +14,7 @@ select * from aws_iam_account_summary;
 ### Ensure MFA is enabled for the "root" account (CIS v1.1.13)
 ```sql
 select
-  account_mfa_enabled as cis_v1_1_13
+  account_mfa_enabled
 from
   aws_iam_account_summary;
 ```

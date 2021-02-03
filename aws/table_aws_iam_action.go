@@ -5,6 +5,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"strings"
 )
 
 var permissionsData ParliamentPermissions
@@ -46,6 +47,12 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromGo(),
 			},
 			{
+				Name:        "access_level",
+				Type:        proto.ColumnType_STRING,
+				Description: "The access level for this action",
+				Transform:   transform.FromGo(),
+			},
+			{
 				Name:        "description",
 				Type:        proto.ColumnType_STRING,
 				Description: "The description for this action",
@@ -56,9 +63,10 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 }
 
 type awsIamPermissionData struct {
+	Action      string
 	Prefix      string
 	Privilege   string
-	Action      string
+	AccessLevel string
 	Description string
 }
 
@@ -79,10 +87,11 @@ func listIamActions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	for _, service := range permissionsData {
 		for _, privilege := range service.Privileges {
 			d.StreamListItem(ctx, awsIamPermissionData{
+				AccessLevel: privilege.AccessLevel,
+				Action:      strings.ToLower(service.Prefix + ":" + privilege.Privilege),
+				Description: privilege.Description,
 				Prefix:      service.Prefix,
 				Privilege:   privilege.Privilege,
-				Action:      service.Prefix + ":" + privilege.Privilege,
-				Description: privilege.Description,
 			})
 		}
 	}
@@ -97,13 +106,14 @@ func getIamAction(ctx context.Context, _ *plugin.QueryData, h *plugin.HydrateDat
 	action := h.Item.(*awsIamPermissionData)
 	for _, service := range permissionsData {
 		for _, privilege := range service.Privileges {
-			a := service.Prefix + ":" + privilege.Privilege
-			if a == action.Action {
+			a := strings.ToLower(service.Prefix + ":" + privilege.Privilege)
+			if a == strings.ToLower(action.Action) {
 				return awsIamPermissionData{
-					Prefix:      service.Prefix,
-					Privilege:   privilege.Privilege,
+					AccessLevel: privilege.AccessLevel,
 					Action:      a,
 					Description: privilege.Description,
+					Prefix:      service.Prefix,
+					Privilege:   privilege.Privilege,
 				}, nil
 			}
 		}
