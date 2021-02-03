@@ -2,18 +2,19 @@ package aws
 
 import (
 	"context"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gocarina/gocsv"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
-	"time"
 )
 
 type awsIamCredentialReportResult struct {
 	GeneratedTime             *time.Time `csv:"-"`
-	Arn                       string     `csv:"arn"`
+	UserArn                   string     `csv:"arn"`
 	UserName                  string     `csv:"user"`
 	UserCreationTime          string     `csv:"user_creation_time"`
 	AccessKey1Active          bool       `csv:"access_key_1_active"`
