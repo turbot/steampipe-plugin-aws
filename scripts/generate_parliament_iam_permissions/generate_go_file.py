@@ -181,4 +181,4 @@ permissions := ParliamentPermissions{
 return permissions
 }
 """)
-    subprocess.run(["gofmt", "-w", "parliament_iam_permissions.go"])
+    subprocess.run(["gofmt", "-w", "../../aws/parliament_iam_permissions.go"])
