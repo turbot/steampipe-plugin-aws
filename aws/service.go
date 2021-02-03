@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -153,6 +154,27 @@ func CloudWatchLogsService(ctx context.Context, connectionManager *connection.Ma
 		return nil, err
 	}
 	svc := cloudwatchlogs.New(sess)
+	connectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CloudTrailService returns the service connection for AWS CloudTrail service
+func CloudTrailService(ctx context.Context, connectionManager *connection.Manager, region string) (*cloudtrail.CloudTrail, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CloudTrailService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudtrail-%s", region)
+	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudtrail.CloudTrail), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, connectionManager, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudtrail.New(sess)
 	connectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
