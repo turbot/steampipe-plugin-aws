@@ -16,3 +16,6 @@
 
 # Ignore JetBrains files
 .idea
+
+# Parliament IAM permissions outputs
+scripts/generate_parliament_iam_permissions/docs
