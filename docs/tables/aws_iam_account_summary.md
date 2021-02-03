@@ -21,3 +21,17 @@ select
 from
   aws_iam_account_summary;
 ```
+
+
+
+
+### Summary report - Total number of IAM resources in the account by type
+```sql
+select
+  users,
+  groups,
+  roles,
+  policies
+from
+  aws_iam_account_summary;
+```
