@@ -44,10 +44,13 @@ func arnToTitle(_ context.Context, d *transform.TransformData) (interface{}, err
 func convertTimestamp(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	epochTime := d.Value.(*int64)
 
-	timeInSec := math.Floor(float64(*epochTime) / 1000)
-	unixTimestamp := time.Unix(int64(timeInSec), 0)
-	timestampRFC3339Format := unixTimestamp.Format(time.RFC3339)
-	return timestampRFC3339Format, nil
+	if epochTime != nil {
+		timeInSec := math.Floor(float64(*epochTime) / 1000)
+		unixTimestamp := time.Unix(int64(timeInSec), 0)
+		timestampRFC3339Format := unixTimestamp.Format(time.RFC3339)
+		return timestampRFC3339Format, nil
+	}
+	return nil, nil
 }
 
 func extractNameFromSqsQueueURL(queue string) (string, error) {
