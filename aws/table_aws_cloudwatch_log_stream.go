@@ -71,18 +71,6 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LogStream.LastIngestionTime").Transform(convertTimestamp),
 			},
-			// Important: On June 17, 2019, this parameter was deprecated for log streams,
-			// and is always reported as zero. This change applies only to log streams.
-			// The storedBytes parameter for log groups is not affected.
-			//
-			// Deprecated: Starting on June 17, 2019, this parameter will be deprecated for log streams, and will be reported as zero.
-			// This change applies only to log streams. The storedBytes parameter for log groups is not affected.
-			{
-				Name:        "stored_bytes",
-				Description: "The number of bytes stored.",
-				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("LogStream.StoredBytes"),
-			},
 			{
 				Name:        "upload_sequence_token",
 				Description: "Specifies the log upload sequence token.",
