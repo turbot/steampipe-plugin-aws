@@ -66,3 +66,14 @@ from
   aws_iam_user
   cross join jsonb_array_elements_text(attached_policy_arns) as attachments;
 ```
+
+### Find users that have inline policies
+```sql
+select
+  name as user_name,
+  inline_policies
+from
+  aws_iam_user
+where 
+  inline_policies is not null;
+```
