@@ -82,7 +82,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
 				Hydrate:     getBucketIsPublic,
-				Transform:   transform.FromField("PolicyStatus.IsPublic").Transform(handleNilString).Transform(transform.ToBool),
+				Transform:   transform.FromField("PolicyStatus.IsPublic"),
 			},
 			{
 				Name:        "versioning_enabled",
