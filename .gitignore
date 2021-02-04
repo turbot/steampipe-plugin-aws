@@ -13,3 +13,11 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Ignore JetBrains files
+.idea
+
+# Parliament IAM permissions outputs
+scripts/generate_parliament_iam_permissions/__pycache__
+scripts/generate_parliament_iam_permissions/docs
+scripts/generate_parliament_iam_permissions/generate_go_file.pyc
