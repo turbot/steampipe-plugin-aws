@@ -9,8 +9,21 @@ A log stream is a sequence of log events that share the same source. A log strea
 ```sql
 select
   name,
-  arn,
-  log_group_name
+  log_group_name,
+  region
 from
   aws_cloudwatch_log_stream;
+```
+
+
+### Count of log stream per log group
+
+```sql
+select
+  log_group_name,
+  count(*) as log_stream_count
+from
+  aws_cloudwatch_log_stream
+group by
+  log_group_name;
 ```
