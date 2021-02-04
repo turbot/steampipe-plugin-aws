@@ -64,7 +64,7 @@ order by
   user_name;
 ```
 
-### Find users that have a consol password but do not have MFA enabled
+### Find users that have a console password but do not have MFA enabled
 ```sql
 select
   user_name,
