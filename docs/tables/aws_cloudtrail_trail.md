@@ -4,72 +4,57 @@ AWS CloudTrail is a service that enables governance, compliance, operational aud
 
 ## Examples
 
-### List of all trails for which Log File Validation is false
+### List of trails which are not encrypted
 
 ```sql
 select
   name,
-  arn,
-  log_file_validation_enabled
+  kms_key_id
 from
   aws_cloudtrail_trail
 where
-  log_file_validation_enabled = false;
+  kms_key_id is null;
 ```
 
-### List of all trails which are not enabled in all regions
 
-```sql
-select
-  name,
-  arn,
-  is_multi_region_trail
-from
-  aws_cloudtrail_trail
-where
-  is_multi_region_trail = false;
-```
-
-### List of trails for which the S3 bucket used to store CloudTrail logs is publicly accessible
+### List of cloud trails which stores logs in publicly accessible S3 buckets
 
 ```sql
 select
   trail.name as trail_name,
   bucket.name as bucket_name,
   bucket.bucket_policy_is_public as is_publicly_accessible
-from 
+from
   aws_cloudtrail_trail as trail
-join 
-  aws_s3_bucket as bucket
-on 
-  trail.s3_bucket_name = bucket.name and bucket.bucket_policy_is_public = true;
+  join aws_s3_bucket as bucket on trail.s3_bucket_name = bucket.name
+where
+  not bucket.bucket_policy_is_public;
 ```
 
 
-### List of trails for which S3 bucket access logging is not enabled on the CloudTrail S3 bucket
+### List of trails which do not send log events to CloudWatch Logs
+
+```sql
+select
+  name,
+  is_logging
+from
+  aws_cloudtrail_trail
+where
+  not is_logging;
+```
+
+
+### List of trails which stores logs in S3 bucket and versioning for that bucket is not enabled
 
 ```sql
 select
   trail.name as trail_name,
   bucket.name as bucket_name,
   logging
-from 
-  aws_cloudtrail_trail as trail
-join 
-  aws_s3_bucket as bucket
-on 
-  trail.s3_bucket_name = bucket.name and logging is null;
-```
-
-### List of trails which are not encrypted using KMS CMKs
-
-```sql
-select
-  name,
-  arn,
-  kms_key_id
 from
-  aws_cloudtrail_trail
+  aws_cloudtrail_trail as trail
+  join aws_s3_bucket as bucket on trail.s3_bucket_name = bucket.name
 where
-  kms_key_id is not null;
+  not versioning_enabled;
 ```
