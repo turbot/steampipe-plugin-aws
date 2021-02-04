@@ -12,9 +12,9 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_policy_simulator",
 		Description: "AWS IAM Policy Simulator",
-		Get: &plugin.GetConfig{
+		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"principal_arn", "action", "resource_arn"}),
-			Hydrate:    getIamPolicySimulation,
+			Hydrate:    listIamPolicySimulation,
 		},
 		Columns: []*plugin.Column{
 			// "Key" Columns
@@ -96,7 +96,7 @@ type awsIamPolicySimulatorResult struct {
 	Result                            *iam.EvaluationResult
 }
 
-func getIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamPolicySimulation")
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 	action := d.KeyColumnQuals["action"].GetStringValue()
@@ -135,5 +135,7 @@ func getIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.
 		Result:                            resultForAction,
 	}
 
-	return row, nil
+	d.StreamListItem(ctx, row)
+
+	return nil, nil
 }
