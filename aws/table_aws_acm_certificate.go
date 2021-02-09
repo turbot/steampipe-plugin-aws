@@ -27,7 +27,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAcmCertificates,
 		},
-		FetchMetadata: BuildFetchMetadataList(),
+		GetFetchMetadata: BuildFetchMetadataList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "certificate_arn",

@@ -9,6 +9,8 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/steampipe-plugin-sdk/plugin/schema"
+
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
@@ -22,6 +24,16 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
+		},
+		ConnectionConfig: &plugin.ConnectionConfig{
+			NewInstance: func() interface{} { return &awsConfig{} },
+			Schema: map[string]*schema.Attribute{
+				"regions": {
+					Type:     schema.TypeList,
+					Elem:     &schema.Attribute{Type: schema.TypeString},
+					Optional: true,
+				},
+			},
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_account":                            tableAwsAccount(ctx),

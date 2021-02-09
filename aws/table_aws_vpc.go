@@ -22,7 +22,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
 		},
-		FetchMetadata: BuildFetchMetadataList(),
+		GetFetchMetadata: BuildFetchMetadataList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
@@ -73,7 +73,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags that are attached to the vpc",
 				Type:        proto.ColumnType_JSON,
-				Transform: transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -116,7 +116,7 @@ func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
-	plugin.Logger(ctx).Trace("[TRACE] listVpcs", "AWS_REGION", region)
+	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
