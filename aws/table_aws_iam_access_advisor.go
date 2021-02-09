@@ -12,16 +12,16 @@ import (
 type awsIamAccessAdvisorData struct {
 	PrincipalArn               string
 	Granularity                string
-	LastAuthenticated          time.Time
-	LastAuthenticatedEntity    string
-	LastAuthenticatedRegion    string
-	LastAccessedEntity         string
-	LastAccessedRegion         string
-	LastAccessedTime           time.Time
-	ServiceName                string
-	ServiceNamespace           string
-	ActionName                 string
-	TotalAuthenticatedEntities int64
+	LastAuthenticated          *time.Time
+	LastAuthenticatedEntity    *string
+	LastAuthenticatedRegion    *string
+	LastAccessedEntity         *string
+	LastAccessedRegion         *string
+	LastAccessedTime           *time.Time
+	ServiceName                *string
+	ServiceNamespace           *string
+	ActionName                 *string
+	TotalAuthenticatedEntities *int64
 }
 
 func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
@@ -131,7 +131,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	logger.Info("Generate", "jobId", &generateResp.JobId, "resp", &generateResp)
+	logger.Info("Generate", "jobId", *generateResp.JobId, "resp", *generateResp)
 
 	time.Sleep(5 * time.Second)
 
@@ -141,24 +141,39 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("Details", "jobId", &generateResp.JobId, "status", &resp.JobStatus, "resp", &resp)
+	logger.Info("Details", "jobId", *generateResp.JobId, "status", *resp.JobStatus, "resp", *resp)
 
 	for _, serviceLastAccessed := range resp.ServicesLastAccessed {
-		for _, trackedActionLastAccessed := range serviceLastAccessed.TrackedActionsLastAccessed {
+		logger.Info("Service", "serviceName", *serviceLastAccessed.ServiceName, "trackedActionsLastAccessed", len(serviceLastAccessed.TrackedActionsLastAccessed))
+		if serviceLastAccessed.TrackedActionsLastAccessed == nil || len(serviceLastAccessed.TrackedActionsLastAccessed) == 0 {
 			d.StreamListItem(ctx, &awsIamAccessAdvisorData{
 				PrincipalArn:               principalArn,
 				Granularity:                granularity,
-				LastAuthenticated:          *serviceLastAccessed.LastAuthenticated,
-				LastAuthenticatedEntity:    *serviceLastAccessed.LastAuthenticatedEntity,
-				LastAuthenticatedRegion:    *serviceLastAccessed.LastAuthenticatedRegion,
-				LastAccessedEntity:         *trackedActionLastAccessed.LastAccessedEntity,
-				LastAccessedRegion:         *trackedActionLastAccessed.LastAccessedRegion,
-				LastAccessedTime:           *trackedActionLastAccessed.LastAccessedTime,
-				ServiceName:                *serviceLastAccessed.ServiceName,
-				ServiceNamespace:           *serviceLastAccessed.ServiceNamespace,
-				ActionName:                 *trackedActionLastAccessed.ActionName,
-				TotalAuthenticatedEntities: *serviceLastAccessed.TotalAuthenticatedEntities,
+				LastAuthenticated:          serviceLastAccessed.LastAuthenticated,
+				LastAuthenticatedEntity:    serviceLastAccessed.LastAuthenticatedEntity,
+				LastAuthenticatedRegion:    serviceLastAccessed.LastAuthenticatedRegion,
+				ServiceName:                serviceLastAccessed.ServiceName,
+				ServiceNamespace:           serviceLastAccessed.ServiceNamespace,
+				TotalAuthenticatedEntities: serviceLastAccessed.TotalAuthenticatedEntities,
 			})
+		} else {
+			for _, trackedActionLastAccessed := range serviceLastAccessed.TrackedActionsLastAccessed {
+				logger.Info("Action", "serviceName", *serviceLastAccessed.ServiceName, "actionName", *trackedActionLastAccessed.ActionName)
+				d.StreamListItem(ctx, &awsIamAccessAdvisorData{
+					PrincipalArn:               principalArn,
+					Granularity:                granularity,
+					LastAuthenticated:          serviceLastAccessed.LastAuthenticated,
+					LastAuthenticatedEntity:    serviceLastAccessed.LastAuthenticatedEntity,
+					LastAuthenticatedRegion:    serviceLastAccessed.LastAuthenticatedRegion,
+					LastAccessedEntity:         trackedActionLastAccessed.LastAccessedEntity,
+					LastAccessedRegion:         trackedActionLastAccessed.LastAccessedRegion,
+					LastAccessedTime:           trackedActionLastAccessed.LastAccessedTime,
+					ServiceName:                serviceLastAccessed.ServiceName,
+					ServiceNamespace:           serviceLastAccessed.ServiceNamespace,
+					ActionName:                 trackedActionLastAccessed.ActionName,
+					TotalAuthenticatedEntities: serviceLastAccessed.TotalAuthenticatedEntities,
+				})
+			}
 		}
 	}
 
