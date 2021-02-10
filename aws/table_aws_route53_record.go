@@ -14,16 +14,11 @@ import (
 
 func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_route53_record",
-		Description: "AWS Route53 Record",
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns:  plugin.SingleColumn("zone_id"),
-		// 	ItemFromKey: hostedZone,
-		// 	Hydrate:     getHostedZone,
-		// },
+		Name:        "aws_route53_recordset",
+		Description: "AWS Route53 RecordSet",
 		List: &plugin.ListConfig{
-			ParentHydrate: listHostedZones,
-			Hydrate:       listRoute53Records,
+			KeyColumns: plugin.SingleColumn("zone_id"),
+			Hydrate:    listRoute53Records,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -57,7 +52,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Record.Failover"),
 			},
 			{
-				Name:        "geolocation_routing_policy",
+				Name:        "geo_location",
 				Description: "Geolocation resource record sets only: A complex type that lets you control how Amazon Route 53 responds to DNS queries based on the geographic origin of the query. For example, if you want all queries from Africa to be routed to a web server with an IP address of 192.0.2.111, create a resource record set with a Type of A and a ContinentCode of AF.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Record.GeoLocation"),
@@ -107,7 +102,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 			{
 				Name:        "weight",
 				Description: "Weighted resource record sets only: Among resource record sets that have the same combination of DNS name and type, a value that determines the proportion of DNS queries that Amazon Route 53 responds to using the current resource record set. Route 53 calculates the sum of the weights for the resource record sets that have the same combination of DNS name and type. Route 53 then responds to queries based on the ratio of a resource's weight to the total.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("Record.Weight"),
 			},
 			{
@@ -116,13 +111,13 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Record.Name"),
 			},
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getRoute53HostedZoneTurbotAkas,
-			// 	Transform:   transform.FromValue(),
-			// },
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53RecordSetAkas,
+				Transform:   transform.FromValue(),
+			},
 		}),
 	}
 }
@@ -137,7 +132,7 @@ type recordInfo struct {
 func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	defaultRegion := GetDefaultRegion()
 	plugin.Logger(ctx).Trace("listRoute53Records", "AWS_REGION", defaultRegion)
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
 	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
@@ -147,11 +142,11 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	err = svc.ListResourceRecordSetsPages(
 		&route53.ListResourceRecordSetsInput{
-			HostedZoneId: hostedZone.Id,
+			HostedZoneId: &hostedZoneID,
 		},
 		func(page *route53.ListResourceRecordSetsOutput, isLast bool) bool {
 			for _, record := range page.ResourceRecordSets {
-				d.StreamLeafListItem(ctx, &recordInfo{hostedZone.Id, record})
+				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
 			}
 			return true
 		},
@@ -177,4 +172,19 @@ func flattenResourceRecords(_ context.Context, d *transform.TransformData) (inte
 		}
 	}
 	return strs, nil
+}
+
+func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRoute53RecordSetAkas")
+	recordData := h.Item.(*recordInfo)
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// Get data for turbot defined properties
+	akas := []string{"arn:" + commonColumnData.Partition + ":route53:::" + "hostedzone/" + *recordData.ZoneID + "/recordset/" + *recordData.Record.Type + "/" + *recordData.Record.Name}
+
+	return akas, nil
 }
