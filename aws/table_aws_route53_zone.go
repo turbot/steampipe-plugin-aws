@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -14,14 +15,14 @@ import (
 func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_route53_zone",
-		Description: "AWS Route53 Zones",
+		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
 			KeyColumns:  plugin.SingleColumn("id"),
 			ItemFromKey: hostedZone,
 			Hydrate:     getHostedZone,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listhostedZone,
+			Hydrate: listHostedZones,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -56,11 +57,13 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Name:        "linked_service_principal",
 				Description: "If the health check or hosted zone was created by another service, the service that created the resource.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LinkedService.ServicePrincipal"),
 			},
 			{
 				Name:        "linked_service_description",
 				Description: "If the health check or hosted zone was created by another service, an optional description that can be provided by the other service.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LinkedService.Description"),
 			},
 			{
 				Name:        "resource_record_set_count",
@@ -68,10 +71,24 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "tags_src",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneTags,
+				Transform:   transform.FromField("ResourceTagSet.Tags"),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneTags,
+				Transform:   transform.FromField("ResourceTagSet.Tags").Transform(route53HostedZoneTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -97,7 +114,7 @@ func hostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 
 //// LIST FUNCTION
 
-func listhostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	defaultRegion := GetDefaultRegion()
 	plugin.Logger(ctx).Trace("listhostedZone", "AWS_REGION", defaultRegion)
 
@@ -147,6 +164,32 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return item.HostedZone, nil
 }
 
+func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getHostedZone")
+
+	defaultRegion := GetDefaultRegion()
+	hostedZone := h.Item.(*route53.HostedZone)
+
+	// Create session
+	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &route53.ListTagsForResourceInput{
+		ResourceId:   hostedZone.Id,
+		ResourceType: types.String("hostedzone"),
+	}
+
+	// execute list call
+	resp, err := svc.ListTagsForResource(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRoute53HostedZoneTurbotAkas")
 	hostedZone := h.Item.(*route53.HostedZone)
@@ -163,9 +206,27 @@ func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h 
 	return akas, nil
 }
 
+//// TRANSFORM FUNCTIONS
+
 func route53ZoneID(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	hostedZone := d.HydrateItem.(*route53.HostedZone)
 	id := strings.Split(string(*hostedZone.Id), "/")[2]
 
 	return id, nil
+}
+
+func route53HostedZoneTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("route53HostedZoneTurbotTags")
+	tags := d.Value.([]*route53.Tag)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
