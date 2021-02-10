@@ -23,17 +23,17 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listhostedZone,
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the domain",
+				Description: "The name of the domain. For public hosted zones, this is the name that is registered with your DNS registrar.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "id",
-				Description: "The ID that Amazon Route 53 assigned to the hosted zone when created it.",
+				Description: "The ID that Amazon Route 53 assigned to the hosted zone when it was created.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(route53Id),
+				Transform:   transform.From(route53ZoneID),
 			},
 			{
 				Name:        "caller_reference",
@@ -53,14 +53,19 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Config.PrivateZone"),
 			},
 			{
+				Name:        "linked_service_principal",
+				Description: "If the health check or hosted zone was created by another service, the service that created the resource.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "linked_service_description",
+				Description: "If the health check or hosted zone was created by another service, an optional description that can be provided by the other service.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "resource_record_set_count",
 				Description: "The number of resource record sets in the hosted zone",
 				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "linked_service",
-				Description: "The number of days to retain the log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "title",
@@ -158,7 +163,7 @@ func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h 
 	return akas, nil
 }
 
-func route53Id(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func route53ZoneID(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	hostedZone := d.HydrateItem.(*route53.HostedZone)
 	id := strings.Split(string(*hostedZone.Id), "/")[2]
 
