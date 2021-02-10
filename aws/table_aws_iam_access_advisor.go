@@ -70,7 +70,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 			{
 				Name:        "total_authenticated_entities",
 				Description: "The total number of authenticated principals (root user, IAM users, or IAM roles) that have attempted to access the service.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "tracked_actions_last_accessed",
