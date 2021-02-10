@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -152,6 +154,12 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		},
 	)
 
+	notFoundErrors := []string{"InvalidParameter", "NoSuchHostedZone"}
+	if err != nil {
+		if helpers.StringSliceContains(notFoundErrors, err.(awserr.Error).Code()) {
+			return nil, nil
+		}
+	}
 	return nil, err
 }
 
