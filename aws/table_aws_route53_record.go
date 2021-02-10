@@ -14,10 +14,10 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 )
 
-func tableAwsRoute53RecordSet(_ context.Context) *plugin.Table {
+func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_route53_recordset",
-		Description: "AWS Route53 RecordSet",
+		Name:        "aws_route53_record",
+		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.SingleColumn("zone_id"),
 			Hydrate:    listRoute53Records,
@@ -191,8 +191,17 @@ func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	arn := "arn:" + commonColumnData.Partition + ":route53:::" +
+		"hostedzone/" + *recordData.ZoneID +
+		"/recordset/" + *recordData.Record.Name +
+		"/" + *recordData.Record.Type
+
+	if recordData.Record.SetIdentifier != nil {
+		arn += "/" + *recordData.Record.SetIdentifier
+	}
+
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":route53:::" + "hostedzone/" + *recordData.ZoneID + "/recordset/" + *recordData.Record.Type + "/" + *recordData.Record.Name}
+	akas := []string{arn}
 
 	return akas, nil
 }

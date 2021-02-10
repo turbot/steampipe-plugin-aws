@@ -42,14 +42,14 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "config_comment",
-				Description: "A complex type that includes the Comment and PrivateZone elements",
+				Name:        "comment",
+				Description: "A comment for the zone",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Config.Comment"),
 			},
 			{
-				Name:        "config_private_zone",
-				Description: "A complex type that includes the Comment and PrivateZone elements",
+				Name:        "private_zone",
+				Description: "If true, the zone is Private hosted Zone, otherwise it is public.",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("Config.PrivateZone"),
 			},
