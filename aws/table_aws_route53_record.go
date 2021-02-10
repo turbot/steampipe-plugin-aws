@@ -12,7 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 )
 
-func tableAwsRoute53Record(_ context.Context) *plugin.Table {
+func tableAwsRoute53RecordSet(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_route53_recordset",
 		Description: "AWS Route53 RecordSet",
