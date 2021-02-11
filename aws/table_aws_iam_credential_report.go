@@ -180,6 +180,12 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 				Transform:   transform.FromGo().NullIfEqual("N/A").NullIfEqual("no_information"),
 			},
 			{
+				Name:        "password_status",
+				Description: "The status of an user password. Password status can be one of used, never_used and not_set.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PasswordLastUsed").Transform(passwordStatus),
+			},
+			{
 				Name:        "password_next_rotation",
 				Description: "When the account has a password policy that requires password rotation, this field contains the date and time",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -246,4 +252,15 @@ func passwordEnabledToBool(_ context.Context, d *transform.TransformData) (inter
 		return true, nil
 	}
 	return false, nil
+}
+
+func passwordStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	used := types.SafeString(d.Value)
+	pwdStatus := "used"
+	if used == "no_information" {
+		pwdStatus = "never_used"
+	} else if used == "N/A" {
+		pwdStatus = "not_set"
+	}
+	return pwdStatus, nil
 }
