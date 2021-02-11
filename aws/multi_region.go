@@ -6,16 +6,15 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
-const fetchMetdataKeyRegion = "region"
+const matrixKeyRegion = "region"
 
-// BuildFetchMetadataList :: fds
-func BuildFetchMetadataList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
+// BuildRegionList :: return a list of matrix items, one per region specified in the connection config
+func BuildRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
 	// retrieve regions from connection config
 	regions := GetConfig(connection).Regions
-	// build a list of fetchMetadata - one per region
-	fetchMetadataList := make([]map[string]interface{}, len(regions))
+	matrix := make([]map[string]interface{}, len(regions))
 	for i, region := range regions {
-		fetchMetadataList[i] = map[string]interface{}{fetchMetdataKeyRegion: region}
+		matrix[i] = map[string]interface{}{matrixKeyRegion: region}
 	}
-	return fetchMetadataList
+	return matrix
 }

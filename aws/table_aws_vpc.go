@@ -22,7 +22,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
 		},
-		GetFetchMetadata: BuildFetchMetadataList,
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
@@ -115,7 +115,7 @@ func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
@@ -145,7 +145,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	logger.Trace("getVpc")
 
 	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
-	region := plugin.GetFetchMetadata(ctx)[fetchMetdataKeyRegion].(string)
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
