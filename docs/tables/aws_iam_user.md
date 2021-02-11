@@ -21,7 +21,7 @@ from
 
 ```sql
 select
-  name as group_name,
+  name as user_name,
   iam_group ->> 'GroupName' as group_name,
   iam_group ->> 'GroupId' as group_id,
   iam_group ->> 'CreateDate' as create_date
@@ -68,12 +68,13 @@ from
 ```
 
 ### Find users that have inline policies
+
 ```sql
 select
   name as user_name,
   inline_policies
 from
   aws_iam_user
-where 
+where
   inline_policies is not null;
 ```
