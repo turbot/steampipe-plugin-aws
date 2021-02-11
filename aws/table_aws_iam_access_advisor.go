@@ -88,7 +88,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	logger.Trace("listAccessAdvisor")
 
 	// To simplify the table we always get ACTION_LEVEL.  ACTION_LEVEL is a superset of
-	// SERVICE_LEVEL, and currenty only s# supports action level actions anyway, so the
+	// SERVICE_LEVEL, and currently only s# supports action level actions anyway, so the
 	// performance impact is minimal
 	granularity := "ACTION_LEVEL"
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
