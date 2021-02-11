@@ -23,7 +23,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchEntity"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			ItemFromKey:       roleFromKey,
 			Hydrate:           getIamRole,
 		},

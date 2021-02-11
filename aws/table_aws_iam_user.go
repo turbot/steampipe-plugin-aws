@@ -20,7 +20,8 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			//	ItemFromKey: userFromKey,
 			Hydrate: getIamUser,
 		},
