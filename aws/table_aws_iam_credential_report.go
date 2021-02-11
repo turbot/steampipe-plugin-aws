@@ -180,16 +180,16 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 				Transform:   transform.FromGo().NullIfEqual("N/A").NullIfEqual("no_information"),
 			},
 			{
-				Name:        "password_next_rotation",
-				Description: "When the account has a password policy that requires password rotation, this field contains the date and time",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromGo().NullIfEqual("N/A").NullIfEqual("not_supported"),
-			},
-			{
 				Name:        "password_never_used",
 				Description: "When the password is created but never used",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("PasswordLastUsed").Transform(passwordNeverUsedToBool),
+			},
+			{
+				Name:        "password_next_rotation",
+				Description: "When the account has a password policy that requires password rotation, this field contains the date and time",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromGo().NullIfEqual("N/A").NullIfEqual("not_supported"),
 			},
 		}),
 	}
