@@ -44,7 +44,7 @@ select
 from
     aws_iam_credential_report
 where
-    password_never_used;
+    password_status = 'never_used';
 ```
 
 ### Find Access Keys older than 90 days
