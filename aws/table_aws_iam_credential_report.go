@@ -185,6 +185,12 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromGo().NullIfEqual("N/A").NullIfEqual("not_supported"),
 			},
+			{
+				Name:        "password_never_used",
+				Description: "When the password is created but never used",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("PasswordLastUsed").Transform(passwordNeverUsedToBool),
+			},
 		}),
 	}
 }
@@ -243,6 +249,14 @@ func passwordEnabledToBool(_ context.Context, d *transform.TransformData) (inter
 		return true, nil
 	}
 	if enabled == "true" {
+		return true, nil
+	}
+	return false, nil
+}
+
+func passwordNeverUsedToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	used := types.SafeString(d.Value)
+	if used == "no_information" {
 		return true, nil
 	}
 	return false, nil
