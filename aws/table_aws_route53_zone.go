@@ -17,9 +17,10 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_zone",
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("id"),
-			ItemFromKey: hostedZone,
-			Hydrate:     getHostedZone,
+			KeyColumns:        plugin.SingleColumn("id"),
+			ItemFromKey:       hostedZone,
+			Hydrate:           getHostedZone,
+			ShouldIgnoreError: isNotFoundError([]string{"NoSuchHostedZone"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
@@ -149,6 +150,12 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
 	if err != nil {
 		return nil, err
+	}
+
+	// Error: pq: rpc error: code = Unknown desc = InvalidParameter: 1 validation error(s) found.
+	// - minimum field size of 1, GetHostedZoneInput.Id.
+	if len(*hostedZone.Id) < 1 {
+		return nil, nil
 	}
 
 	params := &route53.GetHostedZoneInput{
