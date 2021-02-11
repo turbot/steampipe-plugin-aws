@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -20,9 +21,9 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: groupFromKey,
-			Hydrate:     getIamGroup,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			//	ItemFromKey: groupFromKey,
+			Hydrate: getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
@@ -136,7 +137,12 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamGroup")
-	group := h.Item.(*iam.Group)
+
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	groupName := d.KeyColumnQuals["name"].GetStringValue()
+	if len(arn) > 0 {
+		groupName = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 
 	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
@@ -145,7 +151,7 @@ func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	params := &iam.GetGroupInput{
-		GroupName: group.GroupName,
+		GroupName: &groupName,
 	}
 
 	op, err := svc.GetGroup(params)

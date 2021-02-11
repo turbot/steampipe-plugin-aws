@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -19,9 +20,9 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: userFromKey,
-			Hydrate:     getIamUser,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			//	ItemFromKey: userFromKey,
+			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
@@ -178,8 +179,11 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamUser")
-	user := h.Item.(*iam.User)
-
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
+	if len(arn) > 0 {
+		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
 	if err != nil {
@@ -187,7 +191,7 @@ func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	}
 
 	params := &iam.GetUserInput{
-		UserName: user.UserName,
+		UserName: &name,
 	}
 
 	op, err := svc.GetUser(params)
