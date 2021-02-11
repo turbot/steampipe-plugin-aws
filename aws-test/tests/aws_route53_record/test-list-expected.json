@@ -1,0 +1,11 @@
+[
+	{
+		"name": "www.{{ resourceName }}.com.",
+		"records": ["{{ output.public_ip.value }}"],
+		"set_identifier": "live",
+		"ttl": "300",
+		"type": "A",
+		"weight": 90,
+		"zone_id": "{{ output.zone_id.value }}"
+	}
+]
