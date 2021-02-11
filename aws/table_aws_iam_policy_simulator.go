@@ -97,7 +97,7 @@ type awsIamPolicySimulatorResult struct {
 }
 
 func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamPolicySimulation")
+	plugin.Logger(ctx).Trace("listIamPolicySimulation")
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 	action := d.KeyColumnQuals["action"].GetStringValue()
 	resourceArn := d.KeyColumnQuals["resource_arn"].GetStringValue()
