@@ -71,7 +71,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				Description: "Inline policies in canonical form for the group",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupInlinePolicies,
-				Transform:   transform.FromValue().Transform(inlinePoliciesGroupToStd),
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
@@ -322,32 +322,4 @@ func getGroupInlinePolicy(policyName *string, groupName *string, svc *iam.IAM) (
 	}
 
 	return groupPolicy, nil
-}
-
-func inlinePoliciesGroupToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inlinePoliciesGroupToStd")
-	groupPoliciesStd := d.HydrateItem.([]map[string]interface{})
-
-	var tmpGroupPoliciesStd []map[string]interface{}
-	if groupPoliciesStd == nil {
-		return nil, nil
-	}
-	for _, tmp := range groupPoliciesStd {
-		groupPolicyStd := make(map[string]interface{})
-		strPolicy, err := json.Marshal(tmp["PolicyDocument"])
-		if err != nil {
-			return nil, err
-		}
-		tmpGroupPolicyStd, errStd := canonicalPolicy(string(strPolicy))
-		if errStd != nil {
-			return nil, errStd
-		}
-		groupPolicyStd = map[string]interface{}{
-			"PolicyDocument": tmpGroupPolicyStd,
-			"PolicyName":     tmp["PolicyName"],
-		}
-		tmpGroupPoliciesStd = append(tmpGroupPoliciesStd, groupPolicyStd)
-	}
-
-	return tmpGroupPoliciesStd, nil
 }

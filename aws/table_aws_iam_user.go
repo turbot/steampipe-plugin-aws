@@ -102,7 +102,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Description: "Inline policies in canonical form for the user",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserInlinePolicies,
-				Transform:   transform.FromValue().Transform(inlinePoliciesUserToStd),
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "inline_policies_std",
@@ -439,31 +439,4 @@ func userMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, 
 	}
 
 	return false, nil
-}
-func inlinePoliciesUserToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inlinePoliciesUserToStd")
-	userPoliciesStd := d.HydrateItem.([]map[string]interface{})
-
-	var tmpUserPoliciesStd []map[string]interface{}
-	if userPoliciesStd == nil {
-		return nil, nil
-	}
-	for _, tmp := range userPoliciesStd {
-		userPolicyStd := make(map[string]interface{})
-		strPolicy, err := json.Marshal(tmp["PolicyDocument"])
-		if err != nil {
-			return nil, err
-		}
-		tmpUserPolicyStd, errStd := canonicalPolicy(string(strPolicy))
-		if errStd != nil {
-			return nil, errStd
-		}
-		userPolicyStd = map[string]interface{}{
-			"PolicyDocument": tmpUserPolicyStd,
-			"PolicyName":     tmp["PolicyName"],
-		}
-		tmpUserPoliciesStd = append(tmpUserPoliciesStd, userPolicyStd)
-	}
-
-	return tmpUserPoliciesStd, nil
 }

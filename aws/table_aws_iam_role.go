@@ -128,7 +128,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Description: "Inline policies in canonical form for the role",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamRoleInlinePolicies,
-				Transform:   transform.FromValue().Transform(inlinePoliciesRoleToStd),
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
@@ -410,31 +410,4 @@ func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interf
 		}
 	}
 	return turbotTagsMap, nil
-}
-func inlinePoliciesRoleToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inlinePoliciesRoleToStd")
-	rolePoliciesStd := d.HydrateItem.([]map[string]interface{})
-
-	var tmpRolePoliciesStd []map[string]interface{}
-	if rolePoliciesStd == nil {
-		return nil, nil
-	}
-	for _, tmp := range rolePoliciesStd {
-		rolePolicyStd := make(map[string]interface{})
-		strPolicy, err := json.Marshal(tmp["PolicyDocument"])
-		if err != nil {
-			return nil, err
-		}
-		tmpRolePolicyStd, errStd := canonicalPolicy(string(strPolicy))
-		if errStd != nil {
-			return nil, errStd
-		}
-		rolePolicyStd = map[string]interface{}{
-			"PolicyDocument": tmpRolePolicyStd,
-			"PolicyName":     tmp["PolicyName"],
-		}
-		tmpRolePoliciesStd = append(tmpRolePoliciesStd, rolePolicyStd)
-	}
-
-	return tmpRolePoliciesStd, nil
 }
