@@ -82,6 +82,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_parameter_group":             tableAwsRDSDBParameterGroup(ctx),
 			"aws_rds_db_snapshot":                    tableAwsRDSDBSnapshot(ctx),
 			"aws_rds_db_subnet_group":                tableAwsRDSDBSubnetGroup(ctx),
+			"aws_redshift_cluster":                   tableAwsRedshiftCluster(ctx),
 			"aws_region":                             tableAwsRegion(ctx),
 			"aws_route53_record":                     tableAwsRoute53Record(ctx),
 			"aws_route53_zone":                       tableAwsRoute53Zone(ctx),
