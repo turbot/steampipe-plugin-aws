@@ -130,6 +130,24 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "endpoint_address",
+				Description: "The DNS address of the Cluster.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Endpoint.Address"),
+			},
+			{
+				Name:        "endpoint_port",
+				Description: "The port that the database engine is listening on.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Endpoint.Port"),
+			},
+			{
+				Name:        "endpoint_vpc_endpoints",
+				Description: "Describes a connection endpoint.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Endpoint.VpcEndpoints"),
+			},
+			{
 				Name:        "manual_snapshot_retention_period",
 				Description: "The default number of days to retain a manual snapshot. If the value is -1, the snapshot is retained indefinitely. This setting doesn't change the retention period of existing snapshots. The value must be either -1 or an integer between 1 and 3,653.",
 				Type:        proto.ColumnType_STRING,
@@ -148,11 +166,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "publicly_accessible",
 				Description: "A boolean value that, if true, indicates that the cluster can be accessed from a public network.",
 				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "tags",
-				Description: "The list of tags for the cluster.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "vpc_id",
