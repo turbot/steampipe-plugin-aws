@@ -370,27 +370,27 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 //Inline policies in canonical form
 func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
-	policiesStd := d.HydrateItem.([]map[string]interface{})
+	inlinePolicies := d.HydrateItem.([]map[string]interface{})
 
-	var tmpPoliciesStd []map[string]interface{}
-	if policiesStd == nil {
+	var inlinePoliciesStd []map[string]interface{}
+	if inlinePolicies == nil {
 		return nil, nil
 	}
-	for _, tmp := range policiesStd {
-		policyStd := make(map[string]interface{})
-		strPolicy, err := json.Marshal(tmp["PolicyDocument"])
+	for _, inlinePolicy := range inlinePolicies {
+		inlinePolicyStd := make(map[string]interface{})
+		strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
 		if err != nil {
 			return nil, err
 		}
-		tmpPolicyStd, errStd := canonicalPolicy(string(strPolicy))
+		policyStd, errStd := canonicalPolicy(string(strPolicy))
 		if errStd != nil {
 			return nil, errStd
 		}
-		policyStd = map[string]interface{}{
-			"PolicyDocument": tmpPolicyStd,
-			"PolicyName":     tmp["PolicyName"],
+		inlinePolicyStd = map[string]interface{}{
+			"PolicyDocument": policyStd,
+			"PolicyName":     inlinePolicy["PolicyName"],
 		}
-		tmpPoliciesStd = append(tmpPoliciesStd, policyStd)
+		inlinePoliciesStd = append(inlinePoliciesStd, inlinePolicyStd)
 	}
-	return policiesStd, nil
+	return inlinePoliciesStd, nil
 }
