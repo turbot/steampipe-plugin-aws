@@ -9,5 +9,4 @@ require (
 	github.com/turbot/steampipe-plugin-sdk v0.1.0
 )
 
-replace github.com/turbot/steampipe-plugin-sdk => /Users/kai/Dev/github/turbot/steampipe-plugin-sdk
-
+replace github.com/turbot/steampipe-plugin-sdk => github.com/turbot/steampipe-plugin-sdk v0.0.0-20210212114934-d988b6881d13
