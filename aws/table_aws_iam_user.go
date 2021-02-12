@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -22,8 +23,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			//	ItemFromKey: userFromKey,
-			Hydrate: getIamUser,
+			Hydrate:           getIamUser,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
@@ -143,17 +143,6 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func userFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &iam.User{
-		UserName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -180,11 +169,13 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamUser")
+
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	if len(arn) > 0 {
 		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
 	}
+
 	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
 	if err != nil {
@@ -192,7 +183,7 @@ func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	}
 
 	params := &iam.GetUserInput{
-		UserName: &name,
+		UserName: aws.String(name),
 	}
 
 	op, err := svc.GetUser(params)
@@ -283,7 +274,7 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getAwsIamUserGroups")
 	user := h.Item.(*iam.User)
 
-	// create service
+	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
 	if err != nil {
 		return nil, err
@@ -305,7 +296,7 @@ func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin
 	plugin.Logger(ctx).Trace("getAwsIamUserMfaDevices")
 	user := h.Item.(*iam.User)
 
-	// create service
+	// Create Session
 	svc, err := IAMService(ctx, d.ConnectionManager)
 	if err != nil {
 		return nil, err
@@ -366,6 +357,7 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 
 	// wait for all inline policies to be processed
 	wg.Wait()
+
 	// NOTE: close channel before ranging over results
 	close(policyCh)
 	close(errorCh)
