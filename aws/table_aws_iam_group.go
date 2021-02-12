@@ -10,6 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -23,8 +24,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			//	ItemFromKey: groupFromKey,
-			Hydrate: getIamGroup,
+			Hydrate:           getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
@@ -152,7 +152,7 @@ func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	params := &iam.GetGroupInput{
-		GroupName: &groupName,
+		GroupName: aws.String(groupName),
 	}
 
 	op, err := svc.GetGroup(params)
@@ -262,6 +262,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	// wait for all inline policies to be processed
 	wg.Wait()
+
 	// NOTE: close channel before ranging over results
 	close(policyCh)
 	close(errorCh)
