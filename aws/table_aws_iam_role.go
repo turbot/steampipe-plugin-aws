@@ -124,6 +124,13 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the role",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamRoleInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
+			},
+			{
 				Name:        "attached_policy_arns",
 				Description: "A list of managed policies attached to the role",
 				Type:        proto.ColumnType_JSON,
