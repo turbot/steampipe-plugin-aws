@@ -58,10 +58,11 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "tag_list",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the DB parameter group",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRDSParameterGroupTags,
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns

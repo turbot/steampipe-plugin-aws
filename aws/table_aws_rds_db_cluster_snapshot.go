@@ -143,9 +143,10 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DBClusterSnapshotAttributesResult.DBClusterSnapshotAttributes"),
 			},
 			{
-				Name:        "tag_list",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the DB Cluster Snapshot",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns
