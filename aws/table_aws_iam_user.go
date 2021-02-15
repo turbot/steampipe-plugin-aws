@@ -105,6 +105,13 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the user",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
+			},
+			{
 				Name:        "attached_policy_arns",
 				Description: "A list of managed policies attached to the user",
 				Type:        proto.ColumnType_JSON,
