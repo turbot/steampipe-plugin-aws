@@ -366,13 +366,13 @@ func S3ControlService(ctx context.Context, connectionManager *connection.Manager
 }
 
 // S3Service returns the service connection for AWS S3 service
-func S3Service(ctx context.Context, connectionManager *connection.Manager, region string) (*s3.S3, error) {
+func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed S3Service")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("s3-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*s3.S3), nil
 	}
 	// so it was not in cache - create service
@@ -381,7 +381,7 @@ func S3Service(ctx context.Context, connectionManager *connection.Manager, regio
 		return nil, err
 	}
 	svc := s3.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
@@ -470,8 +470,23 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	awsConfig := GetConfig(d.Connection)
 	plugin.Logger(ctx).Warn("###########getSession#########", "awsConfig", awsConfig)
+	plugin.Logger(ctx).Warn("###########getSession#########", "region", region)
 	// TODO is it correct to always pass region to session?
 	// have we cached a session?
+	if &awsConfig != nil {
+		if awsConfig.Profile != "" {
+			os.Setenv("AWS_PROFILE", awsConfig.Profile)
+		}
+		// if awsConfig.AccessKey != "" && awsConfig.SecretKey == "" {
+		// 	return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+		// } else if awsConfig.SecretKey != "" && awsConfig.AccessKey == "" {
+		// 	return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+		// } else if awsConfig.AccessKey != "" && awsConfig.SecretKey == "" {
+		// 	os.Setenv("AWS_ACCESS_KEY_ID", awsConfig.AccessKey)
+		// 	os.Setenv("AWS_SECRET_ACCESS_KEY", awsConfig.SecretKey)
+		// }
+	}
+
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil

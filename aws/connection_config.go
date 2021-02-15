@@ -6,10 +6,10 @@ import (
 )
 
 type awsConfig struct {
-	Regions   []string `cty:"regions"`
-	Profile   string   `cty:"profile"`
-	AccessKey string   `cty:"access_key"`
-	// SecretKey    string   `cty:"secret_key"`
+	Regions []string `cty:"regions"`
+	Profile string   `cty:"profile"`
+	// AccessKey string   `cty:"access_key"`
+	// SecretKey string   `cty:"secret_key"`
 	// SessionToken string   `cty:"session_token"`
 }
 
@@ -23,10 +23,10 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Type:     schema.TypeString,
 		Optional: true,
 	},
-	"access_key": {
-		Type:     schema.TypeString,
-		Optional: true,
-	},
+	// "access_key": {
+	// 	Type:     schema.TypeString,
+	// 	Optional: true,
+	// },
 	// "secret_key": {
 	// 	Type:     schema.TypeString,
 	// 	Optional: true,
