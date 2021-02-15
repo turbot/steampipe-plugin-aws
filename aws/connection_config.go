@@ -6,9 +6,9 @@ import (
 )
 
 type awsConfig struct {
-	Regions []string `cty:"regions"`
-	Profile string   `cty:"profile"`
-	// AccessKey    string   `cty:"access_key"`
+	Regions   []string `cty:"regions"`
+	Profile   string   `cty:"profile"`
+	AccessKey string   `cty:"access_key"`
 	// SecretKey    string   `cty:"secret_key"`
 	// SessionToken string   `cty:"session_token"`
 }
