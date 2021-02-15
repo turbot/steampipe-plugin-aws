@@ -18,7 +18,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Redshift Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "NoSuchEntity", "ValidationError"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFound", "InvalidParameterValue", "NoSuchEntity", "ValidationError"}),
 			ItemFromKey:       redshiftClusterFromKey,
 			Hydrate:           getAwsRedshiftCluster,
 		},
