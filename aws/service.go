@@ -30,25 +30,26 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/turbot/steampipe-plugin-sdk/connection"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
 // ACMService returns the service connection for AWS ACM service
-func ACMService(ctx context.Context, connectionManager *connection.Manager, region string) (*acm.ACM, error) {
+func ACMService(ctx context.Context, d *plugin.QueryData, region string) (*acm.ACM, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ACMService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("acm-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*acm.ACM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := acm.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
@@ -64,7 +65,7 @@ func APIGatewayService(ctx context.Context, connectionManager *connection.Manage
 		return cachedData.(*apigateway.APIGateway), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func APIGatewayV2Service(ctx context.Context, connectionManager *connection.Mana
 		return cachedData.(*apigatewayv2.ApiGatewayV2), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func AutoScalingService(ctx context.Context, connectionManager *connection.Manag
 		return cachedData.(*autoscaling.AutoScaling), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +128,7 @@ func CloudFormationService(ctx context.Context, connectionManager *connection.Ma
 		return cachedData.(*cloudformation.CloudFormation), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ func CloudWatchLogsService(ctx context.Context, connectionManager *connection.Ma
 		return cachedData.(*cloudwatchlogs.CloudWatchLogs), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func DynamoDbService(ctx context.Context, connectionManager *connection.Manager,
 		return cachedData.(*dynamodb.DynamoDB), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +191,7 @@ func Ec2Service(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*ec2.EC2), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +214,7 @@ func ELBv2Service(ctx context.Context, connectionManager *connection.Manager, re
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +237,7 @@ func ELBService(ctx context.Context, connectionManager *connection.Manager, regi
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +255,7 @@ func IAMService(ctx context.Context, connectionManager *connection.Manager) (*ia
 		return cachedData.(*iam.IAM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultAwsRegion())
+	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +277,7 @@ func KMSService(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*kms.KMS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +298,7 @@ func LambdaService(ctx context.Context, connectionManager *connection.Manager, r
 		return cachedData.(*lambda.Lambda), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +316,7 @@ func OrganizationService(ctx context.Context, connectionManager *connection.Mana
 		return cachedData.(*organizations.Organizations), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +337,7 @@ func RDSService(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*rds.RDS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +355,7 @@ func S3ControlService(ctx context.Context, connectionManager *connection.Manager
 		return cachedData.(*s3control.S3Control), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +376,7 @@ func S3Service(ctx context.Context, connectionManager *connection.Manager, regio
 		return cachedData.(*s3.S3), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +397,7 @@ func SNSService(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*sns.SNS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +418,7 @@ func SQSService(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*sqs.SQS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, &plugin.QueryData{}, region)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +439,7 @@ func SsmService(ctx context.Context, connectionManager *connection.Manager, regi
 		return cachedData.(*ssm.SSM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultRegion())
+	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
@@ -449,28 +450,30 @@ func SsmService(ctx context.Context, connectionManager *connection.Manager, regi
 }
 
 // StsService returns the service connection for AWS STS service
-func StsService(ctx context.Context, connectionManager *connection.Manager) (*sts.STS, error) {
+func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 	// have we already created and cached the service?
 	serviceCacheKey := "sts"
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*sts.STS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, GetDefaultAwsRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
 	svc := sts.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
-func getSession(ctx context.Context, connectionManager *connection.Manager, region string) (*session.Session, error) {
+func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+	awsConfig := GetConfig(d.Connection)
+	plugin.Logger(ctx).Warn("###########getSession#########", "awsConfig", awsConfig)
 	// TODO is it correct to always pass region to session?
 	// have we cached a session?
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(sessionCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
 	}
 
@@ -480,7 +483,7 @@ func getSession(ctx context.Context, connectionManager *connection.Manager, regi
 		return nil, err
 	}
 	// save session in cache
-	connectionManager.Cache.Set(sessionCacheKey, sess)
+	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
 
 	return sess, nil
 }

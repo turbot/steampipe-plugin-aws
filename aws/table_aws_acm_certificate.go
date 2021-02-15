@@ -217,7 +217,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	logger.Trace("listAwsAcmCertificates", "AWS_REGION", region)
 
 	// Create service
-	svc, err := ACMService(ctx, d.ConnectionManager, region)
+	svc, err := ACMService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 	// defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := ACMService(ctx, d.ConnectionManager, region)
+	svc, err := ACMService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	// defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := ACMService(ctx, d.ConnectionManager, region)
+	svc, err := ACMService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 	// defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := ACMService(ctx, d.ConnectionManager, region)
+	svc, err := ACMService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

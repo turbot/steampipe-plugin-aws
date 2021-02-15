@@ -104,7 +104,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
 	} else {
-		stsSvc, err := StsService(ctx, d.ConnectionManager)
+		stsSvc, err := StsService(ctx, d)
 		if err != nil {
 			return nil, err
 		}
