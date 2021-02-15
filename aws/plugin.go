@@ -36,6 +36,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
+			"aws_cloudwatch_event_rule":              tableAwsCloudwatchEventRule(ctx),
 			"aws_cloudwatch_log_group":               tableAwsCloudwatchLogGroup(ctx),
 			"aws_cloudwatch_log_metric_filter":       tableAwsCloudwatchLogMetricFilter(ctx),
 			"aws_dynamodb_backup":                    tableAwsDynamoDBBackup(ctx),
