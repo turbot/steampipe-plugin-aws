@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
@@ -535,4 +536,25 @@ func GetDefaultAwsRegion() string {
 		region = "us-east-1"
 	}
 	return region
+}
+
+// RedshiftService returns the service connection for AWS Redshift service
+func RedshiftService(ctx context.Context, connectionManager *connection.Manager, region string) (*redshift.Redshift, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed RedshiftService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("redshift-%s", region)
+	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*redshift.Redshift), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, connectionManager, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := redshift.New(sess)
+	connectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
 }
