@@ -100,17 +100,6 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	vpcID := quals["vpc_id"].GetStringValue()
-	item := &ec2.Vpc{
-		VpcId: &vpcID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
