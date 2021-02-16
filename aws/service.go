@@ -470,22 +470,24 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	awsConfig := GetConfig(d.Connection)
 	plugin.Logger(ctx).Warn("###########getSession#########", "awsConfig", awsConfig)
 	plugin.Logger(ctx).Warn("###########getSession#########", "region", region)
-	// TODO is it correct to always pass region to session?
-	// have we cached a session?
+
 	if &awsConfig != nil {
-		if awsConfig.Profile != "" {
-			os.Setenv("AWS_PROFILE", awsConfig.Profile)
+		if awsConfig.Profile != nil {
+			os.Setenv("AWS_PROFILE", *awsConfig.Profile)
 		}
-		// if awsConfig.AccessKey != "" && awsConfig.SecretKey == "" {
-		// 	return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-		// } else if awsConfig.SecretKey != "" && awsConfig.AccessKey == "" {
-		// 	return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-		// } else if awsConfig.AccessKey != "" && awsConfig.SecretKey == "" {
-		// 	os.Setenv("AWS_ACCESS_KEY_ID", awsConfig.AccessKey)
-		// 	os.Setenv("AWS_SECRET_ACCESS_KEY", awsConfig.SecretKey)
-		// }
+		if awsConfig.AccessKey != nil {
+			os.Setenv("AWS_ACCESS_KEY_ID", *awsConfig.AccessKey)
+		}
+		if awsConfig.SecretKey != nil {
+			os.Setenv("AWS_SECRET_ACCESS_KEY", *awsConfig.SecretKey)
+		}
+		if awsConfig.SessionToken != nil {
+			os.Setenv("AWS_SESSION_TOKEN", *awsConfig.SessionToken)
+		}
 	}
 
+	// TODO is it correct to always pass region to session?
+	// have we cached a session?
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
