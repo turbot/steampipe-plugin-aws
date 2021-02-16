@@ -57,11 +57,6 @@ func tableAwsCloudwatchEventRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ManagedBy"),
 			},
 			{
-				Name:        "event_pattern",
-				Description: "The event pattern of the rule",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "schedule_expression",
 				Description: "The scheduling expression",
 				Type:        proto.ColumnType_STRING,
@@ -72,7 +67,19 @@ func tableAwsCloudwatchEventRule(_ context.Context) *plugin.Table {
 				Description: "The state of the rule",
 				Type:        proto.ColumnType_STRING,
 			},
-
+			{
+				Name:        "tags_src",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEventRuleTagging,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "event_pattern",
+				Description: "The event pattern of the rule",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("EventPattern").Transform(transform.UnmarshalYAML),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -84,6 +91,7 @@ func tableAwsCloudwatchEventRule(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEventRuleTagging,
+				Transform:   transform.FromValue().Transform(eventRuleTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -176,4 +184,20 @@ func getEventRuleTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	return ruleTags, nil
+}
+
+func eventRuleTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("eventRuleTurbotTags")
+	tags := d.Value.(*cloudwatchevents.ListTagsForResourceOutput)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }

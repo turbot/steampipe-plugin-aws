@@ -1,0 +1,15 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "Capture each AWS Console Sign In",
+    "event_bus_name": "default",
+    "event_pattern": {
+      "detail-type": [
+        "AWS Console Sign In via CloudTrail"
+      ]
+    },
+    "name": "{{ resourceName }}",
+    "role_arn": "",
+    "schedule_expression": ""
+  }
+]
