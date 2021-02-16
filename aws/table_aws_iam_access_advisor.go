@@ -94,7 +94,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

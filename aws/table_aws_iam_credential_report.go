@@ -202,7 +202,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	logger.Trace("listCredentialReports")
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
