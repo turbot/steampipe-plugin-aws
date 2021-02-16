@@ -82,7 +82,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
 				Hydrate:     getBucketIsPublic,
-				Transform:   transform.FromField("PolicyStatus.IsPublic").Transform(handleNilString).Transform(transform.ToBool),
+				Transform:   transform.FromField("PolicyStatus.IsPublic"),
 			},
 			{
 				Name:        "versioning_enabled",
@@ -145,7 +145,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The lifecycle configuration information of the bucket",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLifecycle,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("Rules"),
 			},
 			{
 				Name:        "logging",

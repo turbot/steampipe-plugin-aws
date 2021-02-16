@@ -29,6 +29,7 @@ var commonAwsRegionalColumns = []*plugin.Column{
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
 		Description: "The AWS Account ID in which the resource is located",
+		Transform:   transform.FromCamel(),
 	},
 }
 
@@ -44,6 +45,7 @@ var commonS3Columns = []*plugin.Column{
 		Name:        "account_id",
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
+		Transform:   transform.FromCamel(),
 		Description: "The AWS Account ID in which the resource is located",
 	},
 }
@@ -66,6 +68,7 @@ var commonAwsColumns = []*plugin.Column{
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
 		Description: "The AWS Account ID in which the resource is located",
+		Transform:   transform.FromCamel(),
 	},
 }
 
