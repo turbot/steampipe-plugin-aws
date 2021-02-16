@@ -15,25 +15,20 @@ type awsConfig struct {
 
 var ConfigSchema = map[string]*schema.Attribute{
 	"regions": {
-		Type:        schema.TypeList,
-		Elem:        &schema.Attribute{Type: schema.TypeString},
-		Requirement: schema.AttributeOptional,
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
 	"profile": {
-		Type:        schema.TypeString,
-		Requirement: schema.AttributeOptional,
+		Type: schema.TypeString,
 	},
 	"access_key": {
-		Type:        schema.TypeString,
-		Requirement: schema.AttributeOptional,
+		Type: schema.TypeString,
 	},
 	"secret_key": {
-		Type:        schema.TypeString,
-		Requirement: schema.AttributeOptional,
+		Type: schema.TypeString,
 	},
 	"session_token": {
-		Type:        schema.TypeString,
-		Requirement: schema.AttributeOptional,
+		Type: schema.TypeString,
 	},
 }
 
