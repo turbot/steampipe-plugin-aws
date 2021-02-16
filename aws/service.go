@@ -348,22 +348,22 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 }
 
 // Route53Service returns the service connection for AWS route53 service
-func Route53Service(ctx context.Context, connectionManager *connection.Manager, region string) (*route53.Route53, error) {
+func Route53Service(ctx context.Context, d *plugin.QueryData, region string) (*route53.Route53, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Route53Service")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("route53-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*route53.Route53), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := route53.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 

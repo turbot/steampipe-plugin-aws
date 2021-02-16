@@ -137,7 +137,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
-	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Route53Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
