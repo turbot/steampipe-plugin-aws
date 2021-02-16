@@ -9,4 +9,4 @@ require (
 )
 
 // issue-21
-replace github.com/turbot/steampipe-plugin-sdk => github.com/turbot/steampipe-plugin-sdk v0.1.2-0.20210216110503-b3467c637d18
+replace github.com/turbot/steampipe-plugin-sdk => github.com/turbot/steampipe-plugin-sdk v0.1.2-0.20210216120354-2b82bea3d296
