@@ -496,14 +496,17 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		if awsConfig.Profile != nil {
 			os.Setenv("AWS_PROFILE", *awsConfig.Profile)
 		}
-		if awsConfig.AccessKey != nil {
+		if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
+			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
+			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
 			os.Setenv("AWS_ACCESS_KEY_ID", *awsConfig.AccessKey)
-		}
-		if awsConfig.SecretKey != nil {
 			os.Setenv("AWS_SECRET_ACCESS_KEY", *awsConfig.SecretKey)
-		}
-		if awsConfig.SessionToken != nil {
-			os.Setenv("AWS_SESSION_TOKEN", *awsConfig.SessionToken)
+
+			if awsConfig.SessionToken != nil {
+				os.Setenv("AWS_SESSION_TOKEN", *awsConfig.SessionToken)
+			}
 		}
 	}
 
