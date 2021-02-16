@@ -22,6 +22,7 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpoints,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_endpoint_id",
@@ -146,11 +147,16 @@ func vpcEndpointFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcEndpoints", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcEndpoints", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -174,10 +180,15 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcEndpoint")
 	vpcEndpoint := h.Item.(*ec2.VpcEndpoint)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

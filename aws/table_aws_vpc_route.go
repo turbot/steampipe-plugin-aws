@@ -28,6 +28,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 			ParentHydrate: listVpcRouteTables,
 			Hydrate:       listAwsVpcRoute,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",

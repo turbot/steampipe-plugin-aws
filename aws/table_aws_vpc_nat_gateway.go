@@ -22,6 +22,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNatGateways,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "nat_gateway_id",
@@ -118,11 +119,16 @@ func natGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcNatGateways", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcNatGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -147,10 +153,15 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcNatGateway")
 	natGateway := h.Item.(*ec2.NatGateway)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

@@ -20,6 +20,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			ParentHydrate: listVpcSecurityGroups,
 			Hydrate:       listSecurityGroupRules,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",
