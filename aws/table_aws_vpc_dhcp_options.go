@@ -110,7 +110,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

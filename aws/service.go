@@ -29,7 +29,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
 
-	"github.com/turbot/steampipe-plugin-sdk/connection"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
@@ -55,312 +54,312 @@ func ACMService(ctx context.Context, d *plugin.QueryData, region string) (*acm.A
 }
 
 // APIGatewayService returns the service connection for AWS API Gateway service
-func APIGatewayService(ctx context.Context, connectionManager *connection.Manager, region string) (*apigateway.APIGateway, error) {
+func APIGatewayService(ctx context.Context, d *plugin.QueryData, region string) (*apigateway.APIGateway, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed APIGateway")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("apigateway-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*apigateway.APIGateway), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := apigateway.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // APIGatewayV2Service returns the service connection for AWS API Gateway V2 service
-func APIGatewayV2Service(ctx context.Context, connectionManager *connection.Manager, region string) (*apigatewayv2.ApiGatewayV2, error) {
+func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string) (*apigatewayv2.ApiGatewayV2, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed APIGatewayV2Service")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("apigatewayv2-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*apigatewayv2.ApiGatewayV2), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := apigatewayv2.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, connectionManager *connection.Manager, region string) (*autoscaling.AutoScaling, error) {
+func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed AutoScalingService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*autoscaling.AutoScaling), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := autoscaling.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // CloudFormationService returns the service connection for AWS CloudFormation service
-func CloudFormationService(ctx context.Context, connectionManager *connection.Manager, region string) (*cloudformation.CloudFormation, error) {
+func CloudFormationService(ctx context.Context, d *plugin.QueryData, region string) (*cloudformation.CloudFormation, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudFormationService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("cloudformation-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudformation.CloudFormation), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := cloudformation.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // CloudWatchLogsService returns the service connection for AWS Cloud Watch Logs service
-func CloudWatchLogsService(ctx context.Context, connectionManager *connection.Manager, region string) (*cloudwatchlogs.CloudWatchLogs, error) {
+func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatchlogs.CloudWatchLogs, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudWatchLogsService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("cloudwatchlogs-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudwatchlogs.CloudWatchLogs), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := cloudwatchlogs.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // DynamoDbService returns the service connection for AWS DynamoDb service
-func DynamoDbService(ctx context.Context, connectionManager *connection.Manager, region string) (*dynamodb.DynamoDB, error) {
+func DynamoDbService(ctx context.Context, d *plugin.QueryData, region string) (*dynamodb.DynamoDB, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed DynamoDbService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("dynamodb-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*dynamodb.DynamoDB), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := dynamodb.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // Ec2Service returns the service connection for AWS EC2 service
-func Ec2Service(ctx context.Context, connectionManager *connection.Manager, region string) (*ec2.EC2, error) {
+func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Ec2Service")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("ec2-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ec2.EC2), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := ec2.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // ELBv2Service returns the service connection for AWS EC2 service
-func ELBv2Service(ctx context.Context, connectionManager *connection.Manager, region string) (*elbv2.ELBV2, error) {
+func ELBv2Service(ctx context.Context, d *plugin.QueryData, region string) (*elbv2.ELBV2, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ELBv2Service")
 	}
 
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elbv2-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*elbv2.ELBV2), nil
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := elbv2.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // ELBService returns the service connection for AWS ELB Classic service
-func ELBService(ctx context.Context, connectionManager *connection.Manager, region string) (*elb.ELB, error) {
+func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.ELB, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ELBv2Service")
 	}
 
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elb-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*elb.ELB), nil
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := elb.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // IAMService returns the service connection for AWS IAM service
-func IAMService(ctx context.Context, connectionManager *connection.Manager) (*iam.IAM, error) {
+func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	// have we already created and cached the service?
 	serviceCacheKey := "iam"
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*iam.IAM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultAwsRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
 	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
 	svc := iam.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // KMSService returns the service connection for AWS KMS service
-func KMSService(ctx context.Context, connectionManager *connection.Manager, region string) (*kms.KMS, error) {
+func KMSService(ctx context.Context, d *plugin.QueryData, region string) (*kms.KMS, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed KMSService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("kms-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*kms.KMS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := kms.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // LambdaService returns the service connection for AWS Lambda service
-func LambdaService(ctx context.Context, connectionManager *connection.Manager, region string) (*lambda.Lambda, error) {
+func LambdaService(ctx context.Context, d *plugin.QueryData, region string) (*lambda.Lambda, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed LambdaService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("lambda-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*lambda.Lambda), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := lambda.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // OrganizationService returns the service connection for AWS Organization service
-func OrganizationService(ctx context.Context, connectionManager *connection.Manager) (*organizations.Organizations, error) {
+func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
 	// have we already created and cached the service?
 	serviceCacheKey := "Organization"
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*organizations.Organizations), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
 	svc := organizations.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // RDSService returns the service connection for AWS RDS service
-func RDSService(ctx context.Context, connectionManager *connection.Manager, region string) (*rds.RDS, error) {
+func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed RDSService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("rds-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*rds.RDS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := rds.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // S3ControlService returns the service connection for AWS s3control service
-func S3ControlService(ctx context.Context, connectionManager *connection.Manager) (*s3control.S3Control, error) {
+func S3ControlService(ctx context.Context, d *plugin.QueryData) (*s3control.S3Control, error) {
 	// have we already created and cached the service?
 	serviceCacheKey := "s3control"
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*s3control.S3Control), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
 	svc := s3control.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
@@ -376,7 +375,7 @@ func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3,
 		return cachedData.(*s3.S3), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -387,64 +386,64 @@ func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3,
 }
 
 // SNSService returns the service connection for AWS SNS service
-func SNSService(ctx context.Context, connectionManager *connection.Manager, region string) (*sns.SNS, error) {
+func SNSService(ctx context.Context, d *plugin.QueryData, region string) (*sns.SNS, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SNSService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("sns-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*sns.SNS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := sns.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // SQSService returns the service connection for AWS SQS service
-func SQSService(ctx context.Context, connectionManager *connection.Manager, region string) (*sqs.SQS, error) {
+func SQSService(ctx context.Context, d *plugin.QueryData, region string) (*sqs.SQS, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SQSService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("sqs-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*sqs.SQS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := sqs.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
 
 // SsmService returns the service connection for AWS SSM service
-func SsmService(ctx context.Context, connectionManager *connection.Manager, region string) (*ssm.SSM, error) {
+func SsmService(ctx context.Context, d *plugin.QueryData, region string) (*ssm.SSM, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SsmService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("ssm-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ssm.SSM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, &plugin.QueryData{}, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultRegion())
 	if err != nil {
 		return nil, err
 	}
 	svc := ssm.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }

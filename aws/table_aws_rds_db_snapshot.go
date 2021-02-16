@@ -229,7 +229,7 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	plugin.Logger(ctx).Trace("listRDSDBSnapshots", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	dbSnapshot := h.Item.(*rds.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 	dbSnapshot := h.Item.(*rds.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

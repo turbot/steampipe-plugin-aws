@@ -127,7 +127,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

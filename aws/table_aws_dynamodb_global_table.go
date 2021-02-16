@@ -89,7 +89,7 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 	plugin.Logger(ctx).Trace("listDynamboDbGlobalTables", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

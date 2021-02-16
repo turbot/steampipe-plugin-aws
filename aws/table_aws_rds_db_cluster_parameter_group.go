@@ -106,7 +106,7 @@ func listRDSDBClusterParameterGroups(ctx context.Context, d *plugin.QueryData, _
 	plugin.Logger(ctx).Trace("listRDSDBClusterParameterGroups", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, h *
 	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func getAwsRDSClusterParameterGroupParameters(ctx context.Context, d *plugin.Que
 	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func getAwsRDSClusterParameterGroupTags(ctx context.Context, d *plugin.QueryData
 	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

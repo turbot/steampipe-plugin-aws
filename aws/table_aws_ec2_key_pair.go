@@ -89,7 +89,7 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	plugin.Logger(ctx).Trace("listEc2KeyPairs", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	keyPair := h.Item.(*ec2.KeyPairInfo)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

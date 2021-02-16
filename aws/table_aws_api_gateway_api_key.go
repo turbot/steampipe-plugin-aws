@@ -118,7 +118,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	plugin.Logger(ctx).Trace("listAPIKeys", "AWS_REGION", defaultRegion)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

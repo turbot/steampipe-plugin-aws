@@ -113,7 +113,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

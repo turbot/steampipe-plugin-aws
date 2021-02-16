@@ -193,7 +193,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +365,7 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := KMSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := KMSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

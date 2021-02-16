@@ -160,7 +160,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 	plugin.Logger(ctx).Trace("listEc2NetworkLoadBalancers", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plug
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

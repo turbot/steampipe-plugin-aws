@@ -82,7 +82,7 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	defaultRegion := GetDefaultRegion()
 	plugin.Logger(ctx).Trace("listDomainNames", "AWS REGION", defaultRegion)
 
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		logger.Debug("getDomainName__", "ERROR", err)
 		return nil, err

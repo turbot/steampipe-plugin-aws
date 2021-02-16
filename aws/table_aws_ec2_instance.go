@@ -302,7 +302,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +424,7 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +448,7 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +472,7 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +496,7 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -520,7 +520,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

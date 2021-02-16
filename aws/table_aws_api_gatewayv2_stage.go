@@ -175,7 +175,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	plugin.Logger(ctx).Trace("listAPIGatewayV2Stages", "AWS_REGION", defaultRegion)
 	apiGatewayv2API := h.Item.(*apigatewayv2.Api)
 
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

@@ -203,7 +203,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	plugin.Logger(ctx).Trace("listEc2Amis", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	image := h.Item.(*ec2.Image)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, 
 	image := h.Item.(*ec2.Image)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

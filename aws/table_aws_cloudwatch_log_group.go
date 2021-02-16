@@ -100,7 +100,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("listCloudwatchLogGroups", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

@@ -119,7 +119,7 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	plugin.Logger(ctx).Trace("listRDSDBOptionGroups", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	optionGroup := h.Item.(*rds.OptionGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	optionGroup := h.Item.(*rds.OptionGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

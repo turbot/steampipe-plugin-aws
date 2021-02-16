@@ -110,7 +110,7 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

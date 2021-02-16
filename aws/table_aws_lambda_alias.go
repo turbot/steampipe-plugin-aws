@@ -101,7 +101,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	defaultRegion := GetDefaultRegion()
 	plugin.Logger(ctx).Trace("listLambdaAliases", "AWS_REGION", defaultRegion)
 
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

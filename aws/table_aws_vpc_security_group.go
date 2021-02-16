@@ -100,7 +100,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	plugin.Logger(ctx).Trace("listVpcSecurityGroups", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	defaultRegion := GetDefaultRegion()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

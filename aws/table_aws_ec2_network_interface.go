@@ -241,7 +241,7 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 	plugin.Logger(ctx).Trace("listEc2NetworkInterfaces", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, h *plugin.
 	targetGroup := h.Item.(*ec2.NetworkInterface)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

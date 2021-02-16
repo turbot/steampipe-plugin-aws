@@ -81,7 +81,7 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func getIamAccessKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	key := h.Item.(*iam.AccessKeyMetadata)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

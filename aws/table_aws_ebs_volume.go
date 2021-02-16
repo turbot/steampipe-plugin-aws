@@ -155,7 +155,7 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	defaultRegion := GetDefaultRegion()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

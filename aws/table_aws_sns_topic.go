@@ -152,7 +152,7 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	plugin.Logger(ctx).Trace("listAwsSnsTopics", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := SNSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SNSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := SNSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SNSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := SNSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SNSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

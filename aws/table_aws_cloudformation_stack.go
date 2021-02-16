@@ -186,7 +186,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	defaultRegion := GetDefaultRegion()
 	plugin.Logger(ctx).Trace("listCloudFormationStacks", "AWS_REGION", defaultRegion)
 
-	svc, err := CloudFormationService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

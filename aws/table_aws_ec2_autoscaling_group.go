@@ -275,7 +275,7 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 	plugin.Logger(ctx).Trace("listAwsEc2AutoscalingGroup", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, h *plug
 	asg := h.Item.(*autoscaling.Group)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	asg := h.Item.(*autoscaling.Group)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

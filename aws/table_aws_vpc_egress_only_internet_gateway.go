@@ -82,7 +82,7 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Trace("listVpcEgressOnlyInternetGateways", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 	defaultRegion := GetDefaultRegion()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

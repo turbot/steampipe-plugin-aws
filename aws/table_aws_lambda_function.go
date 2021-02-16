@@ -205,7 +205,7 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	plugin.Logger(ctx).Trace("listAwsLambdaFunctions", "AWS_REGION", defaultRegion)
 
 	// Create service
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func getFunctionTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

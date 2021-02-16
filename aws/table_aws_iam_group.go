@@ -114,7 +114,7 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	plugin.Logger(ctx).Trace("listIamGroups")
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func getAwsIamGroupAttachedPolicies(ctx context.Context, d *plugin.QueryData, h 
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func getAwsIamGroupUsers(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	listGroupPoliciesOutput := h.HydrateResults["listAwsIamGroupInlinePolicies"].(*iam.ListGroupPoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

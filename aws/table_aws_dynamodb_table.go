@@ -210,7 +210,7 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	plugin.Logger(ctx).Trace("listDynamboDbTables", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +267,7 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	awsCommonData := commonAwsColumns.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

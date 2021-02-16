@@ -152,7 +152,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	defaultRegion := GetDefaultRegion()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

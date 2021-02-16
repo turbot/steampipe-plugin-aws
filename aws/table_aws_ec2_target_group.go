@@ -168,7 +168,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	plugin.Logger(ctx).Trace("listEc2TargetGroups", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

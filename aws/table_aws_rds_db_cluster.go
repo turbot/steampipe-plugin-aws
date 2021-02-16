@@ -346,7 +346,7 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	plugin.Logger(ctx).Trace("listRDSDBClusters", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	dbCluster := h.Item.(*rds.DBCluster)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

@@ -168,7 +168,7 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

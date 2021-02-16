@@ -435,7 +435,7 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	plugin.Logger(ctx).Trace("listRDSDBInstances", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -524,7 +524,7 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	dbInstance := h.Item.(*rds.DBInstance)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

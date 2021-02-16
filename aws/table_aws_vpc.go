@@ -119,7 +119,7 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

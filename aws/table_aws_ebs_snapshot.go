@@ -145,7 +145,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	snapshot := h.Item.(*ec2.Snapshot)
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

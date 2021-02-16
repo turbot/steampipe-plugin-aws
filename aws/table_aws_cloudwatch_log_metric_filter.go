@@ -84,7 +84,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	plugin.Logger(ctx).Trace("listCloudwatchLogMetricFilters", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, h *p
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

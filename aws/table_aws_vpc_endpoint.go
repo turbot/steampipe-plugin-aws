@@ -150,7 +150,7 @@ func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	plugin.Logger(ctx).Trace("listVpcEndpoints", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

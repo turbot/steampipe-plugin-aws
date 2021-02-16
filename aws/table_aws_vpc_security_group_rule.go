@@ -218,7 +218,7 @@ type vpcSecurityGroupRulesRowData struct {
 // 	defaultRegion := GetDefaultRegion()
 
 // 	// get service
-// 	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+// 	svc, err := Ec2Service(ctx, d, defaultRegion)
 // 	if err != nil {
 // 		return nil, err
 // 	}

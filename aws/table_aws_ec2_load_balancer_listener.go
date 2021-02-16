@@ -106,7 +106,7 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	plugin.Logger(ctx).Trace("listEc2ApplicationLoadBalancers", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 	loadBalancerDetails := h.Item.(*elbv2.LoadBalancer)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plu
 	loadBalancerListener := h.Item.(*elbv2.Listener)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

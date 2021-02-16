@@ -100,7 +100,7 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	plugin.Logger(ctx).Trace("listAPIGatewayV2API", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	api := h.Item.(*apigatewayv2.Api)
 	defaultRegion := GetDefaultRegion()
 	// get service
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

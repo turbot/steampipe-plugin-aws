@@ -100,7 +100,7 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", defaultRegion)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

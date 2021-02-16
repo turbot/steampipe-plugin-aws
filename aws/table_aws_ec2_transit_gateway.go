@@ -164,7 +164,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	transitGateway := h.Item.(*ec2.TransitGateway)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

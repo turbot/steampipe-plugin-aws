@@ -163,7 +163,7 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

@@ -140,7 +140,7 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 	plugin.Logger(ctx).Trace("listAwsSnsTopicSubscriptions", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := SNSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SNSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := SNSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SNSService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

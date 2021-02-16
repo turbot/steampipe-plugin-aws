@@ -147,7 +147,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	plugin.Logger(ctx).Trace("listRestAPI", "AWS_REGION", defaultRegion)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

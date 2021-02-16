@@ -179,7 +179,7 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 	plugin.Logger(ctx).Trace("listAwsEc2LaunchConfigurations", "AWS_REGION", defaultRegion)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	defaultRegion := GetDefaultRegion()
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

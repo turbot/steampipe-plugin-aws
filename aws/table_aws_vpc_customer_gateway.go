@@ -105,7 +105,7 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("listVpcCustomerGateways", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	defaultRegion := GetDefaultRegion()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

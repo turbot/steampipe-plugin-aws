@@ -168,7 +168,7 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("listLambdaVersions", "AWS_REGION", defaultRegion)
 
 	// Create service
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
