@@ -24,6 +24,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",
@@ -148,11 +149,16 @@ func snsTopicFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// LIST FUNCTION
 
 func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsSnsTopics", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsSnsTopics", "AWS_REGION", region)
 
 	// Create session
-	svc, err := SNSService(ctx, d, defaultRegion)
+	svc, err := SNSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -181,10 +187,15 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	logger := plugin.Logger(ctx)
 	logger.Trace("getTopicAttributes")
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, defaultRegion)
+	svc, err := SNSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -206,10 +217,15 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	logger := plugin.Logger(ctx)
 	logger.Trace("listTagsForSnsTopic")
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, defaultRegion)
+	svc, err := SNSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

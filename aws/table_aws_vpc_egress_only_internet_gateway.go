@@ -22,6 +22,7 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -78,11 +79,16 @@ func egressOnlyIGWFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcEgressOnlyInternetGateways", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcEgressOnlyInternetGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -107,10 +113,15 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcEgressOnlyInternetGateway")
 	subnet := h.Item.(*ec2.EgressOnlyInternetGateway)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
