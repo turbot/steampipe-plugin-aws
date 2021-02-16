@@ -114,8 +114,12 @@ func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
