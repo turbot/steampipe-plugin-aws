@@ -26,6 +26,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_snapshot_identifier",
@@ -225,11 +226,16 @@ func dbSnapshotIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *pl
 //// LIST FUNCTION
 
 func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRDSDBSnapshots", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRDSDBSnapshots", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -250,11 +256,16 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbSnapshot := h.Item.(*rds.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +287,16 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRDSDBSnapshotAttributes")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbSnapshot := h.Item.(*rds.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

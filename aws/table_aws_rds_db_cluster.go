@@ -26,6 +26,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -342,11 +343,16 @@ func dbClusterIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plu
 //// LIST FUNCTION
 
 func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRDSDBClusters", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRDSDBClusters", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -367,11 +373,16 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 //// HYDRATE FUNCTIONS
 
 func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbCluster := h.Item.(*rds.DBCluster)
 
 	// Create service
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

@@ -27,6 +27,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -190,10 +191,15 @@ func kmsKeyFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// LIST FUNCTION
 
 func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -217,10 +223,15 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getKmsKey")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -248,10 +259,15 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKmsKeyData")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -272,10 +288,15 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKmsKeyRotationStatus")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -300,10 +321,15 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKmsKeyTagging")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -338,10 +364,15 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKmsKeyAliases")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -362,10 +393,15 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKmsKeyPolicy")
 	key := h.Item.(*kms.KeyListEntry)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, defaultRegion)
+	svc, err := KMSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

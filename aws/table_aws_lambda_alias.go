@@ -23,6 +23,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaAliases,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -98,10 +99,15 @@ func aliasFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 //// LIST FUNCTION
 
 func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listLambdaAliases", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listLambdaAliases", "AWS_REGION", region)
 
-	svc, err := LambdaService(ctx, d, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +132,16 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getLambdaAlias")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

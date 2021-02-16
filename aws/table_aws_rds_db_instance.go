@@ -26,6 +26,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",
@@ -431,17 +432,22 @@ func dbInstanceIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *pl
 //// LIST FUNCTION
 
 func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRDSDBInstances", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRDSDBInstances", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	var params []*rds.Filter
-	if defaultRegion == "sa-east-1" {
+	if region == "sa-east-1" {
 		params = []*rds.Filter{
 			{
 				Name: aws.String("engine"),
@@ -460,7 +466,7 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 				},
 			},
 		}
-	} else if defaultRegion == "eu-north-1" {
+	} else if region == "eu-north-1" {
 		params = []*rds.Filter{
 			{
 				Name: aws.String("engine"),
@@ -520,11 +526,16 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbInstance := h.Item.(*rds.DBInstance)
 
 	// Create service
-	svc, err := RDSService(ctx, d, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
