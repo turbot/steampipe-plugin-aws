@@ -26,6 +26,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_group_name",
@@ -164,11 +165,16 @@ func targetGroupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// LIST FUNCTION
 
 func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2TargetGroups", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2TargetGroups", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -191,11 +197,16 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2TargetGroup")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -217,11 +228,16 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2TargetGroupTargetHealthDescription")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -240,11 +256,16 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 
 func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2TargetGroupTags")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

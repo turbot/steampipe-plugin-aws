@@ -24,6 +24,7 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listDomainNames,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -79,10 +80,15 @@ func apiGatewayDomainNameFromKey(ctx context.Context, d *plugin.QueryData, _ *pl
 //// LIST FUNCTION
 
 func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listDomainNames", "AWS REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listDomainNames", "AWS REGION", region)
 
-	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -117,10 +123,15 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	logger.Trace("getDomainName")
 
 	v2ApiDomain := h.Item.(*apigatewayv2.DomainName)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
 		logger.Debug("getDomainName__", "ERROR", err)
 		return nil, err

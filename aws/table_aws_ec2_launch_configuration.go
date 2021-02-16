@@ -22,6 +22,7 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -175,11 +176,16 @@ func launchConfigurationFromKey(ctx context.Context, d *plugin.QueryData, _ *plu
 //// LIST FUNCTION
 
 func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsEc2LaunchConfigurations", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsEc2LaunchConfigurations", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -204,10 +210,15 @@ func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEc2LaunchConfiguration")
 	launchConfiguration := h.Item.(*autoscaling.LaunchConfiguration)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d, defaultRegion)
+	svc, err := AutoScalingService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

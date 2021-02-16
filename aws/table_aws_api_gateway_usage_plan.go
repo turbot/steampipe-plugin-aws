@@ -24,6 +24,7 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -96,11 +97,16 @@ func usagePlanFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// LIST FUNCTION
 
 func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", region)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -125,10 +131,15 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	logger.Trace("getUsagePlan")
 
 	usagePlan := h.Item.(*apigateway.UsagePlan)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

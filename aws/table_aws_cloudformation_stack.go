@@ -26,6 +26,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStacks,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -183,10 +184,15 @@ func cfnStackFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// LIST FUNCTION
 
 func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listCloudFormationStacks", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listCloudFormationStacks", "AWS_REGION", region)
 
-	svc, err := CloudFormationService(ctx, d, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -209,10 +215,10 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.
 	logger := plugin.Logger(ctx)
 	logger.Trace("getCloudFormationStack")
 	stack := h.Item.(*cloudformation.Stack)
-	defaultRegion := GetDefaultRegion()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -237,10 +243,10 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(*cloudformation.Stack)
-	defaultRegion := GetDefaultRegion()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -260,10 +266,10 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(*cloudformation.Stack)
-	defaultRegion := GetDefaultRegion()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, defaultRegion)
+	svc, err := CloudFormationService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

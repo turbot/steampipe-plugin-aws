@@ -23,6 +23,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listDynamodbBackups,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -109,11 +110,15 @@ func tableBackupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// LIST FUNCTION
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", defaultRegion)
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -138,10 +143,14 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	logger := plugin.Logger(ctx)
 	logger.Trace("getDynamodbBackup")
 	backup := h.Item.(*dynamodb.BackupSummary)
-	defaultRegion := GetDefaultRegion()
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

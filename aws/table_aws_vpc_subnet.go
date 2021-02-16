@@ -22,6 +22,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSubnets,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_id",
@@ -147,12 +148,16 @@ func subnetFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// LIST FUNCTION
 
 func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -177,10 +182,16 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcSubnet")
 	subnet := h.Item.(*ec2.Subnet)
-	defaultRegion := GetDefaultRegion()
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
