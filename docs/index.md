@@ -19,24 +19,27 @@ $ steampipe plugin install aws
 Installing plugin aws...
 $
 ```
-### Scope
-Each AWS connection is scoped to a single AWS account, with a single set of credentials.  You may configure multiple AWS connections if desired, with each connecting to a different account.  Each AWS connection may be configured for multiple regions.  
 
-### Configuration
-
-#### Default Connection
-Installing the latest aws plugin will create a default connection named `aws`. This connection will dynamically determine the scope and credentials using the same mechanism as the CLI, and will set regions to the default region (only). In effect, this means that by default Steampipe will execute with the same credentials and against the same region as the `aws` command would - The AWS plugin uses the standard AWS environment variables and credential files as used by the CLI.  (Of course this also  implies that the `aws` cli needs to be configured with the proper credentials before the steampipe aws plugin can be used).
+Installing the latest aws plugin will create a connection config file (`~/.steampipe/config/aws.spc`) with a single default connection named `aws`. This connection will dynamically determine the scope and credentials using the same mechanism as the CLI, and will set regions to the default region (only). In effect, this means that by default Steampipe will execute with the same credentials and against the same region as the `aws` command would - The AWS plugin uses the standard AWS environment variables and credential files as used by the CLI.  (Of course this also  implies that the `aws` cli needs to be configured with the proper credentials before the steampipe aws plugin can be used).
 
 Note that there is nothing special about the default connection, other than that it is created by default on plugin install - You can delete or rename this connection, or modify its configuration options (via the configuration file).
 
-#### Configuration Arguments
+
+## Connection Configuration
+Connection configurations are defined using HCL in one or more Steampipe config files.  Steampipe will load ALL configuration files from `~/.steampipe/config` that have a `.spc` extension. A config file may contain multiple connections.
+
+### Scope
+Each AWS connection is scoped to a single AWS account, with a single set of credentials.  You may configure multiple AWS connections if desired, with each connecting to a different account.  Each AWS connection may be configured for multiple regions.  
+
+
+### Configuration Arguments
 
 The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments.  You may select one or more regions with the `regions` argument.
 An AWS connection may connect to multiple regions, however be aware that performance may be negatively affected by both the number of regions and the latency to them.
 
 
 ```hcl
-// credentials via key pair
+# credentials via key pair
 connection "aws_account_x" {
   plugin      = "aws" 
   secret_key  = "gMCYsoGqjfThisISNotARealKeyVVhh"
@@ -45,20 +48,28 @@ connection "aws_account_x" {
 }
 ```
 
-Alternatively, you may select a named profile from an AWS credential file with the `profile` argument:
+Alternatively, you may select a named profile from an AWS credential file with the `profile` argument.  A connect per profile is a common configuration:
 ```hcl
-// credentials via profile
+# credentials via profile
 connection "aws_account_y" {
   plugin      = "aws" 
-  profile     = "profile2"
+  profile     = "profile_y"
   regions     = ["us-east-1", "us-west-2"]
 }
+
+# credentials via profile
+connection "aws_account_z" {
+  plugin      = "aws" 
+  profile     = "profile_z"
+  regions     = ["us-east-1", "us-west-2"]
+}
+
 ```
 
 If no credentials are specified, the plugin will use the AWS credentials resolver to get the current credentials in the same manner as the CLI (as used in the AWS Default Connection):
 
 ```hcl
-// default
+# default
 connection "aws" {
   plugin      = "aws" 
 }
