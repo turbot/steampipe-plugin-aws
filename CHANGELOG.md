@@ -1,3 +1,25 @@
+## v0.5.0 [2021-02-18]
+
+_What's new?_
+
+- Added support for **Multi-Region**
+- Added support for [connection configuration](https://github.com/turbot/steampipe-plugin-aws/blob/main/docs/index.md#connection-configuration) to plugin. It allows you to setup up steampipe query mult-regions based on value of `regions` argument in connection for an AWS account.
+
+_Enhancements_
+
+- Updated: Updated `tag_list` columns to `tags_src` for below RDS service tables.
+
+  - aws_rds_db_cluster
+  - aws_rds_db_cluster_parameter_group
+  - aws_rds_db_cluster_snapshot
+  - aws_rds_db_instance
+  - aws_rds_db_option_group
+  - aws_rds_db_parameter_group
+  - aws_rds_db_snapshot
+  - aws_rds_db_subnet_group
+
+- Updated: added `inline_policies_std` column to `aws_iam_group`, `aws_iam_role` and `aws_iam_user` table with canoncialized inline policies.
+
 ## v0.4.0 [2021-02-11]
 
 _What's new?_
