@@ -24,6 +24,7 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaVersions,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "version",
@@ -164,11 +165,16 @@ func versionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listLambdaVersions", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listLambdaVersions", "AWS_REGION", region)
 
 	// Create service
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

@@ -25,6 +25,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 			ParentHydrate: listAPIGatewayV2API,
 			Hydrate:       listAPIGatewayV2Stages,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "stage_name",
@@ -169,13 +170,18 @@ func apiGatewayV2StageFromKey(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// LIST FUNCTION
 
 func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	var stages []*apigatewayv2.Stage
 
-	plugin.Logger(ctx).Trace("listAPIGatewayV2Stages", "AWS_REGION", defaultRegion)
+	plugin.Logger(ctx).Trace("listAPIGatewayV2Stages", "AWS_REGION", region)
 	apiGatewayv2API := h.Item.(*apigatewayv2.Api)
 
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -213,10 +219,15 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAPIGatewayStage")
 	v2ApiStageRowData := h.Item.(*v2StageRowData)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

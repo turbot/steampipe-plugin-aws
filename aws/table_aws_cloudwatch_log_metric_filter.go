@@ -20,6 +20,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogMetricFilters,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -80,11 +81,16 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listCloudwatchLogMetricFilters", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listCloudwatchLogMetricFilters", "AWS_REGION", region)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -107,11 +113,16 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter")
 
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

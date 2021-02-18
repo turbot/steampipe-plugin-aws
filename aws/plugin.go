@@ -23,6 +23,10 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultGetConfig: &plugin.GetConfig{
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
 		},
+		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
+			NewInstance: ConfigInstance,
+			Schema:      ConfigSchema,
+		},
 		TableMap: map[string]*plugin.Table{
 			"aws_account":                            tableAwsAccount(ctx),
 			"aws_acm_certificate":                    tableAwsAcmCertificate(ctx),
@@ -63,9 +67,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
 			"aws_iam_account_summary":                tableAwsIamAccountSummary(ctx),
+			"aws_iam_action":                         tableAwsIamAction(ctx),
 			"aws_iam_credential_report":              tableAwsIamCredentialReport(ctx),
 			"aws_iam_group":                          tableAwsIamGroup(ctx),
-			"aws_iam_action":                         tableAwsIamAction(ctx),
 			"aws_iam_policy":                         tableAwsIamPolicy(ctx),
 			"aws_iam_policy_simulator":               tableAwsIamPolicySimulator(ctx),
 			"aws_iam_role":                           tableAwsIamRole(ctx),

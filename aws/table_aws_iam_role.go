@@ -191,7 +191,7 @@ func roleFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	role := h.Item.(*iam.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 	logger.Trace("getAwsIamInstanceProfileData")
 	role := h.Item.(*iam.Role)
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 	role := h.Item.(*iam.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	role := h.Item.(*iam.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
