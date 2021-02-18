@@ -184,9 +184,10 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tag_list",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the DB snapshot",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns
