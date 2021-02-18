@@ -2,8 +2,8 @@
 
 _What's new?_
 
-- Added support for **Multi-Region**
-- Added support for [connection configuration](https://github.com/turbot/steampipe-plugin-aws/blob/main/docs/index.md#connection-configuration) to plugin. It allows you to setup up steampipe query mult-regions based on value of `regions` argument in connection for an AWS account.
+- Added support for [connection configuration](https://github.com/turbot/steampipe-plugin-aws/blob/main/docs/index.md#connection-configuration). You may specify aws profiles, credentials, and regions for each connection in a configuration file. You can have multiple aws connections, each configured for a different aws account.
+- Added multi-region support. A single connection can query multiple AWS regions, via the `regions` connection argument.
 
 _Enhancements_
 
