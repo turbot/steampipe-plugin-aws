@@ -21,7 +21,7 @@
     "resource_id": "{{ output.resource_id.value }}",
     "storage_encrypted": true,
     "storage_type": "gp2",
-    "tag_list": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

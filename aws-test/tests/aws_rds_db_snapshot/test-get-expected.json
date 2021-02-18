@@ -12,7 +12,7 @@
     "master_user_name": "turbottest",
     "port": 3306,
     "storage_type": "gp2",
-    "tag_list": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"
