@@ -23,6 +23,7 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 			ItemFromKey:       subnetGroupNameFromKey,
 			Hydrate:           getRDSDBSubnetGroup,
 		},
+		GetMatrixItem: BuildRegionList,
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSubnetGroups,
 		},
@@ -62,10 +63,11 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tag_list",
+				Name:        "tags_src",
 				Description: "A list of tags attached to the DB subnet group",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRDSDBSubnetGroupTags,
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns
@@ -106,11 +108,16 @@ func subnetGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// LIST FUNCTION
 
 func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +138,16 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -157,11 +169,16 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRDSDBSubnetGroupTags")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

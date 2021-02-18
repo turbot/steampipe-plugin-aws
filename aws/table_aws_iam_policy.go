@@ -118,7 +118,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 
 func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	policy := h.Item.(*iam.Policy)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

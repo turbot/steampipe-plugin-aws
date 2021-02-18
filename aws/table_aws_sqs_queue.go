@@ -27,6 +27,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",
@@ -159,11 +160,16 @@ func sqsQueueFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// LIST FUNCTION
 
 func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", region)
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -189,10 +195,15 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getQueueAttributes")
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -216,10 +227,15 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listQueueTags")
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

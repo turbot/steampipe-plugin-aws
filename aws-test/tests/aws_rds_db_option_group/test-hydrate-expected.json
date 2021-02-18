@@ -1,7 +1,7 @@
 [
   {
     "name": "{{resourceName}}",
-    "tag_list": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

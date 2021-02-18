@@ -22,6 +22,7 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -96,11 +97,16 @@ func logGroupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// LIST FUNCTION
 
 func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listCloudwatchLogGroups", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listCloudwatchLogGroups", "AWS_REGION", region)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -123,11 +129,11 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 
-	defaultRegion := GetDefaultRegion()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -154,10 +160,10 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
-	defaultRegion := GetDefaultRegion()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

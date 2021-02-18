@@ -107,6 +107,13 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the user",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
+			},
+			{
 				Name:        "attached_policy_arns",
 				Description: "A list of managed policies attached to the user",
 				Type:        proto.ColumnType_JSON,
@@ -147,7 +154,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 
 func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +184,7 @@ func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +206,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +252,7 @@ func getAwsIamUserAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -274,8 +281,7 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getAwsIamUserGroups")
 	user := h.Item.(*iam.User)
 
-	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +302,9 @@ func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin
 	plugin.Logger(ctx).Trace("getAwsIamUserMfaDevices")
 	user := h.Item.(*iam.User)
 
+
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +326,7 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +349,7 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

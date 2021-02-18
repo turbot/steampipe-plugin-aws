@@ -20,6 +20,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			ParentHydrate: listVpcSecurityGroups,
 			Hydrate:       listSecurityGroupRules,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",
@@ -218,7 +219,7 @@ type vpcSecurityGroupRulesRowData struct {
 // 	defaultRegion := GetDefaultRegion()
 
 // 	// get service
-// 	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+// 	svc, err := Ec2Service(ctx, d, defaultRegion)
 // 	if err != nil {
 // 		return nil, err
 // 	}

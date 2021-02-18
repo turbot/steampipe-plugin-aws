@@ -243,7 +243,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, region)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	instanceInfo := h.Item.(*instanceTypeOfferingInfo)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, instanceInfo.Region)
+	svc, err := Ec2Service(ctx, d, instanceInfo.Region)
 	if err != nil {
 		return nil, err
 	}

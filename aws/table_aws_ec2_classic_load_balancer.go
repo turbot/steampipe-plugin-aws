@@ -26,6 +26,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -266,11 +267,16 @@ func loadBalancerNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// LIST FUNCTION
 
 func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2ClassicLoadBalancers", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2ClassicLoadBalancers", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := ELBService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -291,11 +297,16 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -317,11 +328,16 @@ func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2ClassicLoadBalancerAttributes")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -340,11 +356,16 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 
 func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2ClassicLoadBalancerTags")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
