@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -20,9 +22,9 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: groupFromKey,
-			Hydrate:     getIamGroup,
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			Hydrate:           getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
@@ -143,7 +145,12 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamGroup")
-	group := h.Item.(*iam.Group)
+
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	groupName := d.KeyColumnQuals["name"].GetStringValue()
+	if len(arn) > 0 {
+		groupName = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
@@ -152,7 +159,7 @@ func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	params := &iam.GetGroupInput{
-		GroupName: group.GroupName,
+		GroupName: aws.String(groupName),
 	}
 
 	op, err := svc.GetGroup(params)
@@ -262,6 +269,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	// wait for all inline policies to be processed
 	wg.Wait()
+
 	// NOTE: close channel before ranging over results
 	close(policyCh)
 	close(errorCh)

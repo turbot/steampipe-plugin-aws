@@ -488,9 +488,8 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+	// get aws config info
 	awsConfig := GetConfig(d.Connection)
-	plugin.Logger(ctx).Warn("###########getSession#########", "awsConfig", awsConfig)
-	plugin.Logger(ctx).Warn("###########getSession#########", "region", region)
 
 	if &awsConfig != nil {
 		if awsConfig.Profile != nil {

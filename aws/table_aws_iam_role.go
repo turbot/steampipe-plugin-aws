@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -21,8 +22,8 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchEntity"}),
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			ItemFromKey:       roleFromKey,
 			Hydrate:           getIamRole,
 		},
@@ -181,6 +182,10 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 func roleFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
+	arn := quals["arn"].GetStringValue()
+	if len(arn) > 0 {
+		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 	item := &iam.Role{
 		RoleName: &name,
 	}
@@ -214,7 +219,6 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamRole")
 	role := h.Item.(*iam.Role)
-
 	// create service
 	svc, err := IAMService(ctx, d)
 	if err != nil {
