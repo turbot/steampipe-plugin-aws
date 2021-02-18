@@ -281,6 +281,7 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getAwsIamUserGroups")
 	user := h.Item.(*iam.User)
 
+	// Create Session
 	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
@@ -301,7 +302,6 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsIamUserMfaDevices")
 	user := h.Item.(*iam.User)
-
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
