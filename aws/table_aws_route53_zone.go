@@ -120,7 +120,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	plugin.Logger(ctx).Trace("listhostedZone", "AWS_REGION", defaultRegion)
 
 	// Create session
-	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Route53Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	hostedZone := h.Item.(*route53.HostedZone)
 
 	// Create session
-	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Route53Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	hostedZone := h.Item.(*route53.HostedZone)
 
 	// Create session
-	svc, err := Route53Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Route53Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
