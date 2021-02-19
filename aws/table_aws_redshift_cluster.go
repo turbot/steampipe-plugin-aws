@@ -125,32 +125,84 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DBName"),
 			},
 			{
+				Name:        "deferred_maintenance_windows",
+				Description: "Describes a group of DeferredMaintenanceWindow objects.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "elastic_ip_status",
+				Description: "The status of the elastic IP (EIP) address.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "elastic_resize_number_of_node_options",
+				Description: "The number of nodes that you can resize the cluster to with the elastic resize method.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "encrypted",
 				Description: "A boolean value that, if true, indicates that data in the cluster is encrypted at rest.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "endpoint_address",
-				Description: "The DNS address of the Cluster.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Endpoint.Address"),
-			},
-			{
-				Name:        "endpoint_port",
-				Description: "The port that the database engine is listening on.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Endpoint.Port"),
-			},
-			{
-				Name:        "endpoint_vpc_endpoints",
-				Description: "Describes a connection endpoint.",
+				Name:        "endpoint",
+				Description: "The connection endpoint.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Endpoint.VpcEndpoints"),
+			},
+			{
+				Name:        "enhanced_vpc_routing",
+				Description: "An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC. If this option is true, enhanced VPC routing is enabled.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "expected_next_snapshot_schedule_time",
+				Description: "The date and time when the next snapshot is expected to be taken for clusters with a valid snapshot schedule and backups enabled.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "expected_next_snapshot_schedule_time_status",
+				Description: "The status of next expected snapshot for clusters having a valid snapshot schedule and backups enabled.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "hsm_status",
+				Description: "A value that reports whether the Amazon Redshift cluster has finished applying any hardware security module (HSM) settings changes specified in a modify cluster command.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "iam_roles",
+				Description: "A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "kms_key_id",
+				Description: "The AWS Key Management Service (AWS KMS) key ID of the encryption key used to encrypt data in the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "maintenance_track_name",
+				Description: "The name of the maintenance track for the cluster.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "manual_snapshot_retention_period",
 				Description: "The default number of days to retain a manual snapshot. If the value is -1, the snapshot is retained indefinitely. This setting doesn't change the retention period of existing snapshots. The value must be either -1 or an integer between 1 and 3,653.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "master_username",
+				Description: "The master user name for the cluster. This name is used to connect to the database that is specified in the DBName parameter.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "modify_status",
+				Description: "The status of a modify operation, if any, initiated for the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "next_maintenance_window_start_time",
+				Description: "The date and time in UTC when system maintenance can begin.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "node_type",
@@ -163,9 +215,50 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "pending_actions",
+				Description: "Cluster operations that are waiting to be started.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "pending_modified_values",
+				Description: "A value that, if present, indicates that changes to the cluster are pending. Specific pending changes are identified by subelements.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "preferred_maintenance_window",
+				Description: "The weekly time range, in Universal Coordinated Time (UTC), during which system maintenance can occur.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "publicly_accessible",
 				Description: "A boolean value that, if true, indicates that the cluster can be accessed from a public network.",
 				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "resize_info",
+				Description: "Describes a resize operation.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "restore_status",
+				Description: "A value that describes the status of a cluster restore action. This parameter returns null if the cluster was not created by restoring a snapshot.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "snapshot_schedule_identifier",
+				Description: "A unique identifier for the cluster snapshot schedule.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "snapshot_schedule_state",
+				Description: "The current state of the cluster snapshot schedule.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tags_src",
+				Description: "The list of tags for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "vpc_id",

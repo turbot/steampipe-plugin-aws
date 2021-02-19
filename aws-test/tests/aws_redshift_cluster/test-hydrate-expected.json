@@ -1,0 +1,7 @@
+[
+  {
+    "allow_version_upgrade": true,
+    "arn": "{{ output.resource_aka.value }}",
+    "cluster_identifier": "{{ resourceName }}"
+  }
+]

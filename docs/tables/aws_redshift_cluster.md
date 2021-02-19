@@ -45,17 +45,3 @@ from
 where
   not encrypted;
 ```
-
-### Endpoint info of each cluster
-
-```sql
-select
-  cluster_identifier,
-  node_type,
-  number_of_nodes,
-  endpoint_address,
-  endpoint_port,
-  endpoint_vpc_endpoints
-from
-  aws_redshift_cluster;
-```
