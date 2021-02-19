@@ -349,43 +349,22 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 }
 
 // RedshiftService returns the service connection for AWS Redshift service
-func RedshiftService(ctx context.Context, connectionManager *connection.Manager, region string) (*redshift.Redshift, error) {
+func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*redshift.Redshift, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Redshift")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("redshift-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*redshift.Redshift), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := redshift.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
-}
-
-// RedshiftService returns the service connection for AWS Redshift service
-func RedshiftService(ctx context.Context, connectionManager *connection.Manager, region string) (*redshift.Redshift, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Redshift")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("redshift-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*redshift.Redshift), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := redshift.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }

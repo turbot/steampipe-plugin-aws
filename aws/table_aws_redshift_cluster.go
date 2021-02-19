@@ -26,6 +26,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftClusters,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_identifier",
@@ -307,78 +308,19 @@ func clusterIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// LIST FUNCTION
 
 func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRedshiftClusters", "AWS_REGION", defaultRegion)
+	// TODO Put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RedshiftService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
-	/*
-		var params []*redshift.Filter
-		if defaultRegion == "sa-east-1" {
-			params = []*redshift.Filter{
-				{
-					Name: aws.String("engine"),
-					Values: []*string{
-						aws.String("mariadb"),
-						aws.String("mysql"),
-						aws.String("oracle-ee"),
-						aws.String("oracle-se"),
-						aws.String("oracle-se1"),
-						aws.String("oracle-se2"),
-						aws.String("postgres"),
-						aws.String("sqlserver-ee"),
-						aws.String("sqlserver-ex"),
-						aws.String("sqlserver-se"),
-						aws.String("sqlserver-web"),
-					},
-				},
-			}
-		} else if defaultRegion == "eu-north-1" {
-			params = []*redshift.Filter{
-				{
-					Name: aws.String("engine"),
-					Values: []*string{
-						aws.String("mariadb"),
-						aws.String("mysql"),
-						aws.String("oracle-ee"),
-						aws.String("oracle-se"),
-						aws.String("oracle-se1"),
-						aws.String("oracle-se2"),
-						aws.String("postgres"),
-						aws.String("sqlserver-ee"),
-						aws.String("sqlserver-se"),
-						aws.String("sqlserver-web"),
-					},
-				},
-			}
-		} else {
-			params = []*redshift.Filter{
-				{
-					Name: aws.String("engine"),
-					Values: []*string{
-						aws.String("aurora"),
-						aws.String("aurora-mysql"),
-						aws.String("aurora-postgresql"),
-						aws.String("mariadb"),
-						aws.String("mysql"),
-						aws.String("oracle-ee"),
-						aws.String("oracle-se"),
-						aws.String("oracle-se1"),
-						aws.String("oracle-se2"),
-						aws.String("postgres"),
-						aws.String("sqlserver-ee"),
-						aws.String("sqlserver-se"),
-						aws.String("sqlserver-ex"),
-						aws.String("sqlserver-web"),
-					},
-				},
-			}
-		}
-	*/
 
 	// List call
 	err = svc.DescribeClustersPages(
@@ -396,11 +338,16 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO Put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	cluster := h.Item.(*redshift.Cluster)
 
 	// Create service
-	svc, err := RedshiftService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RedshiftService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
