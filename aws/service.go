@@ -316,7 +316,7 @@ func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizatio
 		return cachedData.(*organizations.Organizations), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion())
 	if err != nil {
 		return nil, err
 	}
