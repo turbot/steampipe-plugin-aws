@@ -116,11 +116,10 @@ func hostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 //// LIST FUNCTION
 
 func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listhostedZone", "AWS_REGION", defaultRegion)
+	plugin.Logger(ctx).Trace("listhostedZone")
 
 	// Create session
-	svc, err := Route53Service(ctx, d, defaultRegion)
+	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -142,12 +141,10 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
-
-	defaultRegion := GetDefaultRegion()
 	hostedZone := h.Item.(*route53.HostedZone)
 
 	// Create session
-	svc, err := Route53Service(ctx, d, defaultRegion)
+	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -173,12 +170,10 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
-
-	defaultRegion := GetDefaultRegion()
 	hostedZone := h.Item.(*route53.HostedZone)
 
 	// Create session
-	svc, err := Route53Service(ctx, d, defaultRegion)
+	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

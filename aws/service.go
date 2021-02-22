@@ -255,7 +255,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 		return cachedData.(*iam.IAM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizatio
 		return cachedData.(*organizations.Organizations), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -348,17 +348,14 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 }
 
 // Route53Service returns the service connection for AWS route53 service
-func Route53Service(ctx context.Context, d *plugin.QueryData, region string) (*route53.Route53, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed Route53Service")
-	}
+func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53-%s", region)
+	serviceCacheKey := fmt.Sprintf("route53")
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*route53.Route53), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +372,7 @@ func S3ControlService(ctx context.Context, d *plugin.QueryData) (*s3control.S3Co
 		return cachedData.(*s3control.S3Control), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +456,7 @@ func SsmService(ctx context.Context, d *plugin.QueryData, region string) (*ssm.S
 		return cachedData.(*ssm.SSM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultRegion())
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -477,7 +474,7 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return cachedData.(*sts.STS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion())
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
@@ -534,24 +531,51 @@ func GetDefaultRegion() string {
 	if err != nil {
 		panic(err)
 	}
-	// region := os.Getenv("AWS_REGION")
+
 	region := *session.Config.Region
 	if region == "" {
-		panic("\n\nYou must specify a region. You can configure your region by running \"aws configure\" or setting AWS_REGION environment variable.")
+		// get aws config info
+		panic("\n\n'regions' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
 	}
 	return region
 }
 
 // GetDefaultAwsRegion returns the default region for AWS partiton
-// if not set by Env variable or in aws profile
-func GetDefaultAwsRegion() string {
-	os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
-	session, err := session.NewSession(aws.NewConfig())
-	if err != nil {
-		panic(err)
+// if not set by Env variable or in aws profile or i
+func GetDefaultAwsRegion(d *plugin.QueryData) string {
+	// have we already created and cached the service?
+	serviceCacheKey := "GetDefaultAwsRegion"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(string)
 	}
 
-	region := *session.Config.Region
+	// get aws config info
+	awsConfig := GetConfig(d.Connection)
+
+	var regions []string
+	var region string
+
+	if &awsConfig != nil && awsConfig.Regions != nil {
+		regions = GetConfig(d.Connection).Regions
+	}
+
+	if len(getInvalidRegions(regions)) < 1 {
+		os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
+		session, err := session.NewSession(aws.NewConfig())
+		if err != nil {
+			panic(err)
+		}
+		region = *session.Config.Region
+	} else {
+		// Set the first region in regions list to be default region
+		region = regions[0]
+
+		// check if it is a valid region
+		if len(getInvalidRegions([]string{region})) > 0 {
+			panic("\n\nConnection config have invalid region: " + region + ". Edit your connection configuration file and then restart Steampipe")
+		}
+	}
+
 	if region == "" {
 		region = "us-east-1"
 	}
