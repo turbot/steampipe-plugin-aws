@@ -132,12 +132,10 @@ type recordInfo struct {
 //// LIST FUNCTION
 
 func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRoute53Records", "AWS_REGION", defaultRegion)
 	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
-	svc, err := Route53Service(ctx, d, defaultRegion)
+	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

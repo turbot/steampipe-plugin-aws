@@ -227,7 +227,7 @@ func bucketFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
 	svc, err := S3Service(ctx, d, defaultRegion)
@@ -256,7 +256,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
 	bucket := h.Item.(*s3.Bucket)
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
 	svc, err := S3Service(ctx, d, defaultRegion)
@@ -283,7 +283,7 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketLocation")
 	bucket := h.Item.(*s3.Bucket)
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
 	svc, err := S3Service(ctx, d, defaultRegion)
