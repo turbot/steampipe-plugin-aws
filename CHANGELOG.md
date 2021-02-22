@@ -1,3 +1,9 @@
+## v0.5.1 [2021-02-22]
+
+_Bug fixes_
+
+- Ensure `aws_account` and `aws_region` table work when **regions** argument is specified in connection config ([#70](https://github.com/turbot/steampipe-plugin-aws/pull/70))
+
 ## v0.5.0 [2021-02-18]
 
 _What's new?_
