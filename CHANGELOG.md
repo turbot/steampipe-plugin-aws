@@ -1,3 +1,9 @@
+## v0.5.1 [2021-02-22]
+
+_Bug fixes_
+
+- Ensure `aws_account` and `aws_region` table work if the AWS_REGION is not set but region is available in connection config.
+
 ## v0.5.0 [2021-02-18]
 
 _What's new?_
