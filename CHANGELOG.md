@@ -2,7 +2,7 @@
 
 _Bug fixes_
 
-- Ensure `aws_account` and `aws_region` table work if the AWS_REGION is not set but region is available in connection config.
+- Ensure `aws_account` and `aws_region` table work regions is available in connection config ([#70](https://github.com/turbot/steampipe-plugin-aws/pull/70))
 
 ## v0.5.0 [2021-02-18]
 
