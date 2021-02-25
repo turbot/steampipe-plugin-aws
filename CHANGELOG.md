@@ -1,3 +1,9 @@
+## v0.5.2 [2021-02-25]
+
+_Bug fixes_
+
+- Recompiled plugin with latest [steampipe-plugin-sdk](https://github.com/turbot/steampipe-plugin-sdk) for [fix #42](https://github.com/turbot/steampipe-plugin-sdk/issues/42).
+
 ## v0.5.1 [2021-02-22]
 
 _Bug fixes_
