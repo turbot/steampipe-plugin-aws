@@ -2,8 +2,8 @@
 
 _Bug fixes_
 
-- Recompiled plugin with latest [steampipe-plugin-sdk](https://github.com/turbot/steampipe-plugin-sdk) to resolve SDK issue ([#53](https://github.com/turbot/steampipe-plugin-sdk/issues/53)):
-  - Fix tables which which use ItemFromKey for get call to provide a hydrate item ([#89](https://github.com/turbot/steampipe-plugin-aws/issues/89)).
+- Recompiled plugin with latest [steampipe-plugin-sdk](https://github.com/turbot/steampipe-plugin-sdk) to resolve issue:
+  - Fix tables failing with error similar to `Error: pq: rpc error: code = Internal desc = get hydrate function getS3Bucket failed with panic interface conversion: interface {} is nil, not *s3.Bucket`([#89](https://github.com/turbot/steampipe-plugin-aws/issues/89)).
 
 ## v0.5.2 [2021-02-25]
 
