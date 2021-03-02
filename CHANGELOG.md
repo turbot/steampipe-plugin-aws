@@ -1,3 +1,10 @@
+## v0.5.3 [2021-03-02]
+
+_Bug fixes_
+
+- Recompiled plugin with latest [steampipe-plugin-sdk](https://github.com/turbot/steampipe-plugin-sdk) to resolve SDK issue ([#53](https://github.com/turbot/steampipe-plugin-sdk/issues/53)):
+  - Fix tables which which use ItemFromKey for get call to provide a hydrate item ([#89](https://github.com/turbot/steampipe-plugin-aws/issues/89)).
+
 ## v0.5.2 [2021-02-25]
 
 _Bug fixes_
