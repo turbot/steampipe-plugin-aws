@@ -88,7 +88,7 @@ output "resource_id" {
 }
 
 output "created_date" {
-  value = aws_api_gateway_rest_api.named_test_resource.created_date
+  value = formatdate("YYYY-MM-DD hh:mm:ss", aws_api_gateway_rest_api.named_test_resource.created_date)
 }
 
 output "resource_name" {

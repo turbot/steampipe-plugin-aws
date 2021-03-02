@@ -82,7 +82,7 @@
         "Transitions": null
       }
     ],
-    "logging": null,
+    "logging": "<null>",
     "name": "{{ resourceName }}",
     "policy": {
       "Id": "MYBUCKETPOLICY",
@@ -130,7 +130,7 @@
       ],
       "Version": "2012-10-17"
     },
-    "replication": null,
+    "replication": "<null>",
     "server_side_encryption_configuration": {
       "Rules": [
         {
