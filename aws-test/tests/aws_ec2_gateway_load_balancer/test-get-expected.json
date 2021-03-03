@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "name": "{{resourceName}}",
+    "state_code": "active",
+    "type": "gateway",
+    "vpc_id": "{{ output.vpc_id.value }}"
+  }
+]
