@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -9,6 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//TABLE DEFINITION
 func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_flowlog",
@@ -19,7 +21,6 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 			Hydrate:           getVpcFlowlog,
 		},
 		List: &plugin.ListConfig{
-			// ParentHydrate: listVpcs,
 			Hydrate: listVpcFlowlogs,
 		},
 		GetMatrixItem: BuildRegionList,
@@ -61,7 +62,7 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "traffic_type",
-				Description: "The type of traffic (ACCEPT | REJECT | ALL).",
+				Description: "The type of traffic. Valid values are: 'ACCEPT', 'REJECT',  'ALL'.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -73,6 +74,13 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 				Name:        "log_destination",
 				Description: "Specifies the destination to which the flow log data is published.",
 				Type:        proto.ColumnType_STRING,
+			},
+			// bucket_name is a simpler view of the log destination bucket name, without the full path
+			{
+				Name:        "bucket_name",
+				Description: "The name of the destination bucket to which the flow log data is published.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(logDestinationBucketName),
 			},
 			{
 				Name:        "log_format",
@@ -96,13 +104,13 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(getVpcFlowlogTurbotData, "Tags"),
+				Transform:   transform.FromP(vpcFlowlogTurbotData, "Tags"),
 			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromP(getVpcFlowlogTurbotData, "Title"),
+				Transform:   transform.FromP(vpcFlowlogTurbotData, "Title"),
 			},
 			{
 				Name:        "akas",
@@ -115,8 +123,7 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
-
+//LIST FUNCTION
 func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
@@ -146,13 +153,14 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, err
 }
 
-//// HYDRATE FUNCTIONS
-
+// HYDRATE FUNCTIONS
 func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcFlowlog")
+
 	quals := d.KeyColumnQuals
 	flowlogID := quals["flow_log_id"].GetStringValue()
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -199,8 +207,7 @@ func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 // TRANSFORM FUNCTIONS
-
-func getVpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpcFlowlog := d.HydrateItem.(*ec2.FlowLog)
 	param := d.Param.(string)
 
@@ -224,4 +231,15 @@ func getVpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (int
 	}
 
 	return title, nil
+}
+
+func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
+
+	data := d.HydrateItem.(*ec2.FlowLog)
+	var bucketName string
+	if len(*data.LogDestination) > 0 {
+		splitID := strings.Split(string(*data.LogDestination), ":")
+		bucketName = splitID[5]
+	}
+	return bucketName, nil
 }

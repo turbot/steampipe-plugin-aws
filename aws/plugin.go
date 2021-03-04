@@ -102,6 +102,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_eip":                            tableAwsVpcEip(ctx),
 			"aws_vpc_endpoint":                       tableAwsVpcEndpoint(ctx),
 			"aws_vpc_endpoint_service":               tableAwsVpcEndpointService(ctx),
+			"aws_vpc_flow_log":                       tableAwsVpcFlowlog(ctx),
 			"aws_vpc_internet_gateway":               tableAwsVpcInternetGateway(ctx),
 			"aws_vpc_nat_gateway":                    tableAwsVpcNatGateway(ctx),
 			"aws_vpc_network_acl":                    tableAwsVpcNetworkACL(ctx),
@@ -111,8 +112,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
-			"aws_iam_user_test":                      tableAwsIamUserTest(ctx),
-			"aws_vpc_flow_log":                       tableAwsVpcFlowlog(ctx),
 		},
 	}
 

@@ -1,4 +1,4 @@
-# Table: aws_vpc_flow_log_service
+# Table: aws_vpc_flow_log
 
 VPC Flow Logs is a feature that enables to capture information about the IP traffic going to and from network interfaces in the VPC.
 
