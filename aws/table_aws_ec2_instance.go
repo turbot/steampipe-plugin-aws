@@ -21,7 +21,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("instance_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			ItemFromKey:       instanceFromKey,
 			Hydrate:           getEc2Instance,
 		},
 		List: &plugin.ListConfig{
@@ -285,17 +284,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func instanceFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	instanceID := quals["instance_id"].GetStringValue()
-	item := &ec2.Instance{
-		InstanceId: &instanceID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -335,13 +323,14 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getEc2Instance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2Instance")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	instance := h.Item.(*ec2.Instance)
+	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -350,7 +339,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	params := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(*instance.InstanceId)},
+		InstanceIds: []*string{aws.String(instanceID)},
 	}
 
 	op, err := svc.DescribeInstances(params)
