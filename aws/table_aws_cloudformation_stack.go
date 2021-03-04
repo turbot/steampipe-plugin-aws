@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -20,7 +21,6 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
-			ItemFromKey:       cfnStackFromKey,
 			Hydrate:           getCloudFormationStack,
 		},
 		List: &plugin.ListConfig{
@@ -170,17 +170,6 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func cfnStackFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &cloudformation.Stack{
-		StackName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -212,9 +201,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getCloudFormationStack")
-	stack := h.Item.(*cloudformation.Stack)
+	plugin.Logger(ctx).Trace("getCloudFormationStack")
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
@@ -223,13 +210,14 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
+	name := d.KeyColumnQuals["name"].GetStringValue()
 	params := &cloudformation.DescribeStacksInput{
-		StackName: stack.StackName,
+		StackName: aws.String(name),
 	}
 
 	op, err := svc.DescribeStacks(params)
 	if err != nil {
-		logger.Debug("getCloudFormationStack__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getCloudFormationStack__", "ERROR", err)
 		return nil, err
 	}
 

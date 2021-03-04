@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,6 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "id"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       apiAuthorizerFromKey,
 			Hydrate:           getRestAPIAuthorizer,
 		},
 		List: &plugin.ListConfig{
@@ -103,22 +103,6 @@ type authorizerRowData = struct {
 	RestAPIId  *string
 }
 
-//// BUILD HYDRATE INPUT
-
-func apiAuthorizerFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	authorizerID := quals["id"].GetStringValue()
-	RestAPIID := quals["rest_api_id"].GetStringValue()
-	item := &authorizerRowData{
-		RestAPIId: &RestAPIID,
-		Authorizer: &apigateway.Authorizer{
-			Id: &authorizerID,
-		},
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -156,10 +140,8 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getRestAPIAuthorizer")
+	plugin.Logger(ctx).Trace("getRestAPIAuthorizer")
 
-	apiAuthorizer := h.Item.(*authorizerRowData)
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -172,18 +154,21 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
+	authorizerID := d.KeyColumnQuals["id"].GetStringValue()
+	RestAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
+
 	params := &apigateway.GetAuthorizerInput{
-		AuthorizerId: apiAuthorizer.Authorizer.Id,
-		RestApiId:    apiAuthorizer.RestAPIId,
+		AuthorizerId: aws.String(authorizerID),
+		RestApiId:    aws.String(RestAPIID),
 	}
 
 	authorizerData, err := svc.GetAuthorizer(params)
 	if err != nil {
-		logger.Debug("getRestAPIAuthorizer__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getRestAPIAuthorizer__", "ERROR", err)
 		return nil, err
 	}
 
-	return &authorizerRowData{authorizerData, apiAuthorizer.RestAPIId}, nil
+	return &authorizerRowData{authorizerData, aws.String(RestAPIID)}, nil
 }
 
 func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

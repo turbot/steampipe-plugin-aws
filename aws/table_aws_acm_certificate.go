@@ -7,6 +7,7 @@ import (
 
 	"github.com/turbot/go-kit/types"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -20,9 +21,8 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		Name:        "aws_acm_certificate",
 		Description: "AWS ACM Certificate",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("certificate_arn"),
-			ItemFromKey: certificateFromKey,
-			Hydrate:     getAwsAcmCertificateAttributes,
+			KeyColumns: plugin.SingleColumn("certificate_arn"),
+			Hydrate:    getAwsAcmCertificateAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAcmCertificates,
@@ -196,19 +196,6 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func certificateFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	certificateArn := quals["certificate_arn"].GetStringValue()
-	item := &acm.DescribeCertificateOutput{
-		Certificate: &acm.CertificateDetail{
-			CertificateArn: &certificateArn,
-		},
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -243,9 +230,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsAcmCertificateAttributes")
-	item := h.Item.(*acm.DescribeCertificateOutput)
+	plugin.Logger(ctx).Trace("getAwsAcmCertificateAttributes")
 
 	// Create session
 	svc, err := ACMService(ctx, d, region)
@@ -253,8 +238,15 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
+	var arn string
+	if h.Item != nil {
+		arn = *h.Item.(*acm.DescribeCertificateOutput).Certificate.CertificateArn
+	} else {
+		arn = d.KeyColumnQuals["certificate_arn"].GetStringValue()
+	}
+
 	params := &acm.DescribeCertificateInput{
-		CertificateArn: item.Certificate.CertificateArn,
+		CertificateArn: aws.String(arn),
 	}
 
 	detail, err := svc.DescribeCertificate(params)
@@ -267,8 +259,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsAcmCertificateProperties")
+	plugin.Logger(ctx).Trace("getAwsAcmCertificateProperties")
 	item := h.Item.(*acm.DescribeCertificateOutput)
 
 	// Create session
@@ -289,8 +280,7 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	logger := plugin.Logger(ctx)
-	logger.Trace("listTagsForAcmCertificate")
+	plugin.Logger(ctx).Trace("listTagsForAcmCertificate")
 	item := h.Item.(*acm.DescribeCertificateOutput)
 
 	// Create session
