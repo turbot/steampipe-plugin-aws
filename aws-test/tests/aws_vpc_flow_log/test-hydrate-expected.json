@@ -1,7 +1,7 @@
 [
   {
     "akas": [
-      "{{ output.resource_aka.value.replace(':vpc-flow-log/', ':flow-log/') }}"
+      "{{ output.resource_aka.value }}"
     ],
     "flow_log_id": "{{ output.resource_id.value }}",
     "tags": {

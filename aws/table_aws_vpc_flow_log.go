@@ -11,7 +11,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-//TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc_flowlog",
@@ -124,7 +125,8 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	}
 }
 
-//LIST FUNCTION
+//// LIST FUNCTION
+
 func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
@@ -154,7 +156,8 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, err
 }
 
-// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
+
 func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcFlowlog")
@@ -202,12 +205,13 @@ func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":flow-log/" + *vpcFlowlog.FlowLogId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc-flow-log/" + *vpcFlowlog.FlowLogId}
 
 	return akas, nil
 }
 
-// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
+
 func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpcFlowlog := d.HydrateItem.(*ec2.FlowLog)
 	param := d.Param.(string)
