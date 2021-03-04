@@ -129,7 +129,7 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2ApplicationLoadBalancerTags,
+				Hydrate:     getAwsEc2GatewayLoadBalancerTags,
 				Transform:   transform.From(getEc2GatewayLoadBalancerTurbotTags),
 			},
 		}),
@@ -178,7 +178,6 @@ func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plug
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	//gatewayLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d, region)
@@ -264,7 +263,7 @@ func getAwsEc2GatewayLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	return loadBalancerData, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getEc2GatewayLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	gatewayLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)

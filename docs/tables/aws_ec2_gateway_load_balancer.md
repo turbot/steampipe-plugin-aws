@@ -4,7 +4,7 @@ Gateway Load Balancer makes it easy to deploy, scale, and run third-party virtua
 
 ## Examples
 
-### Basic gateway load balancer  info
+### Basic gateway load balancer info
 
 ```sql
 select
@@ -15,7 +15,7 @@ select
   vpc_id,
   availability_zones
 from
-  aws_ec2_gateway_load_balancer
+  aws_ec2_gateway_load_balancer;
 
 ```
 
@@ -29,8 +29,8 @@ select
   az ->> 'SubnetId' as subnet_id,
   az ->> 'ZoneName' as zone_name
 from
-  aws_ec2_gateway_load_balancer
-  cross join jsonb_array_elements(availability_zones) as az;
+  aws_ec2_gateway_load_balancer,
+  jsonb_array_elements(availability_zones) as az;
 
 ```
 
@@ -41,13 +41,13 @@ select
   name,
   count(az ->> 'ZoneName') < 2 as zone_count_1
 from
-  aws_ec2_gateway_load_balancer
-  cross join jsonb_array_elements(availability_zones) as az
+  aws_ec2_gateway_load_balancer,
+  jsonb_array_elements(availability_zones) as az
 group by
   name;
 ```
 
-### List of application load balancers whose deletion protection is not enabled
+### List of gateway load balancers whose deletion protection is not enabled
 
 ```sql
 select
@@ -55,8 +55,8 @@ select
   lb ->> 'Key' as deletion_protection_key,
   lb ->> 'Value' as deletion_protection_value
 from
-  aws_ec2_gateway_load_balancer
-  cross join jsonb_array_elements(load_balancer_attributes) as lb
+  aws_ec2_gateway_load_balancer,
+  jsonb_array_elements(load_balancer_attributes) as lb
 where
   lb ->> 'Key' = 'deletion_protection.enabled'
   and lb ->> 'Value' = 'false';
@@ -71,8 +71,8 @@ select
   lb ->> 'Key' as load_balancing_cross_zone_key,
   lb ->> 'Value' as load_balancing_cross_zone_value
 from
-  aws_ec2_gateway_load_balancer
-  cross join jsonb_array_elements(load_balancer_attributes) as lb
+  aws_ec2_gateway_load_balancer,
+  jsonb_array_elements(load_balancer_attributes) as lb
 where
   lb ->> 'Key' = 'load_balancing.cross_zone.enabled'
   and lb ->> 'Value' = 'true';
@@ -88,7 +88,7 @@ from
   aws_ec2_gateway_load_balancer;
 ```
 
-### List of gateway load balancerw with state other than active
+### List of gateway load balancer with state other than active
 
 ```sql
 select
@@ -97,5 +97,5 @@ select
 from
   aws_ec2_gateway_load_balancer
 where
- state_code <> 'active'
+ state_code <> 'active';
 ```
