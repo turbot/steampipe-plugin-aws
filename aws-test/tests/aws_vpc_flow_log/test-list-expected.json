@@ -1,6 +1,19 @@
 [
   {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
     "flow_log_id": "{{ output.resource_id.value }}",
+    "tags": {
+      "Name": "{{resourceName}}"
+    },
+    "tags_src": [
+      {
+        "Key": "Name",
+        "Value": "{{resourceName}}"
+      }
+    ],
+    "title": "{{resourceName}}",
     "traffic_type": "ALL"
   }
 ]
