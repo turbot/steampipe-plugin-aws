@@ -20,7 +20,7 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Gateway Load Balancer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
 			Hydrate:           getEc2GatewayLoadBalancer,
 		},
 		List: &plugin.ListConfig{

@@ -62,7 +62,6 @@ where
   and lb ->> 'Value' = 'false';
 ```
 
-
 ### List of gateway load balancers whose load balancing cross zone is enabled
 
 ```sql
