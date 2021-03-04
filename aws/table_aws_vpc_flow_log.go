@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -234,12 +235,11 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 }
 
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
-
 	data := d.HydrateItem.(*ec2.FlowLog)
-	var bucketName string
-	if len(*data.LogDestination) > 0 {
-		splitID := strings.Split(string(*data.LogDestination), ":")
-		bucketName = splitID[5]
+	logDestination := types.SafeString(data.LogDestination)
+	if logDestination == "" {
+		return nil, nil
 	}
-	return bucketName, nil
+	splitData := strings.Split(logDestination, ":")
+	return splitData[len(splitData)-1], nil
 }
