@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,6 +13,13 @@ import (
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
+
+func csvToArray(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	csvRe := regexp.MustCompile(`,\s*`)
+	s := types.SafeString(d.Value)
+	strArray := csvRe.Split(s, -1)
+	return strArray, nil
+}
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
 	var turbotTagsMap map[string]string

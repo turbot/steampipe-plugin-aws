@@ -1,0 +1,11 @@
+[
+  {
+   "endpoint": "sqs.us-east-1.amazonaws.com",
+   "name": "sqs",
+   "protocols": [
+    "HTTPS",
+    "HTTP"
+   ],
+   "region_name": "us-east-1"
+  }
+]
