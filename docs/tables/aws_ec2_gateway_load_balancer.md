@@ -1,6 +1,6 @@
 # Table: aws_ec2_gateway_load_balancer
 
-Gateway Load Balancer makes it easy to deploy, scale, and run third-party virtual networking appliances. Providing load balancing and auto scaling for fleets of third-party appliances, Gateway Load Balancer is transparent to the source and destination of traffic. This capability makes it well suited for working with third-party appliances for security, network analytics, and other use cases
+Gateway Load Balancer makes it easy to deploy, scale, and run third-party virtual networking appliances. Providing load balancing and auto scaling for fleets of third-party appliances, Gateway Load Balancer is transparent to the source and destination of traffic. This capability makes it well suited for working with third-party appliances for security, network analytics, and other use cases.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
 
 ```
 
-### Availability zone information of all the gateway load balancer
+### Availability zone information of all the gateway load balancers
 
 ```sql
 select
@@ -34,17 +34,19 @@ from
 
 ```
 
-### List of gateway load balancers whose availability zone count is less than 1
+### List of gateway load balancers whose availability zone count is less than 2
 
 ```sql
 select
   name,
-  count(az ->> 'ZoneName') < 2 as zone_count_1
+  count(az ->> 'ZoneName') as zone_count
 from
   aws_ec2_gateway_load_balancer,
   jsonb_array_elements(availability_zones) as az
 group by
-  name;
+  name
+having
+  count(az ->> 'ZoneName') < 2;
 ```
 
 ### List of gateway load balancers whose deletion protection is not enabled
