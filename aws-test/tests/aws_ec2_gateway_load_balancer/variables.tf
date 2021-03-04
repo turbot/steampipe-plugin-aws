@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -47,50 +47,71 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_api_gateway_rest_api" "named_test_resource" {
-  name = var.resource_name
+# Create AWS > EC2 > Gateway Load Balancer
+resource "aws_vpc" "my_vpc" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.my_vpc.id
+}
+
+resource "aws_subnet" "my_subnet1" {
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = "us-east-1a"
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_subnet" "my_subnet2" {
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1b"
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_lb" "named_test_resource" {
+  name               = var.resource_name
+  internal           = false
+  load_balancer_type = "gateway"
+  subnets = [
+    aws_subnet.my_subnet1.id,
+    aws_subnet.my_subnet2.id
+  ]
+  enable_deletion_protection = false
   tags = {
     name = var.resource_name
   }
 }
 
-resource "aws_api_gateway_rest_api_policy" "test" {
-  rest_api_id = aws_api_gateway_rest_api.named_test_resource.id
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": "execute-api:Invoke",
-      "Resource": "${aws_api_gateway_rest_api.named_test_resource.arn}",
-      "Condition": {
-        "IpAddress": {
-          "aws:SourceIp": "123.123.123.123/32"
-        }
-      }
-    }
-  ]
-}
-EOF
+output "vpc_id" {
+  value = aws_vpc.my_vpc.id
 }
 
-output "resource_aka" {
-  value = aws_api_gateway_rest_api.named_test_resource.arn
+output "account_id" {
+  value = data.aws_caller_identity.current.account_id
 }
 
-output "resource_id" {
-  value = aws_api_gateway_rest_api.named_test_resource.id
+output "aws_partition" {
+  value = data.aws_partition.current.partition
 }
 
-output "created_date" {
-  value = formatdate("YYYY-MM-DD hh:mm:ss", aws_api_gateway_rest_api.named_test_resource.created_date)
+output "region_name" {
+  value = data.aws_region.primary.name
 }
 
 output "resource_name" {
   value = var.resource_name
+}
+
+output "resource_aka" {
+  value = aws_lb.named_test_resource.arn
+}
+
+output "resource_id" {
+  value = aws_lb.named_test_resource.id
 }

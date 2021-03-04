@@ -51,6 +51,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_application_load_balancer":      tableAwsEc2ApplicationLoadBalancer(ctx),
 			"aws_ec2_autoscaling_group":              tableAwsEc2ASG(ctx),
 			"aws_ec2_classic_load_balancer":          tableAwsEc2ClassicLoadBalancer(ctx),
+			"aws_ec2_gateway_load_balancer":          tableAwsEc2GatewayLoadBalancer(ctx),
 			"aws_ec2_instance":                       tableAwsEc2Instance(ctx),
 			"aws_ec2_instance_availability":          tableAwsInstanceAvailability(ctx),
 			"aws_ec2_instance_type":                  tableAwsInstanceType(ctx),
