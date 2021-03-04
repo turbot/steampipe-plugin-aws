@@ -46,6 +46,13 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 				Description: "Details of the IAM user associated with this virtual MFA device.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags attached with the MFA device.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamMfaDeviceTags,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// {
 			// 	Name:        "base_32_string",
@@ -61,6 +68,13 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 			// },
 
 			// Standard columns for all tables
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamMfaDeviceTags,
+				Transform:   transform.From(virtualMfaDeviceTurbotTags),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -81,7 +95,7 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 
 func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -97,4 +111,47 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 	)
 
 	return nil, err
+}
+
+//// HYDRATE FUNCTIONS
+
+func getIamMfaDeviceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getIamMfaDeviceTags")
+
+	data := h.Item.(*iam.VirtualMFADevice)
+
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.ListMFADeviceTagsInput{
+		SerialNumber: data.SerialNumber,
+	}
+
+	op, err := svc.ListMFADeviceTags(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("getIamMfaDeviceTags__", "ERROR", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func virtualMfaDeviceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*iam.ListMFADeviceTagsOutput)
+	var turbotTagsMap map[string]string
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
