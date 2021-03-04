@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume",
@@ -17,7 +19,6 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("volume_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			ItemFromKey:       volumeFromKey,
 			Hydrate:           getEBSVolume,
 		},
 		List: &plugin.ListConfig{
@@ -138,17 +139,6 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func volumeFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	volumeID := quals["volume_id"].GetStringValue()
-	item := &ec2.Volume{
-		VolumeId: &volumeID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -183,15 +173,15 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// HYDRATE FUNCTIONS
 
 func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEBSVolume")
-	volume := h.Item.(*ec2.Volume)
+	plugin.Logger(ctx).Trace("getEBSVolume")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -201,13 +191,13 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	// Build the params
 	params := &ec2.DescribeVolumesInput{
-		VolumeIds: []*string{volume.VolumeId},
+		VolumeIds: []*string{aws.String(volumeID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeVolumes(params)
 	if err != nil {
-		logger.Debug("getEBSVolume__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getEBSVolume__", "ERROR", err)
 		return nil, err
 	}
 
@@ -217,9 +207,6 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 	return nil, nil
 }
-
-/////////////////////////////////
-// describe functions
 
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")

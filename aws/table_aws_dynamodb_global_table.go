@@ -3,10 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
@@ -17,7 +19,6 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("global_table_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			ItemFromKey:       globalTableFromKey,
 			Hydrate:           getDynamboDbGlobalTable,
 		},
 		List: &plugin.ListConfig{
@@ -71,18 +72,6 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func globalTableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["global_table_name"].GetStringValue()
-	item := &dynamodb.GlobalTableDescription{
-		GlobalTableName: &name,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -114,17 +103,22 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
+	plugin.Logger(ctx).Trace("getDynamboDbGlobalTable")
 
-	logger.Trace("getDynamboDbGlobalTable")
-	globalTable := h.Item.(*dynamodb.GlobalTableDescription)
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listDynamboDbGlobalTables", "AWS_REGION", region)
+
+	var name string
+	if h.Item != nil {
+		data := h.Item.(*dynamodb.GlobalTableDescription)
+		name = types.SafeString(data.GlobalTableName)
+	} else {
+		name = d.KeyColumnQuals["global_table_name"].GetStringValue()
+	}
 
 	// Create Session
 	svc, err := DynamoDbService(ctx, d, region)
@@ -133,12 +127,12 @@ func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	params := &dynamodb.DescribeGlobalTableInput{
-		GlobalTableName: globalTable.GlobalTableName,
+		GlobalTableName: aws.String(name),
 	}
 
 	item, err := svc.DescribeGlobalTable(params)
 	if err != nil {
-		logger.Debug("[DEBUG] getDynamboDbGlobalTable__", "ERROR", err)
+		plugin.Logger(ctx).Debug("[DEBUG] getDynamboDbGlobalTable__", "ERROR", err)
 		return nil, err
 	}
 

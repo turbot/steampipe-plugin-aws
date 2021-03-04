@@ -18,7 +18,6 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("snapshot_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed"}),
-			ItemFromKey:       snapshotFromKey,
 			Hydrate:           getAwsEBSSnapshot,
 		},
 		List: &plugin.ListConfig{
@@ -128,17 +127,6 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func snapshotFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	snapshotID := quals["snapshot_id"].GetStringValue()
-	item := &ec2.Snapshot{
-		SnapshotId: &snapshotID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -176,16 +164,16 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEBSSnapshot")
+	plugin.Logger(ctx).Trace("getAwsEBSSnapshot")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
 
-	snapshot := h.Item.(*ec2.Snapshot)
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
@@ -194,13 +182,13 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// Build the params
 	params := &ec2.DescribeSnapshotsInput{
-		SnapshotIds: []*string{snapshot.SnapshotId},
+		SnapshotIds: []*string{aws.String(snapshotID)},
 	}
 
 	// Get call
 	data, err := svc.DescribeSnapshots(params)
 	if err != nil {
-		logger.Debug("getAwsEBSSnapshot__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsEBSSnapshot__", "ERROR", err)
 		return nil, err
 	}
 

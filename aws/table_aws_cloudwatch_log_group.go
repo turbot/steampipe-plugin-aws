@@ -3,7 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -15,9 +17,8 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudwatch_log_group",
 		Description: "AWS CloudWatch Log Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: logGroupFromKey,
-			Hydrate:     getCloudwatchLogGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			Hydrate:    getCloudwatchLogGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
@@ -83,17 +84,6 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func logGroupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &cloudwatchlogs.LogGroup{
-		LogGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -128,9 +118,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d, region)
@@ -138,8 +126,9 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
+	name := d.KeyColumnQuals["name"].GetStringValue()
 	params := &cloudwatchlogs.DescribeLogGroupsInput{
-		LogGroupNamePrefix: logGroup.LogGroupName,
+		LogGroupNamePrefix: aws.String(name),
 	}
 
 	// execute list call
@@ -149,7 +138,7 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	for _, logGroup := range item.LogGroups {
-		if *logGroup.LogGroupName == *logGroup.LogGroupName {
+		if types.SafeString(logGroup.LogGroupName) == name {
 			return logGroup, nil
 		}
 	}

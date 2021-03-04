@@ -21,7 +21,6 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			ItemFromKey:       loadBalancerArnFromKey,
 			Hydrate:           getEc2ApplicationLoadBalancer,
 		},
 		List: &plugin.ListConfig{
@@ -143,17 +142,6 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func loadBalancerArnFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	loadBalancerArn := quals["arn"].GetStringValue()
-	item := &elbv2.LoadBalancer{
-		LoadBalancerArn: &loadBalancerArn,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -196,7 +184,7 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, h *
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	applicationLoadBalancer := h.Item.(*elbv2.LoadBalancer)
+	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d, region)
@@ -205,7 +193,7 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	params := &elbv2.DescribeLoadBalancersInput{
-		LoadBalancerArns: []*string{aws.String(*applicationLoadBalancer.LoadBalancerArn)},
+		LoadBalancerArns: []*string{aws.String(loadBalancerArn)},
 	}
 
 	op, err := svc.DescribeLoadBalancers(params)

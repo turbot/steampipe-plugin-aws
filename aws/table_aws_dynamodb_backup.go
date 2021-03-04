@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
@@ -17,7 +18,6 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			ItemFromKey:       tableBackupFromKey,
 			Hydrate:           getDynamodbBackup,
 		},
 		List: &plugin.ListConfig{
@@ -95,18 +95,6 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func tableBackupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	arn := quals["arn"].GetStringValue()
-	item := &dynamodb.BackupSummary{
-		BackupArn: &arn,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -140,14 +128,14 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDynamodbBackup")
-	backup := h.Item.(*dynamodb.BackupSummary)
+	plugin.Logger(ctx).Trace("getDynamodbBackup")
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
 	svc, err := DynamoDbService(ctx, d, region)
@@ -156,12 +144,12 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	params := &dynamodb.DescribeBackupInput{
-		BackupArn: backup.BackupArn,
+		BackupArn: aws.String(arn),
 	}
 
 	item, err := svc.DescribeBackup(params)
 	if err != nil {
-		logger.Debug("getDynamodbBackup__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getDynamodbBackup__", "ERROR", err)
 		return nil, err
 	}
 

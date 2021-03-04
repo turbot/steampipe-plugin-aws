@@ -20,7 +20,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("image_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			ItemFromKey:       imageFromKey,
 			Hydrate:           getEc2Ami,
 		},
 		List: &plugin.ListConfig{
@@ -186,17 +185,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func imageFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	imageID := quals["image_id"].GetStringValue()
-	item := &ec2.Image{
-		ImageId: &imageID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -232,7 +220,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	image := h.Item.(*ec2.Image)
+	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -241,7 +229,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	}
 
 	params := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(*image.ImageId)},
+		ImageIds: []*string{aws.String(imageID)},
 	}
 
 	op, err := svc.DescribeImages(params)

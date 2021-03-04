@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -17,7 +18,6 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError"}),
-			ItemFromKey:       aSGFromKey,
 			Hydrate:           getAwsEc2AutoscalingGroup,
 		},
 		List: &plugin.ListConfig{
@@ -258,17 +258,6 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func aSGFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &autoscaling.Group{
-		AutoScalingGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -311,7 +300,7 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, h *plug
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	asg := h.Item.(*autoscaling.Group)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := AutoScalingService(ctx, d, region)
@@ -321,7 +310,7 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build params
 	params := &autoscaling.DescribeAutoScalingGroupsInput{
-		AutoScalingGroupNames: []*string{asg.AutoScalingGroupName},
+		AutoScalingGroupNames: []*string{aws.String(name)},
 	}
 
 	rowData, err := svc.DescribeAutoScalingGroups(params)

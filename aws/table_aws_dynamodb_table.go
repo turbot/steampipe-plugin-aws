@@ -3,10 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -18,7 +20,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			ItemFromKey:       tableFromKey,
 			Hydrate:           getDynamboDbTable,
 		},
 		List: &plugin.ListConfig{
@@ -192,18 +193,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func tableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &dynamodb.TableDescription{
-		TableName: &name,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -239,15 +228,21 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDynamboDbTable")
-	table := h.Item.(*dynamodb.TableDescription)
+	plugin.Logger(ctx).Trace("getDynamboDbTable")
 
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	var name string
+	if h.Item != nil {
+		data := h.Item.(*dynamodb.TableDescription)
+		name = types.SafeString(data.TableName)
+	} else {
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create Session
@@ -257,12 +252,12 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	params := &dynamodb.DescribeTableInput{
-		TableName: table.TableName,
+		TableName: aws.String(name),
 	}
 
 	rowData, err := svc.DescribeTable(params)
 	if err != nil {
-		logger.Debug("[DEBUG] getDynamboDbTable__", "ERROR", err)
+		plugin.Logger(ctx).Debug("[DEBUG] getDynamboDbTable__", "ERROR", err)
 		return nil, err
 	}
 
