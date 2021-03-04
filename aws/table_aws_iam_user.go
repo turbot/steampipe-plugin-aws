@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -19,9 +21,9 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: userFromKey,
-			Hydrate:     getIamUser,
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			Hydrate:           getIamUser,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
@@ -78,6 +80,20 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Hydrate: getAwsIamUserData,
 			},
 			{
+				Name:        "mfa_enabled",
+				Description: "The MFA status of the user",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsIamUserMfaDevices,
+				Transform:   transform.From(userMfaStatus),
+			},
+			{
+				Name:        "mfa_devices",
+				Description: "A list of MFA devices attached to the user",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserMfaDevices,
+				Transform:   transform.FromField("MFADevices"),
+			},
+			{
 				Name:        "groups",
 				Description: "A list of groups attached to the user",
 				Type:        proto.ColumnType_JSON,
@@ -89,6 +105,13 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserInlinePolicies,
 				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the user",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
@@ -127,22 +150,11 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func userFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &iam.User{
-		UserName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -164,16 +176,21 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamUser")
-	user := h.Item.(*iam.User)
+
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
+	if len(arn) > 0 {
+		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &iam.GetUserInput{
-		UserName: user.UserName,
+		UserName: aws.String(name),
 	}
 
 	op, err := svc.GetUser(params)
@@ -189,7 +206,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +252,7 @@ func getAwsIamUserAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -264,8 +281,8 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getAwsIamUserGroups")
 	user := h.Item.(*iam.User)
 
-	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	// Create Session
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -282,12 +299,34 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return userData, nil
 }
 
+func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsIamUserMfaDevices")
+	user := h.Item.(*iam.User)
+
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.ListMFADevicesInput{
+		UserName: user.UserName,
+	}
+
+	userData, _ := svc.ListMFADevices(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return userData, nil
+}
+
 func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +349,7 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -325,6 +364,7 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 
 	// wait for all inline policies to be processed
 	wg.Wait()
+
 	// NOTE: close channel before ranging over results
 	close(policyCh)
 	close(errorCh)
@@ -385,4 +425,15 @@ func getUserInlinePolicy(policyName *string, userName *string, svc *iam.IAM) (ma
 	}
 
 	return userPolicy, nil
+}
+
+//// TRANSFORM FUNCTION
+
+func userMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*iam.ListMFADevicesOutput)
+	if data.MFADevices != nil && len(data.MFADevices) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }

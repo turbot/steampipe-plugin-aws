@@ -15,9 +15,9 @@ builds:
     goarch:
       - amd64
       - arm64
-    #ignore:
-    #  - goos: darwin # docs suggest that darwin arm64 should compile, but doesnt...
-    #    goarch: arm64
+    ignore:
+      - goos: darwin # docs suggest that darwin arm64 should compile, but doesnt...
+        goarch: arm64
 
     id: "steampipe-aws"
     binary: "{{ .ProjectName }}.plugin"

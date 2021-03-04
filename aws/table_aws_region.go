@@ -69,10 +69,10 @@ func regionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// LIST FUNCTION
 
 func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -97,11 +97,11 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 	region := h.Item.(*ec2.Region)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

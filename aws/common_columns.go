@@ -29,6 +29,7 @@ var commonAwsRegionalColumns = []*plugin.Column{
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
 		Description: "The AWS Account ID in which the resource is located",
+		Transform:   transform.FromCamel(),
 	},
 }
 
@@ -44,6 +45,7 @@ var commonS3Columns = []*plugin.Column{
 		Name:        "account_id",
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
+		Transform:   transform.FromCamel(),
 		Description: "The AWS Account ID in which the resource is located",
 	},
 }
@@ -66,6 +68,7 @@ var commonAwsColumns = []*plugin.Column{
 		Type:        proto.ColumnType_STRING,
 		Hydrate:     getCommonColumns,
 		Description: "The AWS Account ID in which the resource is located",
+		Transform:   transform.FromCamel(),
 	},
 }
 
@@ -89,14 +92,22 @@ type awsCommonColumnData struct {
 }
 
 // get columns which are returned with all tables: region, partition and account
-func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var region string
+	if plugin.GetMatrixItem(ctx)[matrixKeyRegion] != nil {
+		region = plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	}
+	if region == "" {
+		region = "global"
+	}
+	plugin.Logger(ctx).Trace("getCommonColumns", "region", region)
 
-	cacheKey := "commonColumnData"
+	cacheKey := "commonColumnData" + region
 	var commonColumnData *awsCommonColumnData
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
 	} else {
-		stsSvc, err := StsService(ctx, d.ConnectionManager)
+		stsSvc, err := StsService(ctx, d)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +120,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			// extract partition from arn
 			Partition: strings.Split(*callerIdentity.Arn, ":")[1],
 			AccountId: *callerIdentity.Account,
-			Region:    GetDefaultAwsRegion(),
+			Region:    region,
 		}
 
 		// save to extension cache

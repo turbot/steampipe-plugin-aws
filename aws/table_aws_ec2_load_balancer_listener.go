@@ -28,6 +28,7 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -102,11 +103,16 @@ func listenerArnFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// PARENT LIST FUNCTION
 
 func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2ApplicationLoadBalancers", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2ApplicationLoadBalancers", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -127,14 +133,19 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// LIST FUNCTION
 
 func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2LoadBalancerListeners", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2LoadBalancerListeners", "AWS_REGION", region)
 
 	// Get the details of load balancer
 	loadBalancerDetails := h.Item.(*elbv2.LoadBalancer)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -157,11 +168,16 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 //// HYDRATE FUNCTIONS
 
 func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	loadBalancerListener := h.Item.(*elbv2.Listener)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

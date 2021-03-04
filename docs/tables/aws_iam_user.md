@@ -17,12 +17,11 @@ from
   aws_iam_user;
 ```
 
-
 ### Groups details to which the IAM user belongs
 
 ```sql
 select
-  name as group_name,
+  name as user_name,
   iam_group ->> 'GroupName' as group_name,
   iam_group ->> 'GroupId' as group_id,
   iam_group ->> 'CreateDate' as create_date
@@ -30,7 +29,6 @@ from
   aws_iam_user
   cross join jsonb_array_elements(groups) as iam_group;
 ```
-
 
 ### List all the users having Administrator access
 
@@ -45,6 +43,18 @@ where
   split_part(attachments, '/', 2) = 'AdministratorAccess';
 ```
 
+### List all the users for whom MFA is not enabled
+
+```sql
+select
+  name,
+  user_id,
+  mfa_enabled
+from
+  aws.aws_iam_user
+where
+  not mfa_enabled;
+```
 
 ### List the policies attached to each IAM user
 
@@ -55,4 +65,16 @@ select
 from
   aws_iam_user
   cross join jsonb_array_elements_text(attached_policy_arns) as attachments;
+```
+
+### Find users that have inline policies
+
+```sql
+select
+  name as user_name,
+  inline_policies
+from
+  aws_iam_user
+where
+  inline_policies is not null;
 ```

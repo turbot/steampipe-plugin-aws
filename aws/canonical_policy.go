@@ -366,3 +366,31 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 
 	return newPolicy, nil
 }
+
+//Inline policies in canonical form
+func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
+	inlinePolicies := d.HydrateItem.([]map[string]interface{})
+
+	var inlinePoliciesStd []map[string]interface{}
+	if inlinePolicies == nil {
+		return nil, nil
+	}
+	for _, inlinePolicy := range inlinePolicies {
+		inlinePolicyStd := make(map[string]interface{})
+		strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
+		if err != nil {
+			return nil, err
+		}
+		policyStd, errStd := canonicalPolicy(string(strPolicy))
+		if errStd != nil {
+			return nil, errStd
+		}
+		inlinePolicyStd = map[string]interface{}{
+			"PolicyDocument": policyStd,
+			"PolicyName":     inlinePolicy["PolicyName"],
+		}
+		inlinePoliciesStd = append(inlinePoliciesStd, inlinePolicyStd)
+	}
+	return inlinePoliciesStd, nil
+}

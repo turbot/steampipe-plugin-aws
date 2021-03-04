@@ -82,7 +82,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
 				Hydrate:     getBucketIsPublic,
-				Transform:   transform.FromField("PolicyStatus.IsPublic").Transform(handleNilString).Transform(transform.ToBool),
+				Transform:   transform.FromField("PolicyStatus.IsPublic"),
 			},
 			{
 				Name:        "versioning_enabled",
@@ -145,7 +145,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The lifecycle configuration information of the bucket",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLifecycle,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("Rules"),
 			},
 			{
 				Name:        "logging",
@@ -227,10 +227,10 @@ func bucketFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := S3Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -256,10 +256,10 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
 	bucket := h.Item.(*s3.Bucket)
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := S3Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -283,10 +283,10 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketLocation")
 	bucket := h.Item.(*s3.Bucket)
-	defaultRegion := GetDefaultAwsRegion()
+	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := S3Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +319,7 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +348,7 @@ func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -398,7 +398,7 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +458,7 @@ func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -486,7 +486,7 @@ func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -508,7 +508,7 @@ func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -535,7 +535,7 @@ func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +562,7 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create Session
-	svc, err := S3Service(ctx, d.ConnectionManager, *location.LocationConstraint)
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
 	if err != nil {
 		return nil, err
 	}

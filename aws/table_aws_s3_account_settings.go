@@ -90,7 +90,7 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 	s3Account := h.Item.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d.ConnectionManager)
+	svc, err := S3ControlService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -46,3 +46,15 @@ from
   aws_iam_group
   cross join jsonb_array_elements_text(attached_policy_arns) as attachments;
 ```
+
+
+### Find groups that have inline policies
+```sql
+select
+  name as group_name,
+  inline_policies
+from
+  aws_iam_group
+where 
+  inline_policies is not null;
+```

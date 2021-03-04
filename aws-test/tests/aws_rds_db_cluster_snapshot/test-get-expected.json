@@ -10,7 +10,7 @@
     "master_user_name": "turbottest",
     "port": 0,
     "storage_encrypted": false,
-    "tag_list": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{resourceName}}"

@@ -22,6 +22,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_attachment_id",
@@ -120,11 +121,16 @@ func transitGatewayAttachmentFromKey(ctx context.Context, d *plugin.QueryData, _
 //// LIST FUNCTION
 
 func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2TransitGatewayVpcAttachment", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2TransitGatewayVpcAttachment", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -146,11 +152,16 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEc2TransitGatewayVpcAttachment")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	transitGatewayAttachment := h.Item.(*ec2.TransitGatewayAttachment)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

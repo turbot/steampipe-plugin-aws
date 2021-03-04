@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -21,8 +22,8 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchEntity"}),
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			ItemFromKey:       roleFromKey,
 			Hydrate:           getIamRole,
 		},
@@ -124,6 +125,13 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the role",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamRoleInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
+			},
+			{
 				Name:        "attached_policy_arns",
 				Description: "A list of managed policies attached to the role",
 				Type:        proto.ColumnType_JSON,
@@ -174,6 +182,10 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 func roleFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
+	arn := quals["arn"].GetStringValue()
+	if len(arn) > 0 {
+		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 	item := &iam.Role{
 		RoleName: &name,
 	}
@@ -184,7 +196,7 @@ func roleFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -207,9 +219,8 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamRole")
 	role := h.Item.(*iam.Role)
-
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +242,7 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 	logger.Trace("getAwsIamInstanceProfileData")
 	role := h.Item.(*iam.Role)
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +269,7 @@ func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 	role := h.Item.(*iam.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +300,7 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	role := h.Item.(*iam.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +324,7 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
