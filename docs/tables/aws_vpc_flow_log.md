@@ -20,7 +20,7 @@ from
 ```sql
 select
 	flow_log_id,
-  resource_id,
+	resource_id,
 	deliver_logs_error_message,
 	deliver_logs_status
 from
@@ -37,7 +37,7 @@ select
 	flow_log_id,
 	log_destination_type,
 	log_group_name,
-	split_part(log_destination, ':', 6) as bucket_name
+	bucket_name
 from
 	aws_vpc_flow_log;
 ```
