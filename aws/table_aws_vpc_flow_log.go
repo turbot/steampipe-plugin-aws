@@ -1,0 +1,227 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_vpc_flowlog",
+		Description: "AWS VPC Flowlog",
+		Get: &plugin.GetConfig{
+			KeyColumns:        plugin.SingleColumn("flow_log_id"),
+			ShouldIgnoreError: isNotFoundError([]string{"Client.InvalidInstanceID.NotFound"}),
+			Hydrate:           getVpcFlowlog,
+		},
+		List: &plugin.ListConfig{
+			// ParentHydrate: listVpcs,
+			Hydrate: listVpcFlowlogs,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "flow_log_id",
+				Description: "The ID of the flow log.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "creation_time",
+				Description: "The date and time the flow log was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "deliver_logs_error_message",
+				Description: "Information about the error that occurred.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "deliver_logs_permission_arn",
+				Description: "The ARN of the IAM role that posts logs to CloudWatch Logs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "deliver_logs_status",
+				Description: "The status of the logs delivery (SUCCESS | FAILED).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "log_group_name",
+				Description: "The name of the flow log group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "resource_id",
+				Description: "The ID of the VPC, subnet, or network interface.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "traffic_type",
+				Description: "The type of traffic (ACCEPT | REJECT | ALL).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "log_destination_type",
+				Description: "Specifies the type of destination to which the flow log data is published.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "log_destination",
+				Description: "Specifies the destination to which the flow log data is published.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "log_format",
+				Description: "The format of the flow log record.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "max_aggregation_interval",
+				Description: "The maximum interval of time, in seconds, during which a flow of packets is captured and aggregated into a flow log record.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the VPC flowlog.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
+			},
+
+			//standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromP(getVpcFlowlogTurbotData, "Tags"),
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromP(getVpcFlowlogTurbotData, "Title"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getVpcFlowlogAkas,
+				Transform:   transform.FromValue(),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcFlowlogs", "AWS_REGION", region)
+
+	// Create session
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.DescribeFlowLogsPages(
+		&ec2.DescribeFlowLogsInput{},
+		func(page *ec2.DescribeFlowLogsOutput, lastPage bool) bool {
+			for _, item := range page.FlowLogs {
+				d.StreamListItem(ctx, item)
+			}
+			return !lastPage
+		},
+	)
+
+	return nil, err
+}
+
+//// HYDRATE FUNCTIONS
+
+func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getVpcFlowlog")
+	quals := d.KeyColumnQuals
+	flowlogID := quals["flow_log_id"].GetStringValue()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	// Create session
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &ec2.DescribeFlowLogsInput{
+		FlowLogIds: []*string{&flowlogID},
+	}
+
+	//get call
+	item, err := svc.DescribeFlowLogs(params)
+	if err != nil {
+		logger.Debug("getVpcFlowlogs__", "Error", err)
+		return nil, err
+	}
+
+	if item.FlowLogs != nil && len(item.FlowLogs) > 0 {
+		return item.FlowLogs[0], nil
+	}
+
+	return nil, nil
+}
+
+func getVpcFlowlogAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcFlowlogAkas")
+	vpcFlowlog := h.Item.(*ec2.FlowLog)
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":flow-log/" + *vpcFlowlog.FlowLogId}
+
+	return akas, nil
+}
+
+// TRANSFORM FUNCTIONS
+
+func getVpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	vpcFlowlog := d.HydrateItem.(*ec2.FlowLog)
+	param := d.Param.(string)
+
+	// Get resource title
+	title := vpcFlowlog.FlowLogId
+
+	// Get the resource tags
+	var turbotTagsMap map[string]string
+	if vpcFlowlog.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range vpcFlowlog.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+			if *i.Key == "Name" {
+				title = i.Value
+			}
+		}
+	}
+
+	if param == "Tags" {
+		return turbotTagsMap, nil
+	}
+
+	return title, nil
+}

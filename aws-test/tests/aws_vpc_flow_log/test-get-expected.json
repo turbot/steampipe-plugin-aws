@@ -6,7 +6,7 @@
     "log_destination_type": "cloud-watch-logs",
     "log_format": "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}",
     "log_group_name": "{{resourceName}}",
-    "tags": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"
