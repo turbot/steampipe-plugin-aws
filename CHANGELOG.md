@@ -1,3 +1,16 @@
+## v0.6.0 [2021-03-05]
+
+_What's new?_
+
+- Plugin now supports authentication through **AWS SSO**.
+- New tables added
+  - [aws_ec2_gateway_load_balancer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_gateway_load_balancer)
+  - [aws_vpc_flow_log](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log)
+
+_Enhancements_
+
+- Updated: Added `tags_src` and `tags` columns to `aws_iam_policy` table.
+
 ## v0.5.3 [2021-03-02]
 
 _Bug fixes_
