@@ -10,13 +10,13 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Plugin version (`steampipe plugin list`)**
-Example: v0.5.0
-
 **Steampipe version (`steampipe -v`)**
 Example: v0.3.0
 
-**To Reproduce**
+**Plugin version (`steampipe plugin list`)**
+Example: v0.5.0
+
+**To reproduce**
 Steps to reproduce the behavior (please include relevant code and/or commands).
 
 **Expected behavior**
