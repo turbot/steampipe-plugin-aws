@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("customer_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
-			ItemFromKey:       customerGatewayFromKey,
 			Hydrate:           getVpcCustomerGateway,
 		},
 		List: &plugin.ListConfig{
@@ -88,17 +88,6 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func customerGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	customerGatewayID := quals["customer_gateway_id"].GetStringValue()
-	item := &ec2.CustomerGateway{
-		CustomerGatewayId: &customerGatewayID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -128,15 +117,15 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcCustomerGateway")
-	customerGateway := h.Item.(*ec2.CustomerGateway)
+	plugin.Logger(ctx).Trace("getVpcCustomerGateway")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	customerGatewayID := d.KeyColumnQuals["customer_gateway_id"].GetStringValue()
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -146,13 +135,13 @@ func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Build the params
 	params := &ec2.DescribeCustomerGatewaysInput{
-		CustomerGatewayIds: []*string{customerGateway.CustomerGatewayId},
+		CustomerGatewayIds: []*string{aws.String(customerGatewayID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeCustomerGateways(params)
 	if err != nil {
-		logger.Debug("getVpcCustomerGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcCustomerGateway__", "ERROR", err)
 		return nil, err
 	}
 

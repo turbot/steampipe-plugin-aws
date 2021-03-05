@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("allocation_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
-			ItemFromKey:       eipFromKey,
 			Hydrate:           getVpcEip,
 		},
 		List: &plugin.ListConfig{
@@ -120,17 +120,6 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func eipFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	allocationID := quals["allocation_id"].GetStringValue()
-	item := &ec2.Address{
-		AllocationId: &allocationID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -161,15 +150,15 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getVpcEip(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEip")
-	eip := h.Item.(*ec2.Address)
+	plugin.Logger(ctx).Trace("getVpcEip")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	allocationID := d.KeyColumnQuals["allocation_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -179,13 +168,13 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 
 	// Build the params
 	params := &ec2.DescribeAddressesInput{
-		AllocationIds: []*string{eip.AllocationId},
+		AllocationIds: []*string{aws.String(allocationID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeAddresses(params)
 	if err != nil {
-		logger.Debug("getVpcEip__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcEip__", "ERROR", err)
 		return nil, err
 	}
 

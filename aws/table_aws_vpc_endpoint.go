@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpc_endpoint_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpcEndpointId.NotFound", "InvalidVpcEndpointId.Malformed"}),
-			ItemFromKey:       vpcEndpointFromKey,
 			Hydrate:           getVpcEndpoint,
 		},
 		List: &plugin.ListConfig{
@@ -132,17 +132,6 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcEndpointFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	vpcEndpointID := quals["vpc_endpoint_id"].GetStringValue()
-	item := &ec2.VpcEndpoint{
-		VpcEndpointId: &vpcEndpointID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -177,15 +166,15 @@ func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEndpoint")
-	vpcEndpoint := h.Item.(*ec2.VpcEndpoint)
+	plugin.Logger(ctx).Trace("getVpcEndpoint")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	vpcEndpointID := d.KeyColumnQuals["vpc_endpoint_id"].GetStringValue()
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -194,13 +183,13 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	params := &ec2.DescribeVpcEndpointsInput{
-		VpcEndpointIds: []*string{vpcEndpoint.VpcEndpointId},
+		VpcEndpointIds: []*string{aws.String(vpcEndpointID)},
 	}
 
 	//get call
 	item, err := svc.DescribeVpcEndpoints(params)
 	if err != nil {
-		logger.Debug("getVpcEndpoint__", "Error", err)
+		plugin.Logger(ctx).Debug("getVpcEndpoint__", "Error", err)
 		return nil, err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -17,7 +18,6 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("service_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidServiceName"}),
-			ItemFromKey:       endpointServiceFromKey,
 			Hydrate:           getVpcEndpointService,
 		},
 		List: &plugin.ListConfig{
@@ -84,6 +84,7 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the service",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "tags",
@@ -106,17 +107,6 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// ITEM FROM KEY
-
-func endpointServiceFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	serviceName := quals["service_name"].GetStringValue()
-	item := &ec2.ServiceDetail{
-		ServiceName: &serviceName,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -148,15 +138,15 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEndpointService")
-	endpointService := h.Item.(*ec2.ServiceDetail)
+	plugin.Logger(ctx).Trace("getVpcEndpointService")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	serviceName := d.KeyColumnQuals["service_name"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -166,13 +156,13 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Build the params
 	params := &ec2.DescribeVpcEndpointServicesInput{
-		ServiceNames: []*string{endpointService.ServiceName},
+		ServiceNames: []*string{aws.String(serviceName)},
 	}
 
 	// Get call
 	op, err := svc.DescribeVpcEndpointServices(params)
 	if err != nil {
-		logger.Debug("getVpcEndpointService__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcEndpointService__", "ERROR", err)
 		return nil, err
 	}
 
@@ -194,8 +184,6 @@ func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get data for turbot defined properties
 	splitServicName := strings.Split(*endpointService.ServiceName, ".")
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc-endpoint-service/" + splitServicName[len(splitServicName)-1]}
-
-	// plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas", "Akas", akas)
 
 	return akas, nil
 }
