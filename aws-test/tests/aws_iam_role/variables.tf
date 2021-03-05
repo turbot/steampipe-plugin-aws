@@ -46,13 +46,42 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_iam_policy" "named_test_resource" {
+  name        = var.resource_name
+  description = "A test policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:Describe*"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "test-attach" {
+  role       = aws_iam_role.named_test_resource.name
+  policy_arn = aws_iam_policy.named_test_resource.arn
+}
+
 resource "aws_iam_role" "named_test_resource" {
   name               = var.resource_name
   assume_role_policy = "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ec2.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"test\"\n    }\n  ]\n}\n"
-  description = "Test Role"
+  description        = "Test Role"
   tags = {
     name = var.resource_name
   }
+}
+
+output "attached_policy_arn" {
+  value = aws_iam_policy.named_test_resource.arn
 }
 
 output "resource_aka" {

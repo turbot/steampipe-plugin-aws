@@ -18,7 +18,6 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:  plugin.SingleColumn("user_name"),
-		// 	ItemFromKey: accessKeyFromKey,
 		// 	Hydrate:     getIamAccessKey,
 		// },
 		List: &plugin.ListConfig{
@@ -61,17 +60,6 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func accessKeyFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	userName := quals["user_name"].GetStringValue()
-	item := &iam.AccessKeyMetadata{
-		UserName: &userName,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION

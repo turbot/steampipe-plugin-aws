@@ -7,9 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -24,7 +26,6 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			ItemFromKey:       roleFromKey,
 			Hydrate:           getIamRole,
 		},
 		List: &plugin.ListConfig{
@@ -177,21 +178,6 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func roleFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	arn := quals["arn"].GetStringValue()
-	if len(arn) > 0 {
-		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
-	}
-	item := &iam.Role{
-		RoleName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -216,17 +202,28 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 //// HYDRATE FUNCTIONS
 
 func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getIamRole")
-	role := h.Item.(*iam.Role)
-	// create service
+	plugin.Logger(ctx).Trace("getIamRole")
+
+	// Create service
 	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
+	var name string
+	if h.Item != nil {
+		data := h.Item.(*iam.Role)
+		name = types.SafeString(data.RoleName)
+	} else {
+		name = d.KeyColumnQuals["name"].GetStringValue()
+		arn := d.KeyColumnQuals["arn"].GetStringValue()
+		if len(arn) > 0 {
+			name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+		}
+	}
+
 	params := &iam.GetRoleInput{
-		RoleName: role.RoleName,
+		RoleName: aws.String(name),
 	}
 
 	op, err := svc.GetRole(params)
