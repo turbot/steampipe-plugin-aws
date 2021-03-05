@@ -96,8 +96,22 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Hydrate:     getPolicyVersion,
 				Transform:   transform.FromField("PolicyVersion.Document").Transform(unescape).Transform(policyToCanonical),
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags attached with the IAM policy.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamPolicy,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// Standard columns for all tables
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamPolicy,
+				Transform:   transform.From(iamPolicyTurbotTags),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -139,7 +153,14 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamPolicy")
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	var arn string
+	if h.Item != nil {
+		policy := h.Item.(*iam.Policy)
+		arn = *policy.Arn
+	} else {
+		arn = d.KeyColumnQuals["arn"].GetStringValue()
+	}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
@@ -197,4 +218,19 @@ func isPolicyAwsManaged(ctx context.Context, d *transform.TransformData) (interf
 	}
 
 	return false, nil
+}
+
+func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	policy := d.HydrateItem.(*iam.Policy)
+	var turbotTagsMap map[string]string
+	if policy.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range policy.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }

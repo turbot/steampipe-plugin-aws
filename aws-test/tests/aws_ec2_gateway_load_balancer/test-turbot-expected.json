@@ -3,9 +3,8 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "flow_log_id": "{{ output.resource_id.value }}",
     "tags": {
-      "Name": "{{resourceName}}"
+      "name": "{{resourceName}}"
     },
     "title": "{{resourceName}}"
   }
