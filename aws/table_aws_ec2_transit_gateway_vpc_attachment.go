@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -16,7 +17,6 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("transit_gateway_attachment_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
-			ItemFromKey:       transitGatewayAttachmentFromKey,
 			Hydrate:           getEc2TransitGatewayVpcAttachment,
 		},
 		List: &plugin.ListConfig{
@@ -107,17 +107,6 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func transitGatewayAttachmentFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	transitGatewayAttachmentID := quals["transit_gateway_attachment_id"].GetStringValue()
-	item := &ec2.TransitGatewayAttachment{
-		TransitGatewayAttachmentId: &transitGatewayAttachmentID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -149,16 +138,18 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 	return nil, err
 }
 
+//// HYDRATE FUNCTIONS
+
 func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEc2TransitGatewayVpcAttachment")
+	plugin.Logger(ctx).Trace("getEc2TransitGatewayVpcAttachment")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	transitGatewayAttachment := h.Item.(*ec2.TransitGatewayAttachment)
+	transitGatewayAttachmentID := d.KeyColumnQuals["transit_gateway_attachment_id"].GetStringValue()
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
@@ -168,12 +159,12 @@ func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData,
 
 	// Build params
 	params := &ec2.DescribeTransitGatewayAttachmentsInput{
-		TransitGatewayAttachmentIds: []*string{transitGatewayAttachment.TransitGatewayAttachmentId},
+		TransitGatewayAttachmentIds: []*string{aws.String(transitGatewayAttachmentID)},
 	}
 
 	op, err := svc.DescribeTransitGatewayAttachments(params)
 	if err != nil {
-		logger.Debug("getEc2TransitGatewayVpcAttachment__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getEc2TransitGatewayVpcAttachment__", "ERROR", err)
 		return nil, err
 	}
 

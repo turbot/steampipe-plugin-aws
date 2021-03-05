@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
-			ItemFromKey:       launchConfigurationFromKey,
 			Hydrate:           getAwsEc2LaunchConfiguration,
 		},
 		List: &plugin.ListConfig{
@@ -162,17 +162,6 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func launchConfigurationFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &autoscaling.LaunchConfiguration{
-		LaunchConfigurationName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -207,15 +196,15 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEc2LaunchConfiguration")
-	launchConfiguration := h.Item.(*autoscaling.LaunchConfiguration)
+	plugin.Logger(ctx).Trace("getAwsEc2LaunchConfiguration")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := AutoScalingService(ctx, d, region)
@@ -225,14 +214,14 @@ func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 
 	// Build params
 	params := &autoscaling.DescribeLaunchConfigurationsInput{
-		LaunchConfigurationNames: []*string{launchConfiguration.LaunchConfigurationName},
+		LaunchConfigurationNames: []*string{aws.String(name)},
 	}
 
 	// panic(params)
 
 	rowData, err := svc.DescribeLaunchConfigurations(params)
 	if err != nil {
-		logger.Debug("getAwsEc2LaunchConfiguration", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsEc2LaunchConfiguration", "ERROR", err)
 		return nil, err
 	}
 

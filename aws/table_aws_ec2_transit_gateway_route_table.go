@@ -20,7 +20,6 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableId.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
-			ItemFromKey:       routeTableFromKey,
 			Hydrate:           getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
@@ -87,17 +86,6 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func routeTableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	routeTableID := quals["transit_gateway_route_table_id"].GetStringValue()
-	item := &ec2.TransitGatewayRouteTable{
-		TransitGatewayRouteTableId: &routeTableID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -137,7 +125,7 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, h 
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	transitGatewayRouteTable := h.Item.(*ec2.TransitGatewayRouteTable)
+	routeTableID := d.KeyColumnQuals["transit_gateway_route_table_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -146,7 +134,7 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	params := &ec2.DescribeTransitGatewayRouteTablesInput{
-		TransitGatewayRouteTableIds: []*string{aws.String(*transitGatewayRouteTable.TransitGatewayRouteTableId)},
+		TransitGatewayRouteTableIds: []*string{aws.String(routeTableID)},
 	}
 
 	op, err := svc.DescribeTransitGatewayRouteTables(params)

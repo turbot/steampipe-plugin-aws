@@ -20,7 +20,6 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("target_group_arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
-			ItemFromKey:       targetGroupFromKey,
 			Hydrate:           getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
@@ -151,17 +150,6 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func targetGroupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	targetGroupArn := quals["target_group_arn"].GetStringValue()
-	item := &elbv2.TargetGroup{
-		TargetGroupArn: &targetGroupArn,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -197,13 +185,14 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2TargetGroup")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	targetGroup := h.Item.(*elbv2.TargetGroup)
+	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
 
 	// create service
 	svc, err := ELBv2Service(ctx, d, region)
@@ -212,7 +201,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	params := &elbv2.DescribeTargetGroupsInput{
-		TargetGroupArns: []*string{aws.String(*targetGroup.TargetGroupArn)},
+		TargetGroupArns: []*string{aws.String(targetGroupArn)},
 	}
 
 	op, err := svc.DescribeTargetGroups(params)

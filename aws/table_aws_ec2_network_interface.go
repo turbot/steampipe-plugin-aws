@@ -20,7 +20,6 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("network_interface_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
-			ItemFromKey:       networkInterfaceFromKey,
 			Hydrate:           getEc2NetworkInterface,
 		},
 		List: &plugin.ListConfig{
@@ -224,17 +223,6 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func networkInterfaceFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	networkInterfaceID := quals["network_interface_id"].GetStringValue()
-	item := &ec2.NetworkInterface{
-		NetworkInterfaceId: &networkInterfaceID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -270,13 +258,14 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2NetworkInterface")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	targetGroup := h.Item.(*ec2.NetworkInterface)
+	networkInterfaceID := d.KeyColumnQuals["network_interface_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -285,7 +274,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &ec2.DescribeNetworkInterfacesInput{
-		NetworkInterfaceIds: []*string{aws.String(*targetGroup.NetworkInterfaceId)},
+		NetworkInterfaceIds: []*string{aws.String(networkInterfaceID)},
 	}
 
 	op, err := svc.DescribeNetworkInterfaces(params)
