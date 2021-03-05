@@ -9,7 +9,7 @@ _What's new?_
 
 _Enhancements_
 
-- Updated: Added `tags_src` and `tags` columns to aws_iam_policy table.
+- Updated: Added `tags_src` and `tags` columns to `aws_iam_policy` table.
 
 _Bug fixes_
 
