@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/apigateway"
@@ -487,21 +488,27 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
+	sessionOptions := session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}
 
 	if &awsConfig != nil {
 		if awsConfig.Profile != nil {
-			os.Setenv("AWS_PROFILE", *awsConfig.Profile)
+			sessionOptions.Profile = *awsConfig.Profile
 		}
 		if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
 			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
 		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
 			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
 		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-			os.Setenv("AWS_ACCESS_KEY_ID", *awsConfig.AccessKey)
-			os.Setenv("AWS_SECRET_ACCESS_KEY", *awsConfig.SecretKey)
+			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+				*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+			)
 
 			if awsConfig.SessionToken != nil {
-				os.Setenv("AWS_SESSION_TOKEN", *awsConfig.SessionToken)
+				sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+					*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+				)
 			}
 		}
 	}
@@ -514,7 +521,13 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	}
 
 	// so it was not in cache - create a session
-	sess, err := session.NewSession(&aws.Config{Region: &region, MaxRetries: aws.Int(10)})
+	// sess, err := session.NewSession(&aws.Config{Region: &region, MaxRetries: aws.Int(10)})
+
+	sessionOptions.Config.Region = &region
+	sessionOptions.Config.MaxRetries = aws.Int(10)
+
+	// so it was not in cache - create a session
+	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
 		return nil, err
 	}
