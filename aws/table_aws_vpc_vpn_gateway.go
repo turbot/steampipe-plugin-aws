@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpn_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
-			ItemFromKey:       vpnGatewayFromKey,
 			Hydrate:           getVpcVpnGateway,
 		},
 		List: &plugin.ListConfig{
@@ -83,17 +83,6 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpnGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	vpnGatewayID := quals["vpn_gateway_id"].GetStringValue()
-	item := &ec2.VpnGateway{
-		VpnGatewayId: &vpnGatewayID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -126,13 +115,14 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcVpnGateway")
-	vpnGateway := h.Item.(*ec2.VpnGateway)
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	vpnGatewayID := d.KeyColumnQuals["vpn_gateway_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -142,7 +132,7 @@ func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// Build the params
 	params := &ec2.DescribeVpnGatewaysInput{
-		VpnGatewayIds: []*string{vpnGateway.VpnGatewayId},
+		VpnGatewayIds: []*string{aws.String(vpnGatewayID)},
 	}
 
 	// Get call

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,6 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("route_table_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-			ItemFromKey:       vpcRouteTableFromKey,
 			Hydrate:           getVpcRouteTable,
 		},
 		List: &plugin.ListConfig{
@@ -87,17 +87,6 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcRouteTableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	routeTableID := quals["route_table_id"].GetStringValue()
-	item := &ec2.RouteTable{
-		RouteTableId: &routeTableID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -133,15 +122,15 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcRouteTable")
-	routeTable := h.Item.(*ec2.RouteTable)
+	plugin.Logger(ctx).Trace("getVpcRouteTable")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	routeTableID := d.KeyColumnQuals["route_table_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -151,13 +140,13 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// Build the params
 	params := &ec2.DescribeRouteTablesInput{
-		RouteTableIds: []*string{routeTable.RouteTableId},
+		RouteTableIds: []*string{aws.String(routeTableID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeRouteTables(params)
 	if err != nil {
-		logger.Debug("getVpcRouteTable__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcRouteTable__", "ERROR", err)
 		return nil, err
 	}
 

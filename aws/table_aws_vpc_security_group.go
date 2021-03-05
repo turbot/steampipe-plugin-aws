@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("group_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound"}),
-			ItemFromKey:       securityGroupFromKey,
 			Hydrate:           getVpcSecurityGroup,
 		},
 		List: &plugin.ListConfig{
@@ -82,17 +82,6 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func securityGroupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	groupID := quals["group_id"].GetStringValue()
-	item := &ec2.SecurityGroup{
-		GroupId: &groupID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -128,15 +117,15 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcSecurityGroup")
-	group := h.Item.(*ec2.SecurityGroup)
+	plugin.Logger(ctx).Trace("getVpcSecurityGroup")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -146,13 +135,13 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// Build the params
 	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{group.GroupId},
+		GroupIds: []*string{aws.String(groupID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
-		logger.Debug("getVpcSecurityGroup__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcSecurityGroup__", "ERROR", err)
 		return nil, err
 	}
 

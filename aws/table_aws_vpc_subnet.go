@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("subnet_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
-			ItemFromKey:       subnetFromKey,
 			Hydrate:           getVpcSubnet,
 		},
 		List: &plugin.ListConfig{
@@ -134,17 +134,6 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func subnetFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	subnetID := quals["subnet_id"].GetStringValue()
-	item := &ec2.Subnet{
-		SubnetId: &subnetID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -179,9 +168,7 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcSubnet")
-	subnet := h.Item.(*ec2.Subnet)
+	plugin.Logger(ctx).Trace("getVpcSubnet")
 
 	// TODO put me in helper function
 	var region string
@@ -189,6 +176,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -198,13 +186,13 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	// Build the params
 	params := &ec2.DescribeSubnetsInput{
-		SubnetIds: []*string{subnet.SubnetId},
+		SubnetIds: []*string{aws.String(subnetID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeSubnets(params)
 	if err != nil {
-		logger.Debug("getVpcSubnet__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcSubnet__", "ERROR", err)
 		return nil, err
 	}
 
