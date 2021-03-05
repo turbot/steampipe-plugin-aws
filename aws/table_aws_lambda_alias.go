@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
@@ -15,9 +16,8 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_alias",
 		Description: "AWS Lambda Alias",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.AllColumns([]string{"name", "function_name"}),
-			ItemFromKey: aliasFromKey,
-			Hydrate:     getLambdaAlias,
+			KeyColumns: plugin.AllColumns([]string{"name", "function_name"}),
+			Hydrate:    getLambdaAlias,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -81,21 +81,6 @@ type aliasRowData = struct {
 	FunctionName *string
 }
 
-//// ITEM FROM KEY
-
-func aliasFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	functionName := quals["function_name"].GetStringValue()
-	item := &aliasRowData{
-		FunctionName: &functionName,
-		Alias: &lambda.AliasConfiguration{
-			Name: &name,
-		},
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -130,15 +115,16 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// HYDRATE FUNCTIONS
 
 func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getLambdaAlias")
+	plugin.Logger(ctx).Trace("getLambdaAlias")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	alias := h.Item.(*aliasRowData)
+	name := d.KeyColumnQuals["name"].GetStringValue()
+	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 
 	// Create Session
 	svc, err := LambdaService(ctx, d, region)
@@ -148,15 +134,15 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	// Build params
 	params := &lambda.GetAliasInput{
-		FunctionName: alias.FunctionName,
-		Name:         alias.Alias.Name,
+		FunctionName: aws.String(functionName),
+		Name:         aws.String(name),
 	}
 
 	rowData, err := svc.GetAlias(params)
 	if err != nil {
-		logger.Debug("getLambdaAlias__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getLambdaAlias__", "ERROR", err)
 		return nil, err
 	}
 
-	return &aliasRowData{rowData, alias.FunctionName}, nil
+	return &aliasRowData{rowData, aws.String(functionName)}, nil
 }

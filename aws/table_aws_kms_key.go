@@ -20,8 +20,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 		Description: "AWS KMS Key",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       kmsKeyFromKey,
+			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
 			Hydrate:           getKmsKey,
 		},
 		List: &plugin.ListConfig{
@@ -177,17 +176,6 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func kmsKeyFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	ID := quals["id"].GetStringValue()
-	item := &kms.KeyListEntry{
-		KeyId: &ID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -220,15 +208,15 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKmsKey")
-	key := h.Item.(*kms.KeyListEntry)
+	plugin.Logger(ctx).Trace("getKmsKey")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	keyID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
 	svc, err := KMSService(ctx, d, region)
@@ -237,12 +225,12 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	}
 
 	params := &kms.DescribeKeyInput{
-		KeyId: key.KeyId,
+		KeyId: aws.String(keyID),
 	}
 
 	keyData, err := svc.DescribeKey(params)
 	if err != nil {
-		logger.Debug("getIamUser__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getIamUser__", "ERROR", err)
 		return nil, err
 	}
 
@@ -256,8 +244,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 }
 
 func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKmsKeyData")
+	plugin.Logger(ctx).Trace("getAwsKmsKeyData")
 	key := h.Item.(*kms.KeyListEntry)
 	// TODO put me in helper function
 	var region string
@@ -285,8 +272,7 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKmsKeyRotationStatus")
+	plugin.Logger(ctx).Trace("getAwsKmsKeyRotationStatus")
 	key := h.Item.(*kms.KeyListEntry)
 	// TODO put me in helper function
 	var region string
@@ -318,8 +304,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKmsKeyTagging")
+	plugin.Logger(ctx).Trace("getAwsKmsKeyTagging")
 	key := h.Item.(*kms.KeyListEntry)
 	// TODO put me in helper function
 	var region string
@@ -361,8 +346,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKmsKeyAliases")
+	plugin.Logger(ctx).Trace("getAwsKmsKeyAliases")
 	key := h.Item.(*kms.KeyListEntry)
 	// TODO put me in helper function
 	var region string
@@ -390,8 +374,7 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKmsKeyPolicy")
+	plugin.Logger(ctx).Trace("getAwsKmsKeyPolicy")
 	key := h.Item.(*kms.KeyListEntry)
 	// TODO put me in helper function
 	var region string

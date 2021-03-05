@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
@@ -16,9 +17,8 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_function",
 		Description: "AWS Lambda Function",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: functionFromKey,
-			Hydrate:     getAwsLambdaFunction,
+			KeyColumns: plugin.SingleColumn("name"),
+			Hydrate:    getAwsLambdaFunction,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
@@ -187,17 +187,6 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func functionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &lambda.FunctionConfiguration{
-		FunctionName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -231,15 +220,15 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsLambdaFunction")
+	plugin.Logger(ctx).Trace("getAwsLambdaFunction")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	function := h.Item.(*lambda.FunctionConfiguration)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := LambdaService(ctx, d, region)
@@ -249,14 +238,12 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	// Build params
 	params := &lambda.GetFunctionInput{
-		FunctionName: function.FunctionName,
+		FunctionName: aws.String(name),
 	}
-
-	// panic(params)
 
 	rowData, err := svc.GetFunction(params)
 	if err != nil {
-		logger.Debug("getAwsLambdaFunction__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsLambdaFunction__", "ERROR", err)
 		return nil, err
 	}
 

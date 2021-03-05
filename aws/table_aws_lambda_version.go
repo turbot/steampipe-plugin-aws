@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
@@ -16,9 +17,8 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_version",
 		Description: "AWS Lambda Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.AllColumns([]string{"version", "function_name"}),
-			ItemFromKey: versionFromKey,
-			Hydrate:     getFunctionVersion,
+			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
+			Hydrate:    getFunctionVersion,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -148,19 +148,6 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func versionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	version := quals["version"].GetStringValue()
-	functionName := quals["function_name"].GetStringValue()
-	item := &lambda.FunctionConfiguration{
-		FunctionName: &functionName,
-		Version:      &version,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -202,15 +189,16 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("getFunctionVersion")
 	svc := lambda.New(session.New())
 
-	function := h.Item.(*lambda.FunctionConfiguration)
+	version := d.KeyColumnQuals["version"].GetStringValue()
+	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 	var functionVersion *lambda.FunctionConfiguration
 
 	err := svc.ListVersionsByFunctionPages(
-		&lambda.ListVersionsByFunctionInput{FunctionName: function.FunctionName},
+		&lambda.ListVersionsByFunctionInput{FunctionName: aws.String(functionName)},
 		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-			for _, version := range page.Versions {
-				if *version.Version == *function.Version {
-					functionVersion = version
+			for _, i := range page.Versions {
+				if *i.Version == version {
+					functionVersion = i
 					return false
 				}
 			}
