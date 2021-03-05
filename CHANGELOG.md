@@ -7,6 +7,10 @@ _What's new?_
   - [aws_vpc_flow_log](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log)
   - [aws_ec2_gateway_load_balancer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_gateway_load_balancer)
 
+_Enhancements_
+
+- Updated: Added `tags_src` and `tags` columns to aws_iam_policy table.
+
 _Bug fixes_
 
 - Recompiled plugin with latest [steampipe-plugin-sdk](https://github.com/turbot/steampipe-plugin-sdk) to resolve issue:
