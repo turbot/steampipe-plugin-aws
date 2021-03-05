@@ -16,9 +16,8 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		Name:        "aws_s3_bucket",
 		Description: "AWS S3 Bucket",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: bucketFromKey,
-			Hydrate:     getS3Bucket,
+			KeyColumns: plugin.SingleColumn("name"),
+			Hydrate:    getS3Bucket,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
@@ -212,17 +211,6 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func bucketFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &s3.Bucket{
-		Name: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -255,8 +243,8 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 // using list api call to create get function
 func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
-	bucket := h.Item.(*s3.Bucket)
 	defaultRegion := GetDefaultAwsRegion(d)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := S3Service(ctx, d, defaultRegion)
@@ -272,7 +260,7 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	for _, item := range bucketsResult.Buckets {
-		if *item.Name == *bucket.Name {
+		if *item.Name == name {
 			return item, nil
 		}
 	}

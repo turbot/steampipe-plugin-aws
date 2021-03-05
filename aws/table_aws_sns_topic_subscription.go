@@ -3,7 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -18,7 +20,6 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("subscription_arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			ItemFromKey:       snsTopicSubscriptionFromKey,
 			Hydrate:           getSubscriptionAttributes,
 		},
 		List: &plugin.ListConfig{
@@ -121,19 +122,6 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func snsTopicSubscriptionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	arn := quals["subscription_arn"].GetStringValue()
-	item := &sns.GetSubscriptionAttributesOutput{
-		Attributes: map[string]*string{
-			"SubscriptionArn": &arn,
-		},
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -175,14 +163,21 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSubscriptionAttributes")
-	subscriptionAttributesOutput := h.Item.(*sns.GetSubscriptionAttributesOutput)
+	plugin.Logger(ctx).Trace("getSubscriptionAttributes")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	var arn string
+	if h.Item != nil {
+		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
+		arn = types.SafeString(data.Attributes["SubscriptionArn"])
+	} else {
+		arn = d.KeyColumnQuals["subscription_arn"].GetStringValue()
 	}
 
 	// Create session
@@ -192,7 +187,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	input := &sns.GetSubscriptionAttributesInput{
-		SubscriptionArn: subscriptionAttributesOutput.Attributes["SubscriptionArn"],
+		SubscriptionArn: aws.String(arn),
 	}
 
 	// As of 7th september 2020, Next token is not supported in go

@@ -3,7 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -18,7 +20,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("topic_arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			ItemFromKey:       snsTopicFromKey,
 			Hydrate:           getTopicAttributes,
 		},
 		List: &plugin.ListConfig{
@@ -133,19 +134,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func snsTopicFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	arn := quals["topic_arn"].GetStringValue()
-	item := &sns.GetTopicAttributesOutput{
-		Attributes: map[string]*string{
-			"TopicArn": &arn,
-		},
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -184,14 +172,21 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getTopicAttributes")
-	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
+	plugin.Logger(ctx).Trace("getTopicAttributes")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	var arn string
+	if h.Item != nil {
+		data := h.Item.(*sns.GetTopicAttributesOutput)
+		arn = types.SafeString(data.Attributes["TopicArn"])
+	} else {
+		arn = d.KeyColumnQuals["topic_arn"].GetStringValue()
 	}
 
 	// Create session
@@ -202,20 +197,19 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	// Build params
 	param := &sns.GetTopicAttributesInput{
-		TopicArn: topicAttributesOutput.Attributes["TopicArn"],
+		TopicArn: aws.String(arn),
 	}
 
 	op, err := svc.GetTopicAttributes(param)
 	if err != nil {
-		logger.Trace("getTopicAttributes__", "Error", err)
+		plugin.Logger(ctx).Trace("getTopicAttributes__", "Error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listTagsForSnsTopic")
+	plugin.Logger(ctx).Trace("listTagsForSnsTopic")
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
 	// TODO put me in helper function
 	var region string

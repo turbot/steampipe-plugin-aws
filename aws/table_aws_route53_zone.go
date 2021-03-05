@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,6 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ItemFromKey:       hostedZone,
 			Hydrate:           getHostedZone,
 			ShouldIgnoreError: isNotFoundError([]string{"NoSuchHostedZone"}),
 		},
@@ -102,17 +102,6 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func hostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	id := quals["id"].GetStringValue()
-	item := &route53.HostedZone{
-		Id: &id,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -141,22 +130,22 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
-	hostedZone := h.Item.(*route53.HostedZone)
 
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
+	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Error: pq: rpc error: code = Unknown desc = InvalidParameter: 1 validation error(s) found.
 	// - minimum field size of 1, GetHostedZoneInput.Id.
-	if len(*hostedZone.Id) < 1 {
+	if len(id) < 1 {
 		return nil, nil
 	}
 
 	params := &route53.GetHostedZoneInput{
-		Id: hostedZone.Id,
+		Id: aws.String(id),
 	}
 
 	// execute list call
