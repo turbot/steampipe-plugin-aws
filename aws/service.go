@@ -500,7 +500,7 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
 		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
 			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
+		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
 			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
 				*awsConfig.AccessKey, *awsConfig.SecretKey, "",
 			)
