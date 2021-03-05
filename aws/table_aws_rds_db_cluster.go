@@ -20,7 +20,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("db_cluster_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
-			ItemFromKey:       dbClusterIdentifierFromKey,
 			Hydrate:           getRDSDBCluster,
 		},
 		List: &plugin.ListConfig{
@@ -330,17 +329,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func dbClusterIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	dbClusterIdentifier := quals["db_cluster_identifier"].GetStringValue()
-	item := &rds.DBCluster{
-		DBClusterIdentifier: &dbClusterIdentifier,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -380,7 +368,7 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbCluster := h.Item.(*rds.DBCluster)
+	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -389,7 +377,7 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	params := &rds.DescribeDBClustersInput{
-		DBClusterIdentifier: aws.String(*dbCluster.DBClusterIdentifier),
+		DBClusterIdentifier: aws.String(dbClusterIdentifier),
 	}
 
 	op, err := svc.DescribeDBClusters(params)

@@ -20,7 +20,6 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("db_snapshot_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound"}),
-			ItemFromKey:       dbSnapshotIdentifierFromKey,
 			Hydrate:           getRDSDBSnapshot,
 		},
 		List: &plugin.ListConfig{
@@ -213,17 +212,6 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func dbSnapshotIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	dbSnapshotIdentifier := quals["db_snapshot_identifier"].GetStringValue()
-	item := &rds.DBSnapshot{
-		DBSnapshotIdentifier: &dbSnapshotIdentifier,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -263,7 +251,7 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbSnapshot := h.Item.(*rds.DBSnapshot)
+	dbSnapshotIdentifier := d.KeyColumnQuals["db_snapshot_identifier"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -272,7 +260,7 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	params := &rds.DescribeDBSnapshotsInput{
-		DBSnapshotIdentifier: aws.String(*dbSnapshot.DBSnapshotIdentifier),
+		DBSnapshotIdentifier: aws.String(dbSnapshotIdentifier),
 	}
 
 	op, err := svc.DescribeDBSnapshots(params)

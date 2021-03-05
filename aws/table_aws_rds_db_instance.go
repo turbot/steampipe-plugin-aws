@@ -20,7 +20,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("db_instance_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBInstanceNotFound"}),
-			ItemFromKey:       dbInstanceIdentifierFromKey,
 			Hydrate:           getRDSDBInstance,
 		},
 		List: &plugin.ListConfig{
@@ -419,17 +418,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func dbInstanceIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	dbInstanceIdentifier := quals["db_instance_identifier"].GetStringValue()
-	item := &rds.DBInstance{
-		DBInstanceIdentifier: &dbInstanceIdentifier,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -533,7 +521,7 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbInstance := h.Item.(*rds.DBInstance)
+	dbInstanceIdentifier := d.KeyColumnQuals["db_instance_identifier"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -542,7 +530,7 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	params := &rds.DescribeDBInstancesInput{
-		DBInstanceIdentifier: aws.String(*dbInstance.DBInstanceIdentifier),
+		DBInstanceIdentifier: aws.String(dbInstanceIdentifier),
 	}
 
 	op, err := svc.DescribeDBInstances(params)

@@ -20,7 +20,6 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("db_cluster_snapshot_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound", "DBClusterSnapshotNotFoundFault"}),
-			ItemFromKey:       dbClusterSnapshotIdentifierFromKey,
 			Hydrate:           getRDSDBClusterSnapshot,
 		},
 		List: &plugin.ListConfig{
@@ -173,17 +172,6 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func dbClusterSnapshotIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	snapshotIdentifier := quals["db_cluster_snapshot_identifier"].GetStringValue()
-	item := &rds.DBClusterSnapshot{
-		DBClusterSnapshotIdentifier: &snapshotIdentifier,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -223,7 +211,7 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbClusterSnapshot := h.Item.(*rds.DBClusterSnapshot)
+	snapshotIdentifier := d.KeyColumnQuals["db_cluster_snapshot_identifier"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -232,7 +220,7 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	params := &rds.DescribeDBClusterSnapshotsInput{
-		DBClusterSnapshotIdentifier: aws.String(*dbClusterSnapshot.DBClusterSnapshotIdentifier),
+		DBClusterSnapshotIdentifier: aws.String(snapshotIdentifier),
 	}
 
 	op, err := svc.DescribeDBClusterSnapshots(params)
