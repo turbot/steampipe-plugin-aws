@@ -20,7 +20,6 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBSubnetGroupNotFoundFault"}),
-			ItemFromKey:       subnetGroupNameFromKey,
 			Hydrate:           getRDSDBSubnetGroup,
 		},
 		GetMatrixItem: BuildRegionList,
@@ -94,17 +93,6 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func subnetGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &rds.DBSubnetGroup{
-		DBSubnetGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -144,7 +132,7 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -153,7 +141,7 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	params := &rds.DescribeDBSubnetGroupsInput{
-		DBSubnetGroupName: aws.String(*dbSubnetGroup.DBSubnetGroupName),
+		DBSubnetGroupName: aws.String(name),
 	}
 
 	op, err := svc.DescribeDBSubnetGroups(params)

@@ -20,7 +20,6 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			ItemFromKey:       optionGroupNameFromKey,
 			Hydrate:           getRDSDBOptionGroup,
 		},
 		List: &plugin.ListConfig{
@@ -103,17 +102,6 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func optionGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &rds.OptionGroup{
-		OptionGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -153,7 +141,7 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	optionGroup := h.Item.(*rds.OptionGroup)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -162,7 +150,7 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	params := &rds.DescribeOptionGroupsInput{
-		OptionGroupName: aws.String(*optionGroup.OptionGroupName),
+		OptionGroupName: aws.String(name),
 	}
 
 	op, err := svc.DescribeOptionGroups(params)

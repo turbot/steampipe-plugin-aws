@@ -20,7 +20,6 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBParameterGroupNotFound"}),
-			ItemFromKey:       parameterGroupNameFromKey,
 			Hydrate:           getRDSDBParameterGroup,
 		},
 		List: &plugin.ListConfig{
@@ -90,17 +89,6 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func parameterGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &rds.DBParameterGroup{
-		DBParameterGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -140,7 +128,7 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -149,7 +137,7 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &rds.DescribeDBParameterGroupsInput{
-		DBParameterGroupName: aws.String(*dbParameterGroup.DBParameterGroupName),
+		DBParameterGroupName: aws.String(name),
 	}
 
 	op, err := svc.DescribeDBParameterGroups(params)
