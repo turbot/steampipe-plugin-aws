@@ -8,10 +8,10 @@ VPC Flow Logs is a feature that enables to capture information about the IP traf
 
 ```sql
 select
-	flow_log_id,
-	resource_id
+  flow_log_id,
+  resource_id
 from
-	aws_vpc_flow_log;
+  aws_vpc_flow_log;
 ```
 
 
@@ -19,14 +19,14 @@ from
 
 ```sql
 select
-	flow_log_id,
-	resource_id,
-	deliver_logs_error_message,
-	deliver_logs_status
+  flow_log_id,
+  resource_id,
+  deliver_logs_error_message,
+  deliver_logs_status
 from
-	aws_vpc_flow_log
+  aws_vpc_flow_log
 where
-	deliver_logs_status = 'FAILED';
+  deliver_logs_status = 'FAILED';
 ```
 
 
@@ -34,12 +34,13 @@ where
 
 ```sql
 select
-	flow_log_id,
-	log_destination_type,
-	log_group_name,
-	bucket_name
+  flow_log_id,
+  log_destination_type,
+  log_destination,
+  log_group_name,
+  bucket_name
 from
-	aws_vpc_flow_log;
+  aws_vpc_flow_log;
 ```
 
 
@@ -47,8 +48,8 @@ from
 
 ```sql
 select
-	flow_log_id,
-	traffic_type
+  flow_log_id,
+  traffic_type
 from
-	aws_vpc_flow_log;
+  aws_vpc_flow_log;
 ```

@@ -241,7 +241,7 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*ec2.FlowLog)
 	logDestination := types.SafeString(data.LogDestination)
-	if logDestination == "" {
+	if logDestination == "" || types.SafeString(data.LogDestinationType) != "s3" {
 		return nil, nil
 	}
 	splitData := strings.Split(logDestination, ":")
