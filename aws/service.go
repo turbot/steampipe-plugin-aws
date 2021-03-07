@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
@@ -325,6 +326,28 @@ func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizatio
 
 	return svc, nil
 }
+
+// ConfigService returns the service connection for AWS Config  service
+func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*configservice.ConfigService, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ConfigService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("configservice-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*configservice.ConfigService), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := configservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 
 // RDSService returns the service connection for AWS RDS service
 func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
