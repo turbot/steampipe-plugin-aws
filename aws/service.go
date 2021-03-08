@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
@@ -261,6 +262,27 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	}
 	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
 	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// KinesisService returns the service connection for AWS Kinesis service
+func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*kinesis.Kinesis, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed KinesisService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("kinesis-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*kinesis.Kinesis), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := kinesis.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil

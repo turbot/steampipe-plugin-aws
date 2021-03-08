@@ -1,0 +1,7 @@
+[
+  {
+    "stream_arn": "{{ output.resource_aka.value }}",
+    "stream_name": "{{ output.resource_name.value }}",
+    "stream_status": "ACTIVE"
+  }
+]
