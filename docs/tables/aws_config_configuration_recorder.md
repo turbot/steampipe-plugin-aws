@@ -8,15 +8,15 @@ AWS Config uses the configuration recorder to detect changes in your resource co
 
 ```sql
 select
-	name,
-	role_arn,
-	status,
-	recording_group,
+  name,
+  role_arn,
+  status,
+  recording_group,
   status_recording,
-	akas,
-	title
+  akas,
+  title
 from
-	aws.aws_config_configuration_recorder;
+  aws.aws_config_configuration_recorder;
 ```
 
 
