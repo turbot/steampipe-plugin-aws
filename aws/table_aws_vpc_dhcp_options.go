@@ -26,47 +26,47 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "dhcp_options_id",
-				Description: "The ID of the set of DHCP options",
+				Description: "The ID of the set of DHCP options.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the DHCP options set",
+				Description: "The ID of the AWS account that owns the DHCP options set.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "domain_name",
-				Description: "The domain name for instances. This value is used to complete unqualified DNS hostnames",
+				Description: "The domain name for instances. This value is used to complete unqualified DNS hostnames.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "domain-name"),
 			},
 			{
 				Name:        "domain_name_servers",
-				Description: "The IP addresses of up to four domain name servers, or AmazonProvidedDNS",
+				Description: "The IP addresses of up to four domain name servers, or AmazonProvidedDNS.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "domain-name-servers"),
 			},
 			{
 				Name:        "netbios_name_servers",
-				Description: "The IP addresses of up to four NetBIOS name servers",
+				Description: "The IP addresses of up to four NetBIOS name servers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "netbios-name-servers"),
 			},
 			{
 				Name:        "netbios_node_type",
-				Description: "The NetBIOS node type (1, 2, 4, or 8)",
+				Description: "The NetBIOS node type (1, 2, 4, or 8).",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "netbios-node-type"),
 			},
 			{
 				Name:        "ntp_servers",
-				Description: "The IP addresses of up to four Network Time Protocol (NTP) servers",
+				Description: "The IP addresses of up to four Network Time Protocol (NTP) servers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "ntp-servers"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to vpc dhcp options",
+				Description: "A list of tags that are attached to vpc dhcp options.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -118,7 +118,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 				plugin.Logger(ctx).Trace("listVpcDhcpOptions", "Data", item)
 				d.StreamListItem(ctx, item)
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -127,7 +127,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcDhcpOption")
 
 	// TODO put me in helper function
@@ -180,7 +180,7 @@ func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func dhcpConfigurationToStringSlice(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func dhcpConfigurationToStringSlice(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	if d.Value == nil {
 		return nil, nil
 	}

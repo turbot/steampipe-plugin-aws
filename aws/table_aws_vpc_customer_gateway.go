@@ -26,42 +26,42 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "customer_gateway_id",
-				Description: "The ID of the customer gateway",
+				Description: "The ID of the customer gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "type",
-				Description: "The type of VPN connection the customer gateway supports (ipsec.1)",
+				Description: "The type of VPN connection the customer gateway supports (ipsec.1).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the customer gateway (pending | available | deleting | deleted)",
+				Description: "The current state of the customer gateway (pending | available | deleting | deleted).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "bgp_asn",
-				Description: "The customer gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN)",
+				Description: "The customer gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "certificate_arn",
-				Description: "The Amazon Resource Name (ARN) for the customer gateway certificate",
+				Description: "The Amazon Resource Name (ARN) for the customer gateway certificate.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "device_name",
-				Description: "The name of customer gateway device",
+				Description: "The name of customer gateway device.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ip_address",
-				Description: "The Internet-routable IP address of the customer gateway's outside interface",
+				Description: "The Internet-routable IP address of the customer gateway's outside interface.",
 				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to customer gateway",
+				Description: "A list of tags that are attached to customer gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -116,7 +116,7 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcCustomerGateway")
 
 	// TODO put me in helper function
@@ -168,7 +168,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcCustomerGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcCustomerGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	customerGateway := d.HydrateItem.(*ec2.CustomerGateway)
 	param := d.Param.(string)
 

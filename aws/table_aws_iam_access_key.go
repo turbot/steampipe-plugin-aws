@@ -27,22 +27,22 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "access_key_id",
-				Description: "The ID for this access key",
+				Description: "The ID for this access key.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "user_name",
-				Description: "The name of the IAM user that the key is associated with",
+				Description: "The name of the IAM user that the key is associated with.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "status",
-				Description: "The status of the access key. Active means that the key is valid for API calls; Inactive means it is not",
+				Description: "The status of the access key. Active means that the key is valid for API calls; Inactive means it is not.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_date",
-				Description: "The date when the access key was created",
+				Description: "The date when the access key was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{

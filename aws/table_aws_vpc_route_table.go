@@ -28,37 +28,37 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
-				Description: "Contains the ID of the route table",
+				Description: "Contains the ID of the route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC",
+				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the route table",
+				Description: "The ID of the AWS account that owns the route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "associations",
-				Description: "Contains the associations between the route table and one or more subnets or a gateway",
+				Description: "Contains the associations between the route table and one or more subnets or a gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "routes",
-				Description: "A list of routes in the route table",
+				Description: "A list of routes in the route table.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "propagating_vgws",
-				Description: "A list of virtual private gateway (VGW) propagating routes",
+				Description: "A list of virtual private gateway (VGW) propagating routes.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the route table",
+				Description: "A list of tags that are attached to the route table.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -121,7 +121,7 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcRouteTable")
 
 	// TODO put me in helper function

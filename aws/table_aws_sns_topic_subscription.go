@@ -29,79 +29,79 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",
-				Description: "Amazon Resource Name of the subscription",
+				Description: "Amazon Resource Name of the subscription.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.SubscriptionArn"),
 			},
 			{
 				Name:        "topic_arn",
-				Description: "The topic ARN that the subscription is associated with",
+				Description: "The topic ARN that the subscription is associated with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.TopicArn"),
 			},
 			{
 				Name:        "owner",
-				Description: "The AWS account ID of the subscription's owner",
+				Description: "The AWS account ID of the subscription's owner.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.Owner"),
 			},
 			{
 				Name:        "protocol",
-				Description: "The subscription's protocol",
+				Description: "The subscription's protocol.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.Protocol"),
 			},
 			{
 				Name:        "endpoint",
-				Description: "The subscription's endpoint (format depends on the protocol)",
+				Description: "The subscription's endpoint (format depends on the protocol).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.Endpoint"),
 			},
 			{
 				Name:        "confirmation_was_authenticated",
-				Description: "Reflects authentication status of the subscription",
+				Description: "Reflects authentication status of the subscription.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.ConfirmationWasAuthenticated"),
 			},
 			{
 				Name:        "pending_confirmation",
-				Description: "Reflects the confirmation status of the subscription. True if the subscription hasn't been confirmed",
+				Description: "Reflects the confirmation status of the subscription. True if the subscription hasn't been confirmed.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.PendingConfirmation"),
 			},
 			{
 				Name:        "raw_message_delivery",
-				Description: "true if raw message delivery is enabled for the subscription",
+				Description: "true if raw message delivery is enabled for the subscription.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.RawMessageDelivery"),
 			},
 			{
 				Name:        "delivery_policy",
-				Description: "The JSON of the subscription's delivery policy",
+				Description: "The JSON of the subscription's delivery policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.DeliveryPolicy").Transform(transform.UnmarshalYAML),
 			},
 			{
 				Name:        "effective_delivery_policy",
-				Description: "The JSON of the effective delivery policy that takes into account the topic delivery policy and account system defaults",
+				Description: "The JSON of the effective delivery policy that takes into account the topic delivery policy and account system defaults.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.EffectiveDeliveryPolicy").Transform(transform.UnmarshalYAML),
 			},
 			{
 				Name:        "redrive_policy",
-				Description: "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing",
+				Description: "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.RedrivePolicy").Transform(transform.UnmarshalYAML),
 			},
 			{
 				Name:        "filter_policy",
-				Description: "The filter policy JSON that is assigned to the subscription",
+				Description: "The filter policy JSON that is assigned to the subscription.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSubscriptionAttributes,
 				Transform:   transform.FromField("Attributes.FilterPolicy").Transform(transform.UnmarshalYAML),
@@ -153,7 +153,7 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 					},
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 

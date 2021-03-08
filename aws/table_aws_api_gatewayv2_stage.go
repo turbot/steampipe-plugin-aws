@@ -199,8 +199,8 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayStage")
+func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayV2Stage")
 
 	// TODO put me in helper function
 	var region string

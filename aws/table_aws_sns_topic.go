@@ -29,62 +29,62 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",
-				Description: "Amazon Resource Name (ARN) of the Topic",
+				Description: "Amazon Resource Name (ARN) of the Topic.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Attributes.TopicArn"),
 			},
 			{
 				Name:        "display_name",
-				Description: "The human-readable name used in the From field for notifications to email and email-json endpoints",
+				Description: "The human-readable name used in the From field for notifications to email and email-json endpoints.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.DisplayName"),
 			},
 			{
 				Name:        "owner",
-				Description: "The AWS account ID of the topic's owner",
+				Description: "The AWS account ID of the topic's owner.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.Owner"),
 			},
 			{
 				Name:        "subscriptions_confirmed",
-				Description: "The number of confirmed subscriptions for the topic",
+				Description: "The number of confirmed subscriptions for the topic.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.SubscriptionsConfirmed"),
 			},
 			{
 				Name:        "subscriptions_deleted",
-				Description: "The number of deleted subscriptions for the topic",
+				Description: "The number of deleted subscriptions for the topic.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.SubscriptionsDeleted"),
 			},
 			{
 				Name:        "subscriptions_pending",
-				Description: "The number of subscriptions pending confirmation for the topic",
+				Description: "The number of subscriptions pending confirmation for the topic.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.SubscriptionsPending"),
 			},
 			{
 				Name:        "kms_master_key_id",
-				Description: "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK",
+				Description: "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.KmsMasterKeyId"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "The list of tags associated with the topic",
+				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
 				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "policy",
-				Description: "The topic's access control policy (i.e. Resource IAM Policy)",
+				Description: "The topic's access control policy (i.e. Resource IAM Policy).",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.Policy").Transform(transform.UnmarshalYAML),
@@ -99,14 +99,14 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 
 			{
 				Name:        "delivery_policy",
-				Description: "The JSON object of the topic's delivery policy",
+				Description: "The JSON object of the topic's delivery policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.DeliveryPolicy").Transform(transform.UnmarshalYAML),
 			},
 			{
 				Name:        "effective_delivery_policy",
-				Description: "The effective delivery policy, taking system defaults into account",
+				Description: "The effective delivery policy, taking system defaults into account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.EffectiveDeliveryPolicy").Transform(transform.UnmarshalYAML),
@@ -162,7 +162,7 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 					},
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 

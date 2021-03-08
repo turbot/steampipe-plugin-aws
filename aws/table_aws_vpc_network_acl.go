@@ -26,37 +26,37 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "network_acl_id",
-				Description: "The ID of the network ACL",
+				Description: "The ID of the network ACL.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "is_default",
-				Description: "Indicates whether this is the default network ACL for the VPC",
+				Description: "Indicates whether this is the default network ACL for the VPC.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC for the network ACL",
+				Description: "The ID of the VPC for the network ACL.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the network ACL",
+				Description: "The ID of the AWS account that owns the network ACL.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "associations",
-				Description: "Any associations between the network ACL and one or more subnets",
+				Description: "Any associations between the network ACL and one or more subnets.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "entries",
-				Description: "One or more entries (rules) in the network ACL",
+				Description: "One or more entries (rules) in the network ACL.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to Network ACL",
+				Description: "A list of tags that are attached to Network ACL.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -117,7 +117,7 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNetworkACL")
 
 	// TODO put me in helper function

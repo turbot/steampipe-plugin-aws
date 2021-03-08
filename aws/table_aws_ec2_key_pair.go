@@ -98,7 +98,7 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

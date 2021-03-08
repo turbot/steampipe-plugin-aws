@@ -66,7 +66,7 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -105,7 +105,7 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDomainName")
 
 	// TODO put me in helper function

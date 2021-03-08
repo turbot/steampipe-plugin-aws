@@ -154,7 +154,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -162,7 +162,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getRestAPI(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRestAPI")
 
 	var region string

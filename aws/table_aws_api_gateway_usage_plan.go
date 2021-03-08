@@ -115,7 +115,7 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getUsagePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getUsagePlan")
 
 	// TODO put me in helper function

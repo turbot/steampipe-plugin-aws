@@ -26,18 +26,18 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
-				Description: "The ID of the egress-only internet gateway",
+				Description: "The ID of the egress-only internet gateway.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("EgressOnlyInternetGatewayId"),
 			},
 			{
 				Name:        "attachments",
-				Description: "Information about the attachment of the egress-only internet gateway",
+				Description: "Information about the attachment of the egress-only internet gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to egress only internet gateway",
+				Description: "A list of tags that are attached to egress only internet gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},

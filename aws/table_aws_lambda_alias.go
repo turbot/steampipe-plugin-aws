@@ -27,13 +27,13 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the alias",
+				Description: "The name of the alias.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Alias.Name"),
 			},
 			{
 				Name:        "function_name",
-				Description: "The name of the function",
+				Description: "The name of the function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -44,19 +44,19 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "function_version",
-				Description: "The function version that the alias invokes",
+				Description: "The function version that the alias invokes.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Alias.FunctionVersion"),
 			},
 			{
 				Name:        "revision_id",
-				Description: "A unique identifier that changes when you update the alias",
+				Description: "A unique identifier that changes when you update the alias.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Alias.RevisionId"),
 			},
 			{
 				Name:        "description",
-				Description: "A description of the alias",
+				Description: "A description of the alias.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Alias.Description"),
 			},
@@ -105,7 +105,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			for _, alias := range page.Aliases {
 				d.StreamLeafListItem(ctx, &aliasRowData{alias, function.FunctionName})
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -114,7 +114,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getLambdaAlias")
 
 	// TODO put me in helper function

@@ -26,37 +26,37 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpn_gateway_id",
-				Description: "The ID of the virtual private gateway",
+				Description: "The ID of the virtual private gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the virtual private gateway",
+				Description: "The current state of the virtual private gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "type",
-				Description: "The type of VPN connection the virtual private gateway supports",
+				Description: "The type of VPN connection the virtual private gateway supports.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "amazon_side_asn",
-				Description: "The private Autonomous System Number (ASN) for the Amazon side of a BGP session",
+				Description: "The private Autonomous System Number (ASN) for the Amazon side of a BGP session.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "availability_zone",
-				Description: "The Availability Zone where the virtual private gateway was created, if applicable. This field may be empty or not returned",
+				Description: "The Availability Zone where the virtual private gateway was created, if applicable. This field may be empty or not returned.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_attachments",
-				Description: "Any VPCs attached to the virtual private gateway",
+				Description: "Any VPCs attached to the virtual private gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to VPN gateway",
+				Description: "A list of tags that are attached to VPN gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -112,7 +112,7 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcVpnGateway")
 

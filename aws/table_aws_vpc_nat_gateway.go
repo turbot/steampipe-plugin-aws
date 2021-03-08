@@ -26,47 +26,47 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "nat_gateway_id",
-				Description: "The ID of the NAT gateway",
+				Description: "The ID of the NAT gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "nat_gateway_addresses",
-				Description: "Information about the IP addresses and network interface associated with the NAT gateway",
+				Description: "Information about the IP addresses and network interface associated with the NAT gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the NAT gateway (pending | failed | available | deleting | deleted)",
+				Description: "The current state of the NAT gateway (pending | failed | available | deleting | deleted).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_time",
-				Description: "The date and time the NAT gateway was created",
+				Description: "The date and time the NAT gateway was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC in which the NAT gateway is located",
+				Description: "The ID of the VPC in which the NAT gateway is located.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "subnet_id",
-				Description: "The ID of the subnet in which the NAT gateway is located",
+				Description: "The ID of the subnet in which the NAT gateway is located.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "delete_time",
-				Description: "The date and time the NAT gateway was deleted, if applicable",
+				Description: "The date and time the NAT gateway was deleted, if applicable.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "failure_code",
-				Description: "If the NAT gateway could not be created, specifies the error code for the failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound | Resource.AlreadyAssociated | InternalError | InvalidSubnetID.NotFound)",
+				Description: "If the NAT gateway could not be created, specifies the error code for the failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound | Resource.AlreadyAssociated | InternalError | InvalidSubnetID.NotFound).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "failure_message",
-				Description: "If the NAT gateway could not be created, specifies the error message for the failure",
+				Description: "If the NAT gateway could not be created, specifies the error message for the failure.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -77,7 +77,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to NAT gateway",
+				Description: "A list of tags that are attached to NAT gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -138,7 +138,7 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNatGateway")
 
 	// TODO put me in helper function
@@ -190,7 +190,7 @@ func getVpcNatGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcNatGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcNatGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	natGateway := d.HydrateItem.(*ec2.NatGateway)
 	param := d.Param.(string)
 

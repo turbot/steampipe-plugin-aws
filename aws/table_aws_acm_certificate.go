@@ -220,7 +220,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 					},
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err

@@ -29,37 +29,37 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_route_table_id",
-				Description: "The ID of the transit gateway route table",
+				Description: "The ID of the transit gateway route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "transit_gateway_id",
-				Description: "The ID of the transit gateway",
+				Description: "The ID of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The state of the transit gateway route table",
+				Description: "The state of the transit gateway route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
-				Description: "The creation time of transit gateway route table",
+				Description: "The creation time of transit gateway route table.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "default_association_route_table",
-				Description: "Indicates whether this is the default association route table for the transit gateway",
+				Description: "Indicates whether this is the default association route table for the transit gateway.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "default_propagation_route_table",
-				Description: "Indicates whether this is the default propagation route table for the transit gateway",
+				Description: "Indicates whether this is the default propagation route table for the transit gateway.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned",
+				Description: "A list of tags assigned.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -118,7 +118,7 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

@@ -29,41 +29,41 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name to identify the DB subnet group",
+				Description: "The friendly name to identify the DB subnet group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBSubnetGroupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the DB subnet group",
+				Description: "The Amazon Resource Name (ARN) for the DB subnet group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBSubnetGroupArn"),
 			},
 			{
 				Name:        "description",
-				Description: "Provides the description of the DB subnet group",
+				Description: "Provides the description of the DB subnet group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBSubnetGroupDescription"),
 			},
 			{
 				Name:        "status",
-				Description: "Provides the status of the DB subnet group",
+				Description: "Provides the status of the DB subnet group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SubnetGroupStatus"),
 			},
 			{
 				Name:        "vpc_id",
-				Description: "Provides the VpcId of the DB subnet group",
+				Description: "Provides the VpcId of the DB subnet group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "subnets",
-				Description: "A list of Subnet elements",
+				Description: "A list of Subnet elements.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags attached to the DB subnet group",
+				Description: "A list of tags attached to the DB subnet group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRDSDBSubnetGroupTags,
 				Transform:   transform.FromField("TagList"),
@@ -125,7 +125,7 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

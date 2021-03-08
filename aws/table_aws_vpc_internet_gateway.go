@@ -26,22 +26,22 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "internet_gateway_id",
-				Description: "The ID of the internet gateway",
+				Description: "The ID of the internet gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the internet gateway",
+				Description: "The ID of the AWS account that owns the internet gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "attachments",
-				Description: "Any VPCs attached to the internet gateway",
+				Description: "Any VPCs attached to the internet gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "tags assigned to the internet gateway",
+				Description: "tags assigned to the internet gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -154,7 +154,7 @@ func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcInternetGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcInternetGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	internetGateway := d.HydrateItem.(*ec2.InternetGateway)
 	param := d.Param.(string)
 

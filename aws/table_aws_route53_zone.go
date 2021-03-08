@@ -44,7 +44,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "comment",
-				Description: "A comment for the zone",
+				Description: "A comment for the zone.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Config.Comment"),
 			},
@@ -68,7 +68,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "resource_record_set_count",
-				Description: "The number of resource record sets in the hosted zone",
+				Description: "The number of resource record sets in the hosted zone.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -119,7 +119,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			for _, hostedZone := range page.HostedZones {
 				d.StreamListItem(ctx, hostedZone)
 			}
-			return true
+			return !isLast
 		},
 	)
 
@@ -128,7 +128,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
 
 	// Create session

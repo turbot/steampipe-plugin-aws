@@ -27,62 +27,62 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
-				Description: "The Amazon Resource Name (ARN) of the service",
+				Description: "The Amazon Resource Name (ARN) of the service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "service_id",
-				Description: "The ID of the endpoint service",
+				Description: "The ID of the endpoint service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner",
-				Description: "The AWS account ID of the service owner",
+				Description: "The AWS account ID of the service owner.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "acceptance_required",
-				Description: "Indicates whether VPC endpoint connection requests to the service must be accepted by the service owner",
+				Description: "Indicates whether VPC endpoint connection requests to the service must be accepted by the service owner.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "manages_vpc_endpoints",
-				Description: "Indicates whether the service manages its VPC endpoints. Management of the service VPC endpoints using the VPC endpoint API is restricted",
+				Description: "Indicates whether the service manages its VPC endpoints. Management of the service VPC endpoints using the VPC endpoint API is restricted.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "private_dns_name",
-				Description: "The private DNS name for the service",
+				Description: "The private DNS name for the service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "private_dns_name_verification_state",
-				Description: "The verification state of the VPC endpoint service. Consumers of the endpoint service cannot use the private name when the state is not verified",
+				Description: "The verification state of the VPC endpoint service. Consumers of the endpoint service cannot use the private name when the state is not verified.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_endpoint_policy_supported",
-				Description: "Indicates whether the service supports endpoint policies",
+				Description: "Indicates whether the service supports endpoint policies.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "service_type",
-				Description: "The type of service",
+				Description: "The type of service.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "base_endpoint_dns_names",
-				Description: "The DNS names for the service",
+				Description: "The DNS names for the service.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "availability_zones",
-				Description: "The Availability Zones in which the service is available",
+				Description: "The Availability Zones in which the service is available.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the service",
+				Description: "A list of tags assigned to the service.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -137,7 +137,7 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEndpointService")
 
 	// TODO put me in helper function

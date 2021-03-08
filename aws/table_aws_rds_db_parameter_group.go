@@ -29,37 +29,37 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name to identify the DB parameter group",
+				Description: "The friendly name to identify the DB parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBParameterGroupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the DB parameter group",
+				Description: "The Amazon Resource Name (ARN) for the DB parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBParameterGroupArn"),
 			},
 			{
 				Name:        "description",
-				Description: "Provides the customer-specified description for this DB parameter group",
+				Description: "Provides the customer-specified description for this DB parameter group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "db_parameter_group_family",
-				Description: "The name of the DB parameter group family that this DB parameter group is compatible with",
+				Description: "The name of the DB parameter group family that this DB parameter group is compatible with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBParameterGroupFamily"),
 			},
 			{
 				Name:        "parameters",
-				Description: "A list of detailed parameter for a particular DB parameter group",
+				Description: "A list of detailed parameter for a particular DB parameter group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRDSParameterGroupParameters,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags attached to the DB parameter group",
+				Description: "A list of tags attached to the DB parameter group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRDSParameterGroupTags,
 				Transform:   transform.FromField("TagList"),
@@ -121,7 +121,7 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

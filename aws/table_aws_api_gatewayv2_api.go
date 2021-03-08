@@ -126,7 +126,7 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayV2API")
 
 	// TODO put me in helper function

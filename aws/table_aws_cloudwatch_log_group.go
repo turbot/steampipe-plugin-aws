@@ -27,39 +27,39 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the log group",
+				Description: "The name of the log group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the log group",
+				Description: "The Amazon Resource Name (ARN) of the log group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
-				Description: "The creation time of the log group",
+				Description: "The creation time of the log group.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("CreationTime").Transform(convertTimestamp),
 			},
 			{
 				Name:        "kms_key_id",
-				Description: "The Amazon Resource Name (ARN) of the CMK to use when encrypting log data",
+				Description: "The Amazon Resource Name (ARN) of the CMK to use when encrypting log data.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "metric_filter_count",
-				Description: "The number of metric filters",
+				Description: "The number of metric filters.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "retention_in_days",
-				Description: "The number of days to retain the log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653",
+				Description: "The number of days to retain the log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "stored_bytes",
-				Description: "The number of bytes stored",
+				Description: "The number of bytes stored.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -107,7 +107,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 			for _, logGroup := range page.LogGroups {
 				d.StreamListItem(ctx, logGroup)
 			}
-			return true
+			return !isLast
 		},
 	)
 
@@ -116,7 +116,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 

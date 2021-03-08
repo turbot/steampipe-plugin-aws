@@ -177,7 +177,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

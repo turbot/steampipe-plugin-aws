@@ -84,7 +84,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create service

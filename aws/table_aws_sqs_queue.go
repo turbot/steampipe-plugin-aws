@@ -58,14 +58,14 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "max_message_size",
-				Description: "The limit of how many bytes a message can contain before Amazon SQS rejects it",
+				Description: "The limit of how many bytes a message can contain before Amazon SQS rejects it.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.MaximumMessageSize"),
 			},
 			{
 				Name:        "message_retention_seconds",
-				Description: "The length of time, in seconds, for which Amazon SQS retains a message",
+				Description: "The length of time, in seconds, for which Amazon SQS retains a message.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.MessageRetentionPeriod"),
@@ -86,7 +86,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "policy",
-				Description: "The resource IAM policy of the queue",
+				Description: "The resource IAM policy of the queue.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.Policy").Transform(transform.UnmarshalYAML),
@@ -108,7 +108,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "content_based_deduplication",
-				Description: "Mentions whether content-based deduplication is enabled for the queue",
+				Description: "Mentions whether content-based deduplication is enabled for the queue.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.ContentBasedDeduplication"),
@@ -169,7 +169,7 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 					},
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 

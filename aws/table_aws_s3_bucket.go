@@ -67,7 +67,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		Columns: awsS3Columns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The user friendly name of the bucket",
+				Description: "The user friendly name of the bucket.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -77,7 +77,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "bucket_policy_is_public",
-				Description: "The policy status for an Amazon S3 bucket, indicating whether the bucket is public",
+				Description: "The policy status for an Amazon S3 bucket, indicating whether the bucket is public.",
 				Type:        proto.ColumnType_BOOL,
 				Default:     false,
 				Hydrate:     getBucketIsPublic,
@@ -85,77 +85,77 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "versioning_enabled",
-				Description: "The versioning state of a bucket",
+				Description: "The versioning state of a bucket.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketVersioning,
 				Transform:   transform.FromField("Status").Transform(handleNilString).Transform(transform.ToBool),
 			},
 			{
 				Name:        "versioning_mfa_delete",
-				Description: "The MFA Delete status of the versioning state",
+				Description: "The MFA Delete status of the versioning state.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketVersioning,
 				Transform:   transform.FromField("MFADelete").Transform(handleNilString).Transform(transform.ToBool),
 			},
 			{
 				Name:        "block_public_acls",
-				Description: "Specifies whether Amazon S3 should block public access control lists (ACLs) for this bucket and objects in this bucket",
+				Description: "Specifies whether Amazon S3 should block public access control lists (ACLs) for this bucket and objects in this bucket.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("BlockPublicAcls"),
 			},
 			{
 				Name:        "block_public_policy",
-				Description: "Specifies whether Amazon S3 should block public bucket policies for this bucket. If TRUE it causes Amazon S3 to reject calls to PUT Bucket policy if the specified bucket policy allows public access",
+				Description: "Specifies whether Amazon S3 should block public bucket policies for this bucket. If TRUE it causes Amazon S3 to reject calls to PUT Bucket policy if the specified bucket policy allows public access.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("BlockPublicPolicy"),
 			},
 			{
 				Name:        "ignore_public_acls",
-				Description: "Specifies whether Amazon S3 should ignore public ACLs for this bucket and objects in this bucket. Setting this element to TRUE causes Amazon S3 to ignore all public ACLs on this bucket and objects in this bucket",
+				Description: "Specifies whether Amazon S3 should ignore public ACLs for this bucket and objects in this bucket. Setting this element to TRUE causes Amazon S3 to ignore all public ACLs on this bucket and objects in this bucket.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("IgnorePublicAcls"),
 			},
 			{
 				Name:        "restrict_public_buckets",
-				Description: "Specifies whether Amazon S3 should restrict public bucket policies for this bucket. Setting this element to TRUE restricts access to this bucket to only AWS service principals and authorized users within this account if the bucket has a public policy",
+				Description: "Specifies whether Amazon S3 should restrict public bucket policies for this bucket. Setting this element to TRUE restricts access to this bucket to only AWS service principals and authorized users within this account if the bucket has a public policy.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("RestrictPublicBuckets"),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
-				Description: "The default encryption configuration for an Amazon S3 bucket",
+				Description: "The default encryption configuration for an Amazon S3 bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketEncryption,
 				Transform:   transform.FromField("ServerSideEncryptionConfiguration"),
 			},
 			{
 				Name:        "acl",
-				Description: "The access control list (ACL) of a bucket",
+				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "lifecycle_rules",
-				Description: "The lifecycle configuration information of the bucket",
+				Description: "The lifecycle configuration information of the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLifecycle,
 				Transform:   transform.FromField("Rules"),
 			},
 			{
 				Name:        "logging",
-				Description: "The logging status of a bucket and the permissions users have to view and modify that status",
+				Description: "The logging status of a bucket and the permissions users have to view and modify that status.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLogging,
 				Transform:   transform.FromField("LoggingEnabled"),
 			},
 			{
 				Name:        "policy",
-				Description: "The resource IAM access document for the bucket",
+				Description: "The resource IAM access document for the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketPolicy,
 				Transform:   transform.FromField("Policy").Transform(transform.UnmarshalYAML),
@@ -169,14 +169,14 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "replication",
-				Description: "The replication configuration of a bucket",
+				Description: "The replication configuration of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketReplication,
 				Transform:   transform.FromField("ReplicationConfiguration"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to bucket",
+				Description: "A list of tags assigned to bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketTagging,
 				Transform:   transform.FromField("TagSet"),
@@ -202,7 +202,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "region",
-				Description: "The AWS Region in which the resource is located",
+				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getBucketLocation,
 				Transform:   transform.FromField("LocationConstraint"),
@@ -241,7 +241,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 // do not have a get call for s3 bucket.
 // using list api call to create get function
-func getS3Bucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Buckets")
 	defaultRegion := GetDefaultAwsRegion(d)
 	name := d.KeyColumnQuals["name"].GetStringValue()

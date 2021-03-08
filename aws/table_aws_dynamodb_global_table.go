@@ -28,30 +28,30 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "global_table_name",
-				Description: "The global table name",
+				Description: "The global table name.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "global_table_arn",
-				Description: "The unique identifier of the global table",
+				Description: "The unique identifier of the global table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbGlobalTable,
 			},
 			{
 				Name:        "global_table_status",
-				Description: "The current state of the global table",
+				Description: "The current state of the global table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbGlobalTable,
 			},
 			{
 				Name:        "creation_date_time",
-				Description: "The creation time of the global table",
+				Description: "The creation time of the global table.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getDynamboDbGlobalTable,
 			},
 			{
 				Name:        "replication_group",
-				Description: "The Regions where the global table has replicas",
+				Description: "The Regions where the global table has replicas.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbGlobalTable,
 			},

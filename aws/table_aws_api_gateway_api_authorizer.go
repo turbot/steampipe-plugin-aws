@@ -139,7 +139,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRestAPIAuthorizer")
 
 	var region string

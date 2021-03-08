@@ -26,19 +26,27 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "group_name",
-				Description: "The friendly name that identifies the security group",
+				Description: "The friendly name that identifies the security group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "group_id",
-				Description: "Contains the unique ID to identify a security group",
+				Description: "Contains the unique ID to identify a security group.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{Name: "description", Type: proto.ColumnType_STRING},
-			{Name: "vpc_id", Type: proto.ColumnType_STRING},
+			{
+				Name:        "description",
+				Description: "A description of the security group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "vpc_id",
+				Description: "The ID of the VPC for the security group.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "owner_id",
-				Description: "Contains the AWS account ID of the owner of the security group",
+				Description: "Contains the AWS account ID of the owner of the security group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -116,7 +124,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcSecurityGroup")
 
 	// TODO put me in helper function

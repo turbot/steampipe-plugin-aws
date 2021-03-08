@@ -30,75 +30,75 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
-				Description: "Unique identifier of the key",
+				Description: "Unique identifier of the key.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("KeyId"),
 			},
 			{
 				Name:        "arn",
-				Description: "ARN of the key",
+				Description: "ARN of the key.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("KeyArn"),
 			},
 			{
 				Name:        "key_manager",
-				Description: "The manager of the CMK. CMKs in your AWS account are either customer managed or AWS managed",
+				Description: "The manager of the CMK. CMKs in your AWS account are either customer managed or AWS managed.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.KeyManager"),
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time when the CMK was created",
+				Description: "The date and time when the CMK was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.CreationDate"),
 			},
 			{
 				Name:        "aws_account_id",
-				Description: "The twelve-digit account ID of the AWS account that owns the CMK",
+				Description: "The twelve-digit account ID of the AWS account that owns the CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.AWSAccountId"),
 			},
 			{
 				Name:        "enabled",
-				Description: "Specifies whether the CMK is enabled. When KeyState is Enabled this value is true, otherwise it is false",
+				Description: "Specifies whether the CMK is enabled. When KeyState is Enabled this value is true, otherwise it is false.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.Enabled"),
 			},
 			{
 				Name:        "customer_master_key_spec",
-				Description: "Describes the type of key material in the CMK",
+				Description: "Describes the type of key material in the CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.CustomerMasterKeySpec"),
 			},
 			{
 				Name:        "description",
-				Description: "The description of the CMK",
+				Description: "The description of the CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.Description"),
 			},
 			{
 				Name:        "deletion_date",
-				Description: "The date and time after which AWS KMS deletes the CMK",
+				Description: "The date and time after which AWS KMS deletes the CMK.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.DeletionDate"),
 			},
 			{
 				Name:        "key_state",
-				Description: "The current status of the CMK. For more information about how key state affects the use of a CMK, see [Key state: Effect on your CMK](https://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)",
+				Description: "The current status of the CMK. For more information about how key state affects the use of a CMK, see [Key state: Effect on your CMK](https://docs.aws.amazon.com/kms/latest/developerguide/key-state.html).",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.KeyState"),
 			},
 			{
 				Name:        "key_usage",
-				Description: "The [cryptographic operations](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#cryptographic-operations) for which you can use the CMK",
+				Description: "The [cryptographic operations](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#cryptographic-operations) for which you can use the CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.KeyUsage"),
@@ -112,26 +112,26 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "valid_to",
-				Description: "The time at which the imported key material expires",
+				Description: "The time at which the imported key material expires.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.ValidTo"),
 			},
 			{
 				Name:        "aliases",
-				Description: "A list of aliases for the key",
+				Description: "A list of aliases for the key.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyAliases,
 			},
 			{
 				Name:        "key_rotation_enabled",
-				Description: "A Boolean value that specifies whether key rotation is enabled",
+				Description: "A Boolean value that specifies whether key rotation is enabled.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsKmsKeyRotationStatus,
 			},
 			{
 				Name:        "policy",
-				Description: "A key policy document in JSON format",
+				Description: "A key policy document in JSON format.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyPolicy,
 				Transform:   transform.FromField("Policy").Transform(transform.UnmarshalYAML),
@@ -145,7 +145,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags attached to key",
+				Description: "A list of tags attached to key.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyTagging,
 			},
@@ -156,9 +156,6 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("KeyId"),
-				// Default:     transform.FromField("KeyId"),
-				// Hydrate:     getAwsKmsKeyAliases,
-				// Transform:   transform.From(getAwsKmsKeyTitle),
 			},
 			{
 				Name:        "tags",
@@ -198,7 +195,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			for _, key := range page.Keys {
 				d.StreamListItem(ctx, key)
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -207,7 +204,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getKmsKey")
 
 	// TODO put me in helper function

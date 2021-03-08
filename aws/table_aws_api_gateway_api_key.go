@@ -125,7 +125,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -133,7 +133,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIKey")
 
 	var region string

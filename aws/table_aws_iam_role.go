@@ -41,51 +41,51 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 			// "Key" Columns
 			{
 				Name:        "name",
-				Description: "The friendly name that identifies the role",
+				Description: "The friendly name that identifies the role.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RoleName"),
 			},
 			{
 				Name:        "arn",
 				Type:        proto.ColumnType_STRING,
-				Description: "The Amazon Resource Name (ARN) specifying the role",
+				Description: "The Amazon Resource Name (ARN) specifying the role.",
 			},
 			{
 				Name:        "role_id",
 				Type:        proto.ColumnType_STRING,
-				Description: "The stable and unique string identifying the role",
+				Description: "The stable and unique string identifying the role.",
 			},
 
 			// Other Columns
 			{
 				Name:        "create_date",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Description: "The date and time when the role was created",
+				Description: "The date and time when the role was created.",
 			},
 			{
 				Name:        "description",
 				Type:        proto.ColumnType_STRING,
-				Description: "A user-provided description of the role",
+				Description: "A user-provided description of the role.",
 			},
 			{
 				Name:        "instance_profile_arn",
-				Description: "The Amazon Resource Name (ARN) specifying the instance profile for the role",
+				Description: "The Amazon Resource Name (ARN) specifying the instance profile for the role.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsIamInstanceProfileData,
 			},
 			{
 				Name:        "max_session_duration",
-				Description: "The maximum session duration (in seconds) for the specified role. Anyone who uses the AWS CLI, or API to assume the role can specify the duration using the optional DurationSeconds API parameter or duration-seconds CLI parameter",
+				Description: "The maximum session duration (in seconds) for the specified role. Anyone who uses the AWS CLI, or API to assume the role can specify the duration using the optional DurationSeconds API parameter or duration-seconds CLI parameter.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "path",
+				Description: "The path to the role.",
 				Type:        proto.ColumnType_STRING,
-				Description: "The path to the role",
 			},
 			{
 				Name:        "permissions_boundary_arn",
-				Description: "The ARN of the policy used to set the permissions boundary for the role",
+				Description: "The ARN of the policy used to set the permissions boundary for the role.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIamRole,
 				Transform:   transform.FromField("PermissionsBoundary.PermissionsBoundaryArn"),
@@ -93,7 +93,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 			{
 				Name: "permissions_boundary_type",
 				Description: "The permissions boundary usage type that indicates what type of IAM resource " +
-					"is used as the permissions boundary for an entity. This data type can only have a value of Policy",
+					"is used as the permissions boundary for an entity. This data type can only have a value of Policy.",
 				Type:      proto.ColumnType_STRING,
 				Hydrate:   getIamRole,
 				Transform: transform.FromField("PermissionsBoundary.PermissionsBoundaryType"),
@@ -104,44 +104,44 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Description: "Contains information about the last time that an IAM role was used. " +
 					"Activity is only reported for the trailing 400 days. This period can be " +
 					"shorter if your Region began supporting these features within the last year. " +
-					"The role might have been used more than 400 days ago",
+					"The role might have been used more than 400 days ago.",
 			},
 			{
 				Name:        "role_last_used_region",
+				Description: "Contains the region in which the IAM role was used.",
 				Type:        proto.ColumnType_STRING,
-				Description: "Contains the region in which the IAM role was used",
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the role",
+				Description: "A list of tags that are attached to the role.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 				Hydrate:     getIamRole,
 			},
 			{
 				Name:        "inline_policies",
-				Description: "A list of policy documents that are embedded as inline policies for the role",
+				Description: "A list of policy documents that are embedded as inline policies for the role..",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
-				Description: "Inline policies in canonical form for the role",
+				Description: "Inline policies in canonical form for the role.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
-				Description: "A list of managed policies attached to the role",
+				Description: "A list of managed policies attached to the role.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamRoleAttachedPolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "assume_role_policy",
-				Description: "The policy that grants an entity permission to assume the role",
+				Description: "The policy that grants an entity permission to assume the role.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("AssumeRolePolicyDocument").Transform(transform.UnmarshalYAML),
 			},
@@ -193,7 +193,7 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 			for _, role := range page.Roles {
 				d.StreamListItem(ctx, role)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err

@@ -30,32 +30,32 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 			// "Key" Columns
 			{
 				Name:        "action",
-				Description: "The action for this permission",
+				Description: "The action for this permission.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "prefix",
 				Type:        proto.ColumnType_STRING,
-				Description: "The prefix for this action",
+				Description: "The prefix for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "privilege",
 				Type:        proto.ColumnType_STRING,
-				Description: "The privilege for this action",
+				Description: "The privilege for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
-				Description: "The access level for this action",
+				Description: "The access level for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "description",
 				Type:        proto.ColumnType_STRING,
-				Description: "The description for this action",
+				Description: "The description for this action.",
 				Transform:   transform.FromGo(),
 			},
 		},
