@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableConfigConfigurationRecorder(_ context.Context) *plugin.Table {
+func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_config_configuration_recorder",
 		Description: "AWS Config Configuration Recorder",
@@ -44,16 +44,16 @@ func tableConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "status",
-				Description: "Status of the configuration recorder.",
+				Description: "The current status of the configuration recorder.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsConfigConfigurationRecorderStatus,
+				Hydrate:     getConfigConfigurationRecorderStatus,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "status_recording",
-				Description: "Recording is true or false for configuration recorder.",
+				Description: "Specifies whether or not the recorder is currently recording.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsConfigConfigurationRecorderStatus,
+				Hydrate:     getConfigConfigurationRecorderStatus,
 				Transform:   transform.FromField("Recording"),
 			},
 			// Standard columns
@@ -75,6 +75,7 @@ func tableConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -142,7 +143,7 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, h 
 	return nil, nil
 }
 
-func getAwsConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigConfigurationRecorderStatus")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

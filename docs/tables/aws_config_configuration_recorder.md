@@ -12,13 +12,15 @@ select
 	role_arn,
 	status,
 	recording_group,
+  status_recording,
 	akas,
 	title
 from
-	aws_new.aws_config_configuration_recorder;
+	aws.aws_config_configuration_recorder;
 ```
 
-### List of configuration recorder with recording is enabled
+
+### List of configuration recorders with recording is disabled
 
 ```sql
 select
@@ -27,30 +29,31 @@ select
   status_recording,
   title
 from
-  aws_new.aws_config_configuration_recorder
+  aws.aws_config_configuration_recorder
 where
   status_recording = 'false';
 ```
 
-### Last status information of all the configuration recorders
+
+### List of configuration recorders with status in pending or failure state
 
 ```sql
 select
   name,
   status ->> 'LastStatus' as last_status
 from
-  aws_new.aws_config_configuration_recorder
+  aws.aws_config_configuration_recorder
 where
-  status ->> 'LastStatus' IN ('pending', 'Failure');
+  status ->> 'LastStatus' IN ('PENDING', 'FAILURE');
 ```
 
-### List of resource types for which recording is on
+
+### List of resource types for which recording is enabled
 
 ```sql
 select
   name,
   recording_group ->> 'ResourceTypes' as resource_types
 from
-  aws_new.aws_config_configuration_recorder
+  aws.aws_config_configuration_recorder;
 ```
-
