@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Steampipe CLI Bug Reports and Feature Requests
+    url: https://github.com/turbot/steampipe/issues/new
+    about: Steampipe CLI has its own codebase. Bug reports and feature requests for those pieces of functionality should be directed to that repository.
+  - name: Steampipe CLI Discussion and Questions
+    url: https://github.com/turbot/steampipe/discussions
+    about: Please ask and answer CLI related questions through the Steampipe Discussions forum.
