@@ -27,7 +27,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the  Maintenance Window.",
+				Description: "The name of the Maintenance Window.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -42,7 +42,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "allow_unassociated_targets",
-				Description: "Whether targets must be registered with the Maintenance Window before tasks can be defined for those targets.",
+				Description: "Indicates whether targets must be registered with the Maintenance Window before tasks can be defined for those targets.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsSSMMaintenanceWindow,
 			},
@@ -61,7 +61,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			{
 				Name:        "duration",
 				Description: "The duration of the Maintenance Window in hours.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "cutoff",
@@ -91,6 +91,29 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getMaintenanceWindowTasks,
 				Transform:   transform.FromField("Tasks"),
+			},
+			{
+				Name:        "created_date",
+				Description: "The date the maintenance window was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsSSMMaintenanceWindow,
+			},
+			{
+				Name:        "end_date",
+				Description: "The date and time, in ISO-8601 Extended format, for when the maintenance window is scheduled to become inactive. The maintenance window will not run after this specified time.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMMaintenanceWindow,
+			},
+			{
+				Name:        "schedule_timezone",
+				Description: "The schedule of the maintenance window in the form of a cron or rate expression.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMMaintenanceWindow,
+			},
+			{
+				Name:        "start_date",
+				Description: "The date and time, in ISO-8601 Extended format, for when the maintenance window is scheduled to become active.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "modified_date",
@@ -127,6 +150,50 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+//// LIST FUNCTION
+
+func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow", "AWS_REGION", region)
+
+	// Create session
+	svc, err := SsmService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// List call
+	err = svc.DescribeMaintenanceWindowsPages(
+		&ssm.DescribeMaintenanceWindowsInput{},
+		func(page *ssm.DescribeMaintenanceWindowsOutput, isLast bool) bool {
+			for _, parameter := range page.WindowIdentities {
+				d.StreamListItem(ctx, &ssm.GetMaintenanceWindowOutput{
+					Name:              parameter.Name,
+					Cutoff:            parameter.Cutoff,
+					NextExecutionTime: parameter.NextExecutionTime,
+					Schedule:          parameter.Schedule,
+					ScheduleOffset:    parameter.ScheduleOffset,
+					ScheduleTimezone:  parameter.ScheduleTimezone,
+					WindowId:          parameter.WindowId,
+					Description:       parameter.Description,
+					Enabled:           parameter.Enabled,
+					Duration:          parameter.Duration,
+					StartDate:         parameter.StartDate,
+				})
+
+			}
+			return !isLast
+		},
+	)
+
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -168,49 +235,6 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return data, nil
-}
-
-//// LIST FUNCTION
-
-func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow", "AWS_REGION", region)
-
-	// Create session
-	svc, err := SsmService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// List call
-	err = svc.DescribeMaintenanceWindowsPages(
-		&ssm.DescribeMaintenanceWindowsInput{},
-		func(page *ssm.DescribeMaintenanceWindowsOutput, isLast bool) bool {
-			for _, parameter := range page.WindowIdentities {
-				d.StreamListItem(ctx, &ssm.GetMaintenanceWindowOutput{
-					Name:              parameter.Name,
-					Cutoff:            parameter.Cutoff,
-					NextExecutionTime: parameter.NextExecutionTime,
-					Schedule:          parameter.Schedule,
-					ScheduleOffset:    parameter.ScheduleOffset,
-					ScheduleTimezone:  parameter.ScheduleTimezone,
-					WindowId:          parameter.WindowId,
-					Description:       parameter.Description,
-					Enabled:           parameter.Enabled,
-					Duration:          parameter.Duration,
-				})
-
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
 }
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -326,6 +350,8 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	return op, nil
 }
 
+/// TRANSFORM FUNCTIONS
+
 func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("ssmMaintenanceWindowTagListToTurbotTags")
 	tagList := d.Value.([]*ssm.Tag)
@@ -337,6 +363,8 @@ func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.T
 		for _, i := range tagList {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
+	} else {
+		return nil, nil
 	}
 
 	return turbotTagsMap, nil

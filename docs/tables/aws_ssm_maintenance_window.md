@@ -18,7 +18,6 @@ from
 	aws_ssm_maintenance_window;
 ```
 
-
 ### Target details of maintenance window
 
 ```sql
@@ -45,7 +44,7 @@ from
   aws_ssm_maintenance_window,
   jsonb_array_elements(tasks) as p;
 ```
-### Whether the maintenance window is enable.
+### Whether the maintenance window is enable
 
 ```sql
 select
@@ -54,4 +53,4 @@ select
 from
   aws_ssm_maintenance_window
 where
-  enabled
+  enabled;

@@ -1,19 +1,19 @@
 [
   {
-    "name": "{{output.resource_name.value}}",
+    "name": "{{ output.resource_name.value }}",
     "partition": "aws",
-    "region": "{{output.aws_region.value}}",
+    "region": "{{ output.aws_region.value }}",
     "tags": {
-      "name": "{{output.resource_name.value}}"
+      "name": "{{ output.resource_name.value }}"
     },
     "tags_src": [
       {
         "Key": "name",
-        "Value": "{{output.resource_name.value}}"
+        "Value": "{{ output.resource_name.value }}"
       }
     ],
     "targets": [],
     "tasks": [],
-    "window_id": "{{output.resource_id.value}}"
+    "window_id": "{{ output.resource_id.value }}"
   }
 ]
