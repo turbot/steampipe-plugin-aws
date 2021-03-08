@@ -1,7 +1,7 @@
 ---
 name: Feature request - New table
 about: Suggest a new table for this project
-title: Add table_<resource_name>
+title: Add table_aws_<service>_<resource>
 labels: enhancement, new-table
 assignees: ''
 
