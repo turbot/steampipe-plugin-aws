@@ -1,7 +1,7 @@
 ---
 name: Feature request - New table
 about: Suggest a new table for this project
-title: Add new table table_<resource_name>
+title: Add table_<resource_name>
 labels: enhancement, new-table
 assignees: ''
 
