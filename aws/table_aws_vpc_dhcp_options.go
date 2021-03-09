@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -11,60 +12,61 @@ import (
 
 func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name: "aws_vpc_dhcp_options",
+		Name:        "aws_vpc_dhcp_options",
+		Description: "AWS VPC DHCP Options",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("dhcp_options_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidDhcpOptionID.NotFound"}),
-			ItemFromKey:       dhcpOptionFromKey,
 			Hydrate:           getVpcDhcpOption,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcDhcpOptions,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "dhcp_options_id",
-				Description: "The ID of the set of DHCP options",
+				Description: "The ID of the set of DHCP options.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the DHCP options set",
+				Description: "The ID of the AWS account that owns the DHCP options set.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "domain_name",
-				Description: "The domain name for instances. This value is used to complete unqualified DNS hostnames",
+				Description: "The domain name for instances. This value is used to complete unqualified DNS hostnames.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "domain-name"),
 			},
 			{
 				Name:        "domain_name_servers",
-				Description: "The IP addresses of up to four domain name servers, or AmazonProvidedDNS",
+				Description: "The IP addresses of up to four domain name servers, or AmazonProvidedDNS.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "domain-name-servers"),
 			},
 			{
 				Name:        "netbios_name_servers",
-				Description: "The IP addresses of up to four NetBIOS name servers",
+				Description: "The IP addresses of up to four NetBIOS name servers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "netbios-name-servers"),
 			},
 			{
 				Name:        "netbios_node_type",
-				Description: "The NetBIOS node type (1, 2, 4, or 8)",
+				Description: "The NetBIOS node type (1, 2, 4, or 8).",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "netbios-node-type"),
 			},
 			{
 				Name:        "ntp_servers",
-				Description: "The IP addresses of up to four Network Time Protocol (NTP) servers",
+				Description: "The IP addresses of up to four Network Time Protocol (NTP) servers.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("DhcpConfigurations").TransformP(dhcpConfigurationToStringSlice, "ntp-servers"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to vpc dhcp options",
+				Description: "A list of tags that are attached to vpc dhcp options.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -92,25 +94,19 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func dhcpOptionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	dhcpOptionsID := quals["dhcp_options_id"].GetStringValue()
-	item := &ec2.DhcpOptions{
-		DhcpOptionsId: &dhcpOptionsID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +118,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 				plugin.Logger(ctx).Trace("listVpcDhcpOptions", "Data", item)
 				d.StreamListItem(ctx, item)
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -131,31 +127,36 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcDhcpOption")
-	dhcpOptions := h.Item.(*ec2.DhcpOptions).DhcpOptionsId
-	defaultRegion := GetDefaultRegion()
+func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcDhcpOption")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	dhcpOptionsID := d.KeyColumnQuals["dhcp_options_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &ec2.DescribeDhcpOptionsInput{
-		DhcpOptionsIds: []*string{dhcpOptions},
+		DhcpOptionsIds: []*string{aws.String(dhcpOptionsID)},
 	}
 
 	// get call
 	items, err := svc.DescribeDhcpOptions(params)
 	if err != nil {
-		logger.Debug("getVpcDhcpOption__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcDhcpOption__", "ERROR", err)
 		return nil, err
 	}
 
 	for _, item := range items.DhcpOptions {
-		if *item.DhcpOptionsId == *dhcpOptions {
+		if *item.DhcpOptionsId == dhcpOptionsID {
 			return item, nil
 		}
 	}
@@ -179,7 +180,7 @@ func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func dhcpConfigurationToStringSlice(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func dhcpConfigurationToStringSlice(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	if d.Value == nil {
 		return nil, nil
 	}

@@ -20,61 +20,62 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			ItemFromKey:       optionGroupNameFromKey,
 			Hydrate:           getRDSDBOptionGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name to identify the option group",
+				Description: "The friendly name to identify the option group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("OptionGroupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the option group",
+				Description: "The Amazon Resource Name (ARN) for the option group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("OptionGroupArn"),
 			},
 			{
 				Name:        "description",
-				Description: "Provides a description of the option group",
+				Description: "Provides a description of the option group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("OptionGroupDescription"),
 			},
 			{
 				Name:        "allows_vpc_and_non_vpc_instance_memberships",
-				Description: "Specifies whether this option group can be applied to both VPC and non-VPC instances",
+				Description: "Specifies whether this option group can be applied to both VPC and non-VPC instances.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "engine_name",
-				Description: "Indicates the name of the engine that this option group can be applied to",
+				Description: "Indicates the name of the engine that this option group can be applied to.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "major_engine_version",
-				Description: "Indicates the major engine version associated with this option group",
+				Description: "Indicates the major engine version associated with this option group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "Indicates the ID of the VPC, option group can be applied",
+				Description: "Indicates the ID of the VPC, option group can be applied.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "options",
-				Description: "Indicates what options are available in the option group",
+				Description: "Indicates what options are available in the option group.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tag_list",
-				Description: "A list of tags attached to the option group",
+				Name:        "tags_src",
+				Description: "A list of tags attached to the option group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsRDSOptionGroupTags,
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns
@@ -101,25 +102,19 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func optionGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &rds.OptionGroup{
-		OptionGroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRDSDBOptionGroups", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRDSDBOptionGroups", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -139,18 +134,23 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	optionGroup := h.Item.(*rds.OptionGroup)
+func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &rds.DescribeOptionGroupsInput{
-		OptionGroupName: aws.String(*optionGroup.OptionGroupName),
+		OptionGroupName: aws.String(name),
 	}
 
 	op, err := svc.DescribeOptionGroups(params)
@@ -166,11 +166,16 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRDSOptionGroupTags")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	optionGroup := h.Item.(*rds.OptionGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := RDSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

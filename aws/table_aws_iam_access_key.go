@@ -18,7 +18,6 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:  plugin.SingleColumn("user_name"),
-		// 	ItemFromKey: accessKeyFromKey,
 		// 	Hydrate:     getIamAccessKey,
 		// },
 		List: &plugin.ListConfig{
@@ -28,22 +27,22 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "access_key_id",
-				Description: "The ID for this access key",
+				Description: "The ID for this access key.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "user_name",
-				Description: "The name of the IAM user that the key is associated with",
+				Description: "The name of the IAM user that the key is associated with.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "status",
-				Description: "The status of the access key. Active means that the key is valid for API calls; Inactive means it is not",
+				Description: "The status of the access key. Active means that the key is valid for API calls; Inactive means it is not.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_date",
-				Description: "The date when the access key was created",
+				Description: "The date when the access key was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -63,17 +62,6 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func accessKeyFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	userName := quals["user_name"].GetStringValue()
-	item := &iam.AccessKeyMetadata{
-		UserName: &userName,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -81,7 +69,7 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	user := h.Item.(*iam.User)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +98,7 @@ func getIamAccessKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	key := h.Item.(*iam.AccessKeyMetadata)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,12 +19,12 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       usagePlanFromKey,
 			Hydrate:           getUsagePlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -82,25 +83,19 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func usagePlanFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	ID := quals["id"].GetStringValue()
-	item := &apigateway.UsagePlan{
-		Id: &ID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", region)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -120,26 +115,30 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getUsagePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getUsagePlan")
+func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getUsagePlan")
 
-	usagePlan := h.Item.(*apigateway.UsagePlan)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	id := d.KeyColumnQuals["id"].GetStringValue()
 	params := &apigateway.GetUsagePlanInput{
-		UsagePlanId: usagePlan.Id,
+		UsagePlanId: aws.String(id),
 	}
 
 	op, err := svc.GetUsagePlan(params)
 	if err != nil {
-		logger.Debug("getUsagePlan__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getUsagePlan__", "ERROR", err)
 		return nil, err
 	}
 

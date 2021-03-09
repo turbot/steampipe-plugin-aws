@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,12 +19,12 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       apiKeyFromKey,
 			Hydrate:           getAPIKey,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIKeys,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -100,25 +101,19 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func apiKeyFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	ID := quals["id"].GetStringValue()
-	item := &apigateway.ApiKey{
-		Id: &ID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAPIKeys", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAPIKeys", "AWS_REGION", region)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +125,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -138,25 +133,29 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAPIKey")
-	item := h.Item.(*apigateway.ApiKey)
-	defaultRegion := GetDefaultRegion()
+func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIKey")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	id := d.KeyColumnQuals["id"].GetStringValue()
 	params := &apigateway.GetApiKeyInput{
-		ApiKey: item.Id,
+		ApiKey: aws.String(id),
 	}
 
 	detail, err := svc.GetApiKey(params)
 	if err != nil {
-		logger.Debug("getAPIKey__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAPIKey__", "ERROR", err)
 		return nil, err
 	}
 	return detail, nil

@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
@@ -16,136 +17,136 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_function",
 		Description: "AWS Lambda Function",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: functionFromKey,
-			Hydrate:     getAwsLambdaFunction,
+			KeyColumns: plugin.SingleColumn("name"),
+			Hydrate:    getAwsLambdaFunction,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the function",
+				Description: "The name of the function.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("FunctionName"),
 			},
 			{
 				Name:        "code_sha_256",
-				Description: "The SHA256 hash of the function's deployment package",
+				Description: "The SHA256 hash of the function's deployment package.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "code_size",
-				Description: "The size of the function's deployment package, in bytes",
+				Description: "The size of the function's deployment package, in bytes.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "description",
-				Description: "The function's description",
+				Description: "The function's description.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "handler",
-				Description: "The function that Lambda calls to begin executing your function",
+				Description: "The function that Lambda calls to begin executing your function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "kms_key_arn",
-				Description: "The KMS key that's used to encrypt the function's environment variables. This key is only returned if you've configured a customer managed CMK",
+				Description: "The KMS key that's used to encrypt the function's environment variables. This key is only returned if you've configured a customer managed CMK.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "last_modified",
-				Description: "The date and time that the function was last updated",
+				Description: "The date and time that the function was last updated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "timeout",
-				Description: "The amount of time in seconds that Lambda allows a function to run before stopping it",
+				Description: "The amount of time in seconds that Lambda allows a function to run before stopping it.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "version",
-				Description: "The version of the Lambda function",
+				Description: "The version of the Lambda function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "master_arn",
-				Description: "For Lambda@Edge functions, the ARN of the master function",
+				Description: "For Lambda@Edge functions, the ARN of the master function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "memory_size",
-				Description: "The memory that's allocated to the function",
+				Description: "The memory that's allocated to the function.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "revision_id",
-				Description: "The latest updated revision of the function or alias",
+				Description: "The latest updated revision of the function or alias.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "role",
-				Description: "The function's execution role",
+				Description: "The function's execution role.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "runtime",
-				Description: "The runtime environment for the Lambda function",
+				Description: "The runtime environment for the Lambda function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the function",
+				Description: "The current state of the function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state_reason",
-				Description: "The reason for the function's current state",
+				Description: "The reason for the function's current state.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state_reason_code",
-				Description: "The reason code for the function's current state",
+				Description: "The reason code for the function's current state.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "last_update_status",
-				Description: "The status of the last update that was performed on the function",
+				Description: "The status of the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "last_update_status_reason",
-				Description: "The reason for the last update that was performed on the function",
+				Description: "The reason for the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "last_update_status_reason_code",
-				Description: "The reason code for the last update that was performed on the function",
+				Description: "The reason code for the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The VPC ID that is attached to Lambda function",
+				Description: "The VPC ID that is attached to Lambda function.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VpcConfig.VpcId"),
 			},
 			{
 				Name:        "vpc_security_group_ids",
-				Description: "A list of VPC security groups IDs attached to Lambda function",
+				Description: "A list of VPC security groups IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("VpcConfig.SecurityGroupIds"),
 			},
 			{
 				Name:        "vpc_subnet_ids",
-				Description: "A list of VPC subnet IDs attached to Lambda function",
+				Description: "A list of VPC subnet IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("VpcConfig.SubnetIds"),
 			},
 			{
 				Name:        "policy",
-				Description: "The resource-based iam policy of Lambda function",
+				Description: "The resource-based iam policy of Lambda function.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(transform.UnmarshalYAML),
@@ -159,7 +160,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The function's Amazon Resource Name (ARN)",
+				Description: "The function's Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("FunctionArn"),
 			},
@@ -186,26 +187,19 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func functionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &lambda.FunctionConfiguration{
-		FunctionName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsLambdaFunctions", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsLambdaFunctions", "AWS_REGION", region)
 
 	// Create service
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +210,7 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			for _, function := range page.Functions {
 				d.StreamListItem(ctx, function)
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -225,28 +219,31 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsLambdaFunction")
-	defaultRegion := GetDefaultRegion()
-	function := h.Item.(*lambda.FunctionConfiguration)
+func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsLambdaFunction")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build params
 	params := &lambda.GetFunctionInput{
-		FunctionName: function.FunctionName,
+		FunctionName: aws.String(name),
 	}
-
-	// panic(params)
 
 	rowData, err := svc.GetFunction(params)
 	if err != nil {
-		logger.Debug("getAwsLambdaFunction__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsLambdaFunction__", "ERROR", err)
 		return nil, err
 	}
 
@@ -255,11 +252,16 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getFunctionPolicy")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -282,11 +284,16 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getFunctionTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getFunctionTagging")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := LambdaService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

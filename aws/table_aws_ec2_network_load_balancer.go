@@ -21,12 +21,12 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			ItemFromKey:       networkLoadBalancerArnFromKey,
 			Hydrate:           getEc2NetworkLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkLoadBalancers,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -142,25 +142,19 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func networkLoadBalancerArnFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	loadBalancerArn := quals["arn"].GetStringValue()
-	item := &elbv2.LoadBalancer{
-		LoadBalancerArn: &loadBalancerArn,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2NetworkLoadBalancers", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2NetworkLoadBalancers", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -183,18 +177,23 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
+func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &elbv2.DescribeLoadBalancersInput{
-		LoadBalancerArns: []*string{aws.String(*networkLoadBalancer.LoadBalancerArn)},
+		LoadBalancerArns: []*string{aws.String(loadBalancerArn)},
 	}
 
 	op, err := svc.DescribeLoadBalancers(params)
@@ -210,11 +209,16 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2NetworkLoadBalancerAttributes")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -233,11 +237,16 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 
 func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2NetworkLoadBalancerTags")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := ELBv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

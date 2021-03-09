@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/url"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -21,12 +22,12 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("api_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       restAPIFromKey,
 			Hydrate:           getRestAPI,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRestAPI,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -129,25 +130,19 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func restAPIFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	ID := quals["api_id"].GetStringValue()
-	item := &apigateway.RestApi{
-		Id: &ID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listRestAPI", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listRestAPI", "AWS_REGION", region)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +154,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -167,25 +162,29 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getRestAPI(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getRestAPI")
-	item := h.Item.(*apigateway.RestApi)
-	defaultRegion := GetDefaultRegion()
+func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRestAPI")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	id := d.KeyColumnQuals["api_id"].GetStringValue()
 	params := &apigateway.GetRestApiInput{
-		RestApiId: item.Id,
+		RestApiId: aws.String(id),
 	}
 
 	detail, err := svc.GetRestApi(params)
 	if err != nil {
-		logger.Debug("GetRestApi__", "ERROR", err)
+		plugin.Logger(ctx).Debug("GetRestApi__", "ERROR", err)
 		return nil, err
 	}
 	return detail, nil
@@ -213,7 +212,7 @@ func unmarshalJSON(_ context.Context, d *transform.TransformData) (interface{}, 
 	inputStr := types.SafeString(d.Value)
 	var result interface{}
 	if inputStr != "" {
-		// Resource IAM policy for aws_api_gateway_rest_api is stored as stringfied json object after removing the double quotes from end
+		// Resource IAM policy for aws_api_gateway_rest_api is stored as stringified json object after removing the double quotes from end
 		decoded, err := url.QueryUnescape("\"" + inputStr + "\"")
 		if err != nil {
 			return nil, err

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,13 +19,13 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "stage_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       accessKeyFromKey,
 			Hydrate:           getAPIGatewayStage,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listAPIGatewayStage,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -144,31 +145,20 @@ type stageRowData = struct {
 	RestAPIId *string
 }
 
-//// BUILD HYDRATE INPUT
-
-func apiStageFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	stageName := quals["stage_name"].GetStringValue()
-	RestAPIID := quals["rest_api_id"].GetStringValue()
-	item := &stageRowData{
-		RestAPIId: &RestAPIID,
-		Stage: &apigateway.Stage{
-			StageName: &stageName,
-		},
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAPIGatewayStage", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAPIGatewayStage", "AWS_REGION", region)
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -191,30 +181,37 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAPIGatewayStage")
-	apiStage := h.Item.(stageRowData)
-	defaultRegion := GetDefaultRegion()
+func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayStage")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
+	restAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
+
 	params := &apigateway.GetStageInput{
-		RestApiId: apiStage.RestAPIId,
-		StageName: apiStage.Stage.StageName,
+		RestApiId: aws.String(restAPIID),
+		StageName: aws.String(stageName),
 	}
 
 	stageData, err := svc.GetStage(params)
 	if err != nil {
-		logger.Debug("getAPIGatewayStage__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAPIGatewayStage__", "ERROR", err)
 		return nil, err
 	}
 
-	return &stageRowData{stageData, apiStage.RestAPIId}, nil
+	return &stageRowData{stageData, aws.String(restAPIID)}, nil
 }
 
 func getAPIGatewayStageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

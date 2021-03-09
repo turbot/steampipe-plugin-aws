@@ -1,0 +1,11 @@
+[
+	{
+		"last_authenticated_entity": "{{ output.user_arn.value }}",
+		"last_authenticated_region": "{{ output.aws_region.value }}",
+		"partition": "{{ output.aws_partition.value }}",
+		"principal_arn": "{{ output.user_arn.value }}",
+		"region": "global",
+		"service_name": "AWS Security Token Service",
+		"service_namespace": "sts"
+	}
+]

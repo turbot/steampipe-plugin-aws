@@ -21,85 +21,85 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("instance_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			ItemFromKey:       instanceFromKey,
 			Hydrate:           getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
-				Description: "The ID of the instance",
+				Description: "The ID of the instance.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_type",
-				Description: "The instance type",
+				Description: "The instance type.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_state",
-				Description: "The state of the instance (pending | running | shutting-down | terminated | stopping | stopped)",
+				Description: "The state of the instance (pending | running | shutting-down | terminated | stopping | stopped).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("State.Name"),
 			},
 			{
 				Name:        "monitoring_state",
-				Description: "Indicates whether detailed monitoring is enabled (disabled | enabled)",
+				Description: "Indicates whether detailed monitoring is enabled (disabled | enabled).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Monitoring.State"),
 			},
 			{
 				Name:        "disable_api_termination",
 				Default:     false,
-				Description: "If the value is true, instance can't be terminated through the Amazon EC2 console, CLI, or API",
+				Description: "If the value is true, instance can't be terminated through the Amazon EC2 console, CLI, or API.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getInstanceDisableAPITerminationData,
 				Transform:   transform.FromField("DisableApiTermination.Value"),
 			},
 			{
 				Name:        "cpu_options_core_count",
-				Description: "The number of CPU cores for the instance",
+				Description: "The number of CPU cores for the instance.",
 				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("CpuOptions.CoreCount"),
 			},
 			{
 				Name:        "cpu_options_threads_per_core",
-				Description: "The number of threads per CPU core",
+				Description: "The number of threads per CPU core.",
 				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("CpuOptions.ThreadsPerCore"),
 			},
 			{
 				Name:        "ebs_optimized",
-				Description: "Indicates whether the instance is optimized for Amazon EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal I/O performance. This optimization isn't available with all instance types",
+				Description: "Indicates whether the instance is optimized for Amazon EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal I/O performance. This optimization isn't available with all instance types.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "hypervisor",
-				Description: "The hypervisor type of the instance. The value xen is used for both Xen and Nitro hypervisors",
+				Description: "The hypervisor type of the instance. The value xen is used for both Xen and Nitro hypervisors.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "iam_instance_profile_arn",
-				Description: "The Amazon Resource Name (ARN) of IAM instance profile associated with the instance, if applicable",
+				Description: "The Amazon Resource Name (ARN) of IAM instance profile associated with the instance, if applicable.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IamInstanceProfile.Arn"),
 			},
 			{
 				Name:        "iam_instance_profile_id",
-				Description: "The ID of the instance profile associated with the instance, if applicable",
+				Description: "The ID of the instance profile associated with the instance, if applicable.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IamInstanceProfile.Id"),
 			},
 			{
 				Name:        "image_id",
-				Description: "The ID of the AMI used to launch the instance",
+				Description: "The ID of the AMI used to launch the instance.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_initiated_shutdown_behavior",
-				Description: "Indicates whether an instance stops or terminates when you initiate shutdown from the instance (using the operating system command for system shutdown)",
+				Description: "Indicates whether an instance stops or terminates when you initiate shutdown from the instance (using the operating system command for system shutdown).",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceInitiatedShutdownBehavior,
 				Transform:   transform.FromField("InstanceInitiatedShutdownBehavior.Value"),
@@ -113,149 +113,149 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "key_name",
-				Description: "The name of the key pair, if this instance was launched with an associated key pair",
+				Description: "The name of the key pair, if this instance was launched with an associated key pair.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "outpost_arn",
-				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable",
+				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "placement_availability_zone",
-				Description: "The Availability Zone of the instance",
+				Description: "The Availability Zone of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.AvailabilityZone"),
 			},
 			{
 				Name:        "placement_group_name",
-				Description: "The name of the placement group the instance is in",
+				Description: "The name of the placement group the instance is in.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.GroupName"),
 			},
 			{
 				Name:        "placement_tenancy",
-				Description: "The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware",
+				Description: "The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.Tenancy"),
 			},
 			{
 				Name:        "private_ip_address",
-				Description: "The private IPv4 address assigned to the instance",
+				Description: "The private IPv4 address assigned to the instance.",
 				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "private_dns_name",
-				Description: "The private DNS hostname name assigned to the instance. This DNS hostname can only be used inside the Amazon EC2 network. This name is not available until the instance enters the running state",
+				Description: "The private DNS hostname name assigned to the instance. This DNS hostname can only be used inside the Amazon EC2 network. This name is not available until the instance enters the running state.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "public_dns_name",
-				Description: "The public DNS name assigned to the instance. This name is not available until the instance enters the running state",
+				Description: "The public DNS name assigned to the instance. This name is not available until the instance enters the running state.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "public_ip_address",
-				Description: "The public IPv4 address, or the Carrier IP address assigned to the instance, if applicable",
+				Description: "The public IPv4 address, or the Carrier IP address assigned to the instance, if applicable.",
 				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "ram_disk_id",
-				Description: "The RAM disk ID",
+				Description: "The RAM disk ID.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceRAMDiskID,
 				Transform:   transform.FromField("RamdiskId.Value"),
 			},
 			{
 				Name:        "root_device_name",
-				Description: "The device name of the root device volume (for example, /dev/sda1)",
+				Description: "The device name of the root device volume (for example, /dev/sda1).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "root_device_type",
-				Description: "The root device type used by the AMI. The AMI can use an EBS volume or an instance store volume",
+				Description: "The root device type used by the AMI. The AMI can use an EBS volume or an instance store volume.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "source_dest_check",
-				Description: "Specifies whether to enable an instance launched in a VPC to perform NAT. This controls whether source/destination checking is enabled on the instance",
+				Description: "Specifies whether to enable an instance launched in a VPC to perform NAT. This controls whether source/destination checking is enabled on the instance.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "sriov_net_support",
-				Description: "Indicates whether enhanced networking with the Intel 82599 Virtual Function interface is enabled",
+				Description: "Indicates whether enhanced networking with the Intel 82599 Virtual Function interface is enabled.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceSriovNetSupport,
 				Transform:   transform.FromField("SriovNetSupport.Value"),
 			},
 			{
 				Name:        "state_code",
-				Description: "The reason code for the state change",
+				Description: "The reason code for the state change.",
 				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("State.Code"),
 			},
 			{
 				Name:        "subnet_id",
-				Description: "The ID of the subnet in which the instance is running",
+				Description: "The ID of the subnet in which the instance is running.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "user_data",
-				Description: "The user data of the instance",
+				Description: "The user data of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceUserData,
 				Transform:   transform.FromField("UserData.Value"),
 			},
 			{
 				Name:        "virtualization_type",
-				Description: "The virtualization type of the instance",
+				Description: "The virtualization type of the instance.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC in which the instance is running",
+				Description: "The ID of the VPC in which the instance is running.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "elastic_gpu_associations",
-				Description: "The Elastic GPU associated with the instance",
+				Description: "The Elastic GPU associated with the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "elastic_inference_accelerator_associations",
-				Description: "The elastic inference accelerator associated with the instance",
+				Description: "The elastic inference accelerator associated with the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "block_device_mappings",
-				Description: "Block device mapping entries for the instance",
+				Description: "Block device mapping entries for the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "network_interfaces",
-				Description: "The network interfaces for the instance",
+				Description: "The network interfaces for the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "product_codes",
-				Description: "The product codes attached to this instance, if applicable",
+				Description: "The product codes attached to this instance, if applicable.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "security_groups",
-				Description: "The security groups for the instance",
+				Description: "The security groups for the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "instance_status",
-				Description: "The status of an instance. Instance status includes schedulted events, status checks and instance state information",
+				Description: "The status of an instance. Instance status includes schedulted events, status checks and instance state information.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getInstanceStatus,
 				Transform:   transform.FromField("InstanceStatuses[0]"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the instance",
+				Description: "A list of tags assigned to the instance.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -284,25 +284,19 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func instanceFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	instanceID := quals["instance_id"].GetStringValue()
-	item := &ec2.Instance{
-		InstanceId: &instanceID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -327,19 +321,25 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getEc2Instance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2Instance")
-	defaultRegion := GetDefaultRegion()
-	instance := h.Item.(*ec2.Instance)
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(*instance.InstanceId)},
+		InstanceIds: []*string{aws.String(instanceID)},
 	}
 
 	op, err := svc.DescribeInstances(params)
@@ -372,11 +372,16 @@ func getAwsEc2InstanceTurbotData(ctx context.Context, d *plugin.QueryData, h *pl
 
 func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceDisableAPITerminationData")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -396,11 +401,16 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 
 func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceInitiatedShutdownBehavior")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -420,11 +430,16 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 
 func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceKernelID")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -444,11 +459,16 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceRAMDiskID")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -468,11 +488,16 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceSriovNetSupport")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -492,11 +517,16 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceUserData")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -516,11 +546,16 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceStatus")
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

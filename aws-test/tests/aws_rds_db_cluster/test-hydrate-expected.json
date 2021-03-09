@@ -19,7 +19,7 @@
     "port": 3306,
     "resource_id": "{{ output.resource_id.value }}",
     "storage_encrypted": false,
-    "tag_list": [
+    "tags_src": [
       {
         "Key": "name",
         "Value": "{{ resourceName }}"

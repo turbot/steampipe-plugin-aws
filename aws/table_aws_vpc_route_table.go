@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,46 +19,46 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("route_table_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-			ItemFromKey:       vpcRouteTableFromKey,
 			Hydrate:           getVpcRouteTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcRouteTables,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
-				Description: "Contains the ID of the route table",
+				Description: "Contains the ID of the route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC",
+				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the route table",
+				Description: "The ID of the AWS account that owns the route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "associations",
-				Description: "Contains the associations between the route table and one or more subnets or a gateway",
+				Description: "Contains the associations between the route table and one or more subnets or a gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "routes",
-				Description: "A list of routes in the route table",
+				Description: "A list of routes in the route table.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "propagating_vgws",
-				Description: "A list of virtual private gateway (VGW) propagating routes",
+				Description: "A list of virtual private gateway (VGW) propagating routes.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the route table",
+				Description: "A list of tags that are attached to the route table.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -86,26 +87,20 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcRouteTableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	routeTableID := quals["route_table_id"].GetStringValue()
-	item := &ec2.RouteTable{
-		RouteTableId: &routeTableID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcRouteTables", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcRouteTables", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -126,27 +121,32 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcRouteTable")
-	routeTable := h.Item.(*ec2.RouteTable)
-	defaultRegion := GetDefaultRegion()
+func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcRouteTable")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	routeTableID := d.KeyColumnQuals["route_table_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeRouteTablesInput{
-		RouteTableIds: []*string{routeTable.RouteTableId},
+		RouteTableIds: []*string{aws.String(routeTableID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeRouteTables(params)
 	if err != nil {
-		logger.Debug("getVpcRouteTable__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcRouteTable__", "ERROR", err)
 		return nil, err
 	}
 

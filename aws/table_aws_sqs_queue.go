@@ -20,13 +20,13 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Description: "AWS SQS Queue",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("queue_url"),
-			ItemFromKey:       sqsQueueFromKey,
 			ShouldIgnoreError: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 			Hydrate:           getQueueAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",
@@ -58,14 +58,14 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "max_message_size",
-				Description: "The limit of how many bytes a message can contain before Amazon SQS rejects it",
+				Description: "The limit of how many bytes a message can contain before Amazon SQS rejects it.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.MaximumMessageSize"),
 			},
 			{
 				Name:        "message_retention_seconds",
-				Description: "The length of time, in seconds, for which Amazon SQS retains a message",
+				Description: "The length of time, in seconds, for which Amazon SQS retains a message.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.MessageRetentionPeriod"),
@@ -86,7 +86,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "policy",
-				Description: "The resource IAM policy of the queue",
+				Description: "The resource IAM policy of the queue.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.Policy").Transform(transform.UnmarshalYAML),
@@ -108,7 +108,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "content_based_deduplication",
-				Description: "Mentions whether content-based deduplication is enabled for the queue",
+				Description: "Mentions whether content-based deduplication is enabled for the queue.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.ContentBasedDeduplication"),
@@ -143,27 +143,19 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func sqsQueueFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	queueURL := quals["queue_url"].GetStringValue()
-	item := &sqs.GetQueueAttributesOutput{
-		Attributes: map[string]*string{
-			"QueueUrl": &queueURL,
-		},
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", region)
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +169,7 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 					},
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -188,17 +180,30 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getQueueAttributes")
-	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	var queueURL string
+	if h.Item != nil {
+		data := h.Item.(*sqs.GetQueueAttributesOutput)
+		queueURL = types.SafeString(data.Attributes["QueueUrl"])
+	} else {
+		queueURL = d.KeyColumnQuals["queue_url"].GetStringValue()
+	}
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	input := &sqs.GetQueueAttributesInput{
-		QueueUrl:       queueAttributesOutput.Attributes["QueueUrl"],
+		QueueUrl:       aws.String(queueURL),
 		AttributeNames: []*string{aws.String("All")},
 	}
 
@@ -208,7 +213,7 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Add QueueUrl info to the output as it is missing from GetQueueAttributesOutput
-	op.Attributes["QueueUrl"] = queueAttributesOutput.Attributes["QueueUrl"]
+	op.Attributes["QueueUrl"] = aws.String(queueURL)
 
 	return op, nil
 }
@@ -216,10 +221,15 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listQueueTags")
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := SQSService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SQSService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

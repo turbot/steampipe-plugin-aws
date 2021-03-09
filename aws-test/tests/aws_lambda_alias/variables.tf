@@ -89,6 +89,7 @@ resource "aws_lambda_alias" "named_test_resource" {
   name             = var.resource_name
   function_name    = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.resource_name}"
   function_version = "$LATEST"
+  description      = "Test alias."
   depends_on = [
     aws_lambda_function.named_test_resource,
   ]
