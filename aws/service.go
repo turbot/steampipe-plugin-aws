@@ -162,22 +162,22 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, connectionManager *connection.Manager, region string) (*cloudtrail.CloudTrail, error) {
+func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("cloudtrail-%s", region)
-	if cachedData, ok := connectionManager.Cache.Get(serviceCacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudtrail.CloudTrail), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, connectionManager, region)
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	svc := cloudtrail.New(sess)
-	connectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }

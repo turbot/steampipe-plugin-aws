@@ -16,8 +16,7 @@ where
   kms_key_id is null;
 ```
 
-
-### List of cloud trails which stores logs in publicly accessible S3 buckets
+### List of trails which stores logs in publicly accessible S3 buckets
 
 ```sql
 select
@@ -31,7 +30,6 @@ where
   not bucket.bucket_policy_is_public;
 ```
 
-
 ### List of trails which do not send log events to CloudWatch Logs
 
 ```sql
@@ -43,7 +41,6 @@ from
 where
   not is_logging;
 ```
-
 
 ### List of trails which stores logs in S3 bucket and versioning for that bucket is not enabled
 
@@ -57,4 +54,17 @@ from
   join aws_s3_bucket as bucket on trail.s3_bucket_name = bucket.name
 where
   not versioning_enabled;
+```
+
+### List of trails for which LogFileValidation is not enabled
+
+```sql
+select
+  name,
+  arn,
+  log_file_validation_enabled
+from
+  aws_cloudtrail_trail
+where
+  not log_file_validation_enabled;
 ```
