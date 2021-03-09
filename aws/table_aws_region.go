@@ -20,7 +20,6 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			ItemFromKey:       regionFromKey,
 			Hydrate:           getAwsRegion,
 		},
 		List: &plugin.ListConfig{
@@ -55,17 +54,6 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func regionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	regionName := quals["name"].GetStringValue()
-	item := &ec2.Region{
-		RegionName: &regionName,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -96,19 +84,19 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	defaultRegion := GetDefaultAwsRegion(d)
-	region := h.Item.(*ec2.Region)
 
-	// create service
+	// Create service
 	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
+	regionName := d.KeyColumnQuals["name"].GetStringValue()
 
 	params := &ec2.DescribeRegionsInput{
 		AllRegions:  aws.Bool(true),
-		RegionNames: []*string{region.RegionName},
+		RegionNames: []*string{aws.String(regionName)},
 	}
 
 	// execute list call

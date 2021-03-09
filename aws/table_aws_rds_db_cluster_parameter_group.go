@@ -20,7 +20,6 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"DBParameterGroupNotFound"}),
-			ItemFromKey:       clusterParameterGroupNameFromKey,
 			Hydrate:           getRDSDBClusterParameterGroup,
 		},
 		List: &plugin.ListConfig{
@@ -30,37 +29,37 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name to identify the DB cluster parameter group",
+				Description: "The friendly name to identify the DB cluster parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBClusterParameterGroupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the DB cluster parameter group",
+				Description: "The Amazon Resource Name (ARN) for the DB cluster parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBClusterParameterGroupArn"),
 			},
 			{
 				Name:        "description",
-				Description: "Provides the customer-specified description for this DB cluster parameter group",
+				Description: "Provides the customer-specified description for this DB cluster parameter group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "db_parameter_group_family",
-				Description: "The name of the DB parameter group family that this DB cluster parameter group is compatible with",
+				Description: "The name of the DB parameter group family that this DB cluster parameter group is compatible with.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DBParameterGroupFamily"),
 			},
 			{
 				Name:        "parameters",
-				Description: "A list of detailed parameter for a particular DB Cluster parameter group",
+				Description: "A list of detailed parameter for a particular DB Cluster parameter group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsRDSClusterParameterGroupParameters,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags attached to the DB Cluster parameter group",
+				Description: "A list of tags attached to the DB Cluster parameter group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsRDSClusterParameterGroupTags,
 				Transform:   transform.FromField("TagList"),
@@ -88,17 +87,6 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func clusterParameterGroupNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &rds.DBClusterParameterGroup{
-		DBClusterParameterGroupName: &name,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -133,14 +121,14 @@ func listRDSDBClusterParameterGroups(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
 	svc, err := RDSService(ctx, d, region)
@@ -149,7 +137,7 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	params := &rds.DescribeDBClusterParameterGroupsInput{
-		DBClusterParameterGroupName: aws.String(*dbClusterParameterGroup.DBClusterParameterGroupName),
+		DBClusterParameterGroupName: aws.String(name),
 	}
 
 	op, err := svc.DescribeDBClusterParameterGroups(params)
