@@ -13,6 +13,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ssm_patch_baseline",
@@ -28,15 +30,15 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "name",
+				Description: "The name of the patch baseline.",
+				Type:        pb.ColumnType_STRING,
+			},
+			{
 				Name:        "baseline_id",
 				Description: "The ID of the retrieved patch baseline.",
 				Type:        pb.ColumnType_STRING,
 				Transform:   transform.FromCamel().Transform(lastPathElement),
-			},
-			{
-				Name:        "name",
-				Description: "The name of the patch baseline.",
-				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "description",
@@ -206,11 +208,12 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return nil, err
 }
 
-// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getPatchBaseline")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -219,7 +222,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	var baselineID string
 	if h.Item != nil {
-		baselineID = *(h.Item.(*ssm.GetPatchBaselineOutput).BaselineId)
+		baselineID = *h.Item.(*ssm.GetPatchBaselineOutput).BaselineId
 	} else {
 		quals := d.KeyColumnQuals
 		baselineID = quals["baseline_id"].GetStringValue()
@@ -267,6 +270,7 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	baselineIDSplitted := strings.Split(*baseline.BaselineId, "/")
 	id := baselineIDSplitted[len(baselineIDSplitted)-1]
+	
 	// Build the params
 	params := &ssm.ListTagsForResourceInput{
 		ResourceType: types.String("PatchBaseline"),

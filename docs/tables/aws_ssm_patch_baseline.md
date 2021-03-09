@@ -63,6 +63,6 @@ select
 	p ->> 'ComplianceLevel' as compliance_level,
 	p -> 'PatchFilterGroup' ->> 'PatchFilters' as patch_filters
 from
-	aws_ssm_patch_baseline
-	cross join jsonb_array_elements(approval_rules -> 'PatchRules') as p;
+	aws_ssm_patch_baseline,
+	jsonb_array_elements(approval_rules -> 'PatchRules') as p;
 ```
