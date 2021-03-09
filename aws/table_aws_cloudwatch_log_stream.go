@@ -3,18 +3,21 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 )
 
 type logStreamInfo = struct {
 	LogStream *cloudwatchlogs.LogStream
 	LogGroup  *string
 }
+
+//// TABLE DEFINITION
 
 func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -28,6 +31,7 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 			ParentHydrate: listCloudwatchLogGroups,
 			Hydrate:       listCloudwatchLogStreams,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -51,25 +55,25 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 				Name:        "creation_time",
 				Description: "The creation time of the log stream.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LogStream.CreationTime").Transform(convertTimestamp),
+				Transform:   transform.FromField("LogStream.CreationTime").Transform(transform.UnixMsToTimestamp),
 			},
 			{
 				Name:        "first_event_timestamp",
 				Description: "The time of the first event.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LogStream.FirstEventTimestamp").Transform(convertTimestamp),
+				Transform:   transform.FromField("LogStream.FirstEventTimestamp").Transform(transform.UnixMsToTimestamp),
 			},
 			{
 				Name:        "last_event_timestamp",
 				Description: "The time of the most recent log event in the log stream in CloudWatch Logs.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LogStream.LastEventTimestamp").Transform(convertTimestamp),
+				Transform:   transform.FromField("LogStream.LastEventTimestamp").Transform(transform.UnixMsToTimestamp),
 			},
 			{
 				Name:        "last_ingestion_time",
 				Description: "Specifies the last log ingestion time.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LogStream.LastIngestionTime").Transform(convertTimestamp),
+				Transform:   transform.FromField("LogStream.LastIngestionTime").Transform(transform.UnixMsToTimestamp),
 			},
 			{
 				Name:        "upload_sequence_token",
@@ -96,16 +100,22 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listCloudwatchLogStreams", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listCloudwatchLogStreams", "AWS_REGION", region)
+
+	// Get logGroup details
+	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
-	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	err = svc.DescribeLogStreamsPages(
 		&cloudwatchlogs.DescribeLogStreamsInput{
@@ -127,7 +137,13 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogStream")
 
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
 
@@ -139,7 +155,7 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +172,7 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for _, logStream := range item.LogStreams {
-		if *logStream.LogStreamName == *logStream.LogStreamName {
+		if types.SafeString(logStream.LogStreamName) == name {
 			return logStreamInfo{logStream, aws.String(logGroupName)}, nil
 		}
 	}

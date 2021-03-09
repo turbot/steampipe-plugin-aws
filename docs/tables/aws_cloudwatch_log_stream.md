@@ -15,7 +15,6 @@ from
   aws_cloudwatch_log_stream;
 ```
 
-
 ### Count of log stream per log group
 
 ```sql
