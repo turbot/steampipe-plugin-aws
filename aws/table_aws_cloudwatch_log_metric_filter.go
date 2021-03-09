@@ -101,7 +101,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 			for _, metricFilter := range page.MetricFilters {
 				d.StreamListItem(ctx, metricFilter)
 			}
-			return true
+			return !isLast
 		},
 	)
 
@@ -110,7 +110,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter")
 
 	// TODO put me in helper function

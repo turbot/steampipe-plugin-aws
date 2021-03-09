@@ -126,7 +126,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	regionName := d.KeyColumnQuals["region_name"].GetStringValue()
 
