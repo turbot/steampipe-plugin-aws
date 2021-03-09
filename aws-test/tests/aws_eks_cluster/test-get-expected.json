@@ -1,0 +1,10 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "endpoint": "{{ output.endpoint.value }}",
+    "identity": "{{ output.identity.value }}",
+    "role_arn": "{{ output.identity.value }}",
+    "name": "{{ output.resource_name.value }}",
+    "status": "{{ output.status.value }}"
+  }
+]

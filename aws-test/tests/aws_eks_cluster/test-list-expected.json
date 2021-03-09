@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "endpoint": "{{ output.endpoint.value }}",
+    "name": "{{ output.resource_name.value }}",
+    "status": "{{ output.status.value }}"
+  }
+]
