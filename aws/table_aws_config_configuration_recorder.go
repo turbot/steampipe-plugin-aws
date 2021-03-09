@@ -43,18 +43,18 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RoleARN"),
 			},
 			{
-				Name:        "status",
-				Description: "The current status of the configuration recorder.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getConfigConfigurationRecorderStatus,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "status_recording",
 				Description: "Specifies whether or not the recorder is currently recording.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getConfigConfigurationRecorderStatus,
 				Transform:   transform.FromField("Recording"),
+			},
+			{
+				Name:        "status",
+				Description: "The current status of the configuration recorder.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getConfigConfigurationRecorderStatus,
+				Transform:   transform.FromValue(),
 			},
 			// Standard columns
 			{

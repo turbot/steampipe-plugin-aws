@@ -88,3 +88,20 @@ output "aws_partition" {
 output "resource_name" {
   value = var.resource_name
 }
+
+data "template_file" "resource_aka" {
+  template = "arn:$${partition}:config:$${region}:$${account_id}:config-recorder/$${resource_name}"
+  vars = {
+    resource_name = var.resource_name
+    partition = data.aws_partition.current.partition
+    account_id = data.aws_caller_identity.current.account_id
+    region = data.aws_region.primary.name
+    alternate_region = data.aws_region.alternate.name
+  }
+}
+
+output "resource_aka" {
+  depends_on = [ aws_config_configuration_recorder.named_test_resource ]
+  value = data.template_file.resource_aka.rendered
+}
+
