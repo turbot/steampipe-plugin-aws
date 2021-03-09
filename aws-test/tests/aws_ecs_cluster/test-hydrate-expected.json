@@ -1,0 +1,12 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "cluster_arn": "{{ output.resource_aka.value }}",
+    "cluster_name": "{{resourceName}}",
+    "metadata_tags": [],
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{resourceName}}"
+  }
+]
