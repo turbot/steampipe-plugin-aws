@@ -1,0 +1,11 @@
+[
+	{
+		"name": "{{ resourceName}}.com.",
+		"tags_src": [
+			{
+				"Key": "name",
+				"Value": "{{ resourceName }}"
+			}
+		]
+	}
+]

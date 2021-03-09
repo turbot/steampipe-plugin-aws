@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,66 +17,66 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("subnet_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
-			ItemFromKey:       subnetFromKey,
 			Hydrate:           getVpcSubnet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSubnets,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subnet_id",
-				Description: "Contains the unique ID to specify a subnet",
+				Description: "Contains the unique ID to specify a subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "subnet_arn",
-				Description: "Contains the Amazon Resource Name (ARN) of the subnet",
+				Description: "Contains the Amazon Resource Name (ARN) of the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "ID of  the VPC, the subnet is in",
+				Description: "ID of the VPC, the subnet is in.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cidr_block",
-				Description: "Contains the IPv4 CIDR block assigned to the subnet",
+				Description: "Contains the IPv4 CIDR block assigned to the subnet.",
 				Type:        proto.ColumnType_CIDR,
 			},
 			{
 				Name:        "state",
-				Description: "Current state of the subnet",
+				Description: "Current state of the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "Contains the AWS account that own the subnet",
+				Description: "Contains the AWS account that own the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "assign_ipv6_address_on_creation",
-				Description: "Indicates whether a network interface created in this subnet (including a network interface created by RunInstances) receives an IPv6 address",
+				Description: "Indicates whether a network interface created in this subnet (including a network interface created by RunInstances) receives an IPv6 address.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "available_ip_address_count",
-				Description: "The number of unused private IPv4 addresses in the subnet. The IPv4 addresses for any stopped instances are considered unavailable",
+				Description: "The number of unused private IPv4 addresses in the subnet. The IPv4 addresses for any stopped instances are considered unavailable.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "availability_zone",
-				Description: "The Availability Zone of the subnet",
+				Description: "The Availability Zone of the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "availability_zone_id",
-				Description: "The AZ ID of the subnet",
+				Description: "The AZ ID of the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "customer_owned_ipv4_pool",
-				Description: "The customer-owned IPv4 address pool associated with the subnet",
+				Description: "The customer-owned IPv4 address pool associated with the subnet.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -85,27 +86,27 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "map_customer_owned_ip_on_launch",
-				Description: "Indicates whether a network interface created in this subnet (including a network interface created by RunInstances) receives a customer-owned IPv4 address",
+				Description: "Indicates whether a network interface created in this subnet (including a network interface created by RunInstances) receives a customer-owned IPv4 address.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "map_public_ip_on_launch",
-				Description: "Indicates whether instances launched in this subnet receive a public IPv4 address",
+				Description: "Indicates whether instances launched in this subnet receive a public IPv4 address.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "outpost_arn",
-				Description: "The Amazon Resource Name (ARN) of the Outpost. Available only if subnet is on an outpost",
+				Description: "The Amazon Resource Name (ARN) of the Outpost. Available only if subnet is on an outpost.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ipv6_cidr_block_association_set",
-				Description: "A list of IPv6 CIDR blocks associated with the subnet",
+				Description: "A list of IPv6 CIDR blocks associated with the subnet.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the subnet",
+				Description: "A list of tags that are attached to the subnet.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -133,26 +134,19 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func subnetFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	subnetID := quals["subnet_id"].GetStringValue()
-	item := &ec2.Subnet{
-		SubnetId: &subnetID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcSubnets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -173,27 +167,32 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcSubnet")
-	subnet := h.Item.(*ec2.Subnet)
-	defaultRegion := GetDefaultRegion()
+func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcSubnet")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeSubnetsInput{
-		SubnetIds: []*string{subnet.SubnetId},
+		SubnetIds: []*string{aws.String(subnetID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeSubnets(params)
 	if err != nil {
-		logger.Debug("getVpcSubnet__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcSubnet__", "ERROR", err)
 		return nil, err
 	}
 

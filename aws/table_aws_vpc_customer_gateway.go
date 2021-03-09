@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,51 +17,51 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("customer_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
-			ItemFromKey:       customerGatewayFromKey,
 			Hydrate:           getVpcCustomerGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "customer_gateway_id",
-				Description: "The ID of the customer gateway",
+				Description: "The ID of the customer gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "type",
-				Description: "The type of VPN connection the customer gateway supports (ipsec.1)",
+				Description: "The type of VPN connection the customer gateway supports (ipsec.1).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the customer gateway (pending | available | deleting | deleted)",
+				Description: "The current state of the customer gateway (pending | available | deleting | deleted).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "bgp_asn",
-				Description: "The customer gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN)",
+				Description: "The customer gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "certificate_arn",
-				Description: "The Amazon Resource Name (ARN) for the customer gateway certificate",
+				Description: "The Amazon Resource Name (ARN) for the customer gateway certificate.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "device_name",
-				Description: "The name of customer gateway device",
+				Description: "The name of customer gateway device.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ip_address",
-				Description: "The Internet-routable IP address of the customer gateway's outside interface",
+				Description: "The Internet-routable IP address of the customer gateway's outside interface.",
 				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to customer gateway",
+				Description: "A list of tags that are attached to customer gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -87,25 +88,19 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func customerGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	customerGatewayID := quals["customer_gateway_id"].GetStringValue()
-	item := &ec2.CustomerGateway{
-		CustomerGatewayId: &customerGatewayID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcCustomerGateways", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcCustomerGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -121,27 +116,32 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcCustomerGateway")
-	customerGateway := h.Item.(*ec2.CustomerGateway)
-	defaultRegion := GetDefaultRegion()
+func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcCustomerGateway")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	customerGatewayID := d.KeyColumnQuals["customer_gateway_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeCustomerGatewaysInput{
-		CustomerGatewayIds: []*string{customerGateway.CustomerGatewayId},
+		CustomerGatewayIds: []*string{aws.String(customerGatewayID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeCustomerGateways(params)
 	if err != nil {
-		logger.Debug("getVpcCustomerGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcCustomerGateway__", "ERROR", err)
 		return nil, err
 	}
 
@@ -168,7 +168,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcCustomerGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcCustomerGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	customerGateway := d.HydrateItem.(*ec2.CustomerGateway)
 	param := d.Param.(string)
 

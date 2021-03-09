@@ -18,87 +18,87 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("snapshot_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed"}),
-			ItemFromKey:       snapshotFromKey,
 			Hydrate:           getAwsEBSSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",
-				Description: "The ID of the snapshot. Each snapshot receives a unique identifier when it is created",
+				Description: "The ID of the snapshot. Each snapshot receives a unique identifier when it is created.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The snapshot state",
+				Description: "The snapshot state.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "volume_size",
-				Description: "The size of the volume, in GiB",
+				Description: "The size of the volume, in GiB.",
 				Type:        pb.ColumnType_INT,
 			},
 			{
 				Name:        "volume_id",
-				Description: "The ID of the volume that was used to create the snapshot. Snapshots created by the CopySnapshot action have an arbitrary volume ID that should not be used for any purpose",
+				Description: "The ID of the volume that was used to create the snapshot. Snapshots created by the CopySnapshot action have an arbitrary volume ID that should not be used for any purpose.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "encrypted",
-				Description: "Indicates whether the snapshot is encrypted",
+				Description: "Indicates whether the snapshot is encrypted.",
 				Type:        pb.ColumnType_BOOL,
 			},
 			{
 				Name:        "start_time",
-				Description: "The time stamp when the snapshot was initiated",
+				Description: "The time stamp when the snapshot was initiated.",
 				Type:        pb.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "description",
-				Description: "The description for the snapshot",
+				Description: "The description for the snapshot.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "kms_key_id",
-				Description: "The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the parent volume",
+				Description: "The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the parent volume.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "data_encryption_key_id",
-				Description: "The data encryption key identifier for the snapshot. This value is a unique identifier that corresponds to the data encryption key that was used to encrypt the original volume or snapshot copy. Because data encryption keys are inherited by volumes created from snapshots, and vice versa, if snapshots share the same data encryption key identifier, then they belong to the same volume/snapshot lineage",
+				Description: "The data encryption key identifier for the snapshot. This value is a unique identifier that corresponds to the data encryption key that was used to encrypt the original volume or snapshot copy. Because data encryption keys are inherited by volumes created from snapshots, and vice versa, if snapshots share the same data encryption key identifier, then they belong to the same volume/snapshot lineage.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "progress",
-				Description: "The progress of the snapshot, as a percentage",
+				Description: "The progress of the snapshot, as a percentage.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "state_message",
-				Description: "Encrypted Amazon EBS snapshots are copied asynchronously. If a snapshot copy operation fails this field displays error state details to help you diagnose why the error occurred",
+				Description: "Encrypted Amazon EBS snapshots are copied asynchronously. If a snapshot copy operation fails this field displays error state details to help you diagnose why the error occurred.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_alias",
-				Description: "The AWS owner alias, from an Amazon-maintained list (amazon). This is not the user-configured AWS account alias set using the IAM console",
+				Description: "The AWS owner alias, from an Amazon-maintained list (amazon). This is not the user-configured AWS account alias set using the IAM console.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The AWS account ID of the EBS snapshot owner",
+				Description: "The AWS account ID of the EBS snapshot owner.",
 				Type:        pb.ColumnType_STRING,
 			},
 			{
 				Name:        "create_volume_permissions",
-				Description: "The users and groups that have the permissions for creating volumes from the snapshot",
+				Description: "The users and groups that have the permissions for creating volumes from the snapshot.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     getAwsEBSSnapshotCreateVolumePermissions,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the snapshot",
+				Description: "A list of tags assigned to the snapshot.",
 				Type:        pb.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -127,25 +127,19 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func snapshotFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	snapshotID := quals["snapshot_id"].GetStringValue()
-	item := &ec2.Snapshot{
-		SnapshotId: &snapshotID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -169,27 +163,32 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEBSSnapshot")
-	defaultRegion := GetDefaultRegion()
+func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsEBSSnapshot")
 
-	snapshot := h.Item.(*ec2.Snapshot)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
+
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeSnapshotsInput{
-		SnapshotIds: []*string{snapshot.SnapshotId},
+		SnapshotIds: []*string{aws.String(snapshotID)},
 	}
 
 	// Get call
 	data, err := svc.DescribeSnapshots(params)
 	if err != nil {
-		logger.Debug("getAwsEBSSnapshot__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsEBSSnapshot__", "ERROR", err)
 		return nil, err
 	}
 
@@ -203,10 +202,15 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEBSSnapshotCreateVolumePermissions")
 	snapshotData := h.Item.(*ec2.Snapshot)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

@@ -24,6 +24,7 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMParameters,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -101,7 +102,7 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the parameter",
+				Description: "A list of tags assigned to the parameter.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMParameterTags,
 				Transform:   transform.FromField("TagList"),
@@ -135,11 +136,16 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listAwsSSMParameters", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsSSMParameters", "AWS_REGION", region)
 
 	// Create session
-	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SsmService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -161,15 +167,20 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SsmService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -204,11 +215,16 @@ func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SsmService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -233,11 +249,16 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameterTags")
 
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := SsmService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

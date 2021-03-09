@@ -27,7 +27,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name that identifies the iam policy",
+				Description: "The friendly name that identifies the iam policy.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("PolicyName"),
 			},
@@ -38,7 +38,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "path",
-				Description: "The path to the policy",
+				Description: "The path to the policy.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -59,27 +59,27 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "create_date",
-				Description: "The date and time, when the policy was created",
+				Description: "The date and time, when the policy was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "update_date",
-				Description: "The date and time, when the policy was last updated",
+				Description: "The date and time, when the policy was last updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "attachment_count",
-				Description: "The number of entities (users, groups, and roles) that the policy is attached to",
+				Description: "The number of entities (users, groups, and roles) that the policy is attached to.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "default_version_id",
-				Description: "The identifier for the version of the policy that is set as the default version",
+				Description: "The identifier for the version of the policy that is set as the default version.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "permissions_boundary_usage_count",
-				Description: "The number of entities (users and roles) for which the policy is used to set the permissions boundary",
+				Description: "The number of entities (users and roles) for which the policy is used to set the permissions boundary.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -96,8 +96,22 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Hydrate:     getPolicyVersion,
 				Transform:   transform.FromField("PolicyVersion.Document").Transform(unescape).Transform(policyToCanonical),
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags attached with the IAM policy.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamPolicy,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// Standard columns for all tables
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamPolicy,
+				Transform:   transform.From(iamPolicyTurbotTags),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -118,7 +132,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 
 func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +143,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			for _, policy := range page.Policies {
 				d.StreamListItem(ctx, policy)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -139,10 +153,17 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamPolicy")
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	var arn string
+	if h.Item != nil {
+		policy := h.Item.(*iam.Policy)
+		arn = *policy.Arn
+	} else {
+		arn = d.KeyColumnQuals["arn"].GetStringValue()
+	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +185,7 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	policy := h.Item.(*iam.Policy)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -197,4 +218,19 @@ func isPolicyAwsManaged(ctx context.Context, d *transform.TransformData) (interf
 	}
 
 	return false, nil
+}
+
+func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	policy := d.HydrateItem.(*iam.Policy)
+	var turbotTagsMap map[string]string
+	if policy.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range policy.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }

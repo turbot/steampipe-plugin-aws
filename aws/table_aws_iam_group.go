@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -20,9 +22,9 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("name"),
-			ItemFromKey: groupFromKey,
-			Hydrate:     getIamGroup,
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			Hydrate:           getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
@@ -36,46 +38,53 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name that identifies the group",
+				Description: "The friendly name that identifies the group.",
 				Type:        proto.ColumnType_STRING, Transform: transform.FromField("GroupName"),
 			},
 			{
 				Name:        "group_id",
-				Description: "The stable and unique string identifying the group",
+				Description: "The stable and unique string identifying the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "path",
-				Description: "The path to the group",
+				Description: "The path to the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) specifying the group",
+				Description: "The Amazon Resource Name (ARN) specifying the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_date",
-				Description: "The date and time, when the group was created",
+				Description: "The date and time, when the group was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "inline_policies",
-				Description: "A list of policy documents that are embedded as inline policies for the group",
+				Description: "A list of policy documents that are embedded as inline policies for the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "inline_policies_std",
+				Description: "Inline policies in canonical form for the group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamGroupInlinePolicies,
+				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
+			},
+			{
 				Name:        "attached_policy_arns",
-				Description: "A list of managed policies attached to the group",
+				Description: "A list of managed policies attached to the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupAttachedPolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "users",
-				Description: "A list of users in the group",
+				Description: "A list of users in the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupUsers,
 			},
@@ -99,7 +108,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 
 //// ITEM FROM KEY
 
-func groupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func groupFromKey(_ context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 	item := &iam.Group{
@@ -114,7 +123,7 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	plugin.Logger(ctx).Trace("listIamGroups")
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +134,7 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 			for _, group := range page.Groups {
 				d.StreamListItem(ctx, group)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -133,19 +142,24 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 //// HYDRATE FUNCTIONS
 
-func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIamGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamGroup")
-	group := h.Item.(*iam.Group)
+
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	groupName := d.KeyColumnQuals["name"].GetStringValue()
+	if len(arn) > 0 {
+		groupName = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &iam.GetGroupInput{
-		GroupName: group.GroupName,
+		GroupName: aws.String(groupName),
 	}
 
 	op, err := svc.GetGroup(params)
@@ -162,7 +176,7 @@ func getAwsIamGroupAttachedPolicies(ctx context.Context, d *plugin.QueryData, h 
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +206,7 @@ func getAwsIamGroupUsers(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +231,7 @@ func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *
 	group := h.Item.(*iam.Group)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +254,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	listGroupPoliciesOutput := h.HydrateResults["listAwsIamGroupInlinePolicies"].(*iam.ListGroupPoliciesOutput)
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -255,6 +269,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	// wait for all inline policies to be processed
 	wg.Wait()
+
 	// NOTE: close channel before ranging over results
 	close(policyCh)
 	close(errorCh)

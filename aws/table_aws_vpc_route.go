@@ -21,13 +21,13 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
 		// 	ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-		// 	ItemFromKey:       vpcRouteTableFromKey,
 		// 	Hydrate:           getAwsVpcRoute,
 		// },
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcRouteTables,
 			Hydrate:       listAwsVpcRoute,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",

@@ -103,7 +103,7 @@ type accountData struct {
 func listAccountAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := IAMService(ctx, d.ConnectionManager)
+	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -137,11 +137,11 @@ func listAccountAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getOrganizationDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getOrganizationDetails")
 
 	// Create Session
-	svc, err := OrganizationService(ctx, d.ConnectionManager)
+	svc, err := OrganizationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

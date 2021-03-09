@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,51 +17,51 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpc_endpoint_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpcEndpointId.NotFound", "InvalidVpcEndpointId.Malformed"}),
-			ItemFromKey:       vpcEndpointFromKey,
 			Hydrate:           getVpcEndpoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpoints,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_endpoint_id",
-				Description: "The ID of the VPC endpoint",
+				Description: "The ID of the VPC endpoint.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "service_name",
-				Description: "The name of the service to which the endpoint is associated",
+				Description: "The name of the service to which the endpoint is associated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the VPC endpoint",
+				Description: "The ID of the AWS account that owns the VPC endpoint.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC to which the endpoint is associated",
+				Description: "The ID of the VPC to which the endpoint is associated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The state of the VPC endpoint",
+				Description: "The state of the VPC endpoint.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "private_dns_enabled",
-				Description: "Indicates whether the VPC is associated with a private hosted zone",
+				Description: "Indicates whether the VPC is associated with a private hosted zone.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "requester_managed",
-				Description: "Indicates whether the VPC endpoint is being managed by its service",
+				Description: "Indicates whether the VPC endpoint is being managed by its service.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "policy",
-				Description: "The policy document associated with the endpoint, if applicable",
+				Description: "The policy document associated with the endpoint, if applicable.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("PolicyDocument").Transform(transform.UnmarshalYAML),
 			},
@@ -72,37 +73,37 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "subnet_ids",
-				Description: "One or more subnets in which the endpoint is located",
+				Description: "One or more subnets in which the endpoint is located.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "route_table_ids",
-				Description: "One or more route tables associated with the endpoint",
+				Description: "One or more route tables associated with the endpoint.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "groups",
-				Description: "Information about the security groups that are associated with the network interface",
+				Description: "Information about the security groups that are associated with the network interface.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "network_interface_ids",
-				Description: "One or more network interfaces for the endpoint",
+				Description: "One or more network interfaces for the endpoint.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "dns_entries",
-				Description: "The DNS entries for the endpoint",
+				Description: "The DNS entries for the endpoint.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "creation_timestamp",
-				Description: "The date and time that the VPC endpoint was created",
+				Description: "The date and time that the VPC endpoint was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the VPC endpoint",
+				Description: "A list of tags assigned to the VPC endpoint.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -131,26 +132,20 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcEndpointFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	vpcEndpointID := quals["vpc_endpoint_id"].GetStringValue()
-	item := &ec2.VpcEndpoint{
-		VpcEndpointId: &vpcEndpointID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listVpcEndpoints", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listVpcEndpoints", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -170,26 +165,31 @@ func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEndpoint")
-	vpcEndpoint := h.Item.(*ec2.VpcEndpoint)
-	defaultRegion := GetDefaultRegion()
+func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcEndpoint")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	vpcEndpointID := d.KeyColumnQuals["vpc_endpoint_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &ec2.DescribeVpcEndpointsInput{
-		VpcEndpointIds: []*string{vpcEndpoint.VpcEndpointId},
+		VpcEndpointIds: []*string{aws.String(vpcEndpointID)},
 	}
 
 	//get call
 	item, err := svc.DescribeVpcEndpoints(params)
 	if err != nil {
-		logger.Debug("getVpcEndpoint__", "Error", err)
+		plugin.Logger(ctx).Debug("getVpcEndpoint__", "Error", err)
 		return nil, err
 	}
 

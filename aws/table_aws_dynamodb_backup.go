@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
@@ -17,65 +18,65 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			ItemFromKey:       tableBackupFromKey,
 			Hydrate:           getDynamodbBackup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamodbBackups,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "Name of the backup",
+				Description: "Name of the backup.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupName"),
 			},
 			{
 				Name:        "arn",
-				Description: "Amazon Resource Name associated with the backup",
+				Description: "Amazon Resource Name associated with the backup.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupArn"),
 			},
 			{
 				Name:        "table_name",
-				Description: "Unique identifier for the table to which backup belongs",
+				Description: "Unique identifier for the table to which backup belongs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "table_arn",
-				Description: "Name of the table to which backup belongs",
+				Description: "Name of the table to which backup belongs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "table_id",
-				Description: "ARN associated with the table to which backup belongs",
+				Description: "ARN associated with the table to which backup belongs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "backup_status",
-				Description: "Current status of the backup. Backup can be in one of the following states: CREATING, ACTIVE, DELETED",
+				Description: "Current status of the backup. Backup can be in one of the following states: CREATING, ACTIVE, DELETED.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "backup_type",
-				Description: "Backup type (USER | SYSTEM | AWS_BACKUP)",
+				Description: "Backup type (USER | SYSTEM | AWS_BACKUP).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "backup_creation_datetime",
-				Description: "Time at which the backup was created",
+				Description: "Time at which the backup was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("BackupCreationDateTime"),
 			},
 			{
 				Name:        "backup_expiry_datetime",
-				Description: "Time at which the automatic on-demand backup created by DynamoDB will expire",
+				Description: "Time at which the automatic on-demand backup created by DynamoDB will expire.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("BackupExpiryDateTime"),
 			},
 			{
 				Name:        "backup_size_bytes",
-				Description: "Size of the backup in bytes",
+				Description: "Size of the backup in bytes.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -94,26 +95,18 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func tableBackupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	arn := quals["arn"].GetStringValue()
-	item := &dynamodb.BackupSummary{
-		BackupArn: &arn,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", defaultRegion)
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -134,25 +127,29 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDynamodbBackup")
-	backup := h.Item.(*dynamodb.BackupSummary)
-	defaultRegion := GetDefaultRegion()
+func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDynamodbBackup")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := DynamoDbService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	params := &dynamodb.DescribeBackupInput{
-		BackupArn: backup.BackupArn,
+		BackupArn: aws.String(arn),
 	}
 
 	item, err := svc.DescribeBackup(params)
 	if err != nil {
-		logger.Debug("getDynamodbBackup__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getDynamodbBackup__", "ERROR", err)
 		return nil, err
 	}
 

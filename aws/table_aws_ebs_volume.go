@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume",
@@ -17,99 +19,99 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("volume_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			ItemFromKey:       volumeFromKey,
 			Hydrate:           getEBSVolume,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "volume_id",
-				Description: "The ID of the volume",
+				Description: "The ID of the volume.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "volume_type",
-				Description: "The volume type. This can be gp2 for General Purpose SSD, io1 or io2 for Provisioned IOPS SSD, st1 for Throughput Optimized HDD, sc1 for Cold HDD, or standard for Magnetic volumes",
+				Description: "The volume type. This can be gp2 for General Purpose SSD, io1 or io2 for Provisioned IOPS SSD, st1 for Throughput Optimized HDD, sc1 for Cold HDD, or standard for Magnetic volumes.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The volume state",
+				Description: "The volume state.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_time",
-				Description: "The time stamp when volume creation was initiated",
+				Description: "The time stamp when volume creation was initiated.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "auto_enable_io",
-				Description: "The state of autoEnableIO attribute",
+				Description: "The state of autoEnableIO attribute.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getVolumeAutoEnableIOData,
 				Transform:   transform.FromField("AutoEnableIO.Value"),
 			},
 			{
 				Name:        "availability_zone",
-				Description: "The Availability Zone for the volume",
+				Description: "The Availability Zone for the volume.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "encrypted",
-				Description: "Indicates whether the volume is encrypted",
+				Description: "Indicates whether the volume is encrypted.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "fast_restored",
-				Description: "Indicates whether the volume was created using fast snapshot restore",
+				Description: "Indicates whether the volume was created using fast snapshot restore.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "iops",
-				Description: "The number of I/O operations per second (IOPS) that the volume supports",
+				Description: "The number of I/O operations per second (IOPS) that the volume supports.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "kms_key_id",
-				Description: "The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the volume",
+				Description: "The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the volume.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "multi_attach_enabled",
-				Description: "Indicates whether Amazon EBS Multi-Attach is enabled",
+				Description: "Indicates whether Amazon EBS Multi-Attach is enabled.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "outpost_arn",
-				Description: "The Amazon Resource Name (ARN) of the Outpost",
+				Description: "The Amazon Resource Name (ARN) of the Outpost.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "size",
-				Description: "The size of the volume, in GiBs",
+				Description: "The size of the volume, in GiBs.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "snapshot_id",
-				Description: "The snapshot from which the volume was created, if applicable",
+				Description: "The snapshot from which the volume was created, if applicable.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "attachments",
-				Description: "Information about the volume attachments",
+				Description: "Information about the volume attachments.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "product_codes",
-				Description: "A list of product codes",
+				Description: "A list of product codes.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getVolumeProductCodes,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the volume",
+				Description: "A list of tags assigned to the volume.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -137,25 +139,19 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func volumeFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	volumeID := quals["volume_id"].GetStringValue()
-	item := &ec2.Volume{
-		VolumeId: &volumeID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -177,26 +173,31 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 //// HYDRATE FUNCTIONS
 
 func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEBSVolume")
-	volume := h.Item.(*ec2.Volume)
-	defaultRegion := GetDefaultRegion()
+	plugin.Logger(ctx).Trace("getEBSVolume")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVolumesInput{
-		VolumeIds: []*string{volume.VolumeId},
+		VolumeIds: []*string{aws.String(volumeID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeVolumes(params)
 	if err != nil {
-		logger.Debug("getEBSVolume__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getEBSVolume__", "ERROR", err)
 		return nil, err
 	}
 
@@ -207,16 +208,18 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	return nil, nil
 }
 
-/////////////////////////////////
-// describe functions
-
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")
 	volume := h.Item.(*ec2.Volume)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -238,10 +241,15 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeProductCodes")
 	volume := h.Item.(*ec2.Volume)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,12 +19,12 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"domain_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       apiGatewayDomainNameFromKey,
 			Hydrate:           getDomainName,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDomainNames,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -63,26 +64,18 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func apiGatewayDomainNameFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	domainName := quals["domain_name"].GetStringValue()
-
-	item := &apigatewayv2.DomainName{
-		DomainName: &domainName,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
-func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("listDomainNames", "AWS REGION", defaultRegion)
+func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listDomainNames", "AWS REGION", region)
 
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -112,22 +105,26 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDomainName")
+func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDomainName")
 
-	v2ApiDomain := h.Item.(*apigatewayv2.DomainName)
-	defaultRegion := GetDefaultRegion()
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := APIGatewayV2Service(ctx, d, region)
 	if err != nil {
-		logger.Debug("getDomainName__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getDomainName__", "ERROR", err)
 		return nil, err
 	}
 
+	domainName := d.KeyColumnQuals["domain_name"].GetStringValue()
 	input := &apigatewayv2.GetDomainNameInput{
-		DomainName: v2ApiDomain.DomainName,
+		DomainName: aws.String(domainName),
 	}
 
 	op, err := svc.GetDomainName(input)

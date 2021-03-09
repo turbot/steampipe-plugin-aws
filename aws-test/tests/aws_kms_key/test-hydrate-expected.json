@@ -1,12 +1,8 @@
 [
   {
-    "aliases": [
-      {
-        "AliasArn": "{{ output.alias_arn.value }}",
-        "AliasName": "{{ output.key_title.value }}",
-        "TargetKeyId": "{{ output.resource_id.value }}"
-      }
-    ],
+    "alias_arn": "{{ output.alias_arn.value }}",
+    "alias_name": "{{ output.key_title.value }}",
+    "alias_target_key_id": "{{ output.resource_id.value }}",
     "key_manager": "CUSTOMER",
     "key_rotation_enabled": false,
     "policy": {
@@ -34,7 +30,7 @@
           "Effect": "Allow",
           "Principal": {
             "AWS": [
-              "arn:aws:iam::013122550996:root"
+              "arn:aws:iam::{{ output.account_id.value }}:root"
             ]
           },
           "Resource": [

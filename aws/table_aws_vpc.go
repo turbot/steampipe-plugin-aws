@@ -13,64 +13,65 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc",
 		Description: "AWS VPC",
+
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vpc_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       vpcFromKey,
 			Hydrate:           getVpc,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC",
+				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cidr_block",
-				Description: "The primary IPv4 CIDR block for the VPC",
+				Description: "The primary IPv4 CIDR block for the VPC.",
 				Type:        proto.ColumnType_CIDR,
 			},
 			{
 				Name:        "state",
-				Description: "Contains the current state of the VPC",
+				Description: "Contains the current state of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "is_default",
-				Description: "Indicates whether the VPC is the default VPC",
+				Description: "Indicates whether the VPC is the default VPC.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "dhcp_options_id",
-				Description: "Contains the ID of the set of DHCP options, associated with the VPC",
+				Description: "Contains the ID of the set of DHCP options, associated with the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_tenancy",
-				Description: "The allowed tenancy of instances launched into the VPC",
+				Description: "The allowed tenancy of instances launched into the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "Contains ID of the AWS account that owns the VPC",
+				Description: "Contains ID of the AWS account that owns the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cidr_block_association_set",
-				Description: "Information about the IPv4 CIDR blocks associated with the VPC",
+				Description: "Information about the IPv4 CIDR blocks associated with the VPC.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "ipv6_cidr_block_association_set",
-				Description: "Information about the IPv6 CIDR blocks associated with the VPC",
+				Description: "Information about the IPv6 CIDR blocks associated with the VPC.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the vpc",
+				Description: "A list of tags that are attached with the VPC.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -86,7 +87,6 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Default:     transform.FromField("VpcId"),
 				Transform:   transform.From(getVpcTurbotTitle),
 			},
 			{
@@ -100,26 +100,19 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func vpcFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	vpcID := quals["vpc_id"].GetStringValue()
-	item := &ec2.Vpc{
-		VpcId: &vpcID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	defaultRegion := GetDefaultRegion()
-	plugin.Logger(ctx).Trace("[TRACE] listVpcs", "AWS_REGION", defaultRegion)
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -140,21 +133,23 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 
 //// HYDRATE FUNCTIONS
 
-func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpc")
-	vpc := h.Item.(*ec2.Vpc)
-	defaultRegion := GetDefaultRegion()
+
+	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
-	svc, err := Ec2Service(ctx, d.ConnectionManager, defaultRegion)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVpcsInput{
-		VpcIds: []*string{vpc.VpcId},
+		VpcIds: []*string{&vpcID},
 	}
 
 	// Get call
@@ -173,6 +168,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsVpcTurbotData")
 	vpc := h.Item.(*ec2.Vpc)
+
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -189,6 +185,7 @@ func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpc := d.HydrateItem.(*ec2.Vpc)
+
 	var turbotTagsMap map[string]string
 	if vpc.Tags != nil {
 		turbotTagsMap = map[string]string{}
@@ -202,22 +199,14 @@ func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 
 func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpc := d.HydrateItem.(*ec2.Vpc)
-	vpcData := d.HydrateResults
-	var title string
+
 	if vpc.Tags != nil {
 		for _, i := range vpc.Tags {
 			if *i.Key == "Name" {
-				title = *i.Value
+				return *i.Value, nil
 			}
 		}
 	}
 
-	if title == "" {
-		if vpcData["getVpc"] != nil {
-			title = *vpcData["getVpc"].(*ec2.Vpc).VpcId
-		} else {
-			title = *vpcData["listVpcs"].(*ec2.Vpc).VpcId
-		}
-	}
-	return title, nil
+	return vpc.VpcId, nil
 }

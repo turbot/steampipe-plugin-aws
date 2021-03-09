@@ -1,0 +1,21 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "load_balancer_attributes": [
+      {
+        "Key": "deletion_protection.enabled",
+        "Value": "false"
+      },
+      {
+        "Key": "load_balancing.cross_zone.enabled",
+        "Value": "false"
+      }
+    ],
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]
