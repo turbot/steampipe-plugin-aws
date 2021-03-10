@@ -94,6 +94,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sns_topic":                          tableAwsSnsTopic(ctx),
 			"aws_sns_topic_subscription":             tableAwsSnsTopicSubscription(ctx),
 			"aws_sqs_queue":                          tableAwsSqsQueue(ctx),
+			"aws_ssm_document":                       tableAwsSSMDocument(ctx),
 			"aws_ssm_parameter":                      tableAwsSSMParameter(ctx),
 			"aws_vpc":                                tableAwsVpc(ctx),
 			"aws_vpc_customer_gateway":               tableAwsVpcCustomerGateway(ctx),
@@ -111,7 +112,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
-			"aws_ssm_document":                       tableAwsSSMDocument(ctx),
 		},
 	}
 

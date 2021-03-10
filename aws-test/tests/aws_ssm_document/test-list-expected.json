@@ -9,6 +9,6 @@
     "tags": {
       "name": "{{ resourceName }}"
     },
-    "title": "{{resourceName}}"
+    "title": "{{ resourceName }}"
   }
 ]

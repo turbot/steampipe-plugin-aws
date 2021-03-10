@@ -6,8 +6,6 @@ variable "resource_name" {
   description = "Name of the resource used throughout the test."
 }
 
-
-
 variable "aws_profile" {
   type    = string
   default = "integration-tests"

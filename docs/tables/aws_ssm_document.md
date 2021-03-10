@@ -21,7 +21,7 @@ from
 ```
 
 
-### List of documents those does not have default version
+### List of documents which does not have default version
 
 ```sql
 select
@@ -34,11 +34,11 @@ select
 from
     aws_ssm_document
 where
-    document_version!='1';
+    document_version != '1';
 ```
 
 
-### List of documents those are not owned by Amazon
+### List of documents which are not owned by Amazon
 
 ```sql
 select
@@ -51,7 +51,7 @@ select
 from 
     aws_ssm_document
 where
-    owner!='Amazon';
+    owner != 'Amazon';
 ```
 
 
@@ -71,7 +71,7 @@ where
 ```
 
 
-### List of documents those have empty platform types
+### List of documents with empty platform types
 
 ```sql
 select
@@ -84,5 +84,5 @@ select
 from
     aws_ssm_document
 where
-    platform_types='[]';
+    platform_types = '[]';
 ```
