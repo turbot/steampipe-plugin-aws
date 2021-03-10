@@ -29,7 +29,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",
-				Description: "An unique identifier for ElastiCache cluster. ",
+				Description: "An unique identifier for ElastiCache cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -268,6 +268,9 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	plugin.Logger(ctx).Trace("clusterTagListToTurbotTags")
 	clusterTag := d.HydrateItem.(*elasticache.TagListMessage)
 
+	if clusterTag.TagList == nil {
+		return nil, nil
+	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if clusterTag.TagList != nil {
