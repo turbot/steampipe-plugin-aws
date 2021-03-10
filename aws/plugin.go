@@ -42,6 +42,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
 			"aws_cloudwatch_log_group":               tableAwsCloudwatchLogGroup(ctx),
 			"aws_cloudwatch_log_metric_filter":       tableAwsCloudwatchLogMetricFilter(ctx),
+			"aws_cloudwatch_log_stream":              tableAwsCloudwatchLogStream(ctx),
 			"aws_dynamodb_backup":                    tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":              tableAwsDynamoDBGlobalTable(ctx),
 			"aws_dynamodb_table":                     tableAwsDynamoDBTable(ctx),
