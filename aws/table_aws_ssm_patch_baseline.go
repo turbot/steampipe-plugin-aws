@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
-
 	"github.com/turbot/go-kit/types"
-	pb "github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +21,7 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Patch Baseline",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("baseline_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId"}),
+			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
 			Hydrate:           getPatchBaseline,
 		},
 		List: &plugin.ListConfig{
@@ -32,115 +32,116 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 			{
 				Name:        "name",
 				Description: "The name of the patch baseline.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "baseline_id",
 				Description: "The ID of the retrieved patch baseline.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromCamel().Transform(lastPathElement),
 			},
 			{
 				Name:        "description",
 				Description: "A description of the patch baseline.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "operating_system",
 				Description: "Returns the operating system specified for the patch baseline.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "created_date",
 				Description: "The date the patch baseline was created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "modified_date",
 				Description: "The date the patch baseline was last modified.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "approved_patches_compliance_level",
 				Description: "Returns the specified compliance severity level for approved patches in the patch baseline.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "approved_patches_enable_non_security",
 				Description: "Indicates whether the list of approved patches includes non-security updates that should be applied to the instances. The default value is 'false'. Applies to Linux instances only.",
-				Type:        pb.ColumnType_BOOL,
+				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "approval_rules",
 				Description: "A set of rules used to include patches in the baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "approved_patches",
 				Description: "A list of explicitly approved patches for the baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "global_filters",
 				Description: "A set of global filters used to exclude patches from the baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "patch_groups",
 				Description: "Patch groups included in the patch baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "rejected_patches_action",
 				Description: "The action specified to take on patches included in the RejectedPatches list. A patch can be allowed only if it is a dependency of another package, or blocked entirely along with packages that include it as a dependency.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "rejected_patches",
 				Description: "A list of explicitly rejected patches for the baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "sources",
 				Description: "Information about the patches to use to update the instances, including target operating systems and source repositories. Applies to Linux instances only.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPatchBaseline,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the patch baseline.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMPatchBaselineTags,
 				Transform:   transform.FromField("TagList"),
 			},
-			/// Standard columns for all tables
+
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMPatchBaselineTags,
 				Transform:   transform.FromField("TagList").Transform(ssmTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMPatchBaselineAkas,
 				Transform:   transform.FromValue(),
 			},
@@ -150,7 +151,7 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 			// {
 			// 	Name:        "default_baseline",
 			// 	Description: "Whether this is the default baseline. Note that Systems Manager supports creating multiple default patch baselines. For example, you can create a default patch baseline for each operating system.",
-			// 	Type:        pb.ColumnType_BOOL,
+			// 	Type:        proto.ColumnType_BOOL,
 			// },
 		}),
 	}
@@ -178,7 +179,7 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	params := &ssm.DescribePatchBaselinesInput{
 		Filters: []*ssm.PatchOrchestratorFilter{
 			{
-				Key:   aws.String("OWNER"),
+				Key:    aws.String("OWNER"),
 				Values: []*string{aws.String("Self")},
 			},
 		},
@@ -211,8 +212,7 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getPatchBaseline")
+	plugin.Logger(ctx).Trace("getPatchBaseline")
 
 	// TODO put me in helper function
 	var region string
@@ -242,7 +242,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Get call
 	data, err := svc.GetPatchBaseline(params)
 	if err != nil {
-		logger.Debug("getPatchBaseline__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getPatchBaseline__", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
@@ -250,8 +250,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // API call for fetching tag list
 func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMPatchBaselineTags")
+	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineTags")
 
 	// TODO put me in helper function
 	var region string
@@ -270,19 +269,17 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	baselineIDSplitted := strings.Split(*baseline.BaselineId, "/")
 	id := baselineIDSplitted[len(baselineIDSplitted)-1]
-	
+
 	// Build the params
 	params := &ssm.ListTagsForResourceInput{
 		ResourceType: types.String("PatchBaseline"),
 		ResourceId:   &id,
 	}
 
-	logger.Trace("getAwsSSMPatchBaselineTags", "Params", *params.ResourceId)
-
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Debug("getAwsSSMPatchBaselineTags", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsSSMPatchBaselineTags", "ERROR", err)
 		return nil, err
 	}
 
@@ -292,11 +289,13 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineAkas")
 	parameterData := h.Item.(*ssm.GetPatchBaselineOutput)
+
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
+
 	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":patchbaseline"
 
 	if strings.HasPrefix(*parameterData.BaselineId, "/") {
