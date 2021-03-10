@@ -12,14 +12,7 @@ select
   cluster_name,
   active_sevices_count,
   attachments,
-  attachments_status,
-  capacity_providers,
-  default_capacity_provider_strategy,
-  pending_tasks_count,
-  registered_container_instances_count,
-  running_tasks_count,
-  settings,
-  statistics,
+  attachments_status
   status
 from
   aws_ecs_cluster;
@@ -39,14 +32,16 @@ where
 ```
 
 
-### List resources attached to ecs clusters
+### List of resources attached with clusters
 
 ```sql
 select
-  attachments,
-  attachments_status
+  attachment ->> 'id' as attachment_id,
+  attachment ->> 'status' as attachment_status,
+  attachment ->> 'type' as attachment_type
 from
-  aws_ecs_cluster;
+  aws_ecs_cluster,
+  jsonb_array_elements(attachments) as attachment;
 ```
 
 
@@ -55,9 +50,11 @@ from
 ```sql
 select
   cluster_arn,
-  setting ->> 'Name' as Name,
-  setting ->> 'Value' as Value
+  setting ->> 'Name' as name,
+  setting ->> 'Value' as value
 from
   aws_new.aws_ecs_cluster,
-  jsonb_array_elements(settings) as setting;
+  jsonb_array_elements(settings) as setting
+where
+  setting ->> 'Value' = 'disabled';
 ```

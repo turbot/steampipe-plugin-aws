@@ -31,70 +31,60 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_arn",
 				Description: "The Amazon Resource Name (ARN) that identifies the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ClusterArn"),
 			},
 			{
 				Name:        "cluster_name",
 				Description: "A user-generated string that you use to identify your cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("ClusterName"),
 			},
 			{
-				Name:        "active_sevices_count",
+				Name:        "active_services_count",
 				Description: "The number of services that are running on the cluster in an ACTIVE state.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("ActiveServicesCount"),
 			},
 			{
 				Name:        "pending_tasks_count",
 				Description: "The number of tasks in the cluster that are in the PENDING state.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("PendingTasksCount"),
 			},
 			{
 				Name:        "registered_container_instances_count",
 				Description: "The number of container instances registered into the cluster. This includes container instances in both ACTIVE and DRAINING status.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("RegisteredContainerInstancesCount"),
 			},
 			{
 				Name:        "running_tasks_count",
 				Description: "The number of tasks in the cluster that are in the RUNNING state.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("RunningTasksCount"),
 			},
 			{
 				Name:        "status",
 				Description: "The status of the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("Status"),
 			},
 			{
 				Name:        "attachments_status",
 				Description: "The number of services that are running on the cluster in an ACTIVE state.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("AttachmentsStatus"),
 			},
 			{
 				Name:        "attachments",
 				Description: "The number of services that are running on the cluster in an ACTIVE state.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("Attachments"),
 			},
 			{
 				Name:        "settings",
 				Description: "The settings for the cluster. This parameter indicates whether CloudWatch Container Insights is enabled or disabled for a cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("Settings"),
 			},
 			{
 				Name:        "statistics",
@@ -108,21 +98,12 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Description: "The default capacity provider strategy for the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("DefaultCapacityProviderStrategy"),
 			},
 			{
 				Name:        "capacity_providers",
 				Description: "The capacity providers associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("CapacityProviders"),
-			},
-			{
-				Name:        "metadata_tags",
-				Description: "The metadata that you apply to the cluster to help you categorize and organize them",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "tags_src",
@@ -180,7 +161,6 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		}
 
 		for _, results := range result.ClusterArns {
-			plugin.Logger(ctx).Trace("clusterArnclusterArnclusterArn", "clusterArn", results)
 			d.StreamListItem(ctx, &ecs.Cluster{
 				ClusterArn: results,
 			})
@@ -197,7 +177,7 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, err
 }
 
-/// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
@@ -266,11 +246,15 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return clusterdata, nil
 }
 
-//// TRANSFORM FUNCTIONS 
+//// TRANSFORM FUNCTIONS
 
 func getAwsEcsClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
 error) {
 	ecsClusterTags := d.HydrateItem.(*ecs.ListTagsForResourceOutput)
+
+	if ecsClusterTags.Tags == nil {
+		return nil, nil
+	}
 
 	if ecsClusterTags.Tags != nil {
 		turbotTagsMap := map[string]string{}

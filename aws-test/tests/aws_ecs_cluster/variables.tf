@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "aws"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -54,10 +54,6 @@ resource "aws_ecs_cluster" "named_test_resource" {
     name = var.resource_name
   }
 }
-
-# Get the Turbot resource that represents the test resource. This shadow will be used
-# for all policy settings etc throughout the test. Waiting for the shadow also ensures
-# proper ordering of the setup of policies etc after the resource exists in Turbot.
 
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
