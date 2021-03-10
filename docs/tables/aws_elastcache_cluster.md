@@ -8,13 +8,13 @@ A cluster is a collection of one or more cache nodes, all of which run an instan
 
 ```sql
 select
- cache_cluster_id,
- cache_node_type,
- at_rest_encryption_enabled
+  cache_cluster_id,
+  cache_node_type,
+  at_rest_encryption_enabled
 from
- aws_elasticache_cluster
+  aws_elasticache_cluster
 where
- not at_rest_encryption_enabled;
+  not at_rest_encryption_enabled;
 ```
 
 
@@ -22,12 +22,12 @@ where
 
 ```sql
 select
- cache_cluster_id,
- preferred_availability_zone
+  cache_cluster_id,
+  preferred_availability_zone
 from
- aws_elasticache_cluster
+  aws_elasticache_cluster
 where
- preferred_availability_zone <> 'Multiple';
+  preferred_availability_zone <> 'Multiple';
 ```
 
 
@@ -35,13 +35,13 @@ where
 
 ```sql
 select
- cache_cluster_id,
- cache_node_type,
- transit_encryption_enabled
+  cache_cluster_id,
+  cache_node_type,
+  transit_encryption_enabled
 from
- aws_elasticache_cluster
+  aws_elasticache_cluster
 where
- not transit_encryption_enabled;
+  not transit_encryption_enabled;
 ```
 
 
@@ -49,14 +49,14 @@ where
 
 ```sql
 select
- cache_node_type,
- count(*) as count
+  cache_node_type,
+  count(*) as count
 from
- aws_elasticache_cluster
+  aws_elasticache_cluster
 where
- cache_node_type not in ('cache.m5.large', 'cache.m4.4xlarge')
+  cache_node_type not in ('cache.m5.large', 'cache.m4.4xlarge')
 group by
- cache_node_type;
+  cache_node_type;
 ```
 
 
@@ -64,14 +64,14 @@ group by
 
 ```sql
 select
- cache_cluster_id,
- cache_cluster_status,
- notification_configuration ->> 'TopicArn' as topic_arn,
- notification_configuration ->> 'TopicStatus' as topic_status
+  cache_cluster_id,
+  cache_cluster_status,
+  notification_configuration ->> 'TopicArn' as topic_arn,
+  notification_configuration ->> 'TopicStatus' as topic_status
 from
- aws_elastic_cache_cluster
+  aws_elasticache_cluster
 where
- notification_configuration ->> 'TopicStatus' = 'inactive';
+  notification_configuration ->> 'TopicStatus' = 'inactive';
 ```
 
 
@@ -79,10 +79,10 @@ where
 
 ```sql
 select
- cache_cluster_id,
- sg ->> 'SecurityGroupId' as security_group_id,
- sg ->> 'Status' as status
+  cache_cluster_id,
+  sg ->> 'SecurityGroupId' as security_group_id,
+  sg ->> 'Status' as status
 from
- aws_elasticache_cluster,
- jsonb_array_elements(security_groups) as sg;
+  aws_elasticache_cluster,
+  jsonb_array_elements(security_groups) as sg;
 ```
