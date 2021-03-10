@@ -165,18 +165,7 @@ func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		&ssm.ListDocumentsInput{},
 		func(page *ssm.ListDocumentsOutput, isLast bool) bool {
 			for _, documentIdentifier := range page.DocumentIdentifiers {
-				d.StreamListItem(ctx, &ssm.DocumentDescription{
-					Name:            documentIdentifier.Name,
-					TargetType:      documentIdentifier.TargetType,
-					DocumentVersion: documentIdentifier.DocumentVersion,
-					Owner:           documentIdentifier.Owner,
-					VersionName:     documentIdentifier.VersionName,
-					DocumentFormat:  documentIdentifier.DocumentFormat,
-					PlatformTypes:   documentIdentifier.PlatformTypes,
-					ReviewStatus:    documentIdentifier.ReviewStatus,
-					Tags:            documentIdentifier.Tags,
-					DocumentType:    documentIdentifier.DocumentType,
-				})
+				d.StreamListItem(ctx, documentIdentifier)
 
 			}
 			return !isLast
@@ -200,7 +189,7 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*ssm.DocumentDescription).Name
+		name = documentName(h.Item)
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
@@ -228,7 +217,7 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMDocumentAkas")
-	name := *h.Item.(*ssm.DocumentDescription).Name
+	name := documentName(h.Item)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -247,19 +236,39 @@ func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("ssmDocumentTagListToTurbotTags")
-	document := d.HydrateItem.(*ssm.DocumentDescription)
+	data := resourceTags(d.HydrateItem)
 
-	if document.Tags == nil {
+	if data == nil {
 		return nil, nil
 	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if document != nil {
+	if data != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range document.Tags {
+		for _, i := range data {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
 
 	return turbotTagsMap, nil
+}
+
+func documentName(item interface{}) string {
+	switch item.(type) {
+	case *ssm.DocumentDescription:
+		return *item.(*ssm.DocumentDescription).Name
+	case *ssm.DocumentIdentifier:
+		return *item.(*ssm.DocumentIdentifier).Name
+	}
+	return ""
+}
+
+func resourceTags(item interface{}) []*ssm.Tag {
+	switch item.(type) {
+	case *ssm.DocumentDescription:
+		return item.(*ssm.DocumentDescription).Tags
+	case *ssm.DocumentIdentifier:
+		return item.(*ssm.DocumentIdentifier).Tags
+	}
+	return nil
 }
