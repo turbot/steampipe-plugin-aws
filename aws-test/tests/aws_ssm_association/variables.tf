@@ -48,11 +48,54 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_vpc" "my_vpc" {
+  cidr_block = "10.0.0.0/16"
+}
+resource "aws_security_group" "security_group" {
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.my_vpc.id
+  ingress {
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
+  }
+}
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.my_vpc.id
+}
+resource "aws_subnet" "my_subnet" {
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = "${var.aws_region}a"
+  depends_on        = ["aws_internet_gateway.igw"]
+}
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["099720109477"]
+}
+resource "aws_instance" "instance" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.my_subnet.id
+  associate_public_ip_address = false
+  tags = {
+    name = var.resource_name
+  }
+}
+
 resource "aws_ssm_document" "test_resource" {
 name          = var.resource_name
 document_type = "Command"
 tags = {
-  name = "testdocument"
+  name = var.resource_name
 }
 content = <<DOC
   {
@@ -75,12 +118,12 @@ DOC
 }
 
 resource "aws_ssm_association" "named_test_resource" {
-  name = aws_ssm_document.test_resource.name
+  name = aws_ssm_document.test_resource.id
   association_name = var.resource_name
   targets {
     key = "InstanceIds"
     values = [
-      "i-0d500459c335f65ba"
+      aws_instance.instance.id
     ]
   }
 }

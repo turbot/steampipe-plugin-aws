@@ -4,9 +4,6 @@
     "association_name": "{{ output.resource_name.value }}",
     "association_version": "1",
     "compliance_severity": "<null>",
-    "document_version": "<null>",
-    "instance_id": "<null>",
-    "name": "{{ resourceName }}",
     "overview": {
       "AssociationStatusAggregatedCount": {},
       "DetailedStatus": "Success",
@@ -14,14 +11,6 @@
     },
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",
-    "schedule_expression": "<null>",
-    "targets": [
-      {
-        "Key": "InstanceIds",
-        "Values": [
-          "i-0d500459c335f65ba"
-        ]
-      }
-    ]
+    "schedule_expression": "<null>"
   }
 ]

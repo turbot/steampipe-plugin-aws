@@ -47,13 +47,12 @@ from
 	jsonb_array_elements_text(target -> 'Values') as instances
 where
 	target ->> 'Key' = 'InstanceIds';
-  
 ```
 ### List of association by specific creation date
 
 ```sql
 select
-  association_id ,
+  association_id,
   targets,
   document_name
 from
@@ -74,7 +73,6 @@ from
 	aws_ssm_association
 where
 	compliance_severity = 'CRITICAL';
-
 ```
 
 
@@ -82,10 +80,10 @@ where
 
 ```sql
 select
+	account_id,
 	count(association_id) as count
 from
 	aws_ssm_association
-where
-	account_id = '986325076436';
-  
+group by
+	account_id;
 ```

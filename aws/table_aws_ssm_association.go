@@ -11,6 +11,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ssm_association",
@@ -45,7 +47,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Name:        "date",
 				Description: "The date when the association was made.",
 				Hydrate:     getAwsSSMAssociation,
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "association_version",
@@ -151,7 +153,6 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 // HYDRATE FUNCTIONS
-//TODO
 
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
