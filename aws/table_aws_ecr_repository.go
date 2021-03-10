@@ -87,7 +87,7 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns for all tables
+			// Standard columns for all tables
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),

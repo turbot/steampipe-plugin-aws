@@ -18,7 +18,8 @@ from
   aws_ecr_repository;
 ```
 
-### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
+### List of unencrypted ECR repositories
+
 ```sql
 select
   repository_name,
@@ -27,10 +28,24 @@ select
 from
   aws_ecr_repository
 where
-  encryption_configuration ->> 'KmsKey' = 'KMS';
+  encryption_configuration ->> 'KmsKey' is null;
 ```
 
-### List Repositories whose imageTag set as MUTABLE
+### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
+
+```sql
+select
+  repository_name,
+  encryption_configuration ->> 'EncryptionType' as encryption_type,
+  encryption_configuration ->> 'KmsKey' as kms_key
+from
+  aws_ecr_repository
+where
+  encryption_configuration ->> 'EncryptionType' = 'AES256';
+```
+
+### List Repositories whose tag immutability is enabled
+
 ```sql
 select
   repository_name,
@@ -42,6 +57,7 @@ where
 ```
 
 ### Count of image details in each Repository
+
 ```sql
 select
   count(image_details) as count
@@ -51,15 +67,4 @@ where
   repository_name = 'steampipe-12';
 ```
 
-### List of unencrypted ECR repositories
-```sql
-select
-  repository_name,
-  encryption_configuration ->> 'EncryptionType' as encryption_type,
-  encryption_configuration ->> 'KmsKey' as kms_key
-from
-  aws_ecr_repository
-where
-  encryption_configuration ->> 'KmsKey' = 'null';
-```
 
