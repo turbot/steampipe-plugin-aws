@@ -134,16 +134,7 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		&ssm.ListAssociationsInput{},
 		func(page *ssm.ListAssociationsOutput, isLast bool) bool {
 			for _, association := range page.Associations {
-				d.StreamListItem(ctx, &ssm.AssociationDescription{
-					Name:               association.Name,
-					AssociationId:      association.AssociationId,
-					AssociationName:    association.AssociationName,
-					AssociationVersion: association.AssociationVersion,
-					Targets:            association.Targets,
-					LastExecutionDate:  association.LastExecutionDate,
-					Overview:           association.Overview,
-				})
-
+				d.StreamListItem(ctx, association)
 			}
 			return !isLast
 		},
@@ -202,4 +193,14 @@ func getAwsSSMAssociationAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 	aka := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + *associationData.AssociationId}
 
 	return aka, nil
+}
+
+func associationID(item interface{}) string {
+	switch item.(type) {
+	case *ssm.Association:
+		return *item.(*ssm.Association).AssociationId
+	case *ssm.AssociationDescription:
+		return *item.(*ssm.AssociationDescription).AssociationId
+	}
+	return ""
 }
