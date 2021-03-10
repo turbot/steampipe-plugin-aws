@@ -19,7 +19,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
 			Hydrate:           getElasticCacheCluster,
 		},
 		List: &plugin.ListConfig{
@@ -198,6 +198,7 @@ func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getElasticCacheCluster")
 
 	// TODO put me in helper function
 	var region string
@@ -271,6 +272,7 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	if clusterTag.TagList == nil {
 		return nil, nil
 	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if clusterTag.TagList != nil {
