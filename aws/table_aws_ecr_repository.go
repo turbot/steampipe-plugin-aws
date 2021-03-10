@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsECRRepository(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ecr_repository",
@@ -26,7 +28,7 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
-				Description: "A list of repositories to describe.",
+				Description: "The name of the repository.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -39,12 +41,6 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Description: "The maximum number of repository results returned by DescribeRepositories.",
 				Hydrate:     getAwsECRRepositories,
 				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "next_token",
-				Description: "The date when the association was made.",
-				Hydrate:     getAwsECRRepositories,
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "repository_arn",
@@ -83,12 +79,21 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsECRDescribeImages,
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the Repository",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsECRRepositoryTags,
+				Transform:   transform.FromField("Tags"),
+			},
+
 			/// Standard columns for all tables
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsECRRepositoryTags,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "title",
@@ -137,6 +142,9 @@ func listAwsECRRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	return nil, err
 }
+
+////  HYDRATE FUNCTIONS
+
 func getAwsECRRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsECRRepositories")
@@ -203,9 +211,9 @@ func getAwsECRRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin
 		logger.Debug("getAwsECRRepositoryTags", "ERROR", err)
 		return nil, err
 	}
-
 	return op, nil
 }
+
 func getRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getRepositoryPolicy")
@@ -238,6 +246,7 @@ func getRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	return op, nil
 }
+
 func getAwsECRDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsECRDescribeImages")
@@ -271,6 +280,7 @@ func getAwsECRDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	return op, nil
 }
+
 func getLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getLifecyclePolicy")
@@ -302,4 +312,22 @@ func getLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	return op, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func ecrTagListToTurbotTags(ctx context.Context, d *transform.TransformData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("ecrTagListToTurbotTags")
+	tags := h.Item.(*ecr.ListTagsForResourceOutput)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }

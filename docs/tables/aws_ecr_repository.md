@@ -5,74 +5,61 @@ Amazon Elastic Container Registry (Amazon ECR) is a managed container image regi
 ## Examples
 
 ### SSM association basic info
-
-```sql
-select
-	repository_name,
-	registry_id,
-	repository_arn,
-	repository_uri,
-	created_at,
-	region,
-	account_id
-from
-	aws_ecr_repository;
-```
-### List Repositories whose imageTag set as MUTABLE
-
-```sql
-select
-	repository_name,
-	image_tag_mutability
-from
-	aws_ecr_repository
-where
-	image_tag_mutability = 'MUTABLE';
-```
-
-### List Repositories who has image scan configuration with both CRITICAL findings 
-
 ```sql
 select
   repository_name,
-	image_scanning_configuration as scan
+  registry_id,
+  repository_arn,
+  repository_uri,
+  created_at,
+  region,
+  account_id
 from
-	aws_ecr_repository
-where
-	finding-severity-counts= 'CRITICAL';
+  aws_ecr_repository;
 ```
-### Count of image ids in a requested Repository
 
+### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
 ```sql
 select
-	count(image_ids) as count
+  repository_name,
+  encryption_configuration ->> 'EncryptionType' as encryption_type,
+  encryption_configuration ->> 'KmsKey' as kms_key
 from
-	aws_ecr_repository
+  aws_ecr_repository
 where
-	repository_name = 'steampipe-12';
+  encryption_configuration ->> 'KmsKey' = 'KMS';
 ```
-### List of unencrypted ECR repository
 
+### List Repositories whose imageTag set as MUTABLE
 ```sql
 select
-	repository_name,
-	encryption_configuration ->> 'EncryptionType' as encryption_type,
-	encryption_configuration ->> 'KmsKey' as kms_key
+  repository_name,
+  image_tag_mutability
 from
-	aws_ecr_repository
+  aws_ecr_repository
 where
-	encryption_configuration ->> 'KmsKey' = 'null';
+  image_tag_mutability = 'MUTABLE';
 ```
 
-### List of ECR repository which are not using Customer Managed Keys(CMK)
-
+### Count of image details in each Repository
 ```sql
 select
-	repository_name,
-	encryption_configuration ->> 'EncryptionType' as encryption_type,
-	encryption_configuration ->> 'KmsKey' as kms_key
+  count(image_details) as count
 from
-	aws_ecr_repository
+  aws_ecr_repository
 where
-	encryption_configuration ->> 'KmsKey' = 'KMS';
+  repository_name = 'steampipe-12';
 ```
+
+### List of unencrypted ECR repositories
+```sql
+select
+  repository_name,
+  encryption_configuration ->> 'EncryptionType' as encryption_type,
+  encryption_configuration ->> 'KmsKey' as kms_key
+from
+  aws_ecr_repository
+where
+  encryption_configuration ->> 'KmsKey' = 'null';
+```
+
