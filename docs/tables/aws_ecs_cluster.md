@@ -22,7 +22,7 @@ select
   statistics,
   status
 from
-  aws_new.aws_ecs_cluster;
+  aws_ecs_cluster;
 ```
 
 
@@ -33,7 +33,7 @@ select
   cluster_arn,
   status
 from
-  aws_new.aws_ecs_cluster
+  aws_ecs_cluster
 where
   status IN ('FAILED','INACTIVE');
 ```
@@ -46,7 +46,7 @@ select
   attachments,
   attachments_status
 from
-  aws_new.aws_ecs_cluster;
+  aws_ecs_cluster;
 ```
 
 
@@ -55,7 +55,8 @@ from
 ```sql
 select
   cluster_arn,
-  setting ->> 'Value' as containerInsights
+  setting ->> 'Name' as Name,
+  setting ->> 'Value' as Value
 from
   aws_new.aws_ecs_cluster,
   jsonb_array_elements(settings) as setting;
