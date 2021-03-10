@@ -63,6 +63,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway":                tableAwsEc2TransitGateway(ctx),
 			"aws_ec2_transit_gateway_route_table":    tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
+			"aws_ecr_repository":                     tableAwsECRRepository(ctx),
 			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
