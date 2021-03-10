@@ -174,19 +174,7 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 		&ssm.DescribeMaintenanceWindowsInput{},
 		func(page *ssm.DescribeMaintenanceWindowsOutput, isLast bool) bool {
 			for _, parameter := range page.WindowIdentities {
-				d.StreamListItem(ctx, &ssm.GetMaintenanceWindowOutput{
-					Name:              parameter.Name,
-					Cutoff:            parameter.Cutoff,
-					NextExecutionTime: parameter.NextExecutionTime,
-					Schedule:          parameter.Schedule,
-					ScheduleOffset:    parameter.ScheduleOffset,
-					ScheduleTimezone:  parameter.ScheduleTimezone,
-					WindowId:          parameter.WindowId,
-					Description:       parameter.Description,
-					Enabled:           parameter.Enabled,
-					Duration:          parameter.Duration,
-					StartDate:         parameter.StartDate,
-				})
+				d.StreamListItem(ctx, parameter)
 
 			}
 			return !isLast
@@ -210,8 +198,7 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 	var id string
 	if h.Item != nil {
-		i := h.Item.(*ssm.GetMaintenanceWindowOutput)
-		id = *i.WindowId
+		id = *maintenanceWindowID(h.Item)
 	} else {
 		id = d.KeyColumnQuals["window_id"].GetStringValue()
 	}
@@ -239,13 +226,13 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
-	maintenanceWindowData := h.Item.(*ssm.GetMaintenanceWindowOutput)
+	id := maintenanceWindowID(h.Item)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *maintenanceWindowData.WindowId
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *id
 
 	return []string{aka}, nil
 }
@@ -260,7 +247,7 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	maintenanceWindowData := h.Item.(*ssm.GetMaintenanceWindowOutput)
+	id := maintenanceWindowID(h.Item)
 
 	// Create Session
 	svc, err := SsmService(ctx, d, region)
@@ -271,7 +258,7 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	// Build the params
 	params := &ssm.ListTagsForResourceInput{
 		ResourceType: types.String("MaintenanceWindow"),
-		ResourceId:   maintenanceWindowData.WindowId,
+		ResourceId:   id,
 	}
 
 	// Get call
@@ -294,7 +281,7 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	maintenanceWindowData := h.Item.(*ssm.GetMaintenanceWindowOutput)
+	id := maintenanceWindowID(h.Item)
 
 	// Create Session
 	svc, err := SsmService(ctx, d, region)
@@ -304,7 +291,7 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 
 	// Build the params
 	params := &ssm.DescribeMaintenanceWindowTargetsInput{
-		WindowId: maintenanceWindowData.WindowId,
+		WindowId: id,
 	}
 
 	// Get call
@@ -327,7 +314,7 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	maintenanceWindowData := h.Item.(*ssm.GetMaintenanceWindowOutput)
+	id := maintenanceWindowID(h.Item)
 
 	// Create Session
 	svc, err := SsmService(ctx, d, region)
@@ -337,7 +324,7 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build the params
 	params := &ssm.DescribeMaintenanceWindowTasksInput{
-		WindowId: maintenanceWindowData.WindowId,
+		WindowId: id,
 	}
 
 	// Get call
@@ -368,4 +355,14 @@ func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.T
 	}
 
 	return turbotTagsMap, nil
+}
+
+func maintenanceWindowID(item interface{}) *string {
+	switch item.(type) {
+	case *ssm.GetMaintenanceWindowOutput:
+		return item.(*ssm.GetMaintenanceWindowOutput).WindowId
+	case *ssm.MaintenanceWindowIdentity:
+		return item.(*ssm.MaintenanceWindowIdentity).WindowId
+	}
+	return nil
 }
