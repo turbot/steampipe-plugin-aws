@@ -1,0 +1,11 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "encrypted": true,
+    "file_system_id": "{{ output.resource_id.value }}",
+    "performance_mode": "maxIO",
+    "title": "{{ output.resource_id.value }}"
+  }
+]

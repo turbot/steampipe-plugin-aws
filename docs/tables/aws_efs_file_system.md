@@ -8,14 +8,14 @@ Amazon EFS provides a durable, high throughput file system for content managemen
 
 ```sql
 select
- file_system_id,
- encrypted,
- kms_key_id,
- region
+  file_system_id,
+  encrypted,
+  kms_key_id,
+  region
 from
- aws_efs_file_system
+  aws_efs_file_system
 where
- encrypted = false;
+  not encrypted;
 ```
 
 
@@ -23,13 +23,13 @@ where
 
 ```sql
 select
- file_system_id,
- size_in_bytes ->> 'Value' as data_size,
- size_in_bytes ->> 'Timestamp' as data_size_timestamp,
- size_in_bytes ->> 'ValueInIA' as data_size_infrequent_access_storage,
- size_in_bytes ->> 'ValueInIA' as data_size_standard_storage
+  file_system_id,
+  size_in_bytes ->> 'Value' as data_size,
+  size_in_bytes ->> 'Timestamp' as data_size_timestamp,
+  size_in_bytes ->> 'ValueInIA' as data_size_infrequent_access_storage,
+  size_in_bytes ->> 'ValueInIA' as data_size_standard_storage
 from
- aws_efs_file_system;
+  aws_efs_file_system;
 ```
 
 
@@ -37,18 +37,18 @@ from
 
 ```sql
 select
- title,
- p as principal,
- a as action,
- s ->> 'Effect' as effect,
- s -> 'Condition' as conditions
+  title,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
 from
- aws_efs_file_system,
- jsonb_array_elements(policy_std -> 'Statement') as s,
- jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
- jsonb_array_elements_text(s -> 'Action') as a
+  aws_efs_file_system,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
 where
- a in ('elasticfilesystem:clientrootaccess');
+  a in ('elasticfilesystem:clientrootaccess');
 ```
 
 
@@ -56,24 +56,24 @@ where
 
 ```sql
 select
- title
+  title
 from
- aws_efs_file_system
+  aws_efs_file_system
 where
- title not in (
-  select
-   title
-  from
-   aws_efs_file_system,
-   jsonb_array_elements(policy_std -> 'Statement') as s,
-   jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
-   jsonb_array_elements_text(s -> 'Action') as a,
-   jsonb_array_elements_text(
-    s -> 'Condition' -> 'Bool' -> 'aws:securetransport'
-   ) as ssl
-  where
-   p = '*'
-   and s ->> 'Effect' = 'Deny'
-   and ssl :: bool = false
- );
+  title not in (
+    select
+      title
+    from
+      aws_efs_file_system,
+      jsonb_array_elements(policy_std -> 'Statement') as s,
+      jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+      jsonb_array_elements_text(s -> 'Action') as a,
+      jsonb_array_elements_text(
+        s -> 'Condition' -> 'Bool' -> 'aws:securetransport'
+      ) as ssl
+    where
+      p = '*'
+      and s ->> 'Effect' = 'Deny'
+      and ssl :: bool = false
+  );
 ```
