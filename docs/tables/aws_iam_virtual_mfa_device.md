@@ -6,7 +6,7 @@ MFA adds extra security because it requires users to provide unique authenticati
 
 ## Examples
 
-### Basic Virtual MFA Device info
+### Basic info
 
 ```sql
 select
@@ -17,7 +17,7 @@ from
   aws_iam_virtual_mfa_device;
 ```
 
-### User details to which the Virtual MFA device is assigned
+### User details for users with a virtual MFA device assigned
 
 ```sql
 select
