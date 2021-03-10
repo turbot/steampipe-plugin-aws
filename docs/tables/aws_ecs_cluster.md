@@ -53,7 +53,7 @@ select
   setting ->> 'Name' as name,
   setting ->> 'Value' as value
 from
-  aws_new.aws_ecs_cluster,
+  aws_ecs_cluster,
   jsonb_array_elements(settings) as setting
 where
   setting ->> 'Value' = 'disabled';
