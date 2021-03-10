@@ -124,7 +124,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(ssmDocumentTagListToTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(ssmDocumentTagListToTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -249,11 +249,14 @@ func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 	plugin.Logger(ctx).Trace("ssmDocumentTagListToTurbotTags")
 	document := d.HydrateItem.(*ssm.DocumentDescription)
 
+	if document.Tags == nil {
+		return nil, nil
+	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if document != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range *&document.Tags {
+		for _, i := range document.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
