@@ -89,7 +89,7 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEventBridgeRuleTags,
-				Transform:   transform.From(eventBridgeTagListToTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(eventBridgeTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
