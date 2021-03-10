@@ -51,7 +51,7 @@ resource "aws_vpc" "my_vpc" {
 }
 
 resource "aws_subnet" "my_subnet" {
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "${var.aws_region}a"
 }
@@ -59,7 +59,7 @@ resource "aws_subnet" "my_subnet" {
 
 resource "aws_elasticache_subnet_group" "my_subnet_group" {
   name       = var.resource_name
-  subnet_ids = ["${aws_subnet.my_subnet.id}"]
+  subnet_ids = [aws_subnet.my_subnet.id]
 }
 
 

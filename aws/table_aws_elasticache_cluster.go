@@ -11,7 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
-// TABLE DEFINITION
+//// TABLE DEFINITION
 
 func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -29,7 +29,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",
-				Description: "A list of clusters. ",
+				Description: "An unique identifier for ElastiCache cluster. ",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -135,7 +135,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with StreamName.",
+				Description: "A list of tags associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForElasticacheCluster,
 				Transform:   transform.FromField("TagList"),
@@ -146,7 +146,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(elastiCacheClusterTurbotData),
+				Transform:   transform.FromField("CacheClusterId"),
 			},
 			{
 				Name:        "tags",
@@ -165,7 +165,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 	}
 }
 
-// LIST FUNCTION
+//// LIST FUNCTION
 
 func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
@@ -195,7 +195,7 @@ func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugi
 	return nil, err
 }
 
-// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
@@ -213,10 +213,10 @@ func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	quals := d.KeyColumnQuals
-	CacheClusterID := quals["cache_cluster_id"].GetStringValue()
+	cacheClusterID := quals["cache_cluster_id"].GetStringValue()
 
 	params := &elasticache.DescribeCacheClustersInput{
-		CacheClusterId: aws.String(CacheClusterID),
+		CacheClusterId: aws.String(cacheClusterID),
 	}
 
 	op, err := svc.DescribeCacheClusters(params)
@@ -262,16 +262,7 @@ func listTagsForElasticacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	return clusterTags, nil
 }
 
-// TRANSFORM FUNCTIONS
-
-func elastiCacheClusterTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cacheCluster := d.HydrateItem.(*elasticache.CacheCluster)
-
-	// Get resource title
-	title := cacheCluster.CacheClusterId
-
-	return title, nil
-}
+//// TRANSFORM FUNCTIONS
 
 func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("clusterTagListToTurbotTags")

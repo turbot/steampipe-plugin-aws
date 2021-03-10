@@ -63,6 +63,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway":                tableAwsEc2TransitGateway(ctx),
 			"aws_ec2_transit_gateway_route_table":    tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
+			"aws_elasticache_cluster":                tableAwsElasticCacheCluster(ctx),
 			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
@@ -111,7 +112,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
-			"aws_elasticache_cluster":                tableAwsElasticCacheCluster(ctx),
 		},
 	}
 
