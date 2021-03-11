@@ -60,17 +60,29 @@ where
 ```
 
 
-### Count of image details in each Repository
+### Image vulnerability count by severity. 
 
 ```sql
 select
   repository_name,
-  count(id ->> 'image_details') as image_id_count
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'INFORMATIONAL' as severity_counts
 from
   aws_ecr_repository,
-  jsonb_array_elements(image_details) as id
-group by
-  repository_name;
+  jsonb_array_elements(image_details) as details,
+  jsonb(details) as detail;
 ```
 
 
+### List of repositories whose image scanning has failed
+
+```sql
+select
+  repository_name,
+  detail -> 'ImageScanStatus' ->> 'Status' as scan_status
+from
+  aws_ecr_repository,
+  jsonb_array_elements(image_details) as details,
+  jsonb(details) as detail
+where
+  detail -> 'ImageScanStatus' ->> 'Status' = 'FAILED';
+```
