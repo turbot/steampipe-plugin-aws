@@ -4,7 +4,7 @@ A patch baseline defines which patches are approved for installation on your ins
 
 ## Examples
 
-### List all the patch baselines in your account
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
   aws_ssm_patch_baseline;
 ```
 
-### List all the patch baselines for a specific type of operating system
+### List patch baselines for a specific operating system
 
 ```sql
 select
@@ -33,7 +33,7 @@ where
   operating_system = 'UBUNTU';
 ```
 
-### List all the patch baselines that have rejected patches
+### List patch baselines that have rejected patches
 
 ```sql
 select
@@ -50,7 +50,7 @@ where
   rejected_patches != '[]';
 ```
 
-### Approval rules details for each patch baseline
+### Get approval rules details for each patch baseline
 
 ```sql
 select
