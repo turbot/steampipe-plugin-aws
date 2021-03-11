@@ -20,7 +20,6 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableId.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
-			ItemFromKey:       routeTableFromKey,
 			Hydrate:           getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
@@ -30,37 +29,37 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_route_table_id",
-				Description: "The ID of the transit gateway route table",
+				Description: "The ID of the transit gateway route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "transit_gateway_id",
-				Description: "The ID of the transit gateway",
+				Description: "The ID of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The state of the transit gateway route table",
+				Description: "The state of the transit gateway route table.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
-				Description: "The creation time of transit gateway route table",
+				Description: "The creation time of transit gateway route table.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "default_association_route_table",
-				Description: "Indicates whether this is the default association route table for the transit gateway",
+				Description: "Indicates whether this is the default association route table for the transit gateway.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "default_propagation_route_table",
-				Description: "Indicates whether this is the default propagation route table for the transit gateway",
+				Description: "Indicates whether this is the default propagation route table for the transit gateway.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned",
+				Description: "A list of tags assigned.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -85,17 +84,6 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func routeTableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	routeTableID := quals["transit_gateway_route_table_id"].GetStringValue()
-	item := &ec2.TransitGatewayRouteTable{
-		TransitGatewayRouteTableId: &routeTableID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -130,14 +118,14 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	transitGatewayRouteTable := h.Item.(*ec2.TransitGatewayRouteTable)
+	routeTableID := d.KeyColumnQuals["transit_gateway_route_table_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -146,7 +134,7 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	params := &ec2.DescribeTransitGatewayRouteTablesInput{
-		TransitGatewayRouteTableIds: []*string{aws.String(*transitGatewayRouteTable.TransitGatewayRouteTableId)},
+		TransitGatewayRouteTableIds: []*string{aws.String(routeTableID)},
 	}
 
 	op, err := svc.DescribeTransitGatewayRouteTables(params)

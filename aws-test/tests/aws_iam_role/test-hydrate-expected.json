@@ -1,10 +1,12 @@
 [
   {
     "arn": "{{ output.resource_aka.value }}",
-    "attached_policy_arns": null,
-    "inline_policies": null,
+    "attached_policy_arns": [
+      "{{ output.attached_policy_arn.value }}"
+    ],
+    "inline_policies": "<null>",
     "name": "{{resourceName}}",
-    "permissions_boundary_arn": null,
+    "permissions_boundary_arn": "<null>",
     "tags_src": [
       {
         "Key": "name",
