@@ -1,0 +1,11 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "arn:{{ output.aws_partition.value }}:config:{{ output.region_name.value }}:{{ output.account_id.value }}:config-recorder/{{resourceName}}"
+    ],
+    "name": "{{resourceName}}",
+    "region": "{{ output.region_name.value }}",
+    "title": "{{resourceName}}"
+  }
+]
