@@ -157,7 +157,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*ssm.AssociationDescription).AssociationId
+		id = associationID(h.Item)
 	} else {
 		id = d.KeyColumnQuals["association_id"].GetStringValue()
 	}
@@ -184,13 +184,13 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getAwsSSMAssociationAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMAssociationAkas")
-	associationData := h.Item.(*ssm.AssociationDescription)
+	associationData := associationID(h.Item)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + *associationData.AssociationId}
+	aka := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData}
 
 	return aka, nil
 }
