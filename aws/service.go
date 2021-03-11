@@ -203,7 +203,7 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
-// EFSService returns the service connection for AWS EFS File System service
+// EFSService returns the service connection for AWS Elastic File System service
 func EFSService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EFSService")

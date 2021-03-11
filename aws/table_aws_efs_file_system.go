@@ -12,7 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
-// TABLE DEFINITION
+//// TABLE DEFINITION
 
 func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -20,7 +20,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 		Description: "AWS Elastic File System",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("file_system_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
 			Hydrate:           getElasticFileSystem,
 		},
 		List: &plugin.ListConfig{
@@ -28,6 +28,11 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "Name of the file system provided by the user.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "file_system_id",
 				Description: "The ID of the file system, assigned by Amazon EFS.",
@@ -64,11 +69,6 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "size_in_bytes",
-				Description: "The latest known metered size (in bytes) of data stored in the file system.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "performance_mode",
 				Description: "The performance mode of the file system.",
 				Type:        proto.ColumnType_STRING,
@@ -92,6 +92,11 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Name:        "provisioned_throughput_in_mibps",
 				Description: "The throughput, measured in MiB/s, that you want to provision for a file system.",
 				Type:        proto.ColumnType_DOUBLE,
+			},
+			{
+				Name:        "size_in_bytes",
+				Description: "The latest known metered size (in bytes) of data stored in the file system.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "policy",
@@ -137,7 +142,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 	}
 }
 
-// LIST FUNCTION
+//// LIST FUNCTION
 
 func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
@@ -167,7 +172,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, err
 }
 
-// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
@@ -227,7 +232,6 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(param)
-
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
 			if a.Code() == "PolicyNotFound" {
@@ -239,10 +243,13 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	return fileSystemPolicy, nil
 }
 
-// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
 
 func elasticFileSystemTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	fileSystemTag := d.HydrateItem.(*efs.FileSystemDescription)
+	if fileSystemTag.Tags == nil {
+		return nil, nil
+	}
 
 	// Get the resource tags
 	var turbotTagsMap map[string]string

@@ -47,12 +47,42 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_efs_file_system" "named_test_resource" {
-  creation_token = var.resource_name
-  encrypted = "true"
+  creation_token   = var.resource_name
+  encrypted        = "true"
   performance_mode = "maxIO"
   tags = {
     name = var.resource_name
   }
+}
+
+resource "aws_efs_file_system_policy" "efs_file_system_policy" {
+  file_system_id = aws_efs_file_system.named_test_resource.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Id": "test_policy",
+    "Statement": [
+        {
+            "Sid": "__default_policy_ID",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Resource": "${aws_efs_file_system.named_test_resource.arn}",
+            "Action": [
+                "elasticfilesystem:ClientMount",
+                "elasticfilesystem:ClientWrite"
+            ],
+            "Condition": {
+                "Bool": {
+                    "aws:SecureTransport": "true"
+                }
+            }
+        }
+    ]
+}
+EOF
 }
 
 data "template_file" "resource_aka" {

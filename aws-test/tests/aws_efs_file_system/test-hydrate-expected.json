@@ -4,6 +4,29 @@
       "{{ output.resource_aka.value }}"
     ],
     "file_system_id": "{{ output.resource_id.value }}",
+    "policy": {
+      "Id": "test_policy",
+      "Statement": [
+          {
+              "Action": [
+                  "elasticfilesystem:ClientMount",
+                  "elasticfilesystem:ClientWrite"
+              ],
+              "Condition": {
+                  "Bool": {
+                      "aws:SecureTransport": "true"
+                  }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                  "AWS": "*"
+              },
+              "Resource": "{{ output.resource_aka.value }}",
+              "Sid": "__default_policy_ID"
+          }
+      ],
+      "Version": "2012-10-17"
+    },
     "tags": {
       "name": "{{resourceName}}"
     },
