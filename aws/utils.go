@@ -134,3 +134,15 @@ func resourceInterfaceDescription(key string) string {
 	}
 	return ""
 }
+
+func getLastPathElement(path string) string {
+	if path == "" {
+		return ""
+	}
+	pathItems := strings.Split(path, "/")
+	return pathItems[len(pathItems)-1]
+}
+
+func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	return getLastPathElement(types.SafeString(d.Value)), nil
+}
