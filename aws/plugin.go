@@ -90,6 +90,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_region":                             tableAwsRegion(ctx),
 			"aws_route53_record":                     tableAwsRoute53Record(ctx),
 			"aws_route53_zone":                       tableAwsRoute53Zone(ctx),
+			"aws_route53_resolver_rule":              tableAwsRoute53ResolverRule(ctx),
 			"aws_s3_account_settings":                tableAwsS3AccountSettings(ctx),
 			"aws_s3_bucket":                          tableAwsS3Bucket(ctx),
 			"aws_sns_topic":                          tableAwsSnsTopic(ctx),

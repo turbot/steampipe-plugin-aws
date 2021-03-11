@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -345,6 +346,26 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 	svc := rds.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
+}
+
+// Route53Resolver returns the service connection for AWS route53resolver service
+func Route53Resolver(ctx context.Context, d *plugin.QueryData, region string) (*route53resolver.Route53Resolver, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Route53Resolver")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("route53resolver-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*route53resolver.Route53Resolver), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := route53resolver.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 
