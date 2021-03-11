@@ -31,45 +31,27 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Name:        "id",
 				Description: "The unique identifier for the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id"),
 			},
 			{
 				Name:        "cluster_arn",
 				Description: "The Amazon Resource Name of the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ClusterArn"),
 			},
 			{
 				Name:        "name",
 				Description: "The name of the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "Normalized_instance_hours",
 				Description: "The friendly name to identify the DB Cluster.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromField("NormalizedInstanceHours"),
 			},
 			{
 				Name:        "outpost_arn",
 				Description: "The Amazon Resource Name (ARN) of the Outpost where the cluster is launched.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("OutpostArn"),
-			},
-			{
-				Name:        "status",
-				Description: "The current status details about the cluster.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Status"),
-			},
-			{
-				Name:        "applications",
-				Description: "The applications installed on this cluster.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("Applications"),
 			},
 			{
 				Name:        "auto_scaling_role",
@@ -83,147 +65,137 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Description: "Specifies whether the cluster should terminate after completing all steps.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("AutoTerminate"),
-			},
-			{
-				Name:        "configurations",
-				Description: "Applies only to Amazon EMR releases 4.x and later. The list of Configurations supplied to the EMR cluster.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("Configurations"),
 			},
 			{
 				Name:        "custom_ami_id",
 				Description: "Available only in Amazon EMR version 5.7.0 and later. The ID of a custom Amazon EBS-backed Linux AMI if the cluster uses a custom AMI.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("CustomAmiId"),
 			},
 			{
 				Name:        "ebs_root_volume_size",
 				Description: "The size, in GiB, of the Amazon EBS root device volume of the Linux AMI that is used for each EC2 instance. Available in Amazon EMR version 4.x and later.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("EbsRootVolumeSize"),
-			},
-			{
-				Name:        "ec2_instance_attributes",
-				Description: "Provides information about the EC2 instances in a cluster grouped by category.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("Ec2InstanceAttributes"),
 			},
 			{
 				Name:        "instance_collection_type",
 				Description: "The instance group configuration of the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("InstanceCollectionType"),
-			},
-			{
-				Name:        "kerberos_attributes",
-				Description: "Attributes for Kerberos configuration when Kerberos authentication is enabled using a security configuration.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("KerberosAttributes"),
 			},
 			{
 				Name:        "log_encryption_kms_key_id",
 				Description: "The AWS KMS customer master key (CMK) used for encrypting log files. This attribute is only available with EMR version 5.30.0 and later, excluding EMR 6.0.0.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("LogEncryptionKmsKeyId"),
 			},
 			{
 				Name:        "log_uri",
 				Description: "The path to the Amazon S3 location where logs for this cluster are stored.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("LogUri"),
 			},
 			{
 				Name:        "master_public_dns_name",
 				Description: "The DNS name of the master node.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("MasterPublicDnsName"),
-			},
-			{
-				Name:        "placement_groups",
-				Description: "Placement group configured for an Amazon EMR cluster.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("PlacementGroups"),
 			},
 			{
 				Name:        "release_label",
 				Description: "The Amazon EMR release label, which determines the version of open-source application packages installed on the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("ReleaseLabel"),
 			},
 			{
 				Name:        "repo_upgrade_on_boot",
 				Description: "Applies only when CustomAmiID is used. Specifies the type of updates that are applied from the Amazon Linux AMI package repositories when an instance boots using the AMI.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("RepoUpgradeOnBoot"),
 			},
 			{
 				Name:        "requested_ami_version",
 				Description: "Applies only when CustomAmiID is used. Specifies the type of updates that are applied from the Amazon Linux AMI package repositories when an instance boots using the AMI.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("RequestedAmiVersion"),
 			},
 			{
 				Name:        "running_ami_version",
 				Description: "The AMI version running on this cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("RunningAmiVersion"),
 			},
 			{
 				Name:        "scale_down_behavior",
 				Description: "The way that individual Amazon EC2 instances terminate when an automatic scale-in activity occurs or an instance group is resized.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("ScaleDownBehavior"),
 			},
 			{
 				Name:        "security_configuration",
 				Description: "The name of the security configuration applied to the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("SecurityConfiguration"),
 			},
 			{
 				Name:        "service_role",
 				Description: "The IAM role that will be assumed by the Amazon EMR service to access AWS resources on your behalf.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("ServiceRole"),
 			},
 			{
 				Name:        "step_concurrency_level",
 				Description: "Specifies the number of steps that can be executed concurrently.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("StepConcurrencyLevel"),
 			},
 			{
 				Name:        "termination_protected",
 				Description: "Indicates whether Amazon EMR will lock the cluster to prevent the EC2 instances from being terminated by an API call or user intervention, or in the event of a cluster error.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("TerminationProtected"),
 			},
 			{
 				Name:        "visible_to_all_users",
 				Description: "Indicates whether the cluster is visible to all IAM users of the AWS account associated with the cluster.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("VisibleToAllUsers"),
+			},
+			{
+				Name:        "status",
+				Description: "The current status details about the cluster.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "applications",
+				Description: "The applications installed on this cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "configurations",
+				Description: "Applies only to Amazon EMR releases 4.x and later. The list of Configurations supplied to the EMR cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "ec2_instance_attributes",
+				Description: "Provides information about the EC2 instances in a cluster grouped by category.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "placement_groups",
+				Description: "Placement group configured for an Amazon EMR cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "kerberos_attributes",
+				Description: "Attributes for Kerberos configuration when Kerberos authentication is enabled using a security configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrCluster,
 			},
 			{
 				Name:        "tags_src",
@@ -232,19 +204,6 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEmrCluster,
 				Transform:   transform.FromField("Tags"),
 			},
-			// {
-			// 	Name:        "data",
-			// 	Description: "The friendly name to identify the DB Cluster.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromValue(),
-			// },
-			// {
-			// 	Name:        "data2",
-			// 	Description: "The friendly name to identify the DB Cluster.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getEmrCluster,
-			// 	Transform:   transform.FromValue(),
-			// },
 
 			// Standard columns
 			{
@@ -312,7 +271,6 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	var id string
 	if h.Item != nil {
-		// clusterID = *h.Item.(*emr.ClusterSummary).Id
 		id = clusterID(h.Item)
 	} else {
 		quals := d.KeyColumnQuals
@@ -344,16 +302,6 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 /// TRANSFORM FUNCTIONS
 
-func clusterID(item interface{}) string {
-	switch item.(type) {
-	case *emr.ClusterSummary:
-		return *item.(*emr.ClusterSummary).Id
-	case *emr.Cluster:
-		return *item.(*emr.Cluster).Id
-	}
-	return ""
-}
-
 func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("emrClusterTagToTurbotTags")
 	clusterTags := d.HydrateItem.(*emr.Cluster)
@@ -371,4 +319,14 @@ func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (i
 	}
 
 	return turbotTagsMap, nil
+}
+
+func clusterID(item interface{}) string {
+	switch item.(type) {
+	case *emr.ClusterSummary:
+		return *item.(*emr.ClusterSummary).Id
+	case *emr.Cluster:
+		return *item.(*emr.Cluster).Id
+	}
+	return ""
 }

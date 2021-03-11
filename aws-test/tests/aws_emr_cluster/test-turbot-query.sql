@@ -1,3 +1,3 @@
 select title, tags, akas
-from aws_new.aws_emr_cluster
+from aws.aws_emr_cluster
 where name = '{{ resourceName }}';

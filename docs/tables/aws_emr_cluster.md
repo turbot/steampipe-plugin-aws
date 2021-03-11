@@ -12,57 +12,51 @@ select
   cluster_arn,
   name,
   auto_terminate,
-  status,
-  applications,
-  configurations,
-  log_uri,
-  security_configuration,
-  ebs_root_volume_size
+  status ->>  'State' as state,
+  tags
 from
-  aws_new.aws_emr_cluster;
+  aws_emr_cluster;
 ```
 
 
-### List of emr clusters which are in terminating or terminated state
+### List of EMR clusters whose auto terminate is disabled
 
 ```sql
 select
-  id,
-  name,
-  cluster_arn,
-  status ->>  'State' as state
-from
-  aws_new.aws_emr_cluster
-where
-  status ->>  'State' IN ('TERMINATED','TERMINATED_WITH_ERRORS','TERMINATING');
-```
-
-
-### List of Emr clusters whose auto terminate is enabled
-
-```sql
-select
-  id,
   name,
   cluster_arn,
   auto_terminate
 from
-  aws_new.aws_emr_cluster
+  aws_emr_cluster
 where
-  auto_terminate = 'true';
+  not auto_terminate;
 ```
 
 
-### List of applications and its versions installed on emr clusters
+### List of EMR clusters which got terminated due to some error
+
+```sql
+select
+  id,
+  name,
+  status ->>  'State' as state,
+  status ->  'StateChangeReason' ->> 'Message'  as  state_change_reason
+from
+  aws_emr_cluster
+where
+  status ->>  'State' = 'TERMINATED_WITH_ERRORS';
+```
+
+
+### List of application names and its versions installed on EMR clusters
 
 ```sql
 select
   name,
-  id,
-  a ->> 'Name' as name,
-  a ->> 'Version' as version
+  cluster_arn,
+  a ->> 'Name' as application_name,
+  a ->> 'Version' as application_version
 from
-  aws_new.aws_emr_cluster,
-  jsonb_array_elements(applications) as a
+  aws_emr_cluster,
+  jsonb_array_elements(applications) as a;
 ```
-

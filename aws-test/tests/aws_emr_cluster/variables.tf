@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "aws_new"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -274,6 +274,10 @@ output "resource_id" {
 
 output "transit_gateway_id" {
   value = aws_emr_cluster.named_test_resource.id
+}
+
+output "region_name" {
+  value = data.aws_region.primary.name
 }
 
 output "vpc_id" {
