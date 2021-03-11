@@ -4,7 +4,7 @@ AWS Config uses the configuration recorder to detect changes in your resource co
 
 ## Examples
 
-### Basic AWS config configuration recorder info
+### Basic info
 
 ```sql
 select
@@ -16,11 +16,11 @@ select
   akas,
   title
 from
-  aws.aws_config_configuration_recorder;
+  aws_config_configuration_recorder;
 ```
 
 
-### List of configuration recorders with recording is disabled
+### List configuration recorders that are not recording
 
 ```sql
 select
@@ -29,31 +29,23 @@ select
   status_recording,
   title
 from
-  aws.aws_config_configuration_recorder
+  aws_config_configuration_recorder
 where
-  status_recording = 'false';
+  not status_recording;
 ```
 
 
-### List of configuration recorders with status in pending or failure state
+### List configuration recorders with failed deliveries
 
 ```sql
 select
   name,
-  status ->> 'LastStatus' as last_status
+  status ->> 'LastStatus' as last_status,
+  status ->> 'LastStatusChangeTime' as last_status_change_time,
+  status ->> 'LastErrorCode' as last_error_code,
+  status ->> 'LastErrorMessage' as last_error_message
 from
-  aws.aws_config_configuration_recorder
+  aws_config_configuration_recorder
 where
-  status ->> 'LastStatus' IN ('PENDING', 'FAILURE');
-```
-
-
-### List of resource types for which recording is enabled
-
-```sql
-select
-  name,
-  recording_group ->> 'ResourceTypes' as resource_types
-from
-  aws.aws_config_configuration_recorder;
+  status ->> 'LastStatus' = 'FAILURE';
 ```
