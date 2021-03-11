@@ -31,6 +31,11 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "author",
+				Description: "The user in your organization who created the document.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "document_version",
 				Description: "The document version.",
 				Type:        proto.ColumnType_STRING,
@@ -42,8 +47,56 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
+				Name:        "pending_review_version",
+				Description: "The version of the document that is currently under review.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "review_information",
+				Description: "Details about the review of a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "parameters",
+				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
 				Name:        "default_version",
 				Description: "The default version.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "description",
+				Description: "A description of the document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "hash",
+				Description: "The Sha256 or Sha1 hash created by the system when the document was created.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "hash_type",
+				Description: "The hash type of the document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "sha1",
+				Description: "The SHA1 hash of the document, which you can use for verification.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "status_information",
+				Description: "A message returned by AWS Systems Manager that explains the Status value.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocument,
 			},
@@ -57,6 +110,11 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Name:        "owner",
 				Description: "The AWS user account that created the document.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "requires",
+				Description: "A list of SSM documents required by a document.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "version_name",
