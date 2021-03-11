@@ -131,7 +131,7 @@ type recordInfo struct {
 
 //// LIST FUNCTION
 
-func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
@@ -148,7 +148,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 			for _, record := range page.ResourceRecordSets {
 				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
 			}
-			return true
+			return !isLast
 		},
 	)
 
