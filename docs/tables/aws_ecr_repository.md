@@ -5,6 +5,7 @@ Amazon Elastic Container Registry (Amazon ECR) is a managed container image regi
 ## Examples
 
 ### SSM association basic info
+
 ```sql
 select
   repository_name,
@@ -18,18 +19,6 @@ from
   aws_ecr_repository;
 ```
 
-### List of unencrypted ECR repositories
-
-```sql
-select
-  repository_name,
-  encryption_configuration ->> 'EncryptionType' as encryption_type,
-  encryption_configuration ->> 'KmsKey' as kms_key
-from
-  aws_ecr_repository
-where
-  encryption_configuration ->> 'KmsKey' is null;
-```
 
 ### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
 
@@ -44,7 +33,8 @@ where
   encryption_configuration ->> 'EncryptionType' = 'AES256';
 ```
 
-### List Repositories whose tag immutability is enabled
+
+### List Repositories whose tag immutability is disabled
 
 ```sql
 select
@@ -53,18 +43,34 @@ select
 from
   aws_ecr_repository
 where
-  image_tag_mutability = 'MUTABLE';
+  image_tag_mutability = 'IMMUTABLE';
 ```
+
+
+### List of repositories where automatic image scanning is disabled
+
+```sql
+select
+  repository_name,
+  image_scanning_configuration ->> 'ScanOnPush' as scan_on_push
+from
+  aws_ecr_repository
+where
+  image_scanning_configuration ->> 'ScanOnPush' = 'false';
+```
+
 
 ### Count of image details in each Repository
 
 ```sql
 select
-  count(image_details) as count
+  repository_name,
+  count(id ->> 'image_details') as image_id_count
 from
-  aws_ecr_repository
-where
-  repository_name = 'steampipe-12';
+  aws_ecr_repository,
+  jsonb_array_elements(image_details) as id
+group by
+  repository_name;
 ```
 
 
