@@ -258,7 +258,7 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, err
 }
 
-/// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
@@ -300,7 +300,7 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return nil, nil
 }
 
-/// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
 
 func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("emrClusterTagToTurbotTags")
