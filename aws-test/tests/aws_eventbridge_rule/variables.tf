@@ -1,12 +1,9 @@
 
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
   description = "Name of the resource used throughout the test."
 }
-
-
 
 variable "aws_profile" {
   type        = string

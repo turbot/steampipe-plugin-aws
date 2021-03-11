@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of rules which are not in enable state
+### List of rules which are not enabled
 
 ```sql
 select

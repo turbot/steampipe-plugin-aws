@@ -24,6 +24,11 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "name",
+				Description: "The name of the rule.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the rule.",
 				Type:        proto.ColumnType_STRING,
@@ -31,11 +36,6 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 			{
 				Name:        "description",
 				Description: "The description of the rule.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "name",
-				Description: "The name of the rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -77,6 +77,7 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsEventBridgeRuleTags,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			/// Standard columns for all tables
 			{
 				Name:        "title",
