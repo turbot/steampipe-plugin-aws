@@ -70,13 +70,13 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "attachments_status",
-				Description: "The number of services that are running on the cluster in an ACTIVE state.",
+				Description: "The status of the capacity providers associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
 			},
 			{
 				Name:        "attachments",
-				Description: "The number of services that are running on the cluster in an ACTIVE state.",
+				Description: "The resources attached to a cluster. When using a capacity provider with a cluster, the Auto Scaling plan that is created will be returned as a cluster attachment.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
 			},

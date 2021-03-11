@@ -4,22 +4,22 @@ An Amazon ECS cluster is a logical grouping of tasks or services. If you are run
 
 ## Examples
 
-### Basic ecs cluster info
+### Basic info
 
 ```sql
 select
   cluster_arn,
   cluster_name,
-  active_sevices_count,
+  active_services_count,
   attachments,
-  attachments_status
+  attachments_status,
   status
 from
   aws_ecs_cluster;
 ```
 
 
-### List of ecs clusters with state in FAILED or INACTIVE
+### List of ecs clusters with failed status
 
 ```sql
 select
@@ -28,14 +28,15 @@ select
 from
   aws_ecs_cluster
 where
-  status IN ('FAILED','INACTIVE');
+  status = 'FAILED';
 ```
 
 
-### List of resources attached with clusters
+### Details of resources attached to a cluster
 
 ```sql
 select
+  cluster_arn,
   attachment ->> 'id' as attachment_id,
   attachment ->> 'status' as attachment_status,
   attachment ->> 'type' as attachment_type
@@ -45,7 +46,7 @@ from
 ```
 
 
-### List of cluster for which CloudWatch Container Insights is disabled
+### List of cluster for which cloudwatch container insights is disabled
 
 ```sql
 select
