@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -171,6 +172,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
+				Name:        "account_ids",
+				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
+				Name:        "account_sharing_infoList",
+				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with document",
 				Type:        proto.ColumnType_JSON,
@@ -271,6 +284,45 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return data.Document, nil
+}
+
+func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsSSMDocumentPermissionDetail")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	var name string
+	if h.Item != nil {
+		name = documentName(h.Item)
+	} else {
+		name = d.KeyColumnQuals["name"].GetStringValue()
+	}
+
+	// Create Session
+	svc, err := SsmService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &ssm.DescribeDocumentPermissionInput{
+		Name:           &name,
+		PermissionType: aws.String("Share"),
+	}
+
+	// Get call
+	data, err := svc.DescribeDocumentPermission(params)
+	if err != nil {
+		logger.Debug("getAwsSSMDocumentPermissionDetail", "ERROR", err)
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
