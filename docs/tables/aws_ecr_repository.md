@@ -25,7 +25,9 @@ from
 ```sql
 select
   repository_name,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'INFORMATIONAL' as severity_counts
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'INFORMATIONAL' as informational_severity_counts,
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'LOW' as low_severity_counts,
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'MEDIUM' as medium_severity_counts
 from
   aws_ecr_repository,
   jsonb_array_elements(image_details) as details,
@@ -86,5 +88,3 @@ from
 where
   image_scanning_configuration ->> 'ScanOnPush' = 'false';
 ```
-
-
