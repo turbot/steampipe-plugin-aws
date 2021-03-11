@@ -20,7 +20,6 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("network_interface_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed"}),
-			ItemFromKey:       transitGatewayFromKey,
 			Hydrate:           getEc2TransitGateway,
 		},
 		List: &plugin.ListConfig{
@@ -30,97 +29,97 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_id",
-				Description: "The ID of the transit gateway",
+				Description: "The ID of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "transit_gateway_arn",
-				Description: "The Amazon Resource Name (ARN) of the transit gateway",
+				Description: "The Amazon Resource Name (ARN) of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The state of the transit gateway",
+				Description: "The state of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account ID that owns the transit gateway",
+				Description: "The ID of the AWS account ID that owns the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "description",
-				Description: "The description of the transit gateway",
+				Description: "The description of the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
-				Description: "The date and time when transit gateway was created",
+				Description: "The date and time when transit gateway was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "amazon_side_asn",
-				Description: "A private Autonomous System Number (ASN) for the Amazon side of a BGP session. The range is 64512 to 65534 for 16-bit ASNs and 4200000000 to 4294967294 for 32-bit ASNs",
+				Description: "A private Autonomous System Number (ASN) for the Amazon side of a BGP session. The range is 64512 to 65534 for 16-bit ASNs and 4200000000 to 4294967294 for 32-bit ASNs.",
 				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("Options.AmazonSideAsn"),
 			},
 			{
 				Name:        "association_default_route_table_id",
-				Description: "The ID of the default association route table",
+				Description: "The ID of the default association route table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.AssociationDefaultRouteTableId"),
 			},
 			{
 				Name:        "auto_accept_shared_attachments",
-				Description: "Indicates whether attachment requests are automatically accepted",
+				Description: "Indicates whether attachment requests are automatically accepted.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.AutoAcceptSharedAttachments"),
 			},
 			{
 				Name:        "default_route_table_association",
-				Description: "Indicates whether resource attachments are automatically associated with the default association route table",
+				Description: "Indicates whether resource attachments are automatically associated with the default association route table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.DefaultRouteTableAssociation"),
 			},
 			{
 				Name:        "default_route_table_propagation",
-				Description: "Indicates whether resource attachments are automatically associated with the default association route table",
+				Description: "Indicates whether resource attachments are automatically associated with the default association route table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.DefaultRouteTablePropagation"),
 			},
 			{
 				Name:        "dns_support",
-				Description: "Indicates whether DNS support is enabled",
+				Description: "Indicates whether DNS support is enabled.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.DnsSupport"),
 			},
 			{
 				Name:        "multicast_support",
-				Description: "Indicates whether multicast is enabled on the transit gateway",
+				Description: "Indicates whether multicast is enabled on the transit gateway.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.MulticastSupport"),
 			},
 			{
 				Name:        "propagation_default_route_table_id",
-				Description: "The ID of the default propagation route table",
+				Description: "The ID of the default propagation route table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.PropagationDefaultRouteTableId"),
 			},
 			{
 				Name:        "vpn_ecmp_support",
-				Description: "Indicates whether Equal Cost Multipath Protocol support is enabled",
+				Description: "Indicates whether Equal Cost Multipath Protocol support is enabled.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Options.VpnEcmpSupport"),
 			},
 			{
 				Name:        "cidr_blocks",
-				Description: "A list of transit gateway CIDR blocks",
+				Description: "A list of transit gateway CIDR blocks.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Options.TransitGatewayCidrBlocks"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are assigned to the transit gateway",
+				Description: "A list of tags that are assigned to the transit gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -146,17 +145,6 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func transitGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	transitGatewayID := quals["transit_gateway_id"].GetStringValue()
-	item := &ec2.TransitGateway{
-		TransitGatewayId: &transitGatewayID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -191,14 +179,14 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	transitGateway := h.Item.(*ec2.TransitGateway)
+	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -207,7 +195,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	params := &ec2.DescribeTransitGatewaysInput{
-		TransitGatewayIds: []*string{aws.String(*transitGateway.TransitGatewayId)},
+		TransitGatewayIds: []*string{aws.String(transitGatewayID)},
 	}
 
 	op, err := svc.DescribeTransitGateways(params)

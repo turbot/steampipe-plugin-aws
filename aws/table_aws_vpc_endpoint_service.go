@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -17,7 +18,6 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("service_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidServiceName"}),
-			ItemFromKey:       endpointServiceFromKey,
 			Hydrate:           getVpcEndpointService,
 		},
 		List: &plugin.ListConfig{
@@ -27,63 +27,64 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
-				Description: "The Amazon Resource Name (ARN) of the service",
+				Description: "The Amazon Resource Name (ARN) of the service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "service_id",
-				Description: "The ID of the endpoint service",
+				Description: "The ID of the endpoint service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner",
-				Description: "The AWS account ID of the service owner",
+				Description: "The AWS account ID of the service owner.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "acceptance_required",
-				Description: "Indicates whether VPC endpoint connection requests to the service must be accepted by the service owner",
+				Description: "Indicates whether VPC endpoint connection requests to the service must be accepted by the service owner.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "manages_vpc_endpoints",
-				Description: "Indicates whether the service manages its VPC endpoints. Management of the service VPC endpoints using the VPC endpoint API is restricted",
+				Description: "Indicates whether the service manages its VPC endpoints. Management of the service VPC endpoints using the VPC endpoint API is restricted.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "private_dns_name",
-				Description: "The private DNS name for the service",
+				Description: "The private DNS name for the service.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "private_dns_name_verification_state",
-				Description: "The verification state of the VPC endpoint service. Consumers of the endpoint service cannot use the private name when the state is not verified",
+				Description: "The verification state of the VPC endpoint service. Consumers of the endpoint service cannot use the private name when the state is not verified.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_endpoint_policy_supported",
-				Description: "Indicates whether the service supports endpoint policies",
+				Description: "Indicates whether the service supports endpoint policies.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "service_type",
-				Description: "The type of service",
+				Description: "The type of service.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "base_endpoint_dns_names",
-				Description: "The DNS names for the service",
+				Description: "The DNS names for the service.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "availability_zones",
-				Description: "The Availability Zones in which the service is available",
+				Description: "The Availability Zones in which the service is available.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the service",
+				Description: "A list of tags assigned to the service.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "tags",
@@ -106,17 +107,6 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// ITEM FROM KEY
-
-func endpointServiceFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	serviceName := quals["service_name"].GetStringValue()
-	item := &ec2.ServiceDetail{
-		ServiceName: &serviceName,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -147,16 +137,16 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEndpointService")
-	endpointService := h.Item.(*ec2.ServiceDetail)
+func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcEndpointService")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	serviceName := d.KeyColumnQuals["service_name"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -166,13 +156,13 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Build the params
 	params := &ec2.DescribeVpcEndpointServicesInput{
-		ServiceNames: []*string{endpointService.ServiceName},
+		ServiceNames: []*string{aws.String(serviceName)},
 	}
 
 	// Get call
 	op, err := svc.DescribeVpcEndpointServices(params)
 	if err != nil {
-		logger.Debug("getVpcEndpointService__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcEndpointService__", "ERROR", err)
 		return nil, err
 	}
 
@@ -194,8 +184,6 @@ func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get data for turbot defined properties
 	splitServicName := strings.Split(*endpointService.ServiceName, ".")
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc-endpoint-service/" + splitServicName[len(splitServicName)-1]}
-
-	// plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas", "Akas", akas)
 
 	return akas, nil
 }
