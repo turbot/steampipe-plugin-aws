@@ -49,6 +49,7 @@ data "null_data_source" "resource" {
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
+
 resource "aws_security_group" "security_group" {
   description = "Allow TLS inbound traffic"
   vpc_id      = aws_vpc.my_vpc.id
@@ -58,15 +59,18 @@ resource "aws_security_group" "security_group" {
     protocol  = "tcp"
   }
 }
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.my_vpc.id
 }
+
 resource "aws_subnet" "my_subnet" {
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "${var.aws_region}a"
-  depends_on        = ["aws_internet_gateway.igw"]
+  depends_on        = [aws_internet_gateway.igw]
 }
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -79,6 +83,7 @@ data "aws_ami" "ubuntu" {
   }
   owners = ["099720109477"]
 }
+
 resource "aws_instance" "instance" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
@@ -90,12 +95,12 @@ resource "aws_instance" "instance" {
 }
 
 resource "aws_ssm_document" "test_resource" {
-name          = var.resource_name
-document_type = "Command"
-tags = {
-  name = var.resource_name
-}
-content = <<DOC
+  name          = var.resource_name
+  document_type = "Command"
+  tags = {
+    name = var.resource_name
+  }
+  content = <<DOC
   {
     "schemaVersion": "1.2",
     "description": "Check ip configuration of a Linux instance.",
@@ -116,7 +121,7 @@ DOC
 }
 
 resource "aws_ssm_association" "named_test_resource" {
-  name = aws_ssm_document.test_resource.id
+  name             = aws_ssm_document.test_resource.id
   association_name = var.resource_name
   targets {
     key = "InstanceIds"
@@ -124,6 +129,10 @@ resource "aws_ssm_association" "named_test_resource" {
       aws_instance.instance.id
     ]
   }
+}
+
+output "instance_id" {
+  value = aws_instance.instance.id
 }
 
 output "account_id" {
@@ -149,5 +158,3 @@ output "resource_id" {
 output "resource_name" {
   value = var.resource_name
 }
-
-

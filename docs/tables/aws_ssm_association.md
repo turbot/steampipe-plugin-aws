@@ -1,9 +1,8 @@
 # Table: aws_ssm_association
 
-AWS Systems Manager association resource creates a State Manager association for your managed instances. The association applies the configuration also specifies actions to take when applying the configuration. 
+AWS Systems Manager association resource creates a State Manager association for your managed instances. The association applies the configuration also specifies actions to take when applying the configuration.
 
 ## Examples
-
 
 ### SSM association basic info
 
@@ -19,7 +18,6 @@ from
   aws_ssm_association;
 ```
 
-
 ### List of associations which are failed to execute
 
 ```sql
@@ -33,7 +31,6 @@ from
 where
   overview ->> 'Status' = 'Failed';
 ```
-
 
 ### List of instances targeted by the association
 
@@ -51,7 +48,6 @@ where
   target ->> 'Key' = 'InstanceIds';
 ```
 
-
 ### List of associations which has created before two days
 
 ```sql
@@ -67,7 +63,6 @@ order by
   date;
 ```
 
-
 ### List of associations which has Critical Compliance Severity
 
 ```sql
@@ -81,7 +76,6 @@ from
 where
   compliance_severity = 'CRITICAL';
 ```
-
 
 ### Association execution count by association id in a single Account
 

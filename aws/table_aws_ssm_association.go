@@ -19,7 +19,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Association",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("association_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist"}),
+			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
 			Hydrate:           getAwsSSMAssociation,
 		},
 		List: &plugin.ListConfig{
@@ -65,7 +65,6 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Description: "The ID of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMAssociation,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "last_execution_date",
@@ -94,7 +93,8 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_STRING,
 			},
-			/// Standard columns for all tables
+
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -143,11 +143,10 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return nil, err
 }
 
-// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMAssociation")
+	plugin.Logger(ctx).Trace("getAwsSSMAssociation")
 
 	// TODO put me in helper function
 	var region string
@@ -176,7 +175,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get call
 	data, err := svc.DescribeAssociation(params)
 	if err != nil {
-		logger.Debug("getAwsSSMAssociation", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsSSMAssociation", "ERROR", err)
 		return nil, err
 	}
 	return data.AssociationDescription, nil
