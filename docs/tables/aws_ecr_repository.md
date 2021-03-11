@@ -4,7 +4,7 @@ Amazon Elastic Container Registry (Amazon ECR) is a managed container image regi
 
 ## Examples
 
-### SSM association basic info
+### ECR repository basic info
 
 ```sql
 select
@@ -20,18 +20,30 @@ from
 ```
 
 
-### Image vulnerability count by severity. 
+### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
 
 ```sql
 select
   repository_name,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts
+  encryption_configuration ->> 'EncryptionType' as encryption_type,
+  encryption_configuration ->> 'KmsKey' as kms_key
 from
-  aws_ecr_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail;
+  aws_ecr_repository
+where
+  encryption_configuration ->> 'EncryptionType' = 'AES256';
+```
+
+
+### List of repositories where automatic image scanning is disabled
+
+```sql
+select
+  repository_name,
+  image_scanning_configuration ->> 'ScanOnPush' as scan_on_push
+from
+  aws_ecr_repository
+where
+  image_scanning_configuration ->> 'ScanOnPush' = 'false';
 ```
 
 
@@ -50,20 +62,6 @@ where
 ```
 
 
-### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
-
-```sql
-select
-  repository_name,
-  encryption_configuration ->> 'EncryptionType' as encryption_type,
-  encryption_configuration ->> 'KmsKey' as kms_key
-from
-  aws_ecr_repository
-where
-  encryption_configuration ->> 'EncryptionType' = 'AES256';
-```
-
-
 ### List Repositories whose tag immutability is disabled
 
 ```sql
@@ -77,14 +75,18 @@ where
 ```
 
 
-### List of repositories where automatic image scanning is disabled
+### Repository image vulnerability count by severity 
 
 ```sql
 select
   repository_name,
-  image_scanning_configuration ->> 'ScanOnPush' as scan_on_push
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts
 from
-  aws_ecr_repository
-where
-  image_scanning_configuration ->> 'ScanOnPush' = 'false';
+  aws_ecr_repository,
+  jsonb_array_elements(image_details) as details,
+  jsonb(details) as detail;
 ```
+
+
