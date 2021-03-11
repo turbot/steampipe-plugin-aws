@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,9 +19,9 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudtrail_trail",
 		Description: "AWS CloudTrail Trail",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
+			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
 			Hydrate:           getCloudtrailTrail,
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException", "TrailNotFoundException"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudtrailTrails,
@@ -39,13 +40,23 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TrailARN"),
 			},
 			{
+				Name:        "home_region",
+				Description: "The region in which the trail was created.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "is_multi_region_trail",
+				Description: "Specifies whether the trail exists only in one region or exists in all regions.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "log_file_validation_enabled",
 				Description: "Specifies whether log file validation is enabled, or not.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "is_logging",
-				Description: "Specifies whether the CloudTrail is currently logging AWS API calls., or not.",
+				Description: "Specifies whether the CloudTrail is currently logging AWS API calls, or not.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getCloudtrailTrailStatus,
 			},
@@ -72,18 +83,8 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "home_region",
-				Description: "The region in which the trail was created.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "include_global_service_events",
 				Description: "Specifies whether to include AWS API calls from AWS global services, or not.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "is_multi_region_trail",
-				Description: "Specifies whether the trail exists only in one region or exists in all regions.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -196,19 +197,13 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the trail",
+				Description: "A list of tags assigned to the trail.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudtrailTrailTags,
 				Transform:   transform.FromValue(),
 			},
 
 			// steampipe standard columns
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
-			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
@@ -221,6 +216,12 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("TrailARN").Transform(arnToAkas),
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
 			},
 		}),
 	}
@@ -243,7 +244,9 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{})
+	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{
+		IncludeShadowTrails: aws.Bool(false),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +269,13 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	if len(arn) > 0 {
+		data := strings.Split(arn, "/")
+		name = data[len(data)-1]
+	}
 
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
@@ -275,7 +284,8 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &cloudtrail.DescribeTrailsInput{
-		TrailNameList: []*string{aws.String(name)},
+		TrailNameList:       []*string{aws.String(name)},
+		IncludeShadowTrails: aws.Bool(false),
 	}
 
 	// execute list call
