@@ -20,6 +20,34 @@ from
 ```
 
 
+### Image vulnerability count by severity. 
+
+```sql
+select
+  repository_name,
+  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'INFORMATIONAL' as severity_counts
+from
+  aws_ecr_repository,
+  jsonb_array_elements(image_details) as details,
+  jsonb(details) as detail;
+```
+
+
+### List of repositories whose image scanning has failed
+
+```sql
+select
+  repository_name,
+  detail -> 'ImageScanStatus' ->> 'Status' as scan_status
+from
+  aws_ecr_repository,
+  jsonb_array_elements(image_details) as details,
+  jsonb(details) as detail
+where
+  detail -> 'ImageScanStatus' ->> 'Status' = 'FAILED';
+```
+
+
 ### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
 
 ```sql
@@ -60,29 +88,3 @@ where
 ```
 
 
-### Image vulnerability count by severity. 
-
-```sql
-select
-  repository_name,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' -> 'INFORMATIONAL' as severity_counts
-from
-  aws_ecr_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail;
-```
-
-
-### List of repositories whose image scanning has failed
-
-```sql
-select
-  repository_name,
-  detail -> 'ImageScanStatus' ->> 'Status' as scan_status
-from
-  aws_ecr_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail
-where
-  detail -> 'ImageScanStatus' ->> 'Status' = 'FAILED';
-```
