@@ -81,7 +81,7 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the Repository",
+				Description: "A list of tags assigned to the Repository.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsECRRepositoryTags,
 				Transform:   transform.FromField("Tags"),
