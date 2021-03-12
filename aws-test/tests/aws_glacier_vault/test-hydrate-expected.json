@@ -1,0 +1,27 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "policy": {
+      "Statement":[
+         {
+          "Action": [
+            "glacier:InitiateJob",
+            "glacier:GetJobOutput"
+            ],
+          "Effect": "Allow",
+          "Principal": "*",
+          "Resource": "{{ output.resource_aka.value }}",
+          "Sid": "__default_policy_ID"
+         }
+      ],
+      "Version":"2012-10-17"
+  },
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{ output.resource_id.value }}",
+    "vault_name": "{{ output.resource_id.value }}"
+  }
+]

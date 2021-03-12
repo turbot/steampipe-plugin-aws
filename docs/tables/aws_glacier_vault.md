@@ -1,0 +1,72 @@
+# Table: aws_glacier_vault
+
+A vault is a way to group archives together in Amazon S3 Glacier.
+
+## Examples
+
+### Basic glacier vault info
+
+```sql
+select
+  vault_name,
+  creation_date,
+  last_inventory_date,
+  number_of_archives,
+  size_in_bytes
+from
+  aws_glacier_vault;
+```
+
+
+### Vault policy statement that grant full access to the resource
+
+```sql
+select
+  title,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
+from
+  aws_glacier_vault,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
+where
+  s ->> 'Effect' = 'Allow'
+  and a in ('*', 'glacier:*');
+```
+
+
+### Vault policy statement that grant anonymous access
+
+```sql
+select
+  title,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
+from
+  aws_glacier_vault,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
+where
+  p = '*'
+  and s ->> 'Effect' = 'Allow';
+```
+
+
+### List of vaults without owner tag key
+
+```sql
+select
+  vault_name,
+  tags
+from
+  aws_glacier_vault
+where
+  not tags :: JSONB ? 'owner';
+```
+
