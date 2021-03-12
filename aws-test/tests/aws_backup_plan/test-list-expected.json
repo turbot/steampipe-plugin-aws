@@ -1,0 +1,6 @@
+[
+  {
+    "arn": "{{output.resource_aka.value}}",
+    "backup_plan_id": "{{output.id.value}}"
+  }
+]
