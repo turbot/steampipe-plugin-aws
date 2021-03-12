@@ -23,19 +23,11 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
 			Hydrate:           getAwsBackupVault,
 		},
-		GetMatrixItem: BuildRegionList,
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
-				Description: "The name of a logical container where backups are stored.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupVaultName"),
-			},
-			{
-				Name:        "arn",
 				Description: "An Amazon Resource Name (ARN) that uniquely identifies a backup vault.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupVaultArn"),
