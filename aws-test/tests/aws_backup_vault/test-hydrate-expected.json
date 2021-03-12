@@ -1,0 +1,6 @@
+[
+  {
+    "name": "{{ output.id.value }}",
+    "policy": "<null>"
+  }
+]
