@@ -124,7 +124,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FileSystemId"),
+				Transform:   transform.From(getElasticFileSystemTurbotTitle),
 			},
 			{
 				Name:        "tags",
@@ -260,4 +260,18 @@ func elasticFileSystemTurbotData(_ context.Context, d *transform.TransformData) 
 		}
 	}
 	return turbotTagsMap, nil
+}
+
+func getElasticFileSystemTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	fileSystemTitle := d.HydrateItem.(*efs.FileSystemDescription)
+
+	if fileSystemTitle.Tags != nil {
+		for _, i := range fileSystemTitle.Tags {
+			if *i.Key == "Name" && len(*i.Value) > 0 {
+				return *i.Value, nil
+			}
+		}
+	}
+
+	return fileSystemTitle.FileSystemId, nil
 }
