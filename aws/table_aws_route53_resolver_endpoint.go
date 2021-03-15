@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_route53_resolver_endpoint",
@@ -35,11 +37,9 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the Resolver endpoint.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53ResolverEndpointTags,
-				Transform:   transform.FromField("Tags"),
+				Name:        "arn",
+				Description: "The ARN (Amazon Resource Name) for the Resolver endpoint.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creator_request_id",
@@ -63,11 +63,6 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "security_group_ids",
-				Description: "The ID of one or more security groups that control access to this VPC. The security group must include one or more inbound rules (for inbound endpoints) or outbound rules (for outbound endpoints). Inbound and outbound rules must allow TCP and UDP access. For inbound access, open port 53. For outbound access, open the port that you're using for DNS queries on your network.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "status",
 				Description: "A code that specifies the current status of the Resolver endpoint.",
 				Type:        proto.ColumnType_STRING,
@@ -76,18 +71,6 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Name:        "status_message",
 				Description: "A detailed description of the status of the Resolver endpoint.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "ip_addresses",
-				Description: "Information about the IP addresses in your VPC that DNS queries originate from (for outbound endpoints) or that you forward DNS queries to (for inbound endpoints).",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listResolverEndpointIPAddresses,
-			},
-			{
-				Name:        "resolver_rules",
-				Description: "The Resolver rules that were created using the current AWS account and that match the specified filters, if any.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listResolverRule,
 			},
 			{
 				Name:        "creation_time",
@@ -99,7 +82,31 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Description: "The date and time that the endpoint was last modified, in Unix time format and Coordinated Universal Time (UTC).",
 				Type:        proto.ColumnType_STRING,
 			},
-			/// Standard columns for all tables
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the Resolver endpoint.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsRoute53ResolverEndpointTags,
+				Transform:   transform.FromField("Tags"),
+			},
+			{
+				Name:        "resolver_rules",
+				Description: "The Resolver rules that were created using the current AWS account and that match the specified filters, if any.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listResolverRule,
+			},
+			{
+				Name:        "ip_addresses",
+				Description: "Information about the IP addresses in your VPC that DNS queries originate from (for outbound endpoints) or that you forward DNS queries to (for inbound endpoints).",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listResolverEndpointIPAddresses,
+			},
+			{
+				Name:        "security_group_ids",
+				Description: "The ID of one or more security groups that control access to this VPC.",
+				Type:        proto.ColumnType_JSON,
+			},
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -126,7 +133,6 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -161,7 +167,6 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -194,7 +199,6 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	logger := plugin.Logger(ctx)
 	logger.Trace("listResolverEndpointIpAddresses")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -215,7 +219,7 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 
 	op, err := svc.ListResolverEndpointIpAddresses(params)
 	if err != nil {
-		logger.Debug("getMaintenanceWindowTargets", "ERROR", err)
+		logger.Debug("listResolverEndpointIpAddresses", "ERROR", err)
 		return nil, err
 	}
 
@@ -226,7 +230,6 @@ func listResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	logger := plugin.Logger(ctx)
 	logger.Trace("listResolverRule")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -234,6 +237,7 @@ func listResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
 	id := resolverEndpointData.Id
+
 	// Create Session
 	svc, err := Route53Resolver(ctx, d, region)
 	if err != nil {
@@ -265,13 +269,12 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverEndpointTags")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	maintenanceWindowData := h.Item.(*route53resolver.ResolverEndpoint)
+	resolverEndpintData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
 	svc, err := Route53Resolver(ctx, d, region)
@@ -281,7 +284,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 
 	// Build the params
 	params := &route53resolver.ListTagsForResourceInput{
-		ResourceArn: maintenanceWindowData.Arn,
+		ResourceArn: resolverEndpintData.Arn,
 	}
 
 	// Get call
@@ -294,7 +297,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	return op, nil
 }
 
-// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
 
 func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")

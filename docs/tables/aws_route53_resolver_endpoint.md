@@ -32,7 +32,7 @@ where
 	direction = 'INBOUND';
 ```
 
-### List of endpoints correctly configured and able to pass inbound or outbound DNS queries
+### List of endpoints whether action needed
 
 ```sql
 select
@@ -44,7 +44,7 @@ select
 from
 	aws_route53_resolver_endpoint
 where
-	status = 'OPERATIONAL';
+	status = 'ACTION_NEEDED';
 ```
 
 ### IP address details of resolver endpoint
@@ -72,7 +72,7 @@ select
 	p ->> 'Status' as status,
 	p ->> 'TargetIps' as target_ips
 from
-	aws.aws_route53_resolver_endpoint,
+	aws_route53_resolver_endpoint,
 	jsonb_array_elements(resolver_rules) as p;
 ```
 
