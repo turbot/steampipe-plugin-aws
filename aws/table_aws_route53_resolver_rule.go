@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_route53_resolver_rule",
@@ -30,26 +32,24 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The ARN (Amazon Resource Name) for the Resolver rule specified by Id.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creator_request_id",
 				Description: "A unique string that you specified when you created the Resolver rule. CreatorRequestId identifies the request and allows failed requests to be retried without the risk of executing the operation twice.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "domain_name",
-				Description: "DNS queries for this domain name are forwarded to the IP addresses that are specified in TargetIps. If a query matches multiple Resolver rules (example.com and www.example.com), the query is routed using the Resolver rule that contains the most specific domain name (www.example.com).",
+				Description: "DNS queries for this domain name are forwarded to the IP addresses that are specified in TargetIps.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "id",
 				Description: "The ID that Resolver assigned to the Resolver rule when you created it.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the Resolver Rule.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53ResolverRuleTags,
-				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "owner_id",
@@ -82,6 +82,23 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "creation_time",
+				Description: "The date and time that the Resolver rule was created, in Unix time format and Coordinated Universal Time (UTC).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "modification_time",
+				Description: "The date and time that the Resolver rule was last updated, in Unix time format and Coordinated Universal Time (UTC).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the Resolver Rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsRoute53ResolverRuleTags,
+				Transform:   transform.FromField("Tags"),
+			},
+			{
 				Name:        "target_ips",
 				Description: "An array that contains the IP addresses and ports that an outbound endpoint forwards DNS queries to. Typically, these are the IP addresses of DNS resolvers on your network. Specify IPv4 addresses. IPv6 is not supported.",
 				Type:        proto.ColumnType_JSON,
@@ -92,17 +109,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listResolverRuleAssociation,
 			},
-			{
-				Name:        "creation_time",
-				Description: "The date and time that the Resolver rule was created, in Unix time format and Coordinated Universal Time (UTC).",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "modification_time",
-				Description: "The date and time that the Resolver rule was last updated, in Unix time format and Coordinated Universal Time (UTC).",
-				Type:        proto.ColumnType_STRING,
-			},
-			/// Standard columns for all tables
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -129,7 +136,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -164,7 +171,7 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRule")
 
-	// TODO put me in helper function
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -197,7 +204,6 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("listResolverRuleAssociation")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -236,7 +242,6 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRuleTags")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -271,7 +276,7 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	return op, nil
 }
 
-// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
 
 func route53resolverRuleTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")
