@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -223,6 +224,28 @@ func ELBv2Service(ctx context.Context, d *plugin.QueryData, region string) (*elb
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
+}
+
+// EcsService returns the service connection for AWS ECS service
+func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.ECS, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EcsService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ecs-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ecs.ECS), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecs.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+
 }
 
 // ELBService returns the service connection for AWS ELB Classic service
