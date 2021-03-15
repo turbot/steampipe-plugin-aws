@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
@@ -230,6 +229,7 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
+<<<<<<< HEAD
 // EksService returns the service connection for AWS EKS service
 func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.EKS, error) {
 	if region == "" {
@@ -255,6 +255,12 @@ func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.E
 func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ElastiCache")
+=======
+// ElasticacheService returns the service connection for AWS Elasticache service
+func ElasticacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Elasticache")
+>>>>>>> Add table aws_ elasticache_parameter_group table closes #172
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
