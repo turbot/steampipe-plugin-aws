@@ -26,7 +26,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupPlans,
 		},
-		Columns: []*plugin.Column{
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The display name of a saved backup plan.",
@@ -34,14 +34,19 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("BackupPlanName"),
 			},
 			{
+				Name:        "arn",
+				Description: "An Amazon Resource Name (ARN) that uniquely identifies a backup plan.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BackupPlanArn"),
+			},
+			{
 				Name:        "backup_plan_id",
 				Description: "Uniquely identifies a backup plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanId"),
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time a resource backup is created",
+				Description: "The date and time a resource backup plan is created",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -63,13 +68,6 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "version_id",
 				Description: "Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1,024 bytes long. Version IDs cannot be edited.",
 				Type:        proto.ColumnType_STRING,
-			},
-
-			{
-				Name:        "arn",
-				Description: "An Amazon Resource Name (ARN) that uniquely identifies a backup plan.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanArn"),
 			},
 			{
 				Name:        "backup_plan",
@@ -95,7 +93,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("BackupPlanArn").Transform(arnToAkas),
 			},
-		},
+		}),
 	}
 }
 
@@ -149,10 +147,5 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		plugin.Logger(ctx).Debug("getAwsBackupPlan", "ERROR", err)
 		return nil, err
 	}
-
-	if len(op.GoString()) > 0 {
-		return op, nil
-	}
-
-	return nil, nil
+	return op, nil
 }

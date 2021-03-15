@@ -49,11 +49,11 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_backup_vault" "named_test_resource" {
-  name = "example_backup_vault"
+  name = var.resource_name
 }
 
 resource "aws_backup_plan" "named_test_resource" {
-  name = "tf_example_backup_plan"
+  name = var.resource_name
 
   rule {
     rule_name         = "tf_example_backup_rule"

@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of backup_plans older than 90 days
+### List of backup plans older than 90 days
 
 ```sql
 select
@@ -35,7 +35,7 @@ where
   creation_date;
 ```
 
-### List of backup_plans order by creation date
+### List of backup plans order by creation date
 
 ```sql
 select
