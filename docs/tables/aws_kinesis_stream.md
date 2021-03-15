@@ -8,14 +8,14 @@ Amazon Kinesis Streams is a massively scalable and durable real-time streaming s
 
 ```sql
 select
-	stream_name,
-	stream_arn,
-	stream_status,
-	consumer_count,
-	stream_creation_timestamp,
-	region
+  stream_name,
+  stream_arn,
+  stream_status,
+  consumer_count,
+  stream_creation_timestamp,
+  region
 from
-	aws_kinesis_stream;
+  aws_kinesis_stream;
 ```
 
 
@@ -23,16 +23,16 @@ from
 
 ```sql
 select
-	stream_name,
-	stream_arn,
-	stream_status,
-	consumer_count,
-	stream_creation_timestamp,
-	region
+  stream_name,
+  stream_arn,
+  stream_status,
+  consumer_count,
+  stream_creation_timestamp,
+  region
 from
-	aws_kinesis_stream
+  aws_kinesis_stream
 where
-	stream_status != 'ACTIVE';
+  stream_status != 'ACTIVE';
 ```
 
 
@@ -40,16 +40,16 @@ where
 
 ```sql
 select
-	stream_name,
-	stream_arn,
-	stream_status,
-	consumer_count,
-	stream_creation_timestamp,
-	region
+  stream_name,
+  stream_arn,
+  stream_status,
+  consumer_count,
+  stream_creation_timestamp,
+  region
 from
-	aws_kinesis_stream
+  aws_kinesis_stream
 where
-	consumer_count = '0';
+  consumer_count = 0;
 ```
 
 
@@ -57,16 +57,16 @@ where
 
 ```sql
 select
-	stream_name,
-	stream_arn,
-	encryption_type,
-	key_id,
-	stream_creation_timestamp,
-	region
+  stream_name,
+  stream_arn,
+  encryption_type,
+  key_id,
+  stream_creation_timestamp,
+  region
 from
-	aws_kinesis_stream
+  aws_kinesis_stream
 where
-	encryption_type = 'NONE';
+  encryption_type = 'NONE';
 ```
 
 
@@ -74,15 +74,15 @@ where
 
 ```sql
 select
-	stream_name,
-	stream_arn,
-	encryption_type,
-	key_id,
-	stream_creation_timestamp,
-	region
+  stream_name,
+  stream_arn,
+  encryption_type,
+  key_id,
+  stream_creation_timestamp,
+  region
 from
-	aws_kinesis_stream
+  aws_kinesis_stream
 where
-	encryption_type != 'NONE'
-	And key_id = 'alias/aws/kinesis';
+  encryption_type != 'NONE'
+  and key_id = 'alias/aws/kinesis';
 ```

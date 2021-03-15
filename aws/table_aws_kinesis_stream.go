@@ -117,6 +117,7 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsKinesisStreamTags,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -221,7 +222,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeStreamSummary")
-	
+ 
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
