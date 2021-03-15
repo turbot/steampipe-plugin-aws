@@ -8,13 +8,13 @@ Amazon EFS access points are application-specific entry points into an EFS file 
 
 ```sql
 select
-	name,
-	access_point_id,
-	file_system_id,
-	owner_id,
-	root_directory
+  name,
+  access_point_id,
+  file_system_id,
+  owner_id,
+  root_directory
 from
-	aws_efs_access_point;
+  aws_efs_access_point;
 ```
 
 
@@ -22,15 +22,15 @@ from
 
 ```sql
 select
-	name,
-	access_point_id,
-	file_system_id,
-	owner_id,
-	root_directory
+  name,
+  access_point_id,
+  file_system_id,
+  owner_id,
+  root_directory
 from
-	aws_efs_access_point
+  aws_efs_access_point
 where
-	file_system_id = 'fs-8d7f8938';
+  file_system_id = 'fs-8d7f8938';
 ```
 
 
@@ -38,14 +38,14 @@ where
 
 ```sql
 select
-	name,
-	access_point_id,
-	life_cycle_state,
-	file_system_id,
-	owner_id,
-	root_directory
+  name,
+  access_point_id,
+  life_cycle_state,
+  file_system_id,
+  owner_id,
+  root_directory
 from
-	aws_efs_access_point
+  aws_efs_access_point
 where
-	life_cycle_state = 'available';
+  life_cycle_state = 'available';
 ```
