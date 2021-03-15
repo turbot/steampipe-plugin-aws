@@ -39,6 +39,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_domain_name":          tableAwsAPIGatewayV2DomainName(ctx),
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
+			"aws_backup_plan":                        tableAwsBackupPlan(ctx),
 			"aws_backup_vault":                       tableAwsBackupVault(ctx),
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
 			"aws_cloudtrail_trail":                   tableAwsCloudtrailTrail(ctx),
@@ -72,7 +73,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_ecr_repository":                     tableAwsEcrRepository(ctx),
 			"aws_ecs_cluster":                        tableAwsEcsCluster(ctx),
-			"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                   tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                    tableAwsElasticFileSystem(ctx),
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
@@ -83,9 +83,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_emr_cluster":                        tableAwsEmrCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
 			"aws_glacier_vault":                      tableAwsGlacierVault(ctx),
-			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
-			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
 			"aws_iam_account_summary":                tableAwsIamAccountSummary(ctx),
 			"aws_iam_action":                         tableAwsIamAction(ctx),
 			"aws_iam_credential_report":              tableAwsIamCredentialReport(ctx),
@@ -148,7 +146,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
-			"aws_backup_plan":                        tableAwsBackupPlan(ctx),
 		},
 	}
 
