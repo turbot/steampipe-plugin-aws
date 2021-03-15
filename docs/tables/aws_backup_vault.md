@@ -30,7 +30,3 @@ where
   order by
   creation_date;
 ```
-
-
-
-

@@ -1,12 +1,8 @@
-
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
   description = "Name of the resource used throughout the test."
 }
-
-
 
 variable "aws_profile" {
   type        = string
@@ -51,7 +47,38 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_backup_vault" "named_test_resource" {
-  name = "example_backup_vault"
+  name = var.resource_name
+}
+
+resource "aws_backup_vault_policy" "named_test_resource" {
+  backup_vault_name = aws_backup_vault.named_test_resource.name
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "default",
+  "Statement": [
+    {
+      "Sid": "default",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "backup:DescribeBackupVault",
+        "backup:DeleteBackupVault",
+        "backup:PutBackupVaultAccessPolicy",
+        "backup:DeleteBackupVaultAccessPolicy",
+        "backup:GetBackupVaultAccessPolicy",
+        "backup:StartBackupJob",
+        "backup:GetBackupVaultNotifications",
+        "backup:PutBackupVaultNotifications"
+      ],
+      "Resource": "${aws_backup_vault.named_test_resource.arn}"
+    }
+  ]
+}
+POLICY
 }
 
 output "id" {
