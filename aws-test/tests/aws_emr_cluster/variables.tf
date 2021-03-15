@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_iam_role" "iam_emr_service_role" {
-  name               = "test_iam_emr_service_role"
+  name               = "${var.resource_name}_1"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -65,8 +65,8 @@ resource "aws_iam_role" "iam_emr_service_role" {
 EOF
 }
 resource "aws_iam_role_policy" "iam_emr_service_policy" {
-  name = "test_iam_emr_service_policy"
-  role = "${aws_iam_role.iam_emr_service_role.id}"
+  name = "${var.resource_name}_1"
+  role = aws_iam_role.iam_emr_service_role.id
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -133,7 +133,7 @@ resource "aws_iam_role_policy" "iam_emr_service_policy" {
 EOF
 }
 resource "aws_iam_role" "iam_emr_profile_role" {
-  name = "test_iam_emr_profile_role"
+  name = "${var.resource_name}_2"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -151,12 +151,12 @@ resource "aws_iam_role" "iam_emr_profile_role" {
 EOF
 }
 resource "aws_iam_instance_profile" "emr_profile" {
-  name  = "emr_profile_new008"
-  role = "${aws_iam_role.iam_emr_profile_role.name}"
+  name  = "var.resource_name"
+  role = aws_iam_role.iam_emr_profile_role.name
 }
 resource "aws_iam_role_policy" "iam_emr_profile_policy" {
-  name = "iam_emr_profile_policy"
-  role = "${aws_iam_role.iam_emr_profile_role.id}"
+  name = "${var.resource_name}_2"
+  role = aws_iam_role.iam_emr_profile_role.id
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -165,7 +165,6 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
         "Resource": "*",
         "Action": [
             "cloudwatch:*",
-            "dynamodb:*",
             "ec2:Describe*",
             "elasticmapreduce:Describe*",
             "elasticmapreduce:ListBootstrapActions",
@@ -173,15 +172,6 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
             "elasticmapreduce:ListInstanceGroups",
             "elasticmapreduce:ListInstances",
             "elasticmapreduce:ListSteps",
-            "kinesis:CreateStream",
-            "kinesis:DeleteStream",
-            "kinesis:DescribeStream",
-            "kinesis:GetRecords",
-            "kinesis:GetShardIterator",
-            "kinesis:MergeShards",
-            "kinesis:PutRecord",
-            "kinesis:SplitShard",
-            "rds:Describe*",
             "s3:*",
             "sdb:*",
             "sns:*",
@@ -195,7 +185,7 @@ resource "aws_vpc" "my_vpc" {
   cidr_block           = "168.31.0.0/16"
 }
 resource "aws_security_group" "emr_master" {
-  vpc_id                 = "${aws_vpc.my_vpc.id}"
+  vpc_id                 = aws_vpc.my_vpc.id
   revoke_rules_on_delete = true
   ingress {
     from_port   = 443
@@ -214,22 +204,22 @@ resource "aws_security_group" "emr_master" {
   }
 }
 resource "aws_subnet" "my_subnet" {
-  vpc_id     = "${aws_vpc.my_vpc.id}"
+  vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "168.31.0.0/20"
 }
 resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.my_vpc.id}"
+  vpc_id = aws_vpc.my_vpc.id
 }
 resource "aws_route_table" "test_route_table" {
-  vpc_id = "${aws_vpc.my_vpc.id}"
+  vpc_id = aws_vpc.my_vpc.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
+    gateway_id = aws_internet_gateway.gw.id
   }
 }
 resource "aws_main_route_table_association" "test_association" {
-  vpc_id         = "${aws_vpc.my_vpc.id}"
-  route_table_id = "${aws_route_table.test_route_table.id}"
+  vpc_id         = aws_vpc.my_vpc.id
+  route_table_id = aws_route_table.test_route_table.id
 }
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer-key"
@@ -241,14 +231,14 @@ resource "aws_emr_cluster" "named_test_resource" {
   release_label = "emr-4.9.5"
   applications  = ["Spark"]
   ec2_attributes {
-    key_name = "${aws_key_pair.deployer.key_name}"
-    subnet_id                         = "${aws_subnet.my_subnet.id}"
-    emr_managed_master_security_group = "${aws_security_group.emr_master.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.emr_master.id}"
-    instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
+    key_name = aws_key_pair.deployer.key_name
+    subnet_id                         = aws_subnet.my_subnet.id
+    emr_managed_master_security_group = aws_security_group.emr_master.id
+    emr_managed_slave_security_group  = aws_security_group.emr_master.id
+    instance_profile                  = aws_iam_instance_profile.emr_profile.arn
   }
   master_instance_group {
-    instance_type = "m4.xlarge"
+    instance_type = "m4.large"
   }
   core_instance_group {
     instance_type  = "c4.large"
@@ -257,7 +247,7 @@ resource "aws_emr_cluster" "named_test_resource" {
   tags = {
     name     = var.resource_name
   }
-  service_role = "${aws_iam_role.iam_emr_service_role.arn}"
+  service_role = aws_iam_role.iam_emr_service_role.arn
 }
 
 output "resource_name" {

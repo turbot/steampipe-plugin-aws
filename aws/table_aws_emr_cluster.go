@@ -28,6 +28,11 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "name",
+				Description: "The name of the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "id",
 				Description: "The unique identifier for the cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -38,20 +43,9 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "name",
-				Description: "The name of the cluster.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "Normalized_instance_hours",
-				Description: "The friendly name to identify the DB Cluster.",
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "outpost_arn",
-				Description: "The Amazon Resource Name (ARN) of the Outpost where the cluster is launched.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEmrCluster,
+				Name:        "status",
+				Description: "The current status details about the cluster.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "auto_scaling_role",
@@ -74,7 +68,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "ebs_root_volume_size",
-				Description: "The size, in GiB, of the Amazon EBS root device volume of the Linux AMI that is used for each EC2 instance. Available in Amazon EMR version 4.x and later.",
+				Description: "The size of the Amazon EBS root device volume of the Linux AMI that is used for each EC2 instance, in GiB. Available in Amazon EMR version 4.x and later.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
 			},
@@ -97,10 +91,21 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEmrCluster,
 			},
 			{
+				Name:        "outpost_arn",
+				Description: "The Amazon Resource Name (ARN) of the Outpost where the cluster is launched.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEmrCluster,
+			},
+			{
 				Name:        "master_public_dns_name",
 				Description: "The DNS name of the master node.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
+			},
+			{
+				Name:        "normalized_instance_hours",
+				Description: "An approximation of the cost of the cluster, represented in m1.small/hours.",
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "release_label",
@@ -163,11 +168,6 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEmrCluster,
 			},
 			{
-				Name:        "status",
-				Description: "The current status details about the cluster.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "applications",
 				Description: "The applications installed on this cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -199,7 +199,7 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with a cluster..",
+				Description: "A list of tags associated with a cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEmrCluster,
 				Transform:   transform.FromField("Tags"),
@@ -207,17 +207,17 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 
 			// Standard columns
 			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
+			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEmrCluster,
 				Transform:   transform.FromField("Tags").Transform(getEmrClusterTurbotTags),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
@@ -293,11 +293,8 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.Cluster != nil {
-		return op.Cluster, nil
-	}
+	return op.Cluster, nil
 
-	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -309,6 +306,7 @@ func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (i
 	if clusterTags == nil {
 		return nil, nil
 	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if clusterTags.Tags != nil {
