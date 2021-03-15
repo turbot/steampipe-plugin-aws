@@ -1,6 +1,29 @@
 [
   {
     "name": "{{ output.id.value }}",
-    "policy": "<null>"
+    "policy": {
+      "Id": "default",
+      "Statement": [
+        {
+          "Action": [
+            "backup:DescribeBackupVault",
+            "backup:DeleteBackupVault",
+            "backup:PutBackupVaultAccessPolicy",
+            "backup:DeleteBackupVaultAccessPolicy",
+            "backup:GetBackupVaultAccessPolicy",
+            "backup:StartBackupJob",
+            "backup:GetBackupVaultNotifications",
+            "backup:PutBackupVaultNotifications"
+          ],
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Resource": "{{output.resource_aka.value}}",
+          "Sid": "default"
+        }
+      ],
+      "Version": "2012-10-17"
+    }
   }
 ]
