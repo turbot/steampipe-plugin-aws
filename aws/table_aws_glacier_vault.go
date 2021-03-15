@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -19,7 +20,7 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 		Description: "AWS Glacier Vault",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("vault_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			Hydrate:           getGlacierVault,
 		},
 		List: &plugin.ListConfig{
@@ -74,7 +75,7 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with the cluster.",
+				Description: "A list of tags associated with the vault.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForGlacierVault,
 				Transform:   transform.FromField("Tags"),
@@ -92,7 +93,6 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForGlacierVault,
-				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "akas",
@@ -195,14 +195,8 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	vaultName := h.Item.(*glacier.DescribeVaultOutput)
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	commonColumnData := commonData.(*awsCommonColumnData)
-	accountID := commonColumnData.AccountId
+	splitID := strings.Split(string(*vaultName.VaultARN), ":")
+	accountID := splitID[4]
 
 	// Create session
 	svc, err := GlacierService(ctx, d, region)
@@ -235,14 +229,8 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	vaultName := h.Item.(*glacier.DescribeVaultOutput)
-
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	commonColumnData := commonData.(*awsCommonColumnData)
-	accountID := commonColumnData.AccountId
+	splitID := strings.Split(string(*vaultName.VaultARN), ":")
+	accountID := splitID[4]
 
 	// Create session
 	svc, err := GlacierService(ctx, d, region)
@@ -257,7 +245,6 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	vaultTags, err := svc.ListTagsForVault(param)
-
 	if err != nil {
 		return nil, err
 	}
