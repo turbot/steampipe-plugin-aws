@@ -20,7 +20,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		Description: "AWS ECS Task Definition",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("task_definition_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
 			Hydrate:           getEcsTaskDefinition,
 		},
 		List: &plugin.ListConfig{
@@ -35,25 +35,18 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TaskDefinition.TaskDefinitionArn"),
 			},
 			{
-				Name:        "compatibilities",
-				Description: "The launch type to use with your task.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.Compatibilities"),
-			},
-			{
-				Name:        "container_definitions",
-				Description: "A list of container definitions in JSON format that describe the different containers that make up your task.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.ContainerDefinitions"),
-			},
-			{
 				Name:        "cpu",
 				Description: "The number of cpu units used by the task.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Cpu"),
+			},
+			{
+				Name:        "status",
+				Description: "The status of the task definition.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.Status"),
 			},
 			{
 				Name:        "execution_role_arn",
@@ -68,13 +61,6 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Family"),
-			},
-			{
-				Name:        "inference_accelerators",
-				Description: "The Elastic Inference accelerator associated with the task.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.InferenceAccelerators"),
 			},
 			{
 				Name:        "ipc_mode",
@@ -105,6 +91,55 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TaskDefinition.PidMode"),
 			},
 			{
+				Name:        "revision",
+				Description: "The launch type the task requires. If no value is specified, it will default to EC2. Valid values include EC2 and FARGATE.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.Revision"),
+			},
+			{
+				Name:        "task_role_arn",
+				Description: "The short name or full Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role that grants containers in the task permission to call AWS APIs on your behalf.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.TaskRoleArn"),
+			},
+			{
+				Name:        "registered_at",
+				Description: "The list of volume definitions for the task.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.RegisteredAt"),
+			},
+			{
+				Name:        "registered_by",
+				Description: "The list of volume definitions for the task.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.RegisteredBy"),
+			},
+			{
+				Name:        "container_definitions",
+				Description: "A list of container definitions in JSON format that describe the different containers that make up your task.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.ContainerDefinitions"),
+			},
+			{
+				Name:        "compatibilities",
+				Description: "The launch type to use with your task.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.Compatibilities"),
+			},
+			{
+				Name:        "inference_accelerators",
+				Description: "The Elastic Inference accelerator associated with the task.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.InferenceAccelerators"),
+			},
+			{
 				Name:        "placement_constraints",
 				Description: "An array of placement constraint objects to use for tasks.",
 				Type:        proto.ColumnType_JSON,
@@ -133,46 +168,11 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TaskDefinition.RequiresCompatibilities"),
 			},
 			{
-				Name:        "revision",
-				Description: "The launch type the task requires. If no value is specified, it will default to EC2. Valid values include EC2 and FARGATE.",
-				Type:        proto.ColumnType_INT,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.Revision"),
-			},
-			{
-				Name:        "status",
-				Description: "The status of the task definition.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.Status"),
-			},
-			{
-				Name:        "task_role_arn",
-				Description: "The short name or full Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role that grants containers in the task permission to call AWS APIs on your behalf.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.TaskRoleArn"),
-			},
-			{
 				Name:        "volumes",
 				Description: "The list of volume definitions for the task.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Volumes"),
-			},
-			{
-				Name:        "registered_at",
-				Description: "The list of volume definitions for the task.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.RegisteredAt"),
-			},
-			{
-				Name:        "registered_by",
-				Description: "The list of volume definitions for the task.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.RegisteredBy"),
 			},
 			{
 				Name:        "tags_src",
@@ -191,18 +191,18 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Transform:   transform.FromP(getAwsEcsTaskDefinitionTurbotData, "Title"),
 			},
 			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.TaskDefinitionArn").Transform(arnToAkas),
-			},
-			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromP(getAwsEcsTaskDefinitionTurbotData, "Tags"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsTaskDefinition,
+				Transform:   transform.FromField("TaskDefinition.TaskDefinitionArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -286,41 +286,30 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	if op != nil {
-		return op, nil
-	}
-
-	return nil, nil
+	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func getAwsEcsTaskDefinitionTurbotData(ctx context.Context, d *transform.TransformData) (interface{},
 	error) {
-
 	param := d.Param.(string)
+	ecsTaskDefinition := d.HydrateItem.(*ecs.DescribeTaskDefinitionOutput)
+
+	// Get resource title
+	arn := ecsTaskDefinition.TaskDefinition.TaskDefinitionArn
+	title := strings.Split(*arn, "/")[len(strings.Split(*arn, "/"))-1]
+
 	if param == "Tags" {
-
-		ecsTaskDefinitionTags := d.HydrateItem.(*ecs.DescribeTaskDefinitionOutput).Tags
-
-		if ecsTaskDefinitionTags == nil {
-			return nil, nil
-		}
-
-		if ecsTaskDefinitionTags != nil {
+		// Get the resource tags
+		if ecsTaskDefinition.Tags != nil {
 			turbotTagsMap := map[string]string{}
-			for _, i := range ecsTaskDefinitionTags {
+			for _, i := range ecsTaskDefinition.Tags {
 				turbotTagsMap[*i.Key] = *i.Value
 			}
 			return turbotTagsMap, nil
 		}
 	}
 
-	taskDefinition := d.HydrateItem.(*ecs.DescribeTaskDefinitionOutput).TaskDefinition
-
-	// Get resource title
-	arn := taskDefinition.TaskDefinitionArn
-
-	title := strings.Split(*arn, "/")[len(strings.Split(*arn, "/"))-1]
 	return title, nil
 }

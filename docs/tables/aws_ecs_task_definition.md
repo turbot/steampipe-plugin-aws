@@ -14,7 +14,7 @@ select
   status,
   tags
 from
-  aws_new.aws_ecs_task_definition;
+  aws_ecs_task_definition;
 ```
 
 
@@ -25,7 +25,7 @@ select
   task_definition_arn,
   jsonb_array_length(container_definitions) as no_of_conatiners
 from
-  aws_new.aws_ecs_task_definition
+  aws_ecs_task_definition,
   jsonb_array_elements(container_definitions) as cd;
 ```
 
@@ -38,7 +38,7 @@ select
   cd ->> 'Privileged' as privileged,
   cd ->> 'Name' as container_name
 from
-  aws_new.aws_ecs_task_definition,
+  aws_ecs_task_definition,
   jsonb_array_elements(container_definitions) as cd
   where cd ->> 'Privileged' = 'true' ;
 ```
