@@ -97,7 +97,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := h.Item.(*ec2.Region)
 	plugin.Logger(ctx).Trace("getAwsAvailabilityZone", "region", *region.RegionName)
 
-	// If a region us not opted-in, we cannot list the availability zones
+	// If a region is not opted-in, we cannot list the availability zones
 	if types.SafeString(region.OptInStatus) == "not-opted-in" {
 		return nil, nil
 	}
