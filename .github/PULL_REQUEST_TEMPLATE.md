@@ -1,11 +1,17 @@
 # Integration test logs
-
-```
-Include passing integration test logs.
-```
+<details>
+  <summary>Logs</summary>
+  
+  ```
+  Add passing integration test logs here
+  ```
+</details>
 
 # Example query results
-
-```
-Include example SQL query results (please include the input queries as well).
-```
+<details>
+  <summary>Results</summary>
+  
+  ```
+  Add example SQL query results here (please include the input queries as well)
+  ```
+</details>
