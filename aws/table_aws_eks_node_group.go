@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eks_node_group",
@@ -35,13 +37,12 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksNodeGroup,
-				Transform:   transform.FromField("nodegroupArn"),
+				Transform:   transform.FromField("NodegroupArn"),
 			},
 			{
 				Name:        "cluster_name",
-				Description: "The Time when the cluster was created.",
+				Description: "The name of the cluster that the managed node group resides in.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
 			},
 			{
 				Name:        "version",
@@ -57,7 +58,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "created_at",
-				Description: "The timestamp when the managed node group was created.",
+				Description: "The Unix epoch timestamp in seconds for when the managed node group was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getEksNodeGroup,
 			},
@@ -75,8 +76,26 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "capacity_type",
-				Description: "The current status of the cluster.",
+				Description: "The capacity type of the managed node group.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksNodeGroup,
+			},
+			{
+				Name:        "ami_type",
+				Description: "If the node group was deployed using a launch template with a custom AMI, then this is CUSTOM. For node groups that weren't deployed using a launch template, this is the AMI type that was specified in the node group configuration.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksNodeGroup,
+			},
+			{
+				Name:        "node_role",
+				Description: "The IAM role associated with your node group.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksNodeGroup,
+			},
+			{
+				Name:        "disk_size",
+				Description: "If the node group wasn't deployed with a launch template, then this is the disk size in the node group configuration. If the node group was deployed with a launch template, then this is null.",
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getEksNodeGroup,
 			},
 			{
@@ -104,20 +123,8 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getEksNodeGroup,
 			},
 			{
-				Name:        "ami_type",
-				Description: "If the node group was deployed using a launch template with a custom AMI, then this is CUSTOM. For node groups that weren't deployed using a launch template, this is the AMI type that was specified in the node group configuration.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
-			},
-			{
-				Name:        "node_role",
-				Description: "The IAM role associated with your node group.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksNodeGroup,
-			},
-			{
 				Name:        "labels",
-				Description: "If the node group wasn't deployed with a launch template, then this is the remote access configuration that is associated with the node group.",
+				Description: "The Kubernetes labels applied to the nodes in the node group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksNodeGroup,
 			},
@@ -125,12 +132,6 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Name:        "resources",
 				Description: "The resources associated with the node group, such as Auto Scaling groups and security groups for remote access.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
-			},
-			{
-				Name:        "disk_size",
-				Description: "If the node group wasn't deployed with a launch template, then this is the disk size in the node group configuration. If the node group was deployed with a launch template, then this is null.",
-				Type:        proto.ColumnType_INT,
 				Hydrate:     getEksNodeGroup,
 			},
 			{
@@ -144,13 +145,6 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Description: "If a launch template was used to create the node group, then this is the launch template that was used.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksNodeGroup,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags attached to the node group.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEksNodeGroup,
-				Transform:   transform.FromField("tags"),
 			},
 			{
 				Name:        "tags",
@@ -171,7 +165,7 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("nodegroupArn").Transform(arnToAkas),
+				Transform:   transform.FromField("NodegroupArn").Transform(arnToAkas),
 				Hydrate:     getEksNodeGroup,
 			},
 		}),
@@ -181,8 +175,6 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -216,7 +208,6 @@ func listEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEksCluster")
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
