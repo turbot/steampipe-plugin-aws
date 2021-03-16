@@ -99,6 +99,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sns_topic":                          tableAwsSnsTopic(ctx),
 			"aws_sns_topic_subscription":             tableAwsSnsTopicSubscription(ctx),
 			"aws_sqs_queue":                          tableAwsSqsQueue(ctx),
+			"aws_ssm_document":                       tableAwsSSMDocument(ctx),
 			"aws_ssm_maintenance_window":             tableAwsSSMMaintenanceWindow(ctx),
 			"aws_ssm_parameter":                      tableAwsSSMParameter(ctx),
 			"aws_ssm_patch_baseline":                 tableAwsSSMPatchBaseline(ctx),
