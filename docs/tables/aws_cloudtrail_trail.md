@@ -38,7 +38,7 @@ from
   aws_cloudtrail_trail as trail
   join aws_s3_bucket as bucket on trail.s3_bucket_name = bucket.name
 where
-  not bucket.bucket_policy_is_public;
+  bucket.bucket_policy_is_public;
 ```
 
 ### List trails that store logs in an S3 bucket with versioning disabled
