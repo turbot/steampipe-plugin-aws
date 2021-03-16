@@ -18,7 +18,7 @@ from
 ```
 
 
-### List the Vpc configuration used by cluster
+### List the VPC configuration used by cluster
 
 ```sql
 select
@@ -40,8 +40,8 @@ from
 ```sql
 select
   name,
-  i -> 'Enabled' as enabled,
-  i -> 'Types' as types
+  i ->> 'Enabled' as enabled,
+  i ->> 'Types' as types
 from
   aws_eks_cluster,
   jsonb_array_elements(logging -> 'ClusterLogging') as i

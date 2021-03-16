@@ -106,13 +106,13 @@ resource "aws_vpc" "named_test_resource" {
 resource "aws_subnet" "named_test_resource1" {
   vpc_id     = aws_vpc.named_test_resource.id
   cidr_block = "172.31.0.0/20"
-  availability_zone = "us-east-1b"
+  availability_zone = "${var.aws_region}b"
 }
 
 resource "aws_subnet" "named_test_resource2" {
   vpc_id     = aws_vpc.named_test_resource.id
   cidr_block = "172.31.32.0/20"
-  availability_zone = "us-east-1d"
+  availability_zone = "${var.aws_region}d"
 }
 
 output "endpoint" {

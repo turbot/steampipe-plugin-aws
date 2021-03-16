@@ -39,7 +39,7 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_at",
 				Description: "The Unix epoch timestamp in seconds for when the cluster was created.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getEksCluster,
 			},
 			{
@@ -150,13 +150,17 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		return nil, err
 	}
 
-	resp, err := svc.ListClusters(&eks.ListClustersInput{})
-	for _, cluster := range resp.Clusters {
-		d.StreamListItem(ctx, &eks.Cluster{
-			Name: cluster,
-		})
-	}
-
+	err = svc.ListClustersPages(
+		&eks.ListClustersInput{},
+		func(page *eks.ListClustersOutput, b bool) bool {
+			for _, cluster := range page.Clusters {
+				d.StreamListItem(ctx, &eks.Cluster{
+					Name: cluster,
+				})
+			}
+			return true
+		},
+	)
 	return nil, err
 }
 
@@ -192,9 +196,5 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	if op.Cluster != nil {
-		return op.Cluster, nil
-	}
-
-	return nil, nil
+	return op.Cluster, nil
 }
