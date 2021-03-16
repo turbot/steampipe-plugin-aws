@@ -194,9 +194,8 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 		region = matrixRegion.(string)
 	}
 
-	vaultName := h.Item.(*glacier.DescribeVaultOutput)
-	splitID := strings.Split(string(*vaultName.VaultARN), ":")
-	accountID := splitID[4]
+	data := h.Item.(*glacier.DescribeVaultOutput)
+	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
 	svc, err := GlacierService(ctx, d, region)
@@ -206,7 +205,7 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 
 	// Build param
 	param := &glacier.GetVaultAccessPolicyInput{
-		VaultName: vaultName.VaultName,
+		VaultName: data.VaultName,
 		AccountId: aws.String(accountID),
 	}
 
@@ -228,9 +227,8 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 		region = matrixRegion.(string)
 	}
 
-	vaultName := h.Item.(*glacier.DescribeVaultOutput)
-	splitID := strings.Split(string(*vaultName.VaultARN), ":")
-	accountID := splitID[4]
+	data := h.Item.(*glacier.DescribeVaultOutput)
+	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
 	svc, err := GlacierService(ctx, d, region)
@@ -240,7 +238,7 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	// Build param
 	param := &glacier.ListTagsForVaultInput{
-		VaultName: vaultName.VaultName,
+		VaultName: data.VaultName,
 		AccountId: aws.String(accountID),
 	}
 
