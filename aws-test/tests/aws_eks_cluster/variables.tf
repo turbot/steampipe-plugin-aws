@@ -119,6 +119,10 @@ output "endpoint" {
   value = aws_eks_cluster.named_test_resource.endpoint
 }
 
+output "role_arn" {
+  value = aws_iam_role.named_test_resource.arn
+}
+
 output "kubeconfig-certificate-authority-data" {
   value = aws_eks_cluster.named_test_resource.certificate_authority[0].data
 }
@@ -133,6 +137,14 @@ output "resource_aka" {
 
 output "status" {
   value = aws_eks_cluster.named_test_resource.status
+}
+
+output "version" {
+  value = aws_eks_cluster.named_test_resource.version
+}
+
+output "platform_version" {
+  value = aws_eks_cluster.named_test_resource.platform_version
 }
 
 output "vpc_config" {

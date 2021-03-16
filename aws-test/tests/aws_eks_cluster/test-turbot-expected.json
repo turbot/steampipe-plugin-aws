@@ -4,9 +4,9 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "db_snapshot_identifier": "{{ resourceName }}",
+    "name": "{{ resourceName }}",
     "tags": {
-      "name": "{{ resourceName }}"
+      "Name": "{{ resourceName }}"
     },
     "title": "{{ resourceName }}"
   }

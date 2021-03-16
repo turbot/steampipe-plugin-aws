@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsEksCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eks_cluster",
@@ -36,7 +38,7 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "created_at",
-				Description: "The Time when the cluster was created.",
+				Description: "The Unix epoch timestamp in seconds for when the cluster was created.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksCluster,
 			},
@@ -59,8 +61,20 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEksCluster,
 			},
 			{
+				Name:        "encryption_config",
+				Description: "The encryption configuration for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEksCluster,
+			},
+			{
 				Name:        "resources_vpc_config",
 				Description: "The VPC configuration used by the cluster control plane.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEksCluster,
+			},
+			{
+				Name:        "kubernetes_network_config",
+				Description: "The Kubernetes network configuration for the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksCluster,
 			},
@@ -95,13 +109,6 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEksCluster,
 			},
 			{
-				Name:        "tags_src",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("tags"),
-				Hydrate:     getEksCluster,
-			},
-			{
 				Name:        "tags",
 				Description: "A list of tags assigned to the table",
 				Type:        proto.ColumnType_JSON,
@@ -130,8 +137,6 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -159,7 +164,6 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEksCluster")
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -188,5 +192,9 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	return op.Cluster, nil
+	if op.Cluster != nil {
+		return op.Cluster, nil
+	}
+
+	return nil, nil
 }
