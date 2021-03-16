@@ -4,7 +4,18 @@ AWS CloudTrail is a service that enables governance, compliance, operational aud
 
 ## Examples
 
-### List of trails which are not encrypted
+### Basic info
+
+```sql
+select
+  name,
+  home_region,
+  is_multi_region_trail
+from
+  aws_cloudtrail_trail
+```
+
+### List trails that are not encrypted
 
 ```sql
 select
@@ -16,7 +27,7 @@ where
   kms_key_id is null;
 ```
 
-### List of trails which stores logs in publicly accessible S3 buckets
+### List trails that store logs in publicly accessible S3 buckets
 
 ```sql
 select
@@ -30,19 +41,7 @@ where
   not bucket.bucket_policy_is_public;
 ```
 
-### List of trails which do not send log events to CloudWatch Logs
-
-```sql
-select
-  name,
-  is_logging
-from
-  aws_cloudtrail_trail
-where
-  not is_logging;
-```
-
-### List of trails which stores logs in S3 bucket and versioning for that bucket is not enabled
+### List trails that store logs in an S3 bucket with versioning disabled
 
 ```sql
 select
@@ -56,7 +55,19 @@ where
   not versioning_enabled;
 ```
 
-### List of trails for which LogFileValidation is not enabled
+### List trails that do not send log events to CloudWatch Logs
+
+```sql
+select
+  name,
+  is_logging
+from
+  aws_cloudtrail_trail
+where
+  not is_logging;
+```
+
+### List trails with log file validation disabled
 
 ```sql
 select
