@@ -32,37 +32,38 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "account_ids",
+				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
+				Name:        "account_sharing_info_list",
+				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentPermissionDetail,
+			},
+			{
+				Name:        "approved_version",
+				Description: "The version of the document currently approved for use in the organization.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "attachments_information",
+				Description: "Details about the document attachments, including names, locations, sizes,and so on.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
 				Name:        "author",
 				Description: "The user in your organization who created the document.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "document_version",
-				Description: "The document version.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "status",
-				Description: "The user in your organization who created the document.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "pending_review_version",
-				Description: "The version of the document that is currently under review.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "review_information",
-				Description: "Details about the review of a document.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "parameters",
-				Description: "A description of the parameters for a document.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "created_date",
+				Description: "The date when the document was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
@@ -78,6 +79,21 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
+				Name:        "document_format",
+				Description: "The document format, either JSON or YAML.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "document_type",
+				Description: "The type of document.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "document_version",
+				Description: "The document version.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "hash",
 				Description: "The Sha256 or Sha1 hash created by the system when the document was created.",
 				Type:        proto.ColumnType_STRING,
@@ -90,8 +106,64 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
+				Name:        "latest_version",
+				Description: "The latest version of the document.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "owner",
+				Description: "The AWS user account that created the document.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "parameters",
+				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "pending_review_version",
+				Description: "The version of the document that is currently under review.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "platform_types",
+				Description: "The operating system platform.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "requires",
+				Description: "A list of SSM documents required by a document.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "review_information",
+				Description: "Details about the review of a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "review_status",
+				Description: "The current status of the review.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "schema_version",
+				Description: "The schema version.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
 				Name:        "sha1",
 				Description: "The SHA1 hash of the document, which you can use for verification.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMDocument,
+			},
+			{
+				Name:        "status",
+				Description: "The user in your organization who created the document.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMDocument,
 			},
@@ -102,45 +174,10 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMDocument,
 			},
 			{
-				Name:        "schema_version",
-				Description: "The schema version.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "owner",
-				Description: "The AWS user account that created the document.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "requires",
-				Description: "A list of SSM documents required by a document.",
+				Name:        "tags_src",
+				Description: "A list of tags associated with document",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "version_name",
-				Description: "The version of the artifact associated with the document.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "document_format",
-				Description: "The document format, either JSON or YAML.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "document_type",
-				Description: "The type of document.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "platform_types",
-				Description: "The operating system platform.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "review_status",
-				Description: "The current status of the review.",
-				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "target_type",
@@ -148,49 +185,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "approved_version",
-				Description: "The version of the document currently approved for use in the organization.",
+				Name:        "version_name",
+				Description: "The version of the artifact associated with the document.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMDocument,
 			},
-			{
-				Name:        "attachments_information",
-				Description: "Details about the document attachments, including names, locations, sizes,and so on.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "created_date",
-				Description: "The date when the document was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "latest_version",
-				Description: "The latest version of the document.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMDocument,
-			},
-			{
-				Name:        "account_ids",
-				Description: "The account IDs that have permission to use this document.The ID can be either an AWS account or All.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
-			},
-			{
-				Name:        "account_sharing_infoList",
-				Description: "A list of AWS accounts where the current document is shared and the version shared with each account.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentPermissionDetail,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags associated with document",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
-
 			// Standard columns
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMDocumentAkas,
+				Transform:   transform.FromValue(),
+			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
@@ -202,13 +208,6 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMDocumentAkas,
-				Transform:   transform.FromValue(),
 			},
 		}),
 	}
