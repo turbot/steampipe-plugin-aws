@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
@@ -136,8 +135,8 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsKinesisStreamAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     describeStream,
+				Transform:   transform.FromField("StreamDescription.StreamARN").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -222,7 +221,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeStreamSummary")
- 
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -230,7 +229,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		region = matrixRegion.(string)
 	}
 	var streamName string
-		streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+	streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
 	svc, err := KinesisService(ctx, d, region)
@@ -285,25 +284,6 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	return op, nil
-}
-
-func getAwsKinesisStreamAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKinesisStreamAkas")
-	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":kinesis:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":stream"
-
-	if strings.HasPrefix(streamName, "/") {
-		aka = aka + streamName
-	} else {
-		aka = aka + "/" + streamName
-	}
-
-	return []string{aka}, nil
 }
 
 //// TRANSFORM FUNCTIONS
