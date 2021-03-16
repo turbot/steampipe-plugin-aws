@@ -40,6 +40,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
+			"aws_cloudtrail_trail":                   tableAwsCloudtrailTrail(ctx),
 			"aws_cloudwatch_log_group":               tableAwsCloudwatchLogGroup(ctx),
 			"aws_cloudwatch_log_metric_filter":       tableAwsCloudwatchLogMetricFilter(ctx),
 			"aws_cloudwatch_log_stream":              tableAwsCloudwatchLogStream(ctx),
