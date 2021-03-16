@@ -144,6 +144,8 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	return nil, err
 }
 
+//// HYDRATE FUNCTIONS
+
 func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEventBridgeRule")
@@ -202,7 +204,6 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build the params
 	params := &eventbridge.ListTagsForResourceInput{
-		//ResourceType: types.String("Parameter"),
 		ResourceARN: &arn,
 	}
 

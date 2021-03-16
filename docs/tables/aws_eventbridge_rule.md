@@ -8,13 +8,13 @@ Amazon EventBridge defines the building and management of event-driven applicati
 
 ```sql
 select
-    name,
-    arn,
-    state,
-    created_by,
-    event_bus_name
+  name,
+  arn,
+  state,
+  created_by,
+  event_bus_name
 from
-    aws_eventbridge_rule;
+  aws_eventbridge_rule;
 ```
 
 
@@ -22,11 +22,11 @@ from
 
 ```sql
 select
-    name,
-    arn,
-    state,
-    created_by
+  name,
+  arn,
+  state,
+  created_by
 from
-    aws_eventbridge_rule
+  aws_eventbridge_rule
 where
-    state != 'ENABLED';
+  state != 'ENABLED';
