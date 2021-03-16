@@ -30,3 +30,33 @@ from
   aws_eventbridge_rule
 where
   state != 'ENABLED';
+```
+
+
+### List of targets info which are associated with rule
+
+```sql
+select
+  name,
+  cd ->> 'Arn' as target_arn,
+  cd ->> 'RoleArn' as role_arn,
+  cd ->> 'Id' as id
+from
+  aws_eventbridge_rule,
+  jsonb_array_elements(targets) as cd;
+```
+
+
+### List of rules which have iam role
+
+```sql
+select
+  name,
+  cd ->> 'RoleArn' as role_arn
+from
+  aws_eventbridge_rule,
+  jsonb_array_elements(targets) as cd
+where
+  cd ->> 'RoleArn' != 'null';
+```
+

@@ -55,9 +55,10 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsEventBridgeRule,
 			},
 			{
-				Name:        "role_arn",
-				Description: "The Amazon Resource Name (ARN) of the role that is used for target invocation.",
-				Type:        proto.ColumnType_STRING,
+				Name:        "targets",
+				Description: "The targets assigned to the rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEventBridgeTargetByRule,
 			},
 			{
 				Name:        "created_by",
@@ -78,7 +79,7 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns for all tables
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -178,6 +179,39 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	data, err := svc.DescribeRule(params)
 	if err != nil {
 		logger.Debug("getAwsEventBridgeRule", "ERROR", err)
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsEventBridgeTargetByRule")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	eventbusname := h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
+	name := h.Item.(*eventbridge.DescribeRuleOutput).Name
+
+	// Create Session
+	svc, err := EventBridgeService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	// Build the params
+	params := &eventbridge.ListTargetsByRuleInput{
+		EventBusName: eventbusname,
+		Rule:         name,
+	}
+
+	data, err := svc.ListTargetsByRule(params)
+	if err != nil {
 		return nil, err
 	}
 
