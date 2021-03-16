@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
@@ -268,6 +269,27 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	return svc, nil
 }
 
+// KinesisVideoService returns the service connection for AWS Kinesis Video service
+func KinesisVideoService(ctx context.Context, d *plugin.QueryData, region string) (*kinesisvideo.KinesisVideo, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed KinesisVideoService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("kinesisvideo-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*kinesisvideo.KinesisVideo), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := kinesisvideo.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // KMSService returns the service connection for AWS KMS service
 func KMSService(ctx context.Context, d *plugin.QueryData, region string) (*kms.KMS, error) {
 	if region == "" {
@@ -348,7 +370,6 @@ func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*co
 
 	return svc, nil
 }
-
 
 // RDSService returns the service connection for AWS RDS service
 func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
