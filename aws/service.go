@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -203,6 +204,27 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
+// ElasticacheService returns the service connection for AWS Elasticache service
+func ElasticacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Elasticache")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elasticache.ElastiCache), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := elasticache.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // ELBv2Service returns the service connection for AWS EC2 service
 func ELBv2Service(ctx context.Context, d *plugin.QueryData, region string) (*elbv2.ELBV2, error) {
 	if region == "" {
@@ -348,7 +370,6 @@ func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*co
 
 	return svc, nil
 }
-
 
 // RDSService returns the service connection for AWS RDS service
 func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
