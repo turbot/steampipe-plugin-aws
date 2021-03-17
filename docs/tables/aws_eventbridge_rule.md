@@ -33,21 +33,21 @@ where
 ```
 
 
-### List of targets info which are associated with rule
+### List of targets and IAM roles associated with the rule
 
 ```sql
 select
   name,
+  cd ->> 'Id' as target_id,
   cd ->> 'Arn' as target_arn,
-  cd ->> 'RoleArn' as role_arn,
-  cd ->> 'Id' as id
+  cd ->> 'RoleArn' as role_arn
 from
   aws_eventbridge_rule,
   jsonb_array_elements(targets) as cd;
 ```
 
 
-### List of rules which have iam role
+### List of rules which are not associated with any iam role
 
 ```sql
 select
@@ -57,6 +57,6 @@ from
   aws_eventbridge_rule,
   jsonb_array_elements(targets) as cd
 where
-  cd ->> 'RoleArn' != 'null';
+  cd ->> 'RoleArn' is null;
 ```
 
