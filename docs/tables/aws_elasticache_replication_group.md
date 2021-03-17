@@ -47,20 +47,6 @@ where
 ```
 
 
-### List of elasticache replication groups which are not enabled for automatic failover
-
-```sql
-select
-  replication_group_id,
-  cache_node_type,
-  multi_az
-from
-  aws_elasticache_replication_group
-where
-  automatic_failover = 'disabled';
-```
-
-
 ### Count of replication group by node type
 
 ```sql
@@ -83,4 +69,3 @@ select
 from
   aws_elasticache_replication_group;
 ```
-
