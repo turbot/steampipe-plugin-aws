@@ -1,0 +1,19 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "data_retention_in_hours": 24,
+    "device_name": "kinesis-video-device-name",
+    "kms_key_id": "arn:{{ output.aws_partition.value }}:kms:{{ output.aws_region.value }}:{{ output.account_id.value }}:alias/aws/kinesisvideo",
+    "media_type": "video/h264",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "status": "ACTIVE",
+    "stream_arn": "{{ output.resource_aka.value }}",
+    "stream_name": "{{ resourceName }}",
+    "tags": {
+      "Foo" : "Bar",
+      "Name": "{{ resourceName }}"
+    },
+    "version": "{{ output.resource_version.value }}"
+  }
+]
