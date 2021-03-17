@@ -111,7 +111,7 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with StreamName.",
+				Description: "A list of tags associated with the stream.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     getAwsKinesisStreamTags,
 				Transform:   transform.FromField("Tags"),
@@ -228,8 +228,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	var streamName string
-	streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
 	svc, err := KinesisService(ctx, d, region)
@@ -289,8 +288,12 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 //// TRANSFORM FUNCTIONS
 
 func kinesisTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ssmTagListToTurbotTags")
+	plugin.Logger(ctx).Trace("kinesisTagListToTurbotTags")
 	tagList := d.Value.([]*kinesis.Tag)
+
+	if tagList == nil {
+		return nil, nil
+	}
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

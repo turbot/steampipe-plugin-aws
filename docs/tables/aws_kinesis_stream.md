@@ -70,7 +70,7 @@ where
 ```
 
 
-### List all the encrypted streams which are not encrypted using customer managed key
+### List of streams which are not encrypted using CMK
 
 ```sql
 select

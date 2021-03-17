@@ -69,3 +69,7 @@ output "account_id" {
 output "aws_partition" {
   value = data.aws_partition.current.partition
 }
+
+output "aws_region" {
+  value = var.aws_region
+}
