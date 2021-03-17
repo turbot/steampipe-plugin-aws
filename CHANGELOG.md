@@ -1,3 +1,31 @@
+## v0.7.0 [2021-03-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_log_stream](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_log_stream)
+  - [aws_config_configuration_recorder](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_configuration_recorder)
+  - [aws_iam_virtual_mfa_device](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_virtual_mfa_device)
+  - [aws_ssm_maintenance_window](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_maintenance_window)
+  - [aws_ssm_patch_baseline](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_patch_baseline)
+
+_Bug fixes_
+
+- Removed use of deprecated `ItemFromKey` function from all tables
+
+## v0.6.0 [2021-03-05]
+
+_What's new?_
+
+- Plugin now supports authentication through **AWS SSO**.
+- New tables added
+  - [aws_ec2_gateway_load_balancer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_gateway_load_balancer)
+  - [aws_vpc_flow_log](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log)
+
+_Enhancements_
+
+- Updated: Added `tags_src` and `tags` columns to `aws_iam_policy` table.
+
 ## v0.5.3 [2021-03-02]
 
 _Bug fixes_

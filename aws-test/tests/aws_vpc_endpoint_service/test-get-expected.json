@@ -10,7 +10,7 @@
         "ServiceType": "Interface"
       }
     ],
-    "tags": [
+    "tags_src": [
       {
         "Key": "Name",
         "Value": "{{resourceName}}"

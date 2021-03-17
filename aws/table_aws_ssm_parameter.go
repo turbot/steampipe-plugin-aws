@@ -102,7 +102,7 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the parameter",
+				Description: "A list of tags assigned to the parameter.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMParameterTags,
 				Transform:   transform.FromField("TagList"),
@@ -167,7 +167,7 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 

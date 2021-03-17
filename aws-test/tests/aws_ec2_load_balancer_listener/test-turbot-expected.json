@@ -3,6 +3,6 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "title": "{{ output.resource_aka.value.split('/')[2] }}"
+    "title": "{{ output.resource_aka.value.split('/')[2] }}-{{ output.resource_aka.value.split('/')[4] }}"
   }
 ]
