@@ -1,8 +1,8 @@
 [
 	{
 		"akas": ["{{ output.resource_aka.value }}"],
-    "automatic_failover": "enabled",
-    "cache_node_type": "cache.t2.micro",
+    		"automatic_failover": "enabled",
+    		"cache_node_type": "cache.t2.micro",
 		"replication_group_id": "{{ output.resource_id.value }}",
 		"title": "{{ output.resource_id.value }}"
 	}
