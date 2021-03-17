@@ -4,6 +4,6 @@
 		"cache_subnet_group_description": "A test subnet group",
 		"cache_subnet_group_name": "{{ output.resource_id.value }}",
 		"title": "{{ output.resource_id.value }}",
-    "vpc_id": "{{ output.vpc_id.value }}"
+    		"vpc_id": "{{ output.vpc_id.value }}"
 	}
 ]
