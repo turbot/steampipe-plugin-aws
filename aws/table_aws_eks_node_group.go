@@ -190,18 +190,22 @@ func listEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	clusterName := *h.Item.(*eks.Cluster).Name
 
-	resp, err := svc.ListNodegroups(&eks.ListNodegroupsInput{
-		ClusterName: &clusterName,
-	})
-	for _, nodeGroup := range resp.Nodegroups {
-		d.StreamLeafListItem(ctx, &eks.Nodegroup{
-			NodegroupName: nodeGroup,
-			ClusterName:   &clusterName,
-		})
+	err = svc.ListNodegroupsPages(
+		&eks.ListNodegroupsInput{
+			ClusterName: &clusterName,
+		},
+		func(page *eks.ListNodegroupsOutput, isLast bool) bool {
+			for _, nodeGroup := range page.Nodegroups {
+				d.StreamLeafListItem(ctx, &eks.Nodegroup{
+					NodegroupName: nodeGroup,
+					ClusterName:   &clusterName,
+				})
+			}
+			return !isLast
+		},
+	)
 
-		return nil, err
-	}
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -240,9 +244,5 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		return nil, err
 	}
 
-	if op.Nodegroup != nil {
-		return op.Nodegroup, nil
-	}
-
-	return nil, nil
+	return op.Nodegroup, nil
 }
