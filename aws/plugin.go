@@ -70,7 +70,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
 			"aws_elasticache_cluster":                tableAwsElastiCacheCluster(ctx),
-			"aws_elasticache_replication_group":      tableAwsElasticCacheReplicationGroup(ctx),
+			"aws_elasticache_replication_group":      tableAwsElastiCacheReplicationGroup(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
 			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),

@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticCacheReplicationGroup(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_replication_group",
 		Description: "AWS ElastiCache Replication Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("replication_group_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
-			Hydrate:           getElasticCacheReplicationGroup,
+			Hydrate:           getElasticacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listElasticCacheReplicationGroups,
+			Hydrate: listElasticacheReplicationGroups,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -33,15 +33,15 @@ func tableAwsElasticCacheReplicationGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "description",
-				Description: "The user supplied description of the replication group.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) of the replication group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ARN"),
+			},
+			{
+				Name:        "description",
+				Description: "The user supplied description of the replication group.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "at_rest_encryption_enabled",
@@ -164,7 +164,7 @@ func tableAwsElasticCacheReplicationGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElasticacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -194,8 +194,8 @@ func listElasticCacheReplicationGroups(ctx context.Context, d *plugin.QueryData,
 
 //// HYDRATE FUNCTIONS
 
-func getElasticCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElasticCacheReplicationGroup")
+func getElasticacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getElasticacheReplicationGroup")
 
 	// TODO put me in helper function
 	var region string
