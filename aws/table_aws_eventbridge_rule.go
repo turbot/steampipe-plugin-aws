@@ -12,7 +12,7 @@ import (
 func tableAwsEventBridge(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eventbridge_rule",
-		Description: "AWS EventBridge Rule ",
+		Description: "AWS EventBridge Rule",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
@@ -49,18 +49,6 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "event_pattern",
-				Description: "The event pattern of the rule.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsEventBridgeRule,
-			},
-			{
-				Name:        "targets",
-				Description: "The targets assigned to the rule.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEventBridgeTargetByRule,
-			},
-			{
 				Name:        "created_by",
 				Description: "The account ID of the user that created the rule.",
 				Type:        proto.ColumnType_STRING,
@@ -70,6 +58,18 @@ func tableAwsEventBridge(_ context.Context) *plugin.Table {
 				Name:        "managed_by",
 				Description: "If this is a managed rule, created by an AWS service on your behalf, this field displays the principal name of the AWS service that created the rule.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "event_pattern",
+				Description: "The event pattern of the rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEventBridgeRule,
+			},
+			{
+				Name:        "targets",
+				Description: "The targets assigned to the rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEventBridgeTargetByRule,
 			},
 			{
 				Name:        "tags_src",
@@ -228,7 +228,7 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	arn := *h.Item.(*eventbridge.DescribeRuleOutput).Arn
+	arn := h.Item.(*eventbridge.DescribeRuleOutput).Arn
 
 	// Create Session
 	svc, err := EventBridgeService(ctx, d, region)
@@ -238,7 +238,7 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build the params
 	params := &eventbridge.ListTagsForResourceInput{
-		ResourceARN: &arn,
+		ResourceARN: arn,
 	}
 
 	// Get call
@@ -256,6 +256,10 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("eventBridgeTagListToTurbotTags")
 	tagList := d.HydrateItem.(*eventbridge.ListTagsForResourceOutput)
+
+	if tagList.Tags == nil {
+		return nil, nil
+	}
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
