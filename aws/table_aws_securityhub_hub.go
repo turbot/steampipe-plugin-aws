@@ -18,10 +18,10 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("hub_arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			Hydrate:           describeHub,
+			Hydrate:           getSecurityHub,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listHub,
+			Hydrate: listSecurityHub,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -54,14 +54,13 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func listSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityHub", "AWS_REGION", region)
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d, region)
@@ -79,8 +78,8 @@ func listHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (i
 
 //// HYDRATE FUNCTIONS
 
-func describeHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("describeHub")
+func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getSecurityHub")
 
 	// TODO put me in helper function
 	var region string
@@ -105,7 +104,7 @@ func describeHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	// Get call
 	op, err := svc.DescribeHub(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("describeHub", "ERROR", err)
+		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
 		return nil, err
 	}
 	return op, nil

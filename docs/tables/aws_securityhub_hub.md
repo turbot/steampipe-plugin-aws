@@ -35,8 +35,9 @@ where
 ```sql
 select
   region,
-  count(8)
+  count(*)
 from
   aws_securityhub_hub
 group by
   region;
+```
