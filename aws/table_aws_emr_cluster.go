@@ -294,13 +294,12 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	return op.Cluster, nil
-
 }
 
 //// TRANSFORM FUNCTIONS
 
 func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("emrClusterTagToTurbotTags")
+	plugin.Logger(ctx).Trace("getEmrClusterTurbotTags")
 	clusterTags := d.HydrateItem.(*emr.Cluster)
 
 	if clusterTags == nil {

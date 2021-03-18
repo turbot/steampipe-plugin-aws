@@ -12,7 +12,7 @@ select
   cluster_arn,
   name,
   auto_terminate,
-  status ->>  'State' as state,
+  status ->> 'State' as state,
   tags
 from
   aws_emr_cluster;
@@ -39,12 +39,12 @@ where
 select
   id,
   name,
-  status ->>  'State' as state,
-  status ->  'StateChangeReason' ->> 'Message'  as  state_change_reason
+  status ->> 'State' as state,
+  status -> 'StateChangeReason' ->> 'Message'  as  state_change_reason
 from
   aws_emr_cluster
 where
-  status ->>  'State' = 'TERMINATED_WITH_ERRORS';
+  status ->> 'State' = 'TERMINATED_WITH_ERRORS';
 ```
 
 
