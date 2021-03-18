@@ -81,17 +81,10 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEcsCluster,
 			},
 			{
-				Name:        "settings",
-				Description: "The settings for the cluster. This parameter indicates whether CloudWatch Container Insights is enabled or disabled for a cluster.",
+				Name:        "capacity_providers",
+				Description: "The capacity providers associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-			},
-			{
-				Name:        "statistics",
-				Description: "Additional information about your clusters that are separated by launch type.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEcsCluster,
-				Transform:   transform.FromField("Statistics"),
 			},
 			{
 				Name:        "default_capacity_provider_strategy",
@@ -100,8 +93,14 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEcsCluster,
 			},
 			{
-				Name:        "capacity_providers",
-				Description: "The capacity providers associated with the cluster.",
+				Name:        "settings",
+				Description: "The settings for the cluster. This parameter indicates whether CloudWatch Container Insights is enabled or disabled for a cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsCluster,
+			},
+			{
+				Name:        "statistics",
+				Description: "Additional information about your clusters that are separated by launch type.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
 			},
@@ -121,17 +120,17 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ClusterName"),
 			},
 			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ClusterArn").Transform(arnToAkas),
-			},
-			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEcsClusterTags,
 				Transform:   transform.From(getAwsEcsClusterTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ClusterArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -151,28 +150,19 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
-	params := &ecs.ListClustersInput{}
-	pagesLeft := true
 
-	for pagesLeft {
-		result, err := svc.ListClusters(params)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, results := range result.ClusterArns {
-			d.StreamListItem(ctx, &ecs.Cluster{
-				ClusterArn: results,
-			})
-		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
-		}
-	}
+	// List call
+	err = svc.ListClustersPages(
+		&ecs.ListClustersInput{},
+		func(page *ecs.ListClustersOutput, isLast bool) bool {
+			for _, results := range page.ClusterArns {
+				d.StreamListItem(ctx, &ecs.Cluster{
+					ClusterArn: results,
+				})
+			}
+			return !isLast
+		},
+	)
 
 	return nil, err
 }
@@ -249,7 +239,7 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// TRANSFORM FUNCTIONS
 
 func getAwsEcsClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
-error) {
+	error) {
 	ecsClusterTags := d.HydrateItem.(*ecs.ListTagsForResourceOutput)
 
 	if ecsClusterTags.Tags == nil {
