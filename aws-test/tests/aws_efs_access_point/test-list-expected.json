@@ -2,6 +2,6 @@
   {
     "access_point_arn": "{{ output.resource_aka.value }}",
     "access_point_id": "{{ output.resource_id.value }}",
-    "name": "{{ output.resource_name.value }}"
+    "name": "{{ resourceName }}"
   }
 ]

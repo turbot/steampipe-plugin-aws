@@ -4,9 +4,9 @@
       "{{ output.resource_aka.value }}"
     ],
     "tags": {
-      "Name": "{{ output.resource_name.value }}",
+      "Name": "{{ resourceName }}",
       "foo": "bar"
     },
-    "title": "{{ output.resource_name.value }}"
+    "title": "{{ resourceName }}"
   }
 ]

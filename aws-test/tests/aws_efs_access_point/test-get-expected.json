@@ -4,7 +4,7 @@
     "access_point_id": "{{ output.resource_id.value }}",
     "file_system_id": "{{ output.file_system_id.value }}",
     "life_cycle_state": "available",
-    "name": "{{ output.resource_name.value }}",
+    "name": "{{ resourceName }}",
     "owner_id": "{{ output.account_id.value }}",
     "posix_user": "<null>",
     "root_directory": {
@@ -14,7 +14,7 @@
     "tags_src": [
       {
         "Key": "Name",
-        "Value": "{{ output.resource_name.value }}"
+        "Value": "{{ resourceName }}"
       },
       {
         "Key": "foo",
