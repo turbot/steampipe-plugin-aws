@@ -76,3 +76,16 @@ output "resource_aka" {
 output "resource_id" {
   value = aws_ecs_task_definition.named_test_resource.id
 }
+
+output "account_id" {
+  value = data.aws_caller_identity.current.account_id
+}
+
+output "aws_partition" {
+  value = data.aws_partition.current.partition
+}
+
+output "region_name" {
+  value = data.aws_region.primary.name
+}
+

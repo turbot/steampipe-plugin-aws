@@ -30,14 +30,14 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "task_definition_arn",
-				Description: "The Amazon Resource Name (ARN) that identifies the cluster.",
+				Description: "The Amazon Resource Name (ARN) that identifies the task definition.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TaskDefinition.TaskDefinitionArn"),
 			},
 			{
 				Name:        "cpu",
 				Description: "The number of cpu units used by the task.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Cpu"),
 			},
@@ -72,7 +72,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 			{
 				Name:        "memory",
 				Description: "The amount (in MiB) of memory used by the task.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Memory"),
 			},
@@ -176,7 +176,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags associated with target group.",
+				Description: "A list of tags associated with task.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("Tags"),
@@ -222,32 +222,23 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
-	params := &ecs.ListTaskDefinitionsInput{}
-	pagesLeft := true
 
-	for pagesLeft {
-		result, err := svc.ListTaskDefinitions(params)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, results := range result.TaskDefinitionArns {
-			d.StreamListItem(ctx, &ecs.DescribeTaskDefinitionOutput{
-				TaskDefinition: &ecs.TaskDefinition{
-					TaskDefinitionArn: results,
-				},
-			})
-		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
-		}
-	}
-
+	// List call
+	err = svc.ListTaskDefinitionsPages(
+		&ecs.ListTaskDefinitionsInput{},
+		func(page *ecs.ListTaskDefinitionsOutput, isLast bool) bool {
+			for _, result := range page.TaskDefinitionArns {
+				d.StreamListItem(ctx, &ecs.DescribeTaskDefinitionOutput{
+					TaskDefinition: &ecs.TaskDefinition{
+						TaskDefinitionArn: result,
+					},
+				})
+			}
+			return !isLast
+		},
+	)
 	return nil, err
+
 }
 
 //// HYDRATE FUNCTIONS
@@ -298,7 +289,8 @@ func getAwsEcsTaskDefinitionTurbotData(ctx context.Context, d *transform.Transfo
 
 	// Get resource title
 	arn := ecsTaskDefinition.TaskDefinition.TaskDefinitionArn
-	title := strings.Split(*arn, "/")[len(strings.Split(*arn, "/"))-1]
+	splitArn := strings.Split(*arn, "/")
+	title := splitArn[len(splitArn)-1]
 
 	if param == "Tags" {
 		// Get the resource tags

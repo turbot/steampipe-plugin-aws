@@ -25,8 +25,7 @@ select
   task_definition_arn,
   jsonb_array_length(container_definitions) as no_of_conatiners
 from
-  aws_ecs_task_definition,
-  jsonb_array_elements(container_definitions) as cd;
+  aws_ecs_task_definition;
 ```
 
 
