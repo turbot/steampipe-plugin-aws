@@ -1,10 +1,10 @@
 # Table: aws_ssm_association
 
-AWS Systems Manager association resource creates a State Manager association for your managed instances. The association applies the configuration also specifies actions to take when applying the configuration.
+An association is a configuration that is assigned to your managed instances. The configuration defines the state that you want to maintain on your instances. For example, an association can specify that antivirus software must be installed and running on your instances, or that certain ports must be closed. The association specifies a schedule for when the configuration is applied once or reapplied at specified times.
 
 ## Examples
 
-### SSM association basic info
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,8 @@ from
   aws_ssm_association;
 ```
 
-### List of associations which are failed to execute
+
+### List associations that have a failed status
 
 ```sql
 select
@@ -32,7 +33,8 @@ where
   overview ->> 'Status' = 'Failed';
 ```
 
-### List of instances targeted by the association
+
+### List instances targeted by the association
 
 ```sql
 select
@@ -48,22 +50,8 @@ where
   target ->> 'Key' = 'InstanceIds';
 ```
 
-### List of associations which has created before two days
 
-```sql
-select
-  association_id,
-  association_name,
-  date
-from
-  aws_ssm_association
-where
-  date <= (current_date - interval '2' day)
-order by
-  date;
-```
-
-### List of associations which has Critical Compliance Severity
+### List associations with a critical compliance severity level
 
 ```sql
 select
@@ -75,16 +63,4 @@ from
   aws_ssm_association
 where
   compliance_severity = 'CRITICAL';
-```
-
-### Association execution count by association id in a single Account
-
-```sql
-select
-  account_id,
-  count(association_id) as count
-from
-  aws_ssm_association
-group by
-  account_id;
 ```
