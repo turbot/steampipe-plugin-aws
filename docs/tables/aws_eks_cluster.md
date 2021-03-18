@@ -61,6 +61,20 @@ from
 ```
 
 
+### List of Kubernetes which are not running on 1.19 version
+
+```sql
+select
+  name,
+  arn,
+  version
+from
+  aws_eks_cluster
+where
+  version <> '1.19';
+```
+
+
 ### List of certificate authority data for cluster
 
 ```sql
