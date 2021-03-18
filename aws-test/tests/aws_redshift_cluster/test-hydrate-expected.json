@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "allow_version_upgrade": true,
+    "cluster_identifier": "{{ output.resource_name.value }}"
+  }
+]
