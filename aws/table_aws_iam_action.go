@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
+	"strings"
+
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
-	"strings"
 )
 
 var permissionsData ParliamentPermissions
@@ -19,9 +20,8 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_action",
 		Description: "AWS IAM Action",
 		Get: &plugin.GetConfig{
-			KeyColumns:  plugin.SingleColumn("action"),
-			Hydrate:     getIamAction,
-			ItemFromKey: permissionFromKey,
+			KeyColumns: plugin.SingleColumn("action"),
+			Hydrate:    getIamAction,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamActions,
@@ -30,32 +30,32 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 			// "Key" Columns
 			{
 				Name:        "action",
-				Description: "The action for this permission",
+				Description: "The action for this permission.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "prefix",
 				Type:        proto.ColumnType_STRING,
-				Description: "The prefix for this action",
+				Description: "The prefix for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "privilege",
 				Type:        proto.ColumnType_STRING,
-				Description: "The privilege for this action",
+				Description: "The privilege for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
-				Description: "The access level for this action",
+				Description: "The access level for this action.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "description",
 				Type:        proto.ColumnType_STRING,
-				Description: "The description for this action",
+				Description: "The description for this action.",
 				Transform:   transform.FromGo(),
 			},
 		},
@@ -68,17 +68,6 @@ type awsIamPermissionData struct {
 	Privilege   string
 	AccessLevel string
 	Description string
-}
-
-//// ITEM FROM KEY
-
-func permissionFromKey(_ context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	action := quals["action"].GetStringValue()
-	item := &awsIamPermissionData{
-		Action: action,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -100,14 +89,14 @@ func listIamActions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getIamAction(ctx context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Info("Item", h.Item)
-	action := h.Item.(*awsIamPermissionData)
+func getIamAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Info("Item", h.Item)
+	action := d.KeyColumnQuals["action"].GetStringValue()
+
 	for _, service := range permissionsData {
 		for _, privilege := range service.Privileges {
 			a := strings.ToLower(service.Prefix + ":" + privilege.Privilege)
-			if a == strings.ToLower(action.Action) {
+			if a == strings.ToLower(action) {
 				return awsIamPermissionData{
 					AccessLevel: privilege.AccessLevel,
 					Action:      a,

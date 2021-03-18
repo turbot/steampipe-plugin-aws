@@ -1,0 +1,17 @@
+[
+  {
+    "name": "{{resourceName}}",
+    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/awsconfig-example",
+    "status": {
+      "LastErrorCode": null,
+      "LastErrorMessage": null,
+      "LastStartTime": null,
+      "LastStatus": null,
+      "LastStatusChangeTime": null,
+      "LastStopTime": null,
+      "Name": "{{resourceName}}",
+      "Recording": false
+    },
+    "title": "{{resourceName}}"
+  }
+]

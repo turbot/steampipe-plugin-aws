@@ -3,10 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -18,7 +20,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			ItemFromKey:       tableFromKey,
 			Hydrate:           getDynamboDbTable,
 		},
 		List: &plugin.ListConfig{
@@ -28,41 +29,41 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the table",
+				Description: "The name of the table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TableName"),
 			},
 			{
 				Name:        "table_arn",
-				Description: "The Amazon Resource Name (ARN) that uniquely identifies the table",
+				Description: "The Amazon Resource Name (ARN) that uniquely identifies the table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("TableArn"),
 			},
 			{
 				Name:        "table_id",
-				Description: "Unique identifier for the table",
+				Description: "Unique identifier for the table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("TableId"),
 			},
 			{
 				Name:        "creation_date_time",
-				Description: "The date and time when the table was created",
+				Description: "The date and time when the table was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("CreationDateTime"),
 			},
 			{
 				Name:        "table_status",
-				Description: "The current state of the table",
+				Description: "The current state of the table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("TableStatus"),
 			},
 			{
 				Name:        "billing_mode",
-				Description: "Controls how AWS charges for read and write throughput and manage capacity",
+				Description: "Controls how AWS charges for read and write throughput and manage capacity.",
 				Type:        proto.ColumnType_STRING,
 				Default:     "PROVISIONED",
 				Hydrate:     getDynamboDbTable,
@@ -72,98 +73,98 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "item_count",
-				Description: "Number of items in the table. Note that this is an approximate value",
+				Description: "Number of items in the table. Note that this is an approximate value.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("ItemCount"),
 			},
 			{
 				Name:        "global_table_version",
-				Description: "Represents the version of global tables (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html) in use, if the table is replicated across AWS Regions",
+				Description: "Represents the version of global tables (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html) in use, if the table is replicated across AWS Regions.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("GlobalTableVersion"),
 			},
 			{
 				Name:        "read_capacity",
-				Description: "The maximum number of strongly consistent reads consumed per second before DynamoDB returns a ThrottlingException",
+				Description: "The maximum number of strongly consistent reads consumed per second before DynamoDB returns a ThrottlingException.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("ProvisionedThroughput.ReadCapacityUnits"),
 			},
 			{
 				Name:        "write_capacity",
-				Description: "The maximum number of writes consumed per second before DynamoDB returns a ThrottlingException",
+				Description: "The maximum number of writes consumed per second before DynamoDB returns a ThrottlingException.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("ProvisionedThroughput.WriteCapacityUnits"),
 			},
 			{
 				Name:        "latest_stream_arn",
-				Description: "The Amazon Resource Name (ARN) that uniquely identifies the latest stream for this table",
+				Description: "The Amazon Resource Name (ARN) that uniquely identifies the latest stream for this table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("LatestStreamArn"),
 			},
 			{
 				Name:        "latest_stream_label",
-				Description: "A timestamp, in ISO 8601 format, for this stream",
+				Description: "A timestamp, in ISO 8601 format, for this stream.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("LatestStreamLabel"),
 			},
 			{
 				Name:        "table_size_bytes",
-				Description: "Size of the table in bytes. Note that this is an approximate value",
+				Description: "Size of the table in bytes. Note that this is an approximate value.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("TableSizeBytes"),
 			},
 			{
 				Name:        "archival_summary",
-				Description: "Contains information about the table archive",
+				Description: "Contains information about the table archive.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("ArchivalSummary"),
 			},
 			{
 				Name:        "attribute_definitions",
-				Description: "An array of AttributeDefinition objects. Each of these objects describes one attribute in the table and index key schema",
+				Description: "An array of AttributeDefinition objects. Each of these objects describes one attribute in the table and index key schema.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("AttributeDefinitions"),
 			},
 			{
 				Name:        "key_schema",
-				Description: "The primary key structure for the table",
+				Description: "The primary key structure for the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("KeySchema"),
 			},
 			{
 				Name:        "sse_description",
-				Description: "The description of the server-side encryption status on the specified table",
+				Description: "The description of the server-side encryption status on the specified table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("SSEDescription"),
 			},
 			{
 				Name:        "continuous_backups_status",
-				Description: "The continuous backups status of the table. ContinuousBackupsStatus can be one of the following states: ENABLED, DISABLED ",
+				Description: "The continuous backups status of the table. ContinuousBackupsStatus can be one of the following states: ENABLED, DISABLED.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDescribeContinuousBackups,
 				Transform:   transform.FromField("ContinuousBackupsDescription.ContinuousBackupsStatus"),
 			},
 			{
 				Name:        "point_in_time_recovery_description",
-				Description: "The description of the point in time recovery settings applied to the table",
+				Description: "The description of the point in time recovery settings applied to the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDescribeContinuousBackups,
 				Transform:   transform.FromField("ContinuousBackupsDescription.PointInTimeRecoveryDescription"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the table",
+				Description: "A list of tags assigned to the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,
 				Transform:   transform.FromField("Tags"),
@@ -192,18 +193,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func tableFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &dynamodb.TableDescription{
-		TableName: &name,
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -229,7 +218,7 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 					TableName: table,
 				})
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -239,15 +228,21 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDynamboDbTable")
-	table := h.Item.(*dynamodb.TableDescription)
+	plugin.Logger(ctx).Trace("getDynamboDbTable")
 
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	var name string
+	if h.Item != nil {
+		data := h.Item.(*dynamodb.TableDescription)
+		name = types.SafeString(data.TableName)
+	} else {
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create Session
@@ -257,12 +252,12 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	params := &dynamodb.DescribeTableInput{
-		TableName: table.TableName,
+		TableName: aws.String(name),
 	}
 
 	rowData, err := svc.DescribeTable(params)
 	if err != nil {
-		logger.Debug("[DEBUG] getDynamboDbTable__", "ERROR", err)
+		plugin.Logger(ctx).Debug("[DEBUG] getDynamboDbTable__", "ERROR", err)
 		return nil, err
 	}
 
