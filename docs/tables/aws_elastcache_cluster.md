@@ -4,7 +4,7 @@ A cluster is a collection of one or more cache nodes, all of which run an instan
 
 ## Examples
 
-### List of unencrypted elasticache clusters
+### List clusters that are not encrypted at rest
 
 ```sql
 select
@@ -18,7 +18,7 @@ where
 ```
 
 
-### List of elasticache clusters whose availability zone count is less than 2
+### List clusters whose availability zone count is less than 2
 
 ```sql
 select
@@ -31,7 +31,7 @@ where
 ```
 
 
-### List of elasticache cluster that DO NOT enforce encryption in transit
+### List clusters that do not enforce encryption in transit
 
 ```sql
 select
@@ -45,7 +45,7 @@ where
 ```
 
 
-### Count of elasticache cluster provisioned with undesired(for example cache.m5.large and cache.m4.4xlarge is desired) node type(s).
+### List clusters provisioned with undesired (for example, cache.m5.large and cache.m4.4xlarge are desired) node types
 
 ```sql
 select
@@ -60,7 +60,7 @@ group by
 ```
 
 
-### List of elasticache cluster which has inactive notification configuration topics
+### List clusters with inactive notification configuration topics
 
 ```sql
 select
@@ -75,7 +75,7 @@ where
 ```
 
 
-### Security group details attached with the cache cluster
+### Get security group details for each cluster
 
 ```sql
 select

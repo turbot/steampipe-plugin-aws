@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_cluster",
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound"}),
-			Hydrate:           getElasticCacheCluster,
+			Hydrate:           getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listElasticCacheClusters,
+			Hydrate: listElastiCacheClusters,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -33,8 +33,44 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "configuration_endpoint",
-				Description: "Represents a Memcached cluster endpoint which can be used by an application to connect to any node in the cluster.",
+				Name:        "arn",
+				Description: "The ARN (Amazon Resource Name) of the cache cluster.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ARN"),
+			},
+			{
+				Name:        "cache_node_type",
+				Description: "The name of the compute and memory capacity node type for the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "cache_cluster_status",
+				Description: "The current state of this cluster, one of the following values: available, creating, deleted, deleting, incompatible-network, modifying, rebooting cluster nodes, restore-failed, or snapshotting.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "at_rest_encryption_enabled",
+				Description: "A flag that enables encryption at-rest when set to true.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "auth_token_enabled",
+				Description: "A flag that enables using an AuthToken (password) when issuing Redis commands.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "auto_minor_version_upgrade",
+				Description: "This parameter is currently disabled.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "cache_cluster_create_time",
+				Description: "The date and time when the cluster was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "cache_subnet_group_name",
+				Description: "The name of the cache subnet group associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -43,8 +79,8 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "cache_node_type",
-				Description: "The name of the compute and memory capacity node type for the cluster.",
+				Name:        "configuration_endpoint",
+				Description: "Represents a Memcached cluster endpoint which can be used by an application to connect to any node in the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -58,11 +94,6 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "cache_cluster_status",
-				Description: "The current state of this cluster, one of the following values: available, creating, deleted, deleting, incompatible-network, modifying, rebooting cluster nodes, restore-failed, or snapshotting.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "num_cache_nodes",
 				Description: "The number of cache nodes in the cluster.",
 				Type:        proto.ColumnType_INT,
@@ -73,18 +104,18 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "cache_cluster_create_time",
-				Description: "The date and time when the cluster was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
 				Name:        "preferred_maintenance_window",
 				Description: "Specifies the weekly time range during which maintenance on the cluster is performed.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "pending_modified_values",
-				Description: "A group of settings that are applied to the cluster in the future, or that are currently being applied.",
+				Name:        "transit_encryption_enabled",
+				Description: "A flag that enables in-transit encryption when set to true.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "cache_parameter_group",
+				Description: "Status of the cache parameter group.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -93,19 +124,9 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "cache_parameter_group",
-				Description: "Status of the cache parameter group.",
+				Name:        "pending_modified_values",
+				Description: "A group of settings that are applied to the cluster in the future, or that are currently being applied.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "cache_subnet_group_name",
-				Description: "The name of the cache subnet group associated with the cluster.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "auto_minor_version_upgrade",
-				Description: "This parameter is currently disabled.",
-				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "security_groups",
@@ -113,31 +134,10 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "auth_token_enabled",
-				Description: "A flag that enables using an AuthToken (password) when issuing Redis commands.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "transit_encryption_enabled",
-				Description: "A flag that enables in-transit encryption when set to true.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "at_rest_encryption_enabled",
-				Description: "A flag that enables encryption at-rest when set to true.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "arn",
-				Description: "The ARN (Amazon Resource Name) of the cache cluster.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ARN"),
-			},
-			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForElasticacheCluster,
+				Hydrate:     listTagsForElastiCacheCluster,
 				Transform:   transform.FromField("TagList"),
 			},
 
@@ -152,7 +152,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForElasticacheCluster,
+				Hydrate:     listTagsForElastiCacheCluster,
 				Transform:   transform.FromField("TagList").Transform(clusterTagListToTurbotTags),
 			},
 			{
@@ -167,7 +167,7 @@ func tableAwsElasticCacheCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -176,7 +176,7 @@ func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// Create Session
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func listElasticCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
 	var region string
@@ -207,7 +207,7 @@ func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// create service
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -230,9 +230,9 @@ func getElasticCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.
 	return nil, nil
 }
 
-func listTagsForElasticacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("ListTagsForElasticacheCluster")
+	logger.Trace("listTagsForElastiCacheCluster")
 
 	// TODO put me in helper function
 	var region string
@@ -244,7 +244,7 @@ func listTagsForElasticacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	cluster := h.Item.(*elasticache.CacheCluster)
 
 	// Create session
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
