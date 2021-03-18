@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of disabled rules
+### List disabled rules
 
 ```sql
 select
@@ -33,7 +33,7 @@ where
 ```
 
 
-### Get the targets and IAM role associated with each rule
+### Get the target information for each rule
 
 ```sql
 select
@@ -45,18 +45,3 @@ from
   aws_eventbridge_rule,
   jsonb_array_elements(targets) as cd;
 ```
-
-
-### List of rules which are not associated with any iam role
-
-```sql
-select
-  name,
-  cd ->> 'RoleArn' as role_arn
-from
-  aws_eventbridge_rule,
-  jsonb_array_elements(targets) as cd
-where
-  cd ->> 'RoleArn' is null;
-```
-
