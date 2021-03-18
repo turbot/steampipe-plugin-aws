@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticCacheParameterGroup(_ context.Context) *plugin.Table {
+func tableAwsElasticacheParameterGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_parameter_group",
 		Description: "AWS ElastiCache Parameter Group",
@@ -33,25 +33,25 @@ func tableAwsElasticCacheParameterGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "cache_parameter_group_family",
-				Description: "The name of the cache parameter group family that this cache parameter group is compatible with.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "description",
 				Description: "The description for the cache parameter group.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "is_global",
-				Description: "Indicates whether the parameter group is associated with a Global Datastore.",
-				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) of the cache parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ARN"),
+			},
+			{
+				Name:        "cache_parameter_group_family",
+				Description: "The name of the cache parameter group family that this cache parameter group is compatible with.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "is_global",
+				Description: "Indicates whether the parameter group is associated with a Global Datastore.",
+				Type:        proto.ColumnType_BOOL,
 			},
 
 			// Standard columns

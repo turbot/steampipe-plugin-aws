@@ -2,18 +2,17 @@
 
 Parameter Groups are a collection of parameters which control the behaviour of the ElastiCache cluster.
 
-### List of global elasticache parameter groups
+### Basic parameter group info
 
 ```sql
 select
   cache_parameter_group_name,
+  description,
   cache_parameter_group_family,
   description,
   is_global
 from
-  aws_elasticache_parameter_group
-where
-  is_global;
+  aws_elasticache_parameter_group;
 ```
 
 
