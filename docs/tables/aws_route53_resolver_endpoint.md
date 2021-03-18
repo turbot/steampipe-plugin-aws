@@ -17,37 +17,22 @@ from
   aws_route53_resolver_endpoint;
 ```
 
-### List of endpoints that allow inbound DNS queries
+### List unhealthy endpoints
 
 ```sql
 select
   name,
   id,
   direction,
-  ip_address_count,
-  status
+  status,
+  status_message
 from
   aws_route53_resolver_endpoint
 where
-  direction = 'INBOUND';
+  status = 'ACTION_NEEDED';
 ```
 
-### List of endpoints whether action needed
-
-```sql
-select
-  name,
-  id,
-  direction,
-  ip_address_count,
-  status
-from
-  aws_route53_resolver_endpoint
-where
-	status = 'ACTION_NEEDED';
-```
-
-### IP address details of resolver endpoint
+### Get IP address details for each endpoint
 
 ```sql
 select
@@ -60,7 +45,7 @@ from
   jsonb_array_elements(ip_addresses) as p;
 ```
 
-### Resolver rules details of resolver endpoint
+### Get rule details for each endpoint
 
 ```sql
 select
@@ -75,5 +60,3 @@ from
   aws_route53_resolver_endpoint,
   jsonb_array_elements(resolver_rules) as p;
 ```
-
-
