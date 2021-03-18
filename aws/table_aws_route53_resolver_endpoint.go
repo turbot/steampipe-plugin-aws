@@ -42,6 +42,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "creation_time",
+				Description: "The date and time that the endpoint was created, in Unix time format and Coordinated Universal Time (UTC).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "creator_request_id",
 				Description: "A unique string that identifies the request that created the Resolver endpoint.The CreatorRequestId allows failed requests to be retried without the risk of executing the operation twice.",
 				Type:        proto.ColumnType_STRING,
@@ -63,6 +68,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "modification_time",
+				Description: "The date and time that the endpoint was last modified, in Unix time format and Coordinated Universal Time (UTC).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "status",
 				Description: "A code that specifies the current status of the Resolver endpoint.",
 				Type:        proto.ColumnType_STRING,
@@ -73,21 +83,10 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "creation_time",
-				Description: "The date and time that the endpoint was created, in Unix time format and Coordinated Universal Time (UTC).",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "modification_time",
-				Description: "The date and time that the endpoint was last modified, in Unix time format and Coordinated Universal Time (UTC).",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the Resolver endpoint.",
+				Name:        "ip_addresses",
+				Description: "Information about the IP addresses in your VPC that DNS queries originate from (for outbound endpoints) or that you forward DNS queries to (for inbound endpoints).",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53ResolverEndpointTags,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     listResolverEndpointIPAddresses,
 			},
 			{
 				Name:        "resolver_rules",
@@ -96,15 +95,16 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Hydrate:     listResolverRule,
 			},
 			{
-				Name:        "ip_addresses",
-				Description: "Information about the IP addresses in your VPC that DNS queries originate from (for outbound endpoints) or that you forward DNS queries to (for inbound endpoints).",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listResolverEndpointIPAddresses,
-			},
-			{
 				Name:        "security_group_ids",
 				Description: "The ID of one or more security groups that control access to this VPC.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the Resolver endpoint.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsRoute53ResolverEndpointTags,
+				Transform:   transform.FromField("Tags"),
 			},
 			// Standard columns for all tables
 			{
@@ -141,7 +141,7 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, h *
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func listResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	id := resolverEndpointData.Id
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	resolverEndpintData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
