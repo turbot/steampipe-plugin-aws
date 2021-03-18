@@ -1,10 +1,25 @@
 # Table: aws_elasticache_replication_group
 
-Provides an ElastiCache Replication Group resource.
+A Redis replication group is a collection of cache clusters, where one of the clusters is a primary read-write cluster and the others are read-only replicas.
 
 ## Examples
 
-### List of unencrypted elasticache replication groups
+### Basic replication groups info
+
+```sql
+select
+  replication_group_id,
+  description,
+  cache_node_type,
+  cluster_enabled,
+  auth_token_enabled,
+  automatic_failover
+from
+  aws_elasticache_replication_group;
+```
+
+
+### List replication groups that are not encrypted at rest
 
 ```sql
 select
@@ -18,7 +33,7 @@ where
 ```
 
 
-### List of elasticache replication groups whose multi AZ feature is not enabled
+### List replication groups whose multi AZ feature is not enabled
 
 ```sql
 select
@@ -32,7 +47,7 @@ where
 ```
 
 
-### List of elasticache replication groups whose backup retention period is less than 30 days
+### List replication groups whose backup retention period is less than 30 days
 
 ```sql
 select
@@ -47,7 +62,7 @@ where
 ```
 
 
-### Count of replication group by node type
+### List replication groups by node type
 
 ```sql
 select
@@ -60,7 +75,7 @@ group by
 ```
 
 
-### List of member clusters for each replication group
+### List member clusters for each replication group
 
 ```sql
 select

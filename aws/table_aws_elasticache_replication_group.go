@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticacheReplicationGroup(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_replication_group",
 		Description: "AWS ElastiCache Replication Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("replication_group_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
-			Hydrate:           getElasticacheReplicationGroup,
+			Hydrate:           getElastiCacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listElasticacheReplicationGroups,
+			Hydrate: listElastiCacheReplicationGroups,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,11 +110,6 @@ func tableAwsElasticacheReplicationGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "user_group_ids",
-				Description: "The list of user group IDs that have access to the replication group.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "configuration_endpoint",
 				Description: "The configuration endpoint for this replication group.",
 				Type:        proto.ColumnType_JSON,
@@ -144,6 +139,11 @@ func tableAwsElasticacheReplicationGroup(_ context.Context) *plugin.Table {
 				Description: "A group of settings to be applied to the replication group, either immediately or during the next maintenance window.",
 				Type:        proto.ColumnType_JSON,
 			},
+			{
+				Name:        "user_group_ids",
+				Description: "The list of user group IDs that have access to the replication group.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Standard columns
 			{
@@ -164,7 +164,7 @@ func tableAwsElasticacheReplicationGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -173,7 +173,7 @@ func listElasticacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Create Session
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +194,8 @@ func listElasticacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 
 //// HYDRATE FUNCTIONS
 
-func getElasticacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElasticacheReplicationGroup")
+func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getElastiCacheReplicationGroup")
 
 	// TODO put me in helper function
 	var region string
@@ -205,7 +205,7 @@ func getElasticacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	// create service
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
