@@ -18,7 +18,7 @@ from
 ```
 
 
-### List the VPC configuration used by cluster
+### Get the VPC configuration for each cluster
 
 ```sql
 select
@@ -35,7 +35,7 @@ from
 ```
 
 
-### List of log Types that are not enabled for logging
+### List disabled log types for each cluster
 
 ```sql
 select
@@ -50,18 +50,7 @@ where
 ```
 
 
-### List of Kubernetes Service IP address range of cluster
-
-```sql
-select
-  name,
-  kubernetes_network_config ->> 'ServiceIpv4Cidr' as service_ipv4_cidr
-from
-  aws_eks_cluster;
-```
-
-
-### List of Kubernetes which are not running on 1.19 version
+### List clusters not running Kubernetes version 1.19
 
 ```sql
 select
@@ -72,15 +61,4 @@ from
   aws_eks_cluster
 where
   version <> '1.19';
-```
-
-
-### List of certificate authority data for cluster
-
-```sql
-select
-  name,
-  certificate_authority ->> 'Data' as data
-from
-  aws_eks_cluster;
 ```
