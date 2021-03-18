@@ -1,10 +1,10 @@
 # Table: aws_kinesis_stream
 
-Amazon Kinesis Streams is a massively scalable and durable real-time streaming service.
+A stream captures and transports data records that are continuously emitted from different data sources or producers. Scale-out within a stream is explicitly supported by means of shards, which are uniquely identified groups of data records in a stream.
 
 ## Examples
 
-### List all the streams in your account
+### Basic info
 
 ```sql
 select
@@ -19,7 +19,7 @@ from
 ```
 
 
-### List all the streams that are not in Active state
+### List streams that are not active
 
 ```sql
 select
@@ -36,7 +36,7 @@ where
 ```
 
 
-### List all the streams that have no consumers
+### List streams that have no consumers
 
 ```sql
 select
@@ -53,7 +53,7 @@ where
 ```
 
 
-### List all the streams which are not encrypted
+### List streams that are not encrypted
 
 ```sql
 select
@@ -70,7 +70,7 @@ where
 ```
 
 
-### List of streams which are not encrypted using CMK
+### List streams that are not encrypted using CMK
 
 ```sql
 select
