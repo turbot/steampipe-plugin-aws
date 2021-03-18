@@ -4,7 +4,7 @@ A subnet group is a collection of subnets that you can designate for your cluste
 
 ## Examples
 
-### Basic Subnet Group info
+### Basic Subnet Groups info
 
 ```sql
 select
@@ -17,7 +17,7 @@ from
 ```
 
 
-### VPCs and Subnets info of each subnet group
+### Get network info of each subnet group
 
 ```sql
 select
@@ -31,7 +31,7 @@ from
 ```
 
 
-### Elasticache clusters in each subnet group
+### List clusters in each subnet group
 
 ```sql
 select

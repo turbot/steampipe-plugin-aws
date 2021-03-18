@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticacheSubnetGroup(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_subnet_group",
 		Description: "AWS ElastiCache Subnet Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cache_subnet_group_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
-			Hydrate:           getElasticacheSubnetGroup,
+			Hydrate:           getElastiCacheSubnetGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listElasticacheSubnetGroups,
+			Hydrate: listElastiCacheSubnetGroups,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -53,7 +53,7 @@ func tableAwsElasticacheSubnetGroup(_ context.Context) *plugin.Table {
 				Description: "A list of subnets associated with the cache subnet group.",
 				Type:        proto.ColumnType_JSON,
 			},
-			
+
 			// Standard columns
 			{
 				Name:        "title",
@@ -73,7 +73,7 @@ func tableAwsElasticacheSubnetGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -82,7 +82,7 @@ func listElasticacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// Create Session
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +103,8 @@ func listElasticacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getElasticacheSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElasticacheSubnetGroup")
+func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getElastiCacheSubnetGroup")
 
 	// TODO put me in helper function
 	var region string
@@ -114,7 +114,7 @@ func getElasticacheSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// create service
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

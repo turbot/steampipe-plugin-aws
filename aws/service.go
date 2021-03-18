@@ -226,10 +226,10 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
-// ElasticacheService returns the service connection for AWS Elasticache service
-func ElasticacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
+// ElastiCacheService returns the service connection for AWS ElastiCache service
+func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed Elasticache")
+		return nil, fmt.Errorf("region must be passed ElastiCache")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
