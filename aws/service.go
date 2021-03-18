@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -249,6 +250,27 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 	return svc, nil
 }
 
+// Firehose returns the service connection for AWS Kinesis Firehose service
+func FirehoseService(ctx context.Context, d *plugin.QueryData, region string) (*firehose.Firehose, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed FirehoseService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("firehose-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*firehose.Firehose), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := firehose.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // IAMService returns the service connection for AWS IAM service
 func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	// have we already created and cached the service?
@@ -348,7 +370,6 @@ func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*co
 
 	return svc, nil
 }
-
 
 // RDSService returns the service connection for AWS RDS service
 func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
