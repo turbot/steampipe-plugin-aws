@@ -9,7 +9,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsEventBridge(_ context.Context) *plugin.Table {
+func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eventbridge_rule",
 		Description: "AWS EventBridge Rule",

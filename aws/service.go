@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
+
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 

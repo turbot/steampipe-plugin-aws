@@ -4,7 +4,7 @@ Amazon EventBridge defines the building and management of event-driven applicati
 
 ## Examples
 
-### EventBridge rule basic info
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of rules which are not enabled
+### List of disabled rules
 
 ```sql
 select
@@ -33,7 +33,7 @@ where
 ```
 
 
-### List of targets and IAM roles associated with the rule
+### Get the targets and IAM role associated with each rule
 
 ```sql
 select
