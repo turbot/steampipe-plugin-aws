@@ -19,7 +19,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
 			Hydrate:           getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
@@ -271,6 +271,7 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	if clusterTag.TagList == nil {
 		return nil, nil
 	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if clusterTag.TagList != nil {

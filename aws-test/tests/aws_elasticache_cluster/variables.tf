@@ -64,13 +64,13 @@ resource "aws_elasticache_subnet_group" "my_subnet_group" {
 
 
 resource "aws_elasticache_cluster" "named_test_resource" {
-  cluster_id = var.resource_name
-  engine = "memcached"
-  node_type = "cache.t2.micro"
-  num_cache_nodes = 2
+  cluster_id           = var.resource_name
+  engine               = "memcached"
+  node_type            = "cache.t2.micro"
+  num_cache_nodes      = 2
   parameter_group_name = "default.memcached1.6"
-  port = 11211
-  subnet_group_name = aws_elasticache_subnet_group.my_subnet_group.name
+  port                 = 11211
+  subnet_group_name    = aws_elasticache_subnet_group.my_subnet_group.name
   tags = {
     name = var.resource_name
   }
