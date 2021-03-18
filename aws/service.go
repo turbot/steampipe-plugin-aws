@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
@@ -453,6 +454,27 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 		return nil, err
 	}
 	svc := rds.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// RedshiftService returns the service connection for AWS Redshift service
+func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*redshift.Redshift, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Redshift")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("redshift-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*redshift.Redshift), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := redshift.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
