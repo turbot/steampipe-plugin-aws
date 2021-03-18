@@ -227,3 +227,4 @@ func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ 
 	}
 	return nil, nil
 }
+
