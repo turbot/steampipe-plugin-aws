@@ -40,5 +40,5 @@ from
   aws_ecs_task_definition,
   jsonb_array_elements(container_definitions) as cd
 where
-  cd ->> 'Privileged' = 'true' ;
+  cd ->> 'Privileged' = 'true';
 ```
