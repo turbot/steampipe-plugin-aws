@@ -16,7 +16,7 @@ from
 ```
 
 
-### Count of elasticache parameter groups in the undesired (for example redis5.0 and memcached1.5 is desired) family type.
+### List elasticache parameter groups in the undesired (for example, redis5.0 and memcached1.5 are desired) family types.
 
 ```sql
 select
