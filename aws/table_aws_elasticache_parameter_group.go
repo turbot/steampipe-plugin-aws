@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsElasticacheParameterGroup(_ context.Context) *plugin.Table {
+func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_parameter_group",
 		Description: "AWS ElastiCache Parameter Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cache_parameter_group_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
-			Hydrate:           getElasticacheParameterGroup,
+			Hydrate:           getElastiCacheParameterGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listElasticacheParameterGroup,
+			Hydrate: listElastiCacheParameterGroup,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -73,7 +73,7 @@ func tableAwsElasticacheParameterGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -82,7 +82,7 @@ func listElasticacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Create Session
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +103,8 @@ func listElasticacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 
 //// HYDRATE FUNCTION
 
-func getElasticacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElasticacheParameterGroup")
+func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getElastiCacheParameterGroup")
 
 	// TODO put me in helper function
 	var region string
@@ -114,7 +114,7 @@ func getElasticacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// create service
-	svc, err := ElasticacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
