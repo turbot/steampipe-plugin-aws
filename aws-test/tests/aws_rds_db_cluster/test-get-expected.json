@@ -7,7 +7,7 @@
     "db_cluster_identifier": "{{ resourceName }}",
     "db_subnet_group": "{{ resourceName }}",
     "deletion_protection": false,
-    "endpoint": "{{ resourceName }}.cluster-chc1dqhcgb7b.us-east-1.rds.amazonaws.com",
+    "endpoint": "{{ output.endpoint.value }}",
     "engine": "aurora",
     "engine_mode": "provisioned",
     "engine_version": "5.6.mysql_aurora.1.22.2",

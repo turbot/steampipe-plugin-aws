@@ -20,12 +20,12 @@
             "Prefix": "log/",
             "Tags": [
               {
-                "Key": "rule",
-                "Value": "log"
-              },
-              {
                 "Key": "autoclean",
                 "Value": "true"
+              },
+              {
+                "Key": "rule",
+                "Value": "log"
               }
             ]
           },
