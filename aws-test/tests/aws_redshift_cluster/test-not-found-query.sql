@@ -1,3 +1,3 @@
-select db_cluster_identifier, arn, status
-from aws.aws_rds_db_cluster
-where db_cluster_identifier = 'dummy-{{ resourceName }}'
+select cluster_identifier, akas
+from aws.aws_redshift_cluster
+where cluster_identifier = '{{ output.resource_name.value }}1p3';

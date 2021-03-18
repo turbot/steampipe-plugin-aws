@@ -1,3 +1,3 @@
-select cluster_identifier, arn
+select cluster_identifier, akas
 from aws.aws_redshift_cluster
-where arn = '{{ output.resource_aka.value }}'
+where akas::text = '["{{output.resource_aka.value}}"]';

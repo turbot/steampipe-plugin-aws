@@ -1,7 +1,9 @@
 [
   {
-    "akas": ["{{ output.resource_aka.value }}"],
-    "cluster_identifier": "{{ resourceName }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "cluster_identifier": "{{ output.resource_name.value }}",
     "tags": {
       "name": "{{ resourceName }}"
     },

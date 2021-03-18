@@ -34,10 +34,9 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "arn",
+				Name:        "cluster_namespace_arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ClusterNamespaceArn"),
 			},
 			{
 				Name:        "allow_version_upgrade",
@@ -288,7 +287,8 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ClusterNamespaceArn").Transform(arnToAkas),
+				Hydrate:     getRedshiftClusterAkas,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -344,7 +344,13 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	cluster := h.Item.(*redshift.Cluster)
+
+	var name string
+	if h.Item != nil {
+		name = *h.Item.(*redshift.Cluster).ClusterIdentifier
+	} else {
+		name = d.KeyColumnQuals["cluster_identifier"].GetStringValue()
+	}
 
 	// Create service
 	svc, err := RedshiftService(ctx, d, region)
@@ -353,7 +359,7 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &redshift.DescribeClustersInput{
-		ClusterIdentifier: aws.String(*cluster.ClusterIdentifier),
+		ClusterIdentifier: aws.String(name),
 	}
 
 	op, err := svc.DescribeClusters(params)
@@ -361,10 +367,25 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
-	if op.Clusters != nil && len(op.Clusters) > 0 {
+	if op != nil && len(op.Clusters) > 0 {
 		return op.Clusters[0], nil
 	}
 	return nil, nil
+}
+
+func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRedshiftClusterAkas")
+	cluster := h.Item.(*redshift.Cluster)
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	aka := []string{"arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier}
+
+	return aka, nil
 }
 
 //// TRANSFORM FUNCTIONS ////

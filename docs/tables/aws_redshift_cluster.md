@@ -4,6 +4,19 @@ A cluster is a fully managed data warehouse that consists of a set of compute no
 
 ## Examples
 
+### SSM parameter basic info
+
+```sql
+select
+  cluster_identifier,
+  akas,
+  node_type,
+  region
+from
+  aws_redshift_cluster;
+```
+
+
 ### List of clusters which are publicly accessible
 
 ```sql
@@ -18,6 +31,7 @@ where
   publicly_accessible;
 ```
 
+
 ### List of clusters which are not in a VPC
 
 ```sql
@@ -31,6 +45,7 @@ from
 where
   vpc_id is null;
 ```
+
 
 ### List of clusters whose storage is not encrypted
 
