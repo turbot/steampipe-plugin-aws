@@ -4,7 +4,7 @@ A cluster is a fully managed data warehouse that consists of a set of compute no
 
 ## Examples
 
-### SSM parameter basic info
+### Basic info
 
 ```sql
 select
@@ -17,7 +17,7 @@ from
 ```
 
 
-### List of clusters which are publicly accessible
+### List clusters that are publicly accessible
 
 ```sql
 select
@@ -32,7 +32,7 @@ where
 ```
 
 
-### List of clusters which are not in a VPC
+### List clusters that are not in a VPC
 
 ```sql
 select
@@ -47,7 +47,7 @@ where
 ```
 
 
-### List of clusters whose storage is not encrypted
+### List clusters whose storage is not encrypted
 
 ```sql
 select
