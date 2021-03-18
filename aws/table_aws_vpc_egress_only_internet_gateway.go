@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
-			ItemFromKey:       egressOnlyIGWFromKey,
 			Hydrate:           getVpcEgressOnlyInternetGateway,
 		},
 		List: &plugin.ListConfig{
@@ -26,18 +26,18 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
-				Description: "The ID of the egress-only internet gateway",
+				Description: "The ID of the egress-only internet gateway.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("EgressOnlyInternetGatewayId"),
 			},
 			{
 				Name:        "attachments",
-				Description: "Information about the attachment of the egress-only internet gateway",
+				Description: "Information about the attachment of the egress-only internet gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to egress only internet gateway",
+				Description: "A list of tags that are attached to egress only internet gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -62,17 +62,6 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// ITEM FROM KEY
-
-func egressOnlyIGWFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	gatewayID := quals["id"].GetStringValue()
-	item := &ec2.EgressOnlyInternetGateway{
-		EgressOnlyInternetGatewayId: &gatewayID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -110,15 +99,15 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcEgressOnlyInternetGateway")
-	subnet := h.Item.(*ec2.EgressOnlyInternetGateway)
+	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGateway")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	gatewayID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -128,13 +117,13 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 
 	// Build the params
 	params := &ec2.DescribeEgressOnlyInternetGatewaysInput{
-		EgressOnlyInternetGatewayIds: []*string{subnet.EgressOnlyInternetGatewayId},
+		EgressOnlyInternetGatewayIds: []*string{aws.String(gatewayID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeEgressOnlyInternetGateways(params)
 	if err != nil {
-		logger.Debug("getVpcEgressOnlyInternetGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcEgressOnlyInternetGateway__", "ERROR", err)
 		return nil, err
 	}
 

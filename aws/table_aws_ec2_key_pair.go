@@ -20,7 +20,6 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("key_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
-			ItemFromKey:       keyDetailsFromKey,
 			Hydrate:           getEc2KeyPair,
 		},
 		List: &plugin.ListConfig{
@@ -72,17 +71,6 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func keyDetailsFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	keyName := quals["key_name"].GetStringValue()
-	item := &ec2.KeyPairInfo{
-		KeyName: &keyName,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -110,14 +98,14 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	keyPair := h.Item.(*ec2.KeyPairInfo)
+	keyName := d.KeyColumnQuals["key_name"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -126,7 +114,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	params := &ec2.DescribeKeyPairsInput{
-		KeyNames: []*string{aws.String(*keyPair.KeyName)},
+		KeyNames: []*string{aws.String(keyName)},
 	}
 
 	op, err := svc.DescribeKeyPairs(params)

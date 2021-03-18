@@ -1,12 +1,12 @@
 [
   {
-    "service_name": "{{ output.service_name.value }}",
-    "turbot_akas": [
+    "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "turbot_tags": {
+    "service_name": "{{ output.service_name.value }}",
+    "tags": {
       "Name": "{{resourceName}}"
     },
-    "turbot_title": "{{ output.service_name.value }}"
+    "title": "{{ output.service_name.value }}"
   }
 ]

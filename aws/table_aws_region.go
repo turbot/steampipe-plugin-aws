@@ -20,13 +20,12 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			ItemFromKey:       regionFromKey,
 			Hydrate:           getAwsRegion,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRegions,
 		},
-		Columns: awsColumns([]*plugin.Column{
+		Columns: []*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the region",
@@ -51,19 +50,27 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsRegionAkas,
 				Transform:   transform.FromValue(),
 			},
-		}),
+			{
+				Name:        "partition",
+				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCommonColumns,
+			},
+			{
+				Name:        "region",
+				Description: "The AWS Region in which the resource is located.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("RegionName"),
+			},
+			{
+				Name:        "account_id",
+				Description: "The AWS Account ID in which the resource is located.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCommonColumns,
+				Transform:   transform.FromCamel(),
+			},
+		},
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func regionFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	regionName := quals["name"].GetStringValue()
-	item := &ec2.Region{
-		RegionName: &regionName,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -96,19 +103,19 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	defaultRegion := GetDefaultAwsRegion(d)
-	region := h.Item.(*ec2.Region)
 
-	// create service
+	// Create service
 	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
+	regionName := d.KeyColumnQuals["name"].GetStringValue()
 
 	params := &ec2.DescribeRegionsInput{
 		AllRegions:  aws.Bool(true),
-		RegionNames: []*string{region.RegionName},
+		RegionNames: []*string{aws.String(regionName)},
 	}
 
 	// execute list call
