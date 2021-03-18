@@ -158,7 +158,7 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcFlowlog")
 
@@ -241,7 +241,7 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*ec2.FlowLog)
 	logDestination := types.SafeString(data.LogDestination)
-	if logDestination == "" || types.SafeString(data.LogDestinationType) != "s3" {
+	if logDestination == "" {
 		return nil, nil
 	}
 	splitData := strings.Split(logDestination, ":")

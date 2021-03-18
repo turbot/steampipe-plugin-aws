@@ -21,62 +21,62 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 			// "Key" Columns
 			{
 				Name:        "principal_arn",
-				Description: "The principal Amazon Resource Name (ARN) for this policy simulation",
+				Description: "The principal Amazon Resource Name (ARN) for this policy simulation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "action",
-				Description: "The action for this policy simulation",
+				Description: "The action for this policy simulation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "resource_arn",
 				Type:        proto.ColumnType_STRING,
-				Description: "The resource for this policy simulation",
+				Description: "The resource for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "decision",
 				Type:        proto.ColumnType_STRING,
-				Description: "The decision for this policy simulation",
+				Description: "The decision for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "decision_details",
 				Type:        proto.ColumnType_JSON,
-				Description: "The decision details for this policy simulation",
+				Description: "The decision details for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "matched_statements",
 				Type:        proto.ColumnType_JSON,
-				Description: "The matched statements for this policy simulation",
+				Description: "The matched statements for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "missing_context_values",
 				Type:        proto.ColumnType_JSON,
-				Description: "The missing content values for this policy simulation",
+				Description: "The missing content values for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "resource_specific_results",
 				Type:        proto.ColumnType_JSON,
-				Description: "The resource specific results for this policy simulation",
+				Description: "The resource specific results for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "organizations_decision_detail",
 				Type:        proto.ColumnType_JSON,
-				Description: "The organizations decision detail for this policy simulation",
+				Description: "The organizations decision detail for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 			{
 				Name:        "permissions_boundary_decision_detail",
 				Type:        proto.ColumnType_JSON,
-				Description: "The permissions boundary decision detail for this policy simulation",
+				Description: "The permissions boundary decision detail for this policy simulation.",
 				Transform:   transform.FromGo(),
 			},
 		},
@@ -97,7 +97,7 @@ type awsIamPolicySimulatorResult struct {
 	Result                            *iam.EvaluationResult
 }
 
-func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listIamPolicySimulation")
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 	action := d.KeyColumnQuals["action"].GetStringValue()

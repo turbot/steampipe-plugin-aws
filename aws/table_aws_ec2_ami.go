@@ -20,7 +20,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("image_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			ItemFromKey:       imageFromKey,
 			Hydrate:           getEc2Ami,
 		},
 		List: &plugin.ListConfig{
@@ -30,134 +29,134 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name of the AMI that was provided during image creation",
+				Description: "The name of the AMI that was provided during image creation.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "image_id",
-				Description: "The ID of the AMI",
+				Description: "The ID of the AMI.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the AMI. If the state is available, the image is successfully registered and can be used to launch an instance",
+				Description: "The current state of the AMI. If the state is available, the image is successfully registered and can be used to launch an instance.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "image_type",
-				Description: "The type of image",
+				Description: "The type of image.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "image_location",
-				Description: "The location of the AMI",
+				Description: "The location of the AMI.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time when the image was created",
+				Description: "The date and time when the image was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "architecture",
-				Description: "The architecture of the image",
+				Description: "The architecture of the image.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "description",
-				Description: "The description of the AMI that was provided during image creation",
+				Description: "The description of the AMI that was provided during image creation.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ena_support",
-				Description: "Specifies whether enhanced networking with ENA is enabled",
+				Description: "Specifies whether enhanced networking with ENA is enabled.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "hypervisor",
-				Description: "The hypervisor type of the image",
+				Description: "The hypervisor type of the image.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "image_owner_alias",
-				Description: "The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner",
+				Description: "The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "kernel_id",
-				Description: "The kernel associated with the image, if any. Only applicable for machine images",
+				Description: "The kernel associated with the image, if any. Only applicable for machine images.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The AWS account ID of the image owner",
+				Description: "The AWS account ID of the image owner.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "platform",
-				Description: "This value is set to windows for Windows AMIs; otherwise, it is blank",
+				Description: "This value is set to windows for Windows AMIs; otherwise, it is blank.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "platform_details",
-				Description: "The platform details associated with the billing code of the AMI. For more information, see Obtaining Billing Information (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html) in the Amazon Elastic Compute Cloud User Guide",
+				Description: "The platform details associated with the billing code of the AMI. For more information, see Obtaining Billing Information (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html) in the Amazon Elastic Compute Cloud User Guide.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "public",
-				Description: "Indicates whether the image has public launch permissions. The value is true if this image has public launch permissions or false if it has only implicit and explicit launch permissions",
+				Description: "Indicates whether the image has public launch permissions. The value is true if this image has public launch permissions or false if it has only implicit and explicit launch permissions.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "ramdisk_id",
-				Description: "The RAM disk associated with the image, if any. Only applicable for machine images",
+				Description: "The RAM disk associated with the image, if any. Only applicable for machine images.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "root_device_name",
-				Description: "The device name of the root device volume (for example, /dev/sda1)",
+				Description: "The device name of the root device volume (for example, /dev/sda1).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "root_device_type",
-				Description: "The type of root device used by the AMI. The AMI can use an EBS volume or an instance store volume",
+				Description: "The type of root device used by the AMI. The AMI can use an EBS volume or an instance store volume.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "sriov_net_support",
-				Description: "Specifies whether enhanced networking with the Intel 82599 Virtual Function interface is enabled",
+				Description: "Specifies whether enhanced networking with the Intel 82599 Virtual Function interface is enabled.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "usage_operation",
-				Description: "The operation of the Amazon EC2 instance and the billing code that is associated with the AMI. For the list of UsageOperation codes, see Platform Details and [Usage Operation Billing Codes](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html#billing-info) in the Amazon Elastic Compute Cloud User Guide",
+				Description: "The operation of the Amazon EC2 instance and the billing code that is associated with the AMI. For the list of UsageOperation codes, see Platform Details and [Usage Operation Billing Codes](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html#billing-info) in the Amazon Elastic Compute Cloud User Guide.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "virtualization_type",
-				Description: "The type of virtualization of the AMI",
+				Description: "The type of virtualization of the AMI.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "block_device_mappings",
-				Description: "Any block device mapping entries",
+				Description: "Any block device mapping entries.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "product_codes",
-				Description: "Any product codes associated with the AMI",
+				Description: "Any product codes associated with the AMI.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "launch_permissions",
-				Description: "The users and groups that have the permissions for creating instances from the AMI",
+				Description: "The users and groups that have the permissions for creating instances from the AMI.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2AmiLaunchPermissionData,
 				Transform:   transform.FromField("LaunchPermissions"),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags attached to the AMI",
+				Description: "A list of tags attached to the AMI.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -184,17 +183,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func imageFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	imageID := quals["image_id"].GetStringValue()
-	item := &ec2.Image{
-		ImageId: &imageID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -225,14 +213,14 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	image := h.Item.(*ec2.Image)
+	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
 	svc, err := Ec2Service(ctx, d, region)
@@ -241,7 +229,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	}
 
 	params := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(*image.ImageId)},
+		ImageIds: []*string{aws.String(imageID)},
 	}
 
 	op, err := svc.DescribeImages(params)
