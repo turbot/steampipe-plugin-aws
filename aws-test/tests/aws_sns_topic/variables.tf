@@ -58,7 +58,7 @@ resource "aws_sns_topic" "named_test_resource" {
 
 data "aws_iam_policy_document" "sns_topic_policy" {
   policy_id = "__default_policy_ID"
-  version = "2012-10-17"
+  version   = "2012-10-17"
 
   statement {
     actions = [
