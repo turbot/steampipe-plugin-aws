@@ -44,19 +44,3 @@ from
   aws_route53_resolver_endpoint,
   jsonb_array_elements(ip_addresses) as p;
 ```
-
-### Get rule details for each endpoint
-
-```sql
-select
-  name,
-  p ->> 'DomainName' as domain_name,
-  p ->> 'Name' as rule_name,
-  p ->> 'RuleType' as rule_type,
-  p ->> 'ShareStatus' as share_status,
-  p ->> 'Status' as status,
-  p ->> 'TargetIps' as target_ips
-from
-  aws_route53_resolver_endpoint,
-  jsonb_array_elements(resolver_rules) as p;
-```

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -87,12 +86,6 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 				Description: "Information about the IP addresses in your VPC that DNS queries originate from (for outbound endpoints) or that you forward DNS queries to (for inbound endpoints).",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listResolverEndpointIPAddresses,
-			},
-			{
-				Name:        "resolver_rules",
-				Description: "The Resolver rules that were created using the current AWS account and that match the specified filters, if any.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listResolverRule,
 			},
 			{
 				Name:        "security_group_ids",
@@ -220,45 +213,6 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	op, err := svc.ListResolverEndpointIpAddresses(params)
 	if err != nil {
 		logger.Debug("listResolverEndpointIpAddresses", "ERROR", err)
-		return nil, err
-	}
-
-	return op, nil
-}
-
-func listResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listResolverRule")
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
-	id := resolverEndpointData.Id
-
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	params := &route53resolver.ListResolverRulesInput{
-		Filters: []*route53resolver.Filter{
-			{
-				Name: types.String("ResolverEndpointId"),
-				Values: []*string{
-					id,
-				},
-			},
-		},
-	}
-
-	op, err := svc.ListResolverRules(params)
-	if err != nil {
-		logger.Debug("listResolverRule", "ERROR", err)
 		return nil, err
 	}
 
