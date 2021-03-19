@@ -36,9 +36,10 @@ from
 
 ```sql
 select
-  name,
+  cluster_subnet_group_name,
   tags
 from
   aws_redshift_subnet_group
 where
-  not tags
+  not tags :: JSONB ? 'application';
+```
