@@ -207,7 +207,7 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 // EfsService returns the service connection for AWS EFS service
 func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EfsService")
+		return nil, fmt.Errorf("region must be passed EFS")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("efs-%s", region)

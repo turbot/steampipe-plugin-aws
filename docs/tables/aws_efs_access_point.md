@@ -4,7 +4,7 @@ Amazon EFS access points are application-specific entry points into an EFS file 
 
 ## Examples
 
-### List all Access Points for a specific file system
+### List access points for a specific file system
 
 ```sql
 select
@@ -20,7 +20,7 @@ where
 ```
 
 
-### List all Access Points that are in available life cycle state
+### List access points that are in available life cycle state
 
 ```sql
 select
