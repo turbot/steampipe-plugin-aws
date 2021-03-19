@@ -1,9 +1,9 @@
 [
   {
-    "access_log_emit_interval": null,
+    "access_log_emit_interval": "<null>",
     "access_log_enabled": false,
-    "access_log_s3_bucket_name": null,
-    "access_log_s3_bucket_prefix": null,
+    "access_log_s3_bucket_name": "<null>",
+    "access_log_s3_bucket_prefix": "<null>",
     "additional_attributes": [
       {
         "Key":"elb.http.desyncmitigationmode",
