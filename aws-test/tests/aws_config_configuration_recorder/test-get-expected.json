@@ -1,0 +1,21 @@
+[
+  {
+    "akas": [
+      "arn:{{ output.aws_partition.value }}:config:{{ output.region_name.value }}:{{ output.account_id.value }}:config-recorder/{{resourceName}}"
+    ],
+    "name": "{{resourceName}}",
+    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/awsconfig-example",
+    "status": {
+      "LastErrorCode": null,
+      "LastErrorMessage": null,
+      "LastStartTime": null,
+      "LastStatus": null,
+      "LastStatusChangeTime": null,
+      "LastStopTime": null,
+      "Name": "{{resourceName}}",
+      "Recording": false
+    },
+    "status_recording": false,
+    "title": "{{resourceName}}"
+  }
+]
