@@ -29,15 +29,3 @@ where
   not auto_enable_controls;
 ```
 
-
-### Count of Hubs per region
-
-```sql
-select
-  region,
-  count(*)
-from
-  aws_securityhub_hub
-group by
-  region;
-```
