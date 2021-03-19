@@ -272,7 +272,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 // KinesisVideoService returns the service connection for AWS Kinesis Video service
 func KinesisVideoService(ctx context.Context, d *plugin.QueryData, region string) (*kinesisvideo.KinesisVideo, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed KinesisVideoService")
+		return nil, fmt.Errorf("region must be passed Kinesis Video")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("kinesisvideo-%s", region)

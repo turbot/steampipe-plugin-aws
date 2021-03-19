@@ -19,10 +19,10 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("stream_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           describeStream,
+			Hydrate:           getKinesisVideoStream,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listVideoStreams,
+			Hydrate: listKinesisVideoStreams,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -53,16 +53,6 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 				Type:        pb.ColumnType_STRING,
 			},
 			{
-				Name:        "media_type",
-				Description: "The MediaType of the stream.",
-				Type:        pb.ColumnType_STRING,
-			},
-			{
-				Name:        "device_name",
-				Description: "The name of the device that is associated with the stream.",
-				Type:        pb.ColumnType_STRING,
-			},
-			{
 				Name:        "creation_time",
 				Description: "A time stamp that indicates when the stream was created.",
 				Type:        pb.ColumnType_TIMESTAMP,
@@ -73,10 +63,20 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 				Type:        pb.ColumnType_INT,
 			},
 			{
+				Name:        "device_name",
+				Description: "The name of the device that is associated with the stream.",
+				Type:        pb.ColumnType_STRING,
+			},
+			{
+				Name:        "media_type",
+				Description: "The MediaType of the stream.",
+				Type:        pb.ColumnType_STRING,
+			},
+			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsKinesisVideoStreamTags,
+				Hydrate:     listKinesisVideoStreamTags,
 			},
 
 			// Standard columns for all tables
@@ -98,7 +98,7 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
 	var region string
@@ -106,7 +106,7 @@ func listVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listVideoStreams", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listKinesisVideoStreams", "AWS_REGION", region)
 
 	// Create session
 	svc, err := KinesisVideoService(ctx, d, region)
@@ -130,9 +130,9 @@ func listVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("describeStream")
+	logger.Trace("getKinesisVideoStream")
 
 	// TODO put me in helper function
 	var region string
@@ -170,9 +170,9 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 }
 
 // API call for fetching tags
-func getAwsKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisVideoStreamTags")
+	logger.Trace("listKinesisVideoStreamTags")
 
 	// TODO put me in helper function
 	var region string
@@ -197,9 +197,9 @@ func getAwsKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	op, err := svc.ListTagsForStream(params)
 	if err != nil {
-		logger.Debug("getAwsKinesisVideoStreamTags", "ERROR", err)
+		logger.Debug("listKinesisVideoStreamTags", "ERROR", err)
 		return nil, err
 	}
-	logger.Trace("getAwsKinesisVideoStreamTags", "Tags", op)
+	logger.Trace("listKinesisVideoStreamTags", "Tags", op)
 	return op, nil
 }
