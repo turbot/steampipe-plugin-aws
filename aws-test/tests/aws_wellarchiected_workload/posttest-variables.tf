@@ -4,32 +4,22 @@ variable "resource_name" {
   default = ""
   description = "Name of the resource used throughout the test."
 }
-variable "turbot_profile" {
-  type    = string
-  default = "osbornNew"
-  description = "Turbot credentials profile to use for the test run."
-}
-
-provider "turbot" {
-  profile = var.turbot_profile
-}
-
 
 variable "aws_profile" {
-  type    = string
-  default = "osbornNew"
+  type        = string
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -37,6 +27,7 @@ provider "aws" {
   profile = var.aws_profile
   region  = var.aws_region
 }
+
 
 provider "aws" {
   alias   = "alternate"
@@ -50,7 +41,6 @@ data "aws_region" "primary" {}
 data "aws_region" "alternate" {
   provider = aws.alternate
 }
-data "resource_id" "current" {}
 
 data "null_data_source" "resource" {
   inputs = {
@@ -61,7 +51,9 @@ data "null_data_source" "resource" {
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT
-      aws wellarchitected delete-workload --workload-id ${ data.resource_id.current.WorkloadId }';
+    aws wellarchitected delete-workload --workload-id  {{ output.resource_id.value }};
     EOT
   }
 }
+
+

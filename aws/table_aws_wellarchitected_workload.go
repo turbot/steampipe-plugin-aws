@@ -10,9 +10,11 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_well_architected_workload",
+		Name:        "aws_wellarchitected_workload",
 		Description: "AWS Well Architected Workload",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("workload_id"),
@@ -46,28 +48,9 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "datae",
-				Description: "The name of the recorder. By default, AWS Config automatically assigns the name default when creating the configuration recorder.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
-				Transform:   transform.FromValue(),
-			},
-			{
-				Name:        "account_ids",
-				Description: "The list of AWS account IDs associated with the workload.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
-			},
-			{
 				Name:        "architectural_design",
 				Description: "The URL of the architectural design for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
-			},
-			{
-				Name:        "aws_regions",
-				Description: "The list of AWS Regions associated with the workload, for example, us-east-2, or ca-central-1.",
-				Type:        proto.ColumnType_JSON,
 				Hydrate:     getWellArchitectedWorload,
 			},
 			{
@@ -91,6 +74,7 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "industry",
 				Description: "The industry for the workload.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getWellArchitectedWorload,
 			},
 			{
 				Name:        "industry_type",
@@ -105,17 +89,6 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Hydrate:     getWellArchitectedWorload,
 			},
 			{
-				Name:        "lenses",
-				Description: "The list of lenses associated with the workload. Each lens is identified by its LensSummary$LensAlias.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "non_aws_regions",
-				Description: "The list of non-AWS Regions associated with the workload.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
-			},
-			{
 				Name:        "notes",
 				Description: "The notes associated with the workload.",
 				Type:        proto.ColumnType_STRING,
@@ -125,12 +98,6 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "owner",
 				Description: "An AWS account ID.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "pillar_priorities",
-				Description: "The priorities of the pillars, which are used to order items in the improvement plan. ",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
 			},
 			{
 				Name:        "review_owner",
@@ -145,11 +112,6 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Hydrate:     getWellArchitectedWorload,
 			},
 			{
-				Name:        "risk_counts",
-				Description: "A map from risk names to the count of how questions have that rating.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "share_invitation_id",
 				Description: "The ID assigned to the share invitation.",
 				Type:        proto.ColumnType_STRING,
@@ -158,6 +120,40 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "updated_at",
 				Description: "The date and time recorded.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "account_ids",
+				Description: "The list of AWS account IDs associated with the workload.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWellArchitectedWorload,
+			},
+			{
+				Name:        "aws_regions",
+				Description: "The list of AWS Regions associated with the workload, for example, us-east-2, or ca-central-1.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWellArchitectedWorload,
+			},
+			{
+				Name:        "lenses",
+				Description: "The list of lenses associated with the workload. Each lens is identified by its LensSummary$LensAlias.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "non_aws_regions",
+				Description: "The list of non-AWS Regions associated with the workload.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWellArchitectedWorload,
+			},
+			{
+				Name:        "pillar_priorities",
+				Description: "The priorities of the pillars, which are used to order items in the improvement plan. ",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getWellArchitectedWorload,
+			},
+			{
+				Name:        "risk_counts",
+				Description: "A map from risk names to the count of how questions have that rating.",
+				Type:        proto.ColumnType_JSON,
 			},
 			// Standard columns
 			{
@@ -168,7 +164,7 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags",
-				Description: "The tags associated with the workload.",
+				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getWellArchitectedWorload,
 			},
@@ -198,26 +194,15 @@ func listWellArchitectedWorloads(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	pagesLeft := true
-	params := &wellarchitected.ListWorkloadsInput{}
-
-	for pagesLeft {
-		result, err := svc.ListWorkloads(params)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, Workload := range result.WorkloadSummaries {
-			d.StreamListItem(ctx, Workload)
-		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
-		}
-	}
+	err = svc.ListWorkloadsPages(
+		&wellarchitected.ListWorkloadsInput{},
+		func(page *wellarchitected.ListWorkloadsOutput, lastPage bool) bool {
+			for _, Workload := range page.WorkloadSummaries {
+				d.StreamListItem(ctx, Workload)
+			}
+			return !lastPage
+		},
+	)
 
 	return nil, nil
 }
@@ -260,7 +245,6 @@ func getWellArchitectedWorload(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	return op.Workload, nil
-
 }
 
 //// TRANSFORM FUNCTIONS
