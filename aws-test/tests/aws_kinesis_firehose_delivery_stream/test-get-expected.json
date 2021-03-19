@@ -1,0 +1,85 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "delivery_stream_arn": "{{ output.resource_aka.value }}",
+    "delivery_stream_encryption_configuration": {
+      "FailureDescription": null,
+      "KeyARN": null,
+      "KeyType": null,
+      "Status": "DISABLED"
+    },
+    "delivery_stream_name": "{{ resourceName }}",
+    "delivery_stream_status": "ACTIVE",
+    "delivery_stream_type": "DirectPut",
+    "destinations": [
+      {
+        "DestinationId": "destinationId-000000000001",
+        "ElasticsearchDestinationDescription": null,
+        "ExtendedS3DestinationDescription": {
+          "BucketARN": "{{ output.bucket_arn.value }}",
+          "BufferingHints": {
+            "IntervalInSeconds": 300,
+            "SizeInMBs": 5
+          },
+          "CloudWatchLoggingOptions": {
+            "Enabled": false,
+            "LogGroupName": null,
+            "LogStreamName": null
+          },
+          "CompressionFormat": "UNCOMPRESSED",
+          "DataFormatConversionConfiguration": null,
+          "EncryptionConfiguration": {
+            "KMSEncryptionConfig": null,
+            "NoEncryptionConfig": "NoEncryption"
+          },
+          "ErrorOutputPrefix": null,
+          "Prefix": "",
+          "ProcessingConfiguration": null,
+          "RoleARN": "{{ output.role_arn.value }}",
+          "S3BackupDescription": null,
+          "S3BackupMode": "Disabled"
+        },
+        "HttpEndpointDestinationDescription": null,
+        "RedshiftDestinationDescription": null,
+        "S3DestinationDescription": {
+          "BucketARN": "{{ output.bucket_arn.value }}",
+          "BufferingHints": {
+            "IntervalInSeconds": 300,
+            "SizeInMBs": 5
+          },
+          "CloudWatchLoggingOptions": {
+            "Enabled": false,
+            "LogGroupName": null,
+            "LogStreamName": null
+          },
+          "CompressionFormat": "UNCOMPRESSED",
+          "EncryptionConfiguration": {
+            "KMSEncryptionConfig": null,
+            "NoEncryptionConfig": "NoEncryption"
+          },
+          "ErrorOutputPrefix": null,
+          "Prefix": "",
+          "RoleARN": "{{ output.role_arn.value }}"
+        },
+        "SplunkDestinationDescription": null
+      }
+    ],
+    "failure_description": "<null>",
+    "has_more_destinations": false,
+    "last_update_timestamp": "<null>",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "source": "<null>",
+    "tags_src": [
+      {
+        "Key": "Foo",
+        "Value": "Bar"
+      },
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "version_id": "1"
+  }
+]
