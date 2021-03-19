@@ -43,11 +43,6 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "configuration_Templates",
-				Description: "The names of the configuration templates associated with this application.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "date_created",
 				Description: "The date when the application was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -56,6 +51,11 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Name:        "date_updated",
 				Description: "The date when the application was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "configuration_Templates",
+				Description: "The names of the configuration templates associated with this application.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "versions",
@@ -203,6 +203,9 @@ func getElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.
 	plugin.Logger(ctx).Trace("getElasticBeanstalkApplicationTurbotTags")
 	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
+	if tagList.ResourceTags == nil {
+		return nil, nil
+	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if tagList != nil {
