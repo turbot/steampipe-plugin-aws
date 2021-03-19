@@ -28,4 +28,3 @@ from
 where
   not auto_enable_controls;
 ```
-
