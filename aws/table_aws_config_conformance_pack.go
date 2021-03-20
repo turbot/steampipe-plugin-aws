@@ -25,6 +25,12 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "arn",
+				Description: "Amazon Resource Name (ARN) of the conformance pack.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ConformancePackArn"),
+			},
+			{
 				Name:        "name",
 				Description: "Name of the conformance pack.",
 				Type:        proto.ColumnType_STRING,
@@ -44,25 +50,25 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 			},
 
 			{
-				Name:        "created_by_svc",
+				Name:        "created_by",
 				Description: "AWS service that created the conformance pack.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("CreatedBy"),
 			},
 			{
-				Name:        "delivery_bucket",
+				Name:        "delivery_s3_bucket",
 				Description: "Amazon S3 bucket where AWS Config stores conformance pack templates.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DeliveryS3Bucket"),
 			},
 			{
-				Name:        "delivery_bucket_prefix",
+				Name:        "delivery_s3_key_prefix",
 				Description: "The prefix for the Amazon S3 delivery bucket",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DeliveryS3KeyPrefix"),
 			},
 			{
-				Name:        "last_update",
+				Name:        "last_update_requested_time",
 				Description: "Last update to the conformance pack.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LastUpdateRequestedTime"),
@@ -72,8 +78,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsConformancePackAkas,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("ConformancePackArn").Transform(arnToAkas),
 			},
 			{
 				Name:        "title",
@@ -135,11 +140,10 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		return nil, err
 	}
-
+	
 	params := &configservice.DescribeConformancePacksInput{
 		ConformancePackNames: []*string{aws.String(name)},
 	}
-	plugin.Logger(ctx).Trace("paramsparamsparams", "params", params)
 
 	op, err := svc.DescribeConformancePacks(params)
 	if err != nil {
@@ -157,16 +161,4 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// TRANSFORM FUNCTIONS
 
-func getAwsConformancePackAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsConformancePackAkas")
-	ConformancePackDetail := h.Item.(*configservice.ConformancePackDetail)
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":config:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":conformance-pack" + "/" + *ConformancePackDetail.ConformancePackName
-	// aka :="CANT MAKE THIS WORK!"
 
-	return []string{aka}, nil
-}
