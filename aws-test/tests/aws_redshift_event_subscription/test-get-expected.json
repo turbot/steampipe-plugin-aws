@@ -1,0 +1,15 @@
+[
+    {
+      "account_id": "{{ output.account_id.value }}",
+      "cust_subscription_id": "{{ resourceName }}",
+      "partition": "{{ output.aws_partition.value }}",
+      "region": "{{ output.aws_region.value }}",
+      "tags_src": [
+        {
+            "Key": "Name",
+            "Value": "{{ resourceName }}"
+        }
+      ],
+      "title": "{{resourceName}}"
+    }
+]
