@@ -2,13 +2,13 @@
 	{
 		"cluster_subnet_group_name": "{{ output.resource_id.value }}",
 		"description": "A test subnet group",
-    "subnet_group_status": "Complete",
-    "tags_src": [
-      {
-        "Key": "name",
-        "Value": "{{ output.resource_id.value }}"
-      }
-    ],
-    "vpc_id": "{{ output.vpc_id.value }}"
+    		"subnet_group_status": "Complete",
+		"tags_src": [
+		    {
+		      "Key": "name",
+		      "Value": "{{ output.resource_id.value }}"
+		    }
+		 ],
+    		"vpc_id": "{{ output.vpc_id.value }}"
 	}
 ]
