@@ -1,6 +1,6 @@
 # Table: aws_elastic_beanstalk_application
 
-AWS Elastic Beanstalk is an easy-to-use service. It offers the fastest and simplest way to deploy developer's applications without worrying about the infrastructure while maintaining high availability.
+AWS Elastic Beanstalk offers the fastest and simplest way to deploy developer's applications without worrying about the infrastructure while maintaining high availability.
 
 ## Examples
 
@@ -24,7 +24,9 @@ from
 ```sql
 select
   name,
-  jsonb_pretty(resource_lifecycle_config)
+  resource_lifecycle_config ->> 'ServiceRole' as role,
+  resource_lifecycle_config -> 'VersionLifecycleConfig' ->> 'MaxAgeRule' as max_age_rule,
+  resource_lifecycle_config -> 'VersionLifecycleConfig' ->> 'MaxCountRule' as max_count_rule
 from
   aws_elastic_beanstalk_application;
 ```

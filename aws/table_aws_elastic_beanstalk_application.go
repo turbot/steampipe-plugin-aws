@@ -71,7 +71,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the application.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticBeanstalkApplicationTags,
+				Hydrate:     listAwsElasticBeanstalkApplicationTags,
 				Transform:   transform.FromField("ResourceTags"),
 			},
 
@@ -92,7 +92,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticBeanstalkApplicationTags,
+				Hydrate:     listAwsElasticBeanstalkApplicationTags,
 				Transform:   transform.FromField("ResourceTags").Transform(getElasticBeanstalkApplicationTurbotTags),
 			},
 		}),
@@ -166,9 +166,9 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	return nil, nil
 }
 
-func getAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsElasticBeanstalkApplicationTags")
+	logger.Trace("listAwsElasticBeanstalkApplicationTags")
 
 	// TODO put me in helper function
 	var region string
