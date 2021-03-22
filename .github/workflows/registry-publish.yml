@@ -80,22 +80,22 @@ jobs:
       - name: Save Linux Build Artifact - AMD64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_linux_amd64
-          path: ./dist/steampipe-plugin-aws_linux_amd64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_amd64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_linux_amd64.gz
           if-no-files-found: error
 
       - name: Save Linux Build Artifact - ARM64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_linux_arm64
-          path: ./dist/steampipe-plugin-aws_linux_arm64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_arm64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_linux_arm64.gz
           if-no-files-found: error
 
       - name: Save MacOS Build Artifact - AMD64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_darwin_amd64
-          path: ./dist/steampipe-plugin-aws_darwin_amd64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_amd64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_darwin_amd64.gz
           if-no-files-found: error
 
   # test-amd64:
@@ -154,20 +154,20 @@ jobs:
 
       - run: oras version # oras is pre-installed on the image...
 
-      - name: Download steampipe-aws_linux_amd64
+      - name: Download linux-amd64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_linux_amd64
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_amd64
 
-      - name: Download steampipe-aws_linux_arm64
+      - name: Download linux_arm64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_linux_arm64
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_arm64
 
-      - name: Download steampipe-aws_darwin_amd64
+      - name: Download darwin_amd64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_darwin_amd64
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_amd64
 
       - name: List files
         run: ls -l
@@ -239,9 +239,9 @@ jobs:
           oras push $REF \
             --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
             --manifest-annotations annotations.json \
-            steampipe-plugin-aws_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
-            steampipe-plugin-aws_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
-            steampipe-plugin-aws_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
             docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
             config:application/vnd.turbot.steampipe.plugin.spc.layer.v1+tar
 
