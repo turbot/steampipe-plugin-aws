@@ -14,10 +14,10 @@ import (
 func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_securityhub_hub",
-		Description: "AWS Security hub",
+		Description: "AWS Security Hub",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("hub_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
 			Hydrate:           getSecurityHub,
 		},
 		List: &plugin.ListConfig{
@@ -71,9 +71,14 @@ func listSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	// List call
 	resp, err := svc.DescribeHub(&securityhub.DescribeHubInput{})
 
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHub", "query_error", err)
+		return nil, nil
+	}
+
 	d.StreamListItem(ctx, resp)
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
