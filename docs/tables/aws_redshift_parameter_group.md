@@ -1,6 +1,6 @@
 # Table: aws_redshift_parameter_group
 
-A parameter group contains a WLM configuration and a set of cluster parameters. It optimizes query performance.
+A parameter group is a group of parameters that apply to all of the databases that you create in the cluster. 
 ## Examples
 
 ### Basic info
@@ -15,7 +15,7 @@ from
 ```
 
 
-### Details of several parameters which are associated with each parameter group
+### Details of the parameters associated with each parameter group
 
 ```sql
 select
