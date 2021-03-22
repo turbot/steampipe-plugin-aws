@@ -4,9 +4,7 @@
 #
 # 1. Set up secrets in your workspace:
 #   - STEAMPIPE_REGISTRY_SA_KEY with the Base64 encoded JSON service account key (https://github.com/GoogleCloudPlatform/github-actions/tree/docs/service-account-key/setup-gcloud#inputs).
-#   - CODY_MODS_GH_PAT the token for the turbot-mods github user.  This is required to pull dependencies from turbot private repos.
-#         Once the repos are public, this can be removed
-# 2. Change the values for the environment variables (below).
+# 2. Change the values for the environment variables (below) if required.
 
 name: Build and Deploy OCI Image
 
@@ -36,6 +34,10 @@ jobs:
           plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
           echo $plugin_name
           echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
+      - name: Exit if goreleaser file is missing
+        run: |
+          test -f .goreleaser.yaml
 
       - name: Set up Go
         uses: actions/setup-go@v2
