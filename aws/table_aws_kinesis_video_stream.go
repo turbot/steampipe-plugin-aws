@@ -99,7 +99,6 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -159,7 +158,6 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		StreamName: aws.String(streamName),
 	}
 
-	logger.Trace("describeStream__", "params", params)
 	// Get call
 	data, err := svc.DescribeStream(params)
 	if err != nil {
@@ -181,7 +179,7 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 		region = matrixRegion.(string)
 	}
 
-	streamName := *h.Item.(*kinesisvideo.StreamInfo).StreamName
+	data := h.Item.(*kinesisvideo.StreamInfo)
 
 	// Create Session
 	svc, err := KinesisVideoService(ctx, d, region)
@@ -191,7 +189,7 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// Build the params
 	params := &kinesisvideo.ListTagsForStreamInput{
-		StreamName: &streamName,
+		StreamName: data.StreamName,
 	}
 
 	// Get call
@@ -200,6 +198,5 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 		logger.Debug("listKinesisVideoStreamTags", "ERROR", err)
 		return nil, err
 	}
-	logger.Trace("listKinesisVideoStreamTags", "Tags", op)
 	return op, nil
 }

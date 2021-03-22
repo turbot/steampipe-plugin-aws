@@ -11,7 +11,7 @@
     "stream_arn": "{{ output.resource_aka.value }}",
     "stream_name": "{{ resourceName }}",
     "tags": {
-      "Foo" : "Bar",
+      "Foo": "Bar",
       "Name": "{{ resourceName }}"
     },
     "version": "{{ output.resource_version.value }}"

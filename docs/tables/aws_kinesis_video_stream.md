@@ -47,7 +47,7 @@ select
 from
   aws_kinesis_video_stream
 where
-  split_part(kms_key_id, '/', 3) = 'kinesisvideo';
+  split_part(kms_key_id, ':', 6) = 'alias/aws/kinesisvideo';
 ```
 
 

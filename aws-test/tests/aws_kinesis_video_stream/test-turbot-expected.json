@@ -1,10 +1,8 @@
 [
   {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
+    "akas": ["{{ output.resource_aka.value }}"],
     "tags": {
-      "Foo" : "Bar",
+      "Foo": "Bar",
       "Name": "{{ resourceName }}"
     },
     "title": "{{ resourceName }}"
