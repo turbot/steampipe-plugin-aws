@@ -1,0 +1,12 @@
+[
+  {
+    "name": "{{resourceName}}",
+    "conformance_pack_id": null,
+    "input_parameters": null,
+    "created_by_svc": null,
+    "delivery_bucket": null,
+    "delivery_bucket_prefix": null,
+    "last_update": null,
+    "title": "{{resourceName}}"
+  }
+]
