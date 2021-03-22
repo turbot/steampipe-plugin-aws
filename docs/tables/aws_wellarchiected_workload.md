@@ -28,7 +28,7 @@ select
 from
   aws_wellarchitected_workload
 where
-  environment = 'PREPRODUCTION';
+  environment = 'PRODUCTION';
 ```
 
 
@@ -57,7 +57,7 @@ from
 ```
 
 
-## List of workloads with IsReviewOwnerUpdateAcknowledged no enabled
+## List of workloads with IsReviewOwnerUpdateAcknowledged not enabled
 
 ```sql
 select
