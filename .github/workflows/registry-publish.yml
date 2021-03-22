@@ -13,14 +13,14 @@ name: Build and Deploy OCI Image
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 env:
   PROJECT_ID: steampipe
   PLUGIN_NAME: aws
   ORG: turbot
   PLUGIN_REPO: us-docker.pkg.dev/steampipe/plugins
-  CONFIG_SCHEMA_VERSION: "2020-11-18"
+  CONFIG_SCHEMA_VERSION: '2020-11-18'
 
 jobs:
   build:
@@ -68,17 +68,11 @@ jobs:
             exit 1
           fi
 
-      - name: Hook private repo
-        run: git config --global url."https://turbot-mods:${{ secrets.GH_ACCESS_TOKEN }}@github.com".insteadOf "https://github.com"
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
           args: release --rm-dist --skip-publish
-        env:
-          GOPRIVATE: github.com/turbot
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List Build Artifacts
         run: ls -laR ./dist
@@ -306,5 +300,5 @@ jobs:
         uses: ./.github/actions/semver-tags
         id: semver
         with:
-          image-to-tag: "${{ env.PLUGIN_REPO }}/${{ env.ORG }}/${{ env.PLUGIN_NAME }}:${{ github.run_id  }}"
+          image-to-tag: '${{ env.PLUGIN_REPO }}/${{ env.ORG }}/${{ env.PLUGIN_NAME }}:${{ github.run_id  }}'
           image-version: ${{ env.VERSION }}
