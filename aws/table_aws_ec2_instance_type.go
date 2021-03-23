@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -21,7 +22,6 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 			KeyColumns:        plugin.SingleColumn("instance_type"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceType"}),
 			Hydrate:           describeInstanceType,
-			ItemFromKey:       instanceTypeOfferingFromKey,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,
@@ -184,45 +184,6 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 	}
 }
 
-// custom struct for InstanceTypeOffering
-type instanceTypeOfferingInfo struct {
-	Partition            string
-	Region               string
-	InstanceTypeOffering *ec2.InstanceTypeOffering
-}
-
-//// ITEM FROM KEY
-
-func instanceTypeOfferingFromKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	instanceType := quals["instance_type"].GetStringValue()
-
-	// get the primary region for aws based on its partition
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	region := "us-east-1"
-	if commonColumnData.Partition == "aws-us-gov" {
-		region = "us-gov-east-1"
-	} else if commonColumnData.Partition == "aws-cn" {
-		region = "cn-north-1"
-	}
-
-	item := &instanceTypeOfferingInfo{
-		Partition: commonColumnData.Partition,
-		Region:    region,
-		InstanceTypeOffering: &ec2.InstanceTypeOffering{
-			InstanceType: &instanceType,
-		},
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -232,7 +193,6 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		return nil, err
 	}
-
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	region := "us-east-1"
@@ -266,11 +226,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	for _, instanceType := range resp.InstanceTypeOfferings {
-		d.StreamListItem(ctx, &instanceTypeOfferingInfo{
-			commonColumnData.Partition,
-			region,
-			instanceType,
-		})
+		d.StreamListItem(ctx, instanceType)
 	}
 
 	return nil, err
@@ -279,17 +235,37 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 //// HYDRATE FUNCTIONS
 
 func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	instanceInfo := h.Item.(*instanceTypeOfferingInfo)
+	var instanceType string
+	if h.Item != nil {
+		data := h.Item.(*ec2.InstanceTypeOffering)
+		instanceType = types.SafeString(data.InstanceType)
+	} else {
+		instanceType = d.KeyColumnQuals["instance_type"].GetStringValue()
+	}
+
+	// get the primary region for aws based on its partition
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	region := "us-east-1"
+	if commonColumnData.Partition == "aws-us-gov" {
+		region = "us-gov-east-1"
+	} else if commonColumnData.Partition == "aws-cn" {
+		region = "cn-north-1"
+	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, instanceInfo.Region)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// First get all the types of
 	params := &ec2.DescribeInstanceTypesInput{
-		InstanceTypes: []*string{instanceInfo.InstanceTypeOffering.InstanceType},
+		InstanceTypes: []*string{aws.String(instanceType)},
 	}
 
 	// execute list call

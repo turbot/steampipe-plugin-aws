@@ -1,0 +1,16 @@
+[
+	{
+		"association_id": "{{ output.resource_id.value }}",
+		"association_name": "{{ output.resource_name.value }}",
+		"association_version": "1",
+		"compliance_severity": "<null>",
+		"overview": {
+			"AssociationStatusAggregatedCount": {},
+			"DetailedStatus": "Success",
+			"Status": "Success"
+		},
+		"partition": "{{ output.aws_partition.value }}",
+		"region": "{{ output.aws_region.value }}",
+		"schedule_expression": "<null>"
+	}
+]

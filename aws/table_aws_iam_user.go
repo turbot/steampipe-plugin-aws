@@ -37,92 +37,92 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name identifying the user",
+				Description: "The friendly name identifying the user.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("UserName"),
 			},
 			{
 				Name:        "user_id",
-				Description: "The stable and unique string identifying the user",
+				Description: "The stable and unique string identifying the user.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "path",
-				Description: "The path to the user",
+				Description: "The path to the user.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) that identifies the user",
+				Description: "The Amazon Resource Name (ARN) that identifies the user.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_date",
-				Description: "The date and time, when the user was created",
+				Description: "The date and time, when the user was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "password_last_used",
-				Description: "The date and time, when the user's password was last used to sign in to an AWS website",
+				Description: "The date and time, when the user's password was last used to sign in to an AWS website.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "permissions_boundary_arn",
-				Description: "The ARN of the policy used to set the permissions boundary for the user",
+				Description: "The ARN of the policy used to set the permissions boundary for the user.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsIamUserData,
 			},
 			{
 				Name: "permissions_boundary_type",
 				Description: "The permissions boundary usage type that indicates what type of IAM resource " +
-					"is used as the permissions boundary for an entity. This data type can only have a value of Policy",
+					"is used as the permissions boundary for an entity. This data type can only have a value of Policy.",
 				Type:    proto.ColumnType_STRING,
 				Hydrate: getAwsIamUserData,
 			},
 			{
 				Name:        "mfa_enabled",
-				Description: "The MFA status of the user",
+				Description: "The MFA status of the user.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsIamUserMfaDevices,
 				Transform:   transform.From(userMfaStatus),
 			},
 			{
 				Name:        "mfa_devices",
-				Description: "A list of MFA devices attached to the user",
+				Description: "A list of MFA devices attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserMfaDevices,
 				Transform:   transform.FromField("MFADevices"),
 			},
 			{
 				Name:        "groups",
-				Description: "A list of groups attached to the user",
+				Description: "A list of groups attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserGroups,
 			},
 			{
 				Name:        "inline_policies",
-				Description: "A list of policy documents that are embedded as inline policies for the user",
+				Description: "A list of policy documents that are embedded as inline policies for the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
-				Description: "Inline policies in canonical form for the user",
+				Description: "Inline policies in canonical form for the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
-				Description: "A list of managed policies attached to the user",
+				Description: "A list of managed policies attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserAttachedPolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the user",
+				Description: "A list of tags that are attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserData,
 			},
@@ -165,7 +165,7 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 			for _, user := range page.Users {
 				d.StreamListItem(ctx, user)
 			}
-			return true
+			return !lastPage
 		},
 	)
 
@@ -174,7 +174,7 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 //// HYDRATE FUNCTIONS
 
-func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIamUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIamUser")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()

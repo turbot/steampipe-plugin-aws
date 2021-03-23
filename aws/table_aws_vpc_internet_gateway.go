@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("internet_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
-			ItemFromKey:       internetGatewayFromKey,
 			Hydrate:           getVpcInternetGateway,
 		},
 		List: &plugin.ListConfig{
@@ -26,22 +26,22 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "internet_gateway_id",
-				Description: "The ID of the internet gateway",
+				Description: "The ID of the internet gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The ID of the AWS account that owns the internet gateway",
+				Description: "The ID of the AWS account that owns the internet gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "attachments",
-				Description: "Any VPCs attached to the internet gateway",
+				Description: "Any VPCs attached to the internet gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "tags assigned to the internet gateway",
+				Description: "tags assigned to the internet gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -66,17 +66,6 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// ITEM FROM KEY
-
-func internetGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	internetGatewayID := quals["internet_gateway_id"].GetStringValue()
-	item := &ec2.InternetGateway{
-		InternetGatewayId: &internetGatewayID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -113,15 +102,15 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcInternetGateway")
-	internetGateway := h.Item.(*ec2.InternetGateway)
+	plugin.Logger(ctx).Trace("getVpcInternetGateway")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	internetGatewayID := d.KeyColumnQuals["internet_gateway_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -131,13 +120,13 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Build the params
 	params := &ec2.DescribeInternetGatewaysInput{
-		InternetGatewayIds: []*string{internetGateway.InternetGatewayId},
+		InternetGatewayIds: []*string{aws.String(internetGatewayID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeInternetGateways(params)
 	if err != nil {
-		logger.Debug("[getVpcInternetGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("[getVpcInternetGateway__", "ERROR", err)
 		return nil, err
 	}
 
@@ -165,7 +154,7 @@ func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcInternetGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcInternetGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	internetGateway := d.HydrateItem.(*ec2.InternetGateway)
 	param := d.Param.(string)
 

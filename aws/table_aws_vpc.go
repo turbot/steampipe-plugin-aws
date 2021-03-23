@@ -26,52 +26,52 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC",
+				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cidr_block",
-				Description: "The primary IPv4 CIDR block for the VPC",
+				Description: "The primary IPv4 CIDR block for the VPC.",
 				Type:        proto.ColumnType_CIDR,
 			},
 			{
 				Name:        "state",
-				Description: "Contains the current state of the VPC",
+				Description: "Contains the current state of the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "is_default",
-				Description: "Indicates whether the VPC is the default VPC",
+				Description: "Indicates whether the VPC is the default VPC.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "dhcp_options_id",
-				Description: "Contains the ID of the set of DHCP options, associated with the VPC",
+				Description: "Contains the ID of the set of DHCP options, associated with the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "instance_tenancy",
-				Description: "The allowed tenancy of instances launched into the VPC",
+				Description: "The allowed tenancy of instances launched into the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "owner_id",
-				Description: "Contains ID of the AWS account that owns the VPC",
+				Description: "Contains ID of the AWS account that owns the VPC.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cidr_block_association_set",
-				Description: "Information about the IPv4 CIDR blocks associated with the VPC",
+				Description: "Information about the IPv4 CIDR blocks associated with the VPC.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "ipv6_cidr_block_association_set",
-				Description: "Information about the IPv6 CIDR blocks associated with the VPC",
+				Description: "Information about the IPv6 CIDR blocks associated with the VPC.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to the vpc",
+				Description: "A list of tags that are attached with the VPC.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -102,7 +102,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -133,7 +133,7 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 
 //// HYDRATE FUNCTIONS
 
-func getVpc(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpc")
 
@@ -197,7 +197,7 @@ func getVpcTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	return nil, nil
 }
 
-func getVpcTurbotTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpc := d.HydrateItem.(*ec2.Vpc)
 
 	if vpc.Tags != nil {

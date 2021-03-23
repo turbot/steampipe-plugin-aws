@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,6 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("api_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       v2APIFromKey,
 			Hydrate:           getAPIGatewayV2API,
 		},
 		List: &plugin.ListConfig{
@@ -83,17 +83,6 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func v2APIFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	ID := quals["api_id"].GetStringValue()
-	item := &apigatewayv2.Api{
-		ApiId: &ID,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -137,10 +126,8 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAPIGatewayV2API")
-	api := h.Item.(*apigatewayv2.Api)
+func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayV2API")
 
 	// TODO put me in helper function
 	var region string
@@ -155,13 +142,14 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	id := d.KeyColumnQuals["api_id"].GetStringValue()
 	params := &apigatewayv2.GetApiInput{
-		ApiId: api.ApiId,
+		ApiId: aws.String(id),
 	}
 
 	apiData, err := svc.GetApi(params)
 	if err != nil {
-		logger.Debug("getAPIGatewayV2API__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAPIGatewayV2API__", "ERROR", err)
 		return nil, err
 	}
 
