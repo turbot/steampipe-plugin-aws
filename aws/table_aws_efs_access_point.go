@@ -89,7 +89,7 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AccessPointId"),
+				Transform:   transform.From(efsAccessPointTitle),
 			},
 			{
 				Name:        "akas",
@@ -104,7 +104,6 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -186,4 +185,17 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 	}
 
 	return turbotTagsMap, nil
+}
+
+// Generate title for the resource
+func efsAccessPointTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("efsAccessPointTitle")
+	data := d.HydrateItem.(*efs.AccessPointDescription)
+
+	// If name is available, then setting name as title, else setting Access Point ID as title
+	if data.Name != nil {
+		return data.Name, nil
+	}
+
+	return data.AccessPointId, nil
 }

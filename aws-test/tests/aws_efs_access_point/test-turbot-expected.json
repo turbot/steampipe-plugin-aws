@@ -5,6 +5,6 @@
       "Name": "{{ resourceName }}",
       "foo": "bar"
     },
-    "title": "{{ output.resource_id.value }}"
+    "title": "{{ resourceName }}"
   }
 ]
