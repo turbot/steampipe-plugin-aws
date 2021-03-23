@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -79,8 +79,8 @@ resource "aws_lb" "named_test_resource" {
   internal           = false
   load_balancer_type = "application"
   subnets = [
-    "${aws_subnet.my_subnet1.id}",
-    "${aws_subnet.my_subnet2.id}"
+    aws_subnet.my_subnet1.id,
+    aws_subnet.my_subnet2.id
   ]
   enable_deletion_protection = false
   tags = {

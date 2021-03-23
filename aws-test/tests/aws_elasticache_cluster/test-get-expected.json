@@ -1,0 +1,13 @@
+[
+	{
+		"cache_cluster_id": "{{ output.resource_id.value }}",
+		"cache_node_type": "cache.t2.micro",
+		"engine": "memcached",
+		"tags_src": [
+			{
+				"Key": "name",
+				"Value": "{{resourceName}}"
+			}
+		]
+	}
+]
