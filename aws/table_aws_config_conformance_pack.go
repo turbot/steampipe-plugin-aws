@@ -25,54 +25,47 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "arn",
-				Description: "Amazon Resource Name (ARN) of the conformance pack.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ConformancePackArn"),
-			},
-			{
 				Name:        "name",
 				Description: "Name of the conformance pack.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ConformancePackName"),
 			},
 			{
+				Name:        "conformance_pack_arn",
+				Description: "Amazon Resource Name (ARN) of the conformance pack.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "conformance_pack_id",
 				Description: "ID of the conformance pack.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ConformancePackId"),
 			},
-			{
-				Name:        "input_parameters",
-				Description: "A list of ConformancePackInputParameter objects.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ConformancePackInputParameters"),
-			},
-
 			{
 				Name:        "created_by",
 				Description: "AWS service that created the conformance pack.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("CreatedBy"),
 			},
 			{
 				Name:        "delivery_s3_bucket",
 				Description: "Amazon S3 bucket where AWS Config stores conformance pack templates.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DeliveryS3Bucket"),
 			},
 			{
 				Name:        "delivery_s3_key_prefix",
-				Description: "The prefix for the Amazon S3 delivery bucket",
+				Description: "The prefix for the Amazon S3 delivery bucket.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DeliveryS3KeyPrefix"),
 			},
 			{
 				Name:        "last_update_requested_time",
 				Description: "Last update to the conformance pack.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LastUpdateRequestedTime"),
 			},
+			{
+				Name:        "conformance_pack_input_parameters",
+				Description: "A list of ConformancePackInputParameter objects.",
+				Type:        proto.ColumnType_JSON,
+			},
+
 			// Standard columns
 			{
 				Name:        "akas",
@@ -140,7 +133,7 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		return nil, err
 	}
-	
+
 	params := &configservice.DescribeConformancePacksInput{
 		ConformancePackNames: []*string{aws.String(name)},
 	}
@@ -158,7 +151,3 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	return nil, nil
 }
-
-//// TRANSFORM FUNCTIONS
-
-
