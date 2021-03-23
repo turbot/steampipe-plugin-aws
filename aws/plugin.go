@@ -82,6 +82,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_alias":                       tableAwsLambdaAlias(ctx),
 			"aws_lambda_function":                    tableAwsLambdaFunction(ctx),
 			"aws_lambda_version":                     tableAwsLambdaVersion(ctx),
+			"aws_redshift_snapshot":                  tableAwsRedshiftSnapshot(ctx),
 			"aws_rds_db_cluster":                     tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":     tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":            tableAwsRDSDBClusterSnapshot(ctx),

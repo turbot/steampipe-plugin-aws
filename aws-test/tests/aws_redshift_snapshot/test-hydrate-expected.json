@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "snapshot_identifier": "{{ output.resource_name.value }}",
+    "tags": "<null>"
+  }
+]
