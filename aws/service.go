@@ -764,6 +764,5 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	}
 	svc := backup.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
 	return svc, nil
 }

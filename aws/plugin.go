@@ -127,7 +127,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group":                 tableAwsVpcSecurityGroup(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
-			"aws_vpc":                                tableAwsVpc(ctx),
+			"aws_vpc":                                tableAwsVpc(ctx), 
 		},
 	}
 
