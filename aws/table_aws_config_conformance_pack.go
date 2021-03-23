@@ -31,9 +31,10 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ConformancePackName"),
 			},
 			{
-				Name:        "conformance_pack_arn",
+				Name:        "arn",
 				Description: "Amazon Resource Name (ARN) of the conformance pack.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ConformancePackArn"),
 			},
 			{
 				Name:        "conformance_pack_id",
@@ -61,9 +62,10 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "conformance_pack_input_parameters",
+				Name:        "input_parameters",
 				Description: "A list of ConformancePackInputParameter objects.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ConformancePackInputParameters"),
 			},
 
 			// Standard columns
