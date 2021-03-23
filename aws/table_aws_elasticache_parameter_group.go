@@ -33,15 +33,15 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "description",
-				Description: "The description for the cache parameter group.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) of the cache parameter group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ARN"),
+			},
+			{
+				Name:        "description",
+				Description: "The description for the cache parameter group.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cache_parameter_group_family",
@@ -91,8 +91,8 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 	err = svc.DescribeCacheParameterGroupsPages(
 		&elasticache.DescribeCacheParameterGroupsInput{},
 		func(page *elasticache.DescribeCacheParameterGroupsOutput, isLast bool) bool {
-			for _, parameterGroups := range page.CacheParameterGroups {
-				d.StreamListItem(ctx, parameterGroups)
+			for _, parameterGroup := range page.CacheParameterGroups {
+				d.StreamListItem(ctx, parameterGroup)
 			}
 			return !isLast
 		},

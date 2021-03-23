@@ -254,7 +254,7 @@ func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.E
 // ElastiCacheService returns the service connection for AWS ElastiCache service
 func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed Elasticache")
+		return nil, fmt.Errorf("region must be passed ElastiCache")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
