@@ -42,13 +42,12 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time a resource backup is created",
+				Description: "The date and time a resource backup is created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-
 			{
 				Name:        "creator_request_id",
-				Description: " unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.",
+				Description: "An unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -144,11 +143,7 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	op, err := svc.DescribeBackupVault(params)
-	if serverErr, ok := err.(*errors.ServerError); ok {
-		if serverErr.ErrorCode() == "InvalidParameterValue" {
-			plugin.Logger(ctx).Warn("getAwsBackupVault", "not_found_error", serverErr, "request", params)
-			return nil, nil
-		}
+	if err != nil {
 		plugin.Logger(ctx).Debug("getAwsBackupVault", "ERROR", err)
 		return nil, err
 	}

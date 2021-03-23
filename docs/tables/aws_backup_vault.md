@@ -27,6 +27,6 @@ from
   aws_backup_vault
 where
   creation_date <= (current_date - interval '90' day)
-  order by
+order by
   creation_date;
 ```
