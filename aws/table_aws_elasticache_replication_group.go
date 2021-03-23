@@ -60,7 +60,7 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "auth_token_last_modified_date",
-				Description: "The date the auth token was last modified.",
+				Description: "The date when the auth token was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
