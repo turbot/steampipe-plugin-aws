@@ -71,12 +71,15 @@ resource "aws_iam_role" "role" {
 }
 EOF
 }
+
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
+
 resource "aws_internet_gateway" "testinternetgateway" {
   vpc_id = aws_vpc.my_vpc.id
 }
+
 resource "aws_route_table" "route" {
   vpc_id = "${aws_vpc.my_vpc.id}"
   route {
@@ -84,16 +87,19 @@ resource "aws_route_table" "route" {
     gateway_id = "${aws_internet_gateway.testinternetgateway.id}"
   }
 }
+
 resource "aws_subnet" "my_subnet1" {
   vpc_id            = "${aws_vpc.my_vpc.id}"
   availability_zone = "${var.aws_region}b"
   map_public_ip_on_launch = "true"
   cidr_block        = "10.0.2.0/24"
 }
+
 resource "aws_route_table_association" "routeassociation1" {
   subnet_id      = aws_subnet.my_subnet1.id
   route_table_id = aws_route_table.route.id
 }
+
 resource "aws_security_group" "ssh-allowed" {
     vpc_id = aws_vpc.my_vpc.id
     egress {

@@ -17,36 +17,38 @@ from
   aws_elastic_beanstalk_environment;
 ```
 
-
 ### list of Environments whose AbortableOperationInProgress is set enable
 
 ```sql
 select
-  environment_name
+  environment_name,
+  abortable_operation_in_progress
 from
   aws_elastic_beanstalk_environment
 where
   abortable_operation_in_progress = 'true';
 ```
 
-
-### list the Environments whose health is not responsive
+### List environments whose health is not responsive
 
 ```sql
 select
-  environment_name
+  environment_name,
+  application_name,
+  environment_id,
+  health
 from
   aws_elastic_beanstalk_environment
 where
   health = 'Red';
 ```
 
-
 ### list of applications running in environment whose health status disabled
 
 ```sql
 select
-  environment_name
+  environment_name,
+  health_status
 from
   aws_elastic_beanstalk_environment
 where

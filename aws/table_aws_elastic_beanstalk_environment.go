@@ -20,7 +20,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsElasticBeanstalkEnvironment,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsElasticBeanstalkEnvironment,
+			Hydrate: listAwsElasticBeanstalkEnvironments,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -62,7 +62,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "endpoint_url",
-				Description: "the URL to the LoadBalancer.",
+				Description: "The URL to the LoadBalancer.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsElasticBeanstalkEnvironment,
 			},
@@ -136,7 +136,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Repository",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getElasticBeanstalkEnvironmentTags,
+				Hydrate:     listElasticBeanstalkEnvironmentTags,
 				Transform:   transform.FromField("ResourceTags"),
 			},
 
@@ -151,7 +151,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("ResourceTags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getElasticBeanstalkEnvironmentTags,
+				Hydrate:     listElasticBeanstalkEnvironmentTags,
 				Transform:   transform.FromField("ResourceTags"),
 			},
 			{
@@ -166,14 +166,14 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsElasticBeanstalkEnvironment", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsElasticBeanstalkEnvironments", "AWS_REGION", region)
 
 	// Create session
 	svc, err := ElasticBeanstalkService(ctx, d, region)
@@ -248,9 +248,9 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 	return nil, nil
 }
 
-func getElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	plugin.Logger(ctx).Trace("getElasticBeanstalkEnvironmentTags")
+	plugin.Logger(ctx).Trace("listElasticBeanstalkEnvironmentTags")
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -274,7 +274,7 @@ func getElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Debug("getElasticBeanstalkEnvironmentTags", "ERROR", err)
+		logger.Debug("listElasticBeanstalkEnvironmentTags", "ERROR", err)
 		return nil, err
 	}
 	return op, nil
