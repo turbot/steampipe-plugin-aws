@@ -20,7 +20,13 @@ from
 ```sql
 select
   name,
-  jsonb_pretty(parameters)
+  p ->> 'Description' as description,
+  p ->> 'ParameterName' as parameter_name,
+  p ->> 'ParameterValue' as parameter_value,
+  p ->> 'Source' as source,
+  p ->> 'DataType' as data_type,
+  p ->> 'ApplyType' as apply_type
 from
-  aws_redshift_parameter_group;
+  aws_redshift_parameter_group,
+  jsonb_array_elements(parameters) as p;
 ```
