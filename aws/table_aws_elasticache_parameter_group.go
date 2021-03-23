@@ -101,9 +101,9 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 	return nil, err
 }
 
-//// HYDRATE FUNCTION
+//// HYDRATE FUNCTIONS
 
-func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getElastiCacheParameterGroup")
 
 	// TODO put me in helper function
