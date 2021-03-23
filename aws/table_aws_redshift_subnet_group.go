@@ -33,13 +33,13 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "description",
-				Description: "The description of the cluster subnet group.",
+				Name:        "subnet_group_status",
+				Description: "The status of the cluster subnet group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "subnet_group_status",
-				Description: "The status of the cluster subnet group.",
+				Name:        "description",
+				Description: "The description of the cluster subnet group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -62,16 +62,16 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 
 			// Standard columns
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRedshiftSubnetGroupTurbotTags),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ClusterSubnetGroupName"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getRedshiftSubnetGroupTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -146,6 +146,23 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return nil, nil
 }
 
+func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
+	data := h.Item.(*redshift.ClusterSubnetGroup)
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
+
+	// Get data for turbot defined properties
+	akas := []string{arn}
+
+	return akas, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func getRedshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
@@ -162,21 +179,4 @@ func getRedshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformD
 		}
 	}
 	return turbotTagsMap, nil
-}
-
-func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
-	data := h.Item.(*redshift.ClusterSubnetGroup)
-	commonData, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
-
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
-
-	// Get data for turbot defined properties
-	akas := []string{arn}
-
-	return akas, nil
 }
