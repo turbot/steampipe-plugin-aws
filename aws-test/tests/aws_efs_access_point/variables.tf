@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 # Create AWS > EFS > File System
-resource "aws_efs_file_system" "foo" {
+resource "aws_efs_file_system" "file_system" {
   creation_token = var.resource_name
   tags = {
     foo = "bar"
@@ -56,7 +56,7 @@ resource "aws_efs_file_system" "foo" {
 
 # Create AWS > EFS > Access Point
 resource "aws_efs_access_point" "named_test_resource" {
-  file_system_id = aws_efs_file_system.foo.id
+  file_system_id = aws_efs_file_system.file_system.id
   tags = {
     Name = var.resource_name
     foo = "bar"
@@ -76,7 +76,7 @@ output "resource_id" {
 }
 
 output "file_system_id" {
-  value = aws_efs_file_system.foo.id
+  value = aws_efs_file_system.file_system.id
 }
 
 output "account_id" {

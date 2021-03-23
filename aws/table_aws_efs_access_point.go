@@ -83,13 +83,13 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEfsAccessPointTurbotTags),
+				Transform:   transform.From(efsAccessPointTurbotTags),
 			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("AccessPointId"),
 			},
 			{
 				Name:        "akas",
@@ -135,7 +135,6 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -143,13 +142,8 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		region = matrixRegion.(string)
 	}
 
-	var accessPointID string
-	if h.Item != nil {
-		accessPointID = *h.Item.(*efs.AccessPointDescription).AccessPointId
-	} else {
-		quals := d.KeyColumnQuals
-		accessPointID = quals["access_point_id"].GetStringValue()
-	}
+	quals := d.KeyColumnQuals
+	accessPointID := quals["access_point_id"].GetStringValue()
 
 	// create service
 	svc, err := EfsService(ctx, d, region)
@@ -174,9 +168,13 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// TRANSFORM FUNCTIONS
 
-func getEfsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEfsAccessPointTurbotTags")
+func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("efsAccessPointTurbotTags")
 	tagList := d.HydrateItem.(*efs.AccessPointDescription)
+
+	if tagList.Tags == nil {
+		return nil, nil
+	}
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
