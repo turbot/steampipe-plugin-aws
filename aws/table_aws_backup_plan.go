@@ -46,7 +46,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time a resource backup plan is created",
+				Description: "The date and time a resource backup plan is created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -61,7 +61,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creator_request_id",
-				Description: " unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.",
+				Description: "An unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -75,7 +75,6 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsBackupPlan,
 			},
-
 			{
 				Name:        "advanced_backup_settings",
 				Description: "Contains a list of BackupOptions for a resource type.",
@@ -99,7 +98,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("listAwsBackupPlans", "AWS_BACKUP", region)
