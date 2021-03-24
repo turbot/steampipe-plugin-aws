@@ -4,17 +4,32 @@ The AWS Route 53 Resolver endpoints in a Virtual Private Cloud (VPC) that is use
 
 ## Examples
 
-### Basic info
+### List all endpoints
 
 ```sql
 select
   name,
   id,
   direction,
-  ip_address_count,
+  ip_address_count
   status
 from
   aws_route53_resolver_endpoint;
+```
+
+### Get a specific bucket
+
+```sql
+select
+  name,
+  id,
+  direction,
+  ip_address_count
+  status
+from
+  aws_route53_resolver_endpoint
+where
+  id = 'rslvr-out-ebb7db0b7498463eb';
 ```
 
 ### List unhealthy endpoints
