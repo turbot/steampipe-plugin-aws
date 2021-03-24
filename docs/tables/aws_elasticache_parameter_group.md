@@ -1,8 +1,10 @@
 # Table: aws_elasticache_parameter_group
 
-Parameter Groups are a collection of parameters which control the behavior of the ElastiCache cluster.
+Parameter groups are collection of parameters which control the behavior of the ElastiCache clusters.
 
-### Basic parameter group info
+## Examples
+
+### Basic info
 
 ```sql
 select
@@ -16,7 +18,7 @@ from
 ```
 
 
-### List elasticache parameter groups in the undesired (for example, redis5.0 and memcached1.5 are desired) family types.
+### List parameter groups in the undesired (for example, redis5.0 and memcached1.5 are desired) family types.
 
 ```sql
 select
