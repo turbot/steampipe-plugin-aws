@@ -1,10 +1,28 @@
 # Table: aws_efs_file_system
 
-Amazon EFS provides a durable, high throughput file system for content management systems and web serving applications that store and serve information for a range of applications like websites, online publications, and archives.
+Amazon Elastic File System is a cloud storage service provided by Amazon Web Services designed to provide scalable, elastic, concurrent with some restrictions, and encrypted file storage for use with both AWS cloud services and on-premises resources.
 
 ## Examples
 
-### List of unencrypted elastic file systems
+### Basic info
+
+```sql
+select
+  name,
+  file_system_id,
+  owner_id,
+  creation_token,
+  creation_time,
+  life_cycle_state,
+  number_of_mount_targets,
+  performance_mode,
+  throughput_mode
+from
+  aws_efs_file_system;
+```
+
+
+### List file systems which are not encrypted at rest
 
 ```sql
 select
@@ -19,7 +37,7 @@ where
 ```
 
 
-### Size of the data stored in each file system
+### Get the size of the data stored in each file system
 
 ```sql
 select
@@ -33,7 +51,7 @@ from
 ```
 
 
-### List of file systems which has root access
+### List file systems which has root access
 
 ```sql
 select
@@ -52,7 +70,7 @@ where
 ```
 
 
-### List of file systems that DO NOT enforce encryption in transit
+### List file systems that do not enforce encryption in transit
 
 ```sql
 select
