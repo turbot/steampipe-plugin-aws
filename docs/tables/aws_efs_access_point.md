@@ -4,6 +4,22 @@ Amazon EFS access points are application-specific entry points into an EFS file 
 
 ## Examples
 
+### Basic info
+
+```sql
+select
+  name,
+  access_point_id,
+  access_point_arn,
+  file_system_id,
+  life_cycle_state,
+  owner_id,
+  root_directory
+from
+  aws_efs_access_point;
+```
+
+
 ### List access points for a specific file system
 
 ```sql
