@@ -4,7 +4,7 @@ Amazon Kinesis Video Streams makes it easy to securely stream video from connect
 
 ## Examples
 
-### List all the video streams in your account
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
 ```
 
 
-### List all the video streams that are not in Active state
+### List video streams that are not in Active state
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
 ```
 
 
-### List all the video streams which are not encrypted using CMK
+### List video streams which are not encrypted using CMK
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
 ```
 
 
-### List all the video streams with data retention period < 7 days
+### List video streams with data retention period < 7 days
 
 ```sql
 select
