@@ -19,6 +19,6 @@
       }
     ],
     "name": "{{ resourceName }}",
-    "users": null
+    "users": "<null>"
   }
 ]

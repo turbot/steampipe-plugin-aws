@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type    = string
-  default = "default"
+  default = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -51,7 +51,7 @@ resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
     name = var.resource_name
-  }  
+  }
 }
 
 resource "aws_subnet" "public" {
@@ -81,7 +81,7 @@ resource "aws_vpc_endpoint_service" "named_test_resource" {
   network_load_balancer_arns = [aws_lb.test.arn]
   tags = {
     Name = var.resource_name
-  }    
+  }
 }
 
 output "account_id" {
