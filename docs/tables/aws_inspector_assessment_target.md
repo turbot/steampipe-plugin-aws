@@ -1,6 +1,6 @@
 # Table: aws_inspector_assessment_target
 
-The AWS Inspector Assessment Target resource is used to create Amazon Inspector assessment targets, which specify the Amazon EC2 instances that will be analyzed during an assessment run.
+The AWS Inspector Assessment Target resource specify the Amazon EC2 instances that will be analyzed during an assessment run.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
 ```
 
 
-### List Assessment Targets that are created within last 7 days
+### List assessment targets that are created within last 7 days
 
 ```sql
 select
@@ -36,7 +36,7 @@ where
 ```
 
 
-### List Assessment Targets that are updated after creation
+### List assessment targets that are updated after creation
 
 ```sql
 select
