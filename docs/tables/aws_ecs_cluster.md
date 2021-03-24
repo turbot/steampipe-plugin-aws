@@ -19,7 +19,7 @@ from
 ```
 
 
-### List of ecs clusters with failed status
+### List clusters that have failed to provision resources
 
 ```sql
 select
@@ -32,7 +32,7 @@ where
 ```
 
 
-### Details of resources attached to a cluster
+### Get details of resources attached to each cluster
 
 ```sql
 select
@@ -46,7 +46,7 @@ from
 ```
 
 
-### List of cluster for which cloudwatch container insights is disabled
+### List clusters with CloudWatch Container Insights disabled
 
 ```sql
 select
