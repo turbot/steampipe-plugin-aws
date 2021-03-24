@@ -1,6 +1,6 @@
 # Table: aws_inspector_assessment_template
 
-The AWS Inspector Assessment Template resource creates an Amazon Inspector assessment template, which specifies the Inspector assessment targets that will be evaluated by an assessment run and its related configurations.
+The AWS Inspector Assessment Template resource specifies the Inspector assessment targets that will be evaluated by an assessment run and its related configurations.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
 ```
 
 
-### List Assessment Templates that have no user attributes for findings tags
+### List assessment templates that have no user attributes for findings tags
 
 ```sql
 select
@@ -37,7 +37,7 @@ where
 ```
 
 
-### List Assessment Templates that have zero assessment runs
+### List assessment templates that have zero assessment runs
 
 ```sql
 select
@@ -55,7 +55,7 @@ where
 ```
 
 
-### List Assessment Templates with assessment run duration less than 1 hour
+### List assessment templates with assessment run duration less than 1 hour
 
 ```sql
 select
@@ -73,7 +73,7 @@ where
 ```
 
 
-### List Assessment Templates that are created within last 7 days
+### List assessment templates that are created within last 7 days
 
 ```sql
 select
