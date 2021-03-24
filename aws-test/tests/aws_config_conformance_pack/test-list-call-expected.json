@@ -1,6 +1,6 @@
 [
   {
-    "conformance_pack_input_parameters": [
+    "input_parameters": [
         {
           "ParameterName": "AccessKeysRotatedParameterMaxAccessKeyAge",
           "ParameterValue": "90"

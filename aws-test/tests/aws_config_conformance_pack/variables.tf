@@ -73,6 +73,7 @@ resource "aws_iam_role" "r" {
 POLICY
 }
 
+# Create AWS > Config > Conformance pack
 resource "aws_config_conformance_pack" "named_test_resource" {
   name = var.resource_name
 
@@ -118,7 +119,4 @@ output "resource_aka" {
   value = aws_config_conformance_pack.named_test_resource.arn
 }
 
-output "input_parameters" {
-  value = aws_config_conformance_pack.named_test_resource.input_parameter
-}
 
