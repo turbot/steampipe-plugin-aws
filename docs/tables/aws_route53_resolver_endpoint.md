@@ -17,7 +17,7 @@ from
   aws_route53_resolver_endpoint;
 ```
 
-### Get a specific bucket
+### Get a specific endpoint
 
 ```sql
 select
