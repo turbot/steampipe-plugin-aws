@@ -68,6 +68,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway":                tableAwsEc2TransitGateway(ctx),
 			"aws_ec2_transit_gateway_route_table":    tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
+			"aws_ecs_cluster":                        tableAwsEcsCluster(ctx),
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
 			"aws_elasticache_cluster":                tableAwsElastiCacheCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),

@@ -1,0 +1,12 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "arn:{{ output.aws_partition.value }}:ecs:{{ output.region_name.value }}:{{ output.account_id.value }}:cluster/{{resourceName}}"
+    ],
+    "cluster_arn":  "arn:{{ output.aws_partition.value }}:ecs:{{ output.region_name.value }}:{{ output.account_id.value }}:cluster/{{resourceName}}",
+    "cluster_name": "{{resourceName}}",
+    "region":  "{{ output.region_name.value }}",
+    "title":  "{{resourceName}}"
+  }
+]
