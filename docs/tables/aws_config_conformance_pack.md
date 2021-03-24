@@ -19,7 +19,7 @@ from
 ```
 
 
-### S3 bucket info for each conformance pack
+### Get S3 bucket info for each conformance pack
 
 ```sql
 select
@@ -32,7 +32,7 @@ from
 ```
 
 
-### Input parameter details of each conformance pack
+### Get input parameter details of each conformance pack
 
 ```sql
 select
