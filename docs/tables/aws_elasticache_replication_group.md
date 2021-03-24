@@ -80,7 +80,7 @@ group by
 ```sql
 select
   replication_group_id,
-  jsonb_array_elements(member_clusters) as member_clusters
+  jsonb_array_elements_text(member_clusters) as member_clusters
 from
   aws_elasticache_replication_group;
 ```
