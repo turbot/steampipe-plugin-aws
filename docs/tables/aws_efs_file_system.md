@@ -51,7 +51,7 @@ from
 ```
 
 
-### List file systems which has root access
+### List file systems which have root access
 
 ```sql
 select
