@@ -4,23 +4,20 @@
 #
 # 1. Set up secrets in your workspace:
 #   - STEAMPIPE_REGISTRY_SA_KEY with the Base64 encoded JSON service account key (https://github.com/GoogleCloudPlatform/github-actions/tree/docs/service-account-key/setup-gcloud#inputs).
-#   - CODY_MODS_GH_PAT the token for the turbot-mods github user.  This is required to pull dependencies from turbot private repos.
-#         Once the repos are public, this can be removed
-# 2. Change the values for the environment variables (below).
+# 2. Change the values for the environment variables (below) if required.
 
 name: Build and Deploy OCI Image
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 env:
   PROJECT_ID: steampipe
-  PLUGIN_NAME: aws
   ORG: turbot
   PLUGIN_REPO: us-docker.pkg.dev/steampipe/plugins
-  CONFIG_SCHEMA_VERSION: "2020-11-18"
+  CONFIG_SCHEMA_VERSION: '2020-11-18'
 
 jobs:
   build:
@@ -31,6 +28,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
+      - name: Exit if goreleaser file is missing
+        run: |
+          test -f .goreleaser.yaml
 
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -68,17 +75,11 @@ jobs:
             exit 1
           fi
 
-      - name: Hook private repo
-        run: git config --global url."https://turbot-mods:${{ secrets.GH_ACCESS_TOKEN }}@github.com".insteadOf "https://github.com"
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
           args: release --rm-dist --skip-publish
-        env:
-          GOPRIVATE: github.com/turbot
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List Build Artifacts
         run: ls -laR ./dist
@@ -86,22 +87,22 @@ jobs:
       - name: Save Linux Build Artifact - AMD64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_linux_amd64
-          path: ./dist/steampipe-plugin-aws_linux_amd64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_amd64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_linux_amd64.gz
           if-no-files-found: error
 
       - name: Save Linux Build Artifact - ARM64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_linux_arm64
-          path: ./dist/steampipe-plugin-aws_linux_arm64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_arm64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_linux_arm64.gz
           if-no-files-found: error
 
       - name: Save MacOS Build Artifact - AMD64
         uses: actions/upload-artifact@v2
         with:
-          name: steampipe-aws_darwin_amd64
-          path: ./dist/steampipe-plugin-aws_darwin_amd64.gz
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_amd64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_darwin_amd64.gz
           if-no-files-found: error
 
   # test-amd64:
@@ -143,6 +144,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
+
       # Setup gcloud CLI
       - uses: google-github-actions/setup-gcloud@v0.2.0
         with:
@@ -160,20 +167,20 @@ jobs:
 
       - run: oras version # oras is pre-installed on the image...
 
-      - name: Download steampipe-aws_linux_amd64
+      - name: Download linux-amd64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_linux_amd64
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_amd64
 
-      - name: Download steampipe-aws_linux_arm64
+      - name: Download linux_arm64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_linux_arm64
+          name: steampipe-${{ env.PLUGIN_NAME }}_linux_arm64
 
-      - name: Download steampipe-aws_darwin_amd64
+      - name: Download darwin_amd64 artifact
         uses: actions/download-artifact@v2
         with:
-          name: steampipe-aws_darwin_amd64
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_amd64
 
       - name: List files
         run: ls -l
@@ -245,9 +252,9 @@ jobs:
           oras push $REF \
             --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
             --manifest-annotations annotations.json \
-            steampipe-plugin-aws_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
-            steampipe-plugin-aws_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
-            steampipe-plugin-aws_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
             docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
             config:application/vnd.turbot.steampipe.plugin.spc.layer.v1+tar
 
@@ -260,6 +267,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Set environment variables
+        run: |
+          plugin_name=$(echo $GITHUB_REPOSITORY | cut -d'-' -f 3)
+          echo $plugin_name
+          echo "PLUGIN_NAME=${plugin_name}" >> $GITHUB_ENV
 
       # Setup gcloud CLI
       - uses: google-github-actions/setup-gcloud@v0.2.0
@@ -306,5 +319,5 @@ jobs:
         uses: ./.github/actions/semver-tags
         id: semver
         with:
-          image-to-tag: "${{ env.PLUGIN_REPO }}/${{ env.ORG }}/${{ env.PLUGIN_NAME }}:${{ github.run_id  }}"
+          image-to-tag: '${{ env.PLUGIN_REPO }}/${{ env.ORG }}/${{ env.PLUGIN_NAME }}:${{ github.run_id  }}'
           image-version: ${{ env.VERSION }}
