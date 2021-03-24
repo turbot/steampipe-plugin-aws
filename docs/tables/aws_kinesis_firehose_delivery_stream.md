@@ -1,6 +1,6 @@
 # Table: aws_kinesis_firehose_delivery_stream
 
-The AWS Kinesis Firehose Delivery Stream resource creates an Amazon Kinesis Data Firehose (Kinesis Data Firehose) delivery stream that delivers real-time streaming data to an Amazon Simple Storage Service (Amazon S3), Amazon Redshift, or Amazon Elasticsearch Service (Amazon ES) destination.
+The AWS Kinesis Firehose Delivery Stream resource delivers real-time streaming data to an Amazon Simple Storage Service (Amazon S3), Amazon Redshift, or Amazon Elasticsearch Service (Amazon ES) destination.
 
 ## Examples
 
@@ -16,7 +16,8 @@ from
   aws_kinesis_firehose_delivery_stream;
 ```
 
-### List all firehose delivery streams which are not in ACTIVE state
+
+### List firehose delivery streams which are not in ACTIVE state
 
 ```sql
 select
@@ -31,7 +32,8 @@ where
   delivery_stream_status != 'ACTIVE';
 ```
 
-### List all firehose delivery streams for a specific delivery stream type
+
+### List firehose delivery streams for a specific delivery stream type
 
 ```sql
 select
@@ -46,7 +48,8 @@ where
   delivery_stream_type = 'DirectPut';
 ```
 
-### List all firehose delivery streams which updated in last 7 days
+
+### List firehose delivery streams which updated in last 7 days
 
 ```sql
 select
@@ -62,7 +65,8 @@ where
   last_update_timestamp > (current_date - interval '7' day);
 ```
 
-### List all firehose delivery streams which are not encrypted
+
+### List firehose delivery streams which are not encrypted
 
 ```sql
 select
@@ -78,7 +82,8 @@ where
   delivery_stream_encryption_configuration ->> 'Status' = 'ENABLED';
 ```
 
-### List all firehose delivery streams with failure description
+
+### List firehose delivery streams with failure description
 
 ```sql
 select
