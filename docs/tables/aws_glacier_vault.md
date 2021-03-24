@@ -4,7 +4,7 @@ A vault is a way to group archives together in Amazon S3 Glacier.
 
 ## Examples
 
-### Basic glacier vault info
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
 ```
 
 
-### Vault policy statement that grant full access to the resource
+### List vaults that grant full access to the resource
 
 ```sql
 select
@@ -38,7 +38,7 @@ where
 ```
 
 
-### Vault policy statement that grant anonymous access
+### List vaults that grant anonymous access to the resource
 
 ```sql
 select
@@ -58,7 +58,7 @@ where
 ```
 
 
-### List of vaults without owner tag key
+### List vaults without owner tag key
 
 ```sql
 select
@@ -69,4 +69,3 @@ from
 where
   not tags :: JSONB ? 'owner';
 ```
-
