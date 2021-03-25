@@ -18,7 +18,7 @@ from
 ```
 
 
-### Number of containers attached to task definitions
+### Count the number of containers attached to each task definitions
 
 ```sql
 select
@@ -29,7 +29,7 @@ from
 ```
 
 
-### List of containers with elevated privileges on the host container instance
+### List containers with elevated privileges on the host container instance
 
 ```sql
 select
