@@ -182,8 +182,8 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 	err = svc.DescribeReplicationGroupsPages(
 		&elasticache.DescribeReplicationGroupsInput{},
 		func(page *elasticache.DescribeReplicationGroupsOutput, isLast bool) bool {
-			for _, replicationGroups := range page.ReplicationGroups {
-				d.StreamListItem(ctx, replicationGroups)
+			for _, replicationGroup := range page.ReplicationGroups {
+				d.StreamListItem(ctx, replicationGroup)
 			}
 			return !isLast
 		},
