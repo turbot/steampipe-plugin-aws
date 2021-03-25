@@ -254,10 +254,10 @@ func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.E
 	return svc, nil
 }
 
-// EFSService returns the service connection for AWS Elastic File System service
-func EFSService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+// EfsService returns the service connection for AWS Elastic File System service
+func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EFSService")
+		return nil, fmt.Errorf("region must be passed EfsService")
 	}
 
 	// have we already created and cached the service?
