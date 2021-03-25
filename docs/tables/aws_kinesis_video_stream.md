@@ -51,7 +51,7 @@ where
 ```
 
 
-### List video streams with data retention period < 7 days (Represented as hours in query)
+### List video streams with data retention period < 7 days (represented as hours in query)
 
 ```sql
 select
