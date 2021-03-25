@@ -145,7 +145,7 @@ func listAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plu
 	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRule", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, h *plug
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
 	id := resolverRuleData.Id
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Route53Resolver(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
