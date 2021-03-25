@@ -11,12 +11,16 @@ select
   name,
   state_value,
   metric_name,
-  actions_enabled
+  actions_enabled,
+  comparison_operator,
+  namespace,
+  statistic
 from
   aws_cloudwatch_alarm;
 ```
 
-### List of cloudwatch alarms whose state is in alarm
+
+### List alarms with alarm state
 
 ```sql
 select
@@ -30,7 +34,8 @@ where
  state_value = 'ALARM';
 ```
 
-### List of cloudwatch alarms whose action enabled is on
+
+### List alarms with actions enabled turned on
 
 ```sql
 select
@@ -43,7 +48,7 @@ where
 ```
 
 
-### Metric attached to cloudwatch alarm based on a single metric
+### Get metric attached to alarm based on a single metric
 
 ```sql
 select
@@ -60,15 +65,16 @@ where
 ```
 
 
-### List of metrics attached to cloudwatch alarm based on a metric math expression
+### Get metrics attached to alarm based on a metric math expression
 
 ```sql
 select
   name,
   metric ->> 'Id' as metric_id,
+  metric ->> 'Expression' as metric_expression,
   metric -> 'MetricStat' -> 'Metric' ->> 'MetricName' as metric_name,
-  metric -> 'MetricStat' -> 'Metric' ->> 'Namespace' as namespace,
-  metric -> 'MetricStat' ->> 'Period' as period,
+  metric -> 'MetricStat' -> 'Metric' ->> 'Namespace' as metric_namespace,
+  metric -> 'MetricStat' -> 'Metric' ->> 'Dimensions' as metric_dimensions,
   metric ->> 'ReturnData' as metric_return_data
 from
   aws_cloudwatch_alarm,

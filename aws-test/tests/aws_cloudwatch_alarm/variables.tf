@@ -62,6 +62,7 @@ resource "aws_cloudwatch_metric_alarm" "named_test_resource" {
     name = var.resource_name
   }
 }
+
 output "resource_aka" {
   value = aws_cloudwatch_metric_alarm.named_test_resource.arn
 }

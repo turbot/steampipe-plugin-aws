@@ -37,14 +37,14 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "actions_enabled",
-				Description: "Indicates whether actions should be executed during any changes to the alarm state.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
 				Name:        "state_value",
 				Description: "The state value for the alarm.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "actions_enabled",
+				Description: "Indicates whether actions should be executed during any changes to the alarm state.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "alarm_configuration_updated_timestamp",
@@ -92,32 +92,6 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "alarm_actions",
-				Description: "The actions to execute when this alarm transitions to the ALARM state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "dimensions",
-				Description: "The dimensions for the metric associated with the alarm.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "insufficient_data_actions",
-				Description: "The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "metrics",
-				Description: "An array of MetricDataQuery structures, used in an alarm based on a metric math expression.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "ok_actions",
-				Description: "The actions to execute when this alarm transitions to the OK state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("OKActions"),
-			},
-			{
 				Name:        "period",
 				Description: "The period, in seconds, over which the statistic is applied.",
 				Type:        proto.ColumnType_INT,
@@ -163,6 +137,32 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "alarm_actions",
+				Description: "The actions to execute when this alarm transitions to the ALARM state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "dimensions",
+				Description: "The dimensions for the metric associated with the alarm.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "insufficient_data_actions",
+				Description: "The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "metrics",
+				Description: "An array of MetricDataQuery structures, used in an alarm based on a metric math expression.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "ok_actions",
+				Description: "The actions to execute when this alarm transitions to the OK state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("OKActions"),
+			},
+			{
 				Name:        "tags_src",
 				Description: "The list of tag keys and values associated with alarm.",
 				Type:        proto.ColumnType_JSON,
@@ -202,6 +202,7 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	plugin.Logger(ctx).Trace("listCloudWatchAlarms", "AWS_REGION", region)
 
 	// Create session
 	svc, err := CloudWatchService(ctx, d, region)
@@ -209,26 +210,17 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	pagesLeft := true
-	params := &cloudwatch.DescribeAlarmsInput{}
+	// List call
+	err = svc.DescribeAlarmsPages(
+		&cloudwatch.DescribeAlarmsInput{},
+		func(page *cloudwatch.DescribeAlarmsOutput, isLast bool) bool {
+			for _, alarms := range page.MetricAlarms {
+				d.StreamListItem(ctx, alarms)
+			}
+			return !isLast
+		},
+	)
 
-	for pagesLeft {
-		result, err := svc.DescribeAlarms(params)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, alarms := range result.MetricAlarms {
-			d.StreamListItem(ctx, alarms)
-		}
-
-		if result.NextToken != nil {
-			pagesLeft = true
-			params.NextToken = result.NextToken
-		} else {
-			pagesLeft = false
-		}
-	}
 	return nil, nil
 }
 
@@ -245,7 +237,6 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
 
 	// Create Session
 	svc, err := CloudWatchService(ctx, d, region)
@@ -256,7 +247,7 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	params := &cloudwatch.DescribeAlarmsInput{
 		AlarmNames: []*string{aws.String(name)},
 	}
-	plugin.Logger(ctx).Trace("listCloudWatchAlarms", "getettetet callww", params)
+
 	op, err := svc.DescribeAlarms(params)
 	if err != nil {
 		logger.Debug("getCloudWatchAlarm", "ERROR", err)
