@@ -40,8 +40,20 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 				Description: "The date and time when Security Hub was enabled in the account.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecurityHubTags,
+			},
 
 			/// Standard columns
+			{
+				Name:        "title",
+				Description: "The title of hub. This is a constant value 'default'",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromConstant("default"),
+			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
@@ -83,10 +95,9 @@ func listSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSecurityHub")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -108,6 +119,37 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	// Get call
 	op, err := svc.DescribeHub(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
+		return nil, err
+	}
+	return op, nil
+}
+
+func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getSecurityHubTags")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	hubArn := *h.Item.(*securityhub.DescribeHubOutput).HubArn
+
+	// get service
+	svc, err := SecurityHubService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &securityhub.ListTagsForResourceInput{
+		ResourceArn: &hubArn,
+	}
+
+	// Get call
+	op, err := svc.ListTagsForResource(params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
 		return nil, err

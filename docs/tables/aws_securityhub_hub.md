@@ -28,3 +28,17 @@ from
 where
   not auto_enable_controls;
 ```
+
+
+### Check if the hub missing required tags
+
+```sql
+select
+  hub_arn,
+  tags
+from
+  aws_securityhub_hub
+where
+  tags -> 'owner' is null
+  or tags -> 'app_id' is null;
+```
