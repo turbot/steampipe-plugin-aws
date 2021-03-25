@@ -19,7 +19,7 @@ from
 ```
 
 
-### List of EMR clusters whose auto terminate is disabled
+### List clusters which have auto terminate disabled
 
 ```sql
 select
@@ -33,7 +33,7 @@ where
 ```
 
 
-### List of EMR clusters which got terminated due to some error
+### List clusters which have terminated with errors
 
 ```sql
 select
@@ -48,7 +48,7 @@ where
 ```
 
 
-### List of application names and its versions installed on EMR clusters
+### List application names and its versions installed on each cluster
 
 ```sql
 select
