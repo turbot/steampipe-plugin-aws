@@ -1,8 +1,8 @@
 [
   {
     "arn": "{{ output.resource_aka.value }}",
-    "attached_policy_arns": null,
-    "inline_policies": null,
+    "attached_policy_arns": "<null>",
+    "inline_policies": "<null>",
     "mfa_enabled": false,
     "name": "{{resourceName}}",
     "permissions_boundary_arn": "",

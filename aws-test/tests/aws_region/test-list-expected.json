@@ -7,7 +7,7 @@
     "name": "ap-south-1",
     "opt_in_status": "opt-in-not-required",
     "partition": "{{ output.aws_partition.value }}",
-    "region": "global",
+    "region": "ap-south-1",
     "title": "ap-south-1"
   }
 ]

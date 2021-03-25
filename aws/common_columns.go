@@ -11,79 +11,85 @@ import (
 )
 
 // column definitions for the common columns
-var commonAwsRegionalColumns = []*plugin.Column{
-	{
-		Name:        "partition",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-	},
-	{
-		Name:        "region",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS Region in which the resource is located.",
-	},
-	{
-		Name:        "account_id",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS Account ID in which the resource is located.",
-		Transform:   transform.FromCamel(),
-	},
+func commonAwsRegionalColumns() []*plugin.Column {
+	return []*plugin.Column{
+		{
+			Name:        "partition",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+		},
+		{
+			Name:        "region",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS Region in which the resource is located.",
+		},
+		{
+			Name:        "account_id",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS Account ID in which the resource is located.",
+			Transform:   transform.FromCamel(),
+		},
+	}
 }
 
 // column definitions for the common columns
-var commonS3Columns = []*plugin.Column{
-	{
-		Name:        "partition",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-	},
-	{
-		Name:        "account_id",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Transform:   transform.FromCamel(),
-		Description: "The AWS Account ID in which the resource is located.",
-	},
+func commonS3Columns() []*plugin.Column {
+	return []*plugin.Column{
+		{
+			Name:        "partition",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+		},
+		{
+			Name:        "account_id",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Transform:   transform.FromCamel(),
+			Description: "The AWS Account ID in which the resource is located.",
+		},
+	}
 }
 
-var commonAwsColumns = []*plugin.Column{
-	{
-		Name:        "partition",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-	},
-	{
-		Name:        "region",
-		Type:        proto.ColumnType_STRING,
-		Transform:   transform.FromConstant("global"),
-		Description: "The AWS Region in which the resource is located.",
-	},
-	{
-		Name:        "account_id",
-		Type:        proto.ColumnType_STRING,
-		Hydrate:     getCommonColumns,
-		Description: "The AWS Account ID in which the resource is located.",
-		Transform:   transform.FromCamel(),
-	},
+func commonAwsColumns() []*plugin.Column {
+	return []*plugin.Column{
+		{
+			Name:        "partition",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
+		},
+		{
+			Name:        "region",
+			Type:        proto.ColumnType_STRING,
+			Transform:   transform.FromConstant("global"),
+			Description: "The AWS Region in which the resource is located.",
+		},
+		{
+			Name:        "account_id",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS Account ID in which the resource is located.",
+			Transform:   transform.FromCamel(),
+		},
+	}
 }
 
 // append the common aws columns for REGIONAL resources onto the column list
 func awsRegionalColumns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonAwsRegionalColumns...)
+	return append(columns, commonAwsRegionalColumns()...)
 }
 
 // append the common aws columns for GLOBAL resources onto the column list
 func awsColumns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonAwsColumns...)
+	return append(columns, commonAwsColumns()...)
 }
 
 func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonS3Columns...)
+	return append(columns, commonS3Columns()...)
 }
 
 // struct to store the common column data

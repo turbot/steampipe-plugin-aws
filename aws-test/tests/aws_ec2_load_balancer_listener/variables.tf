@@ -1,25 +1,25 @@
 
 variable "resource_name" {
-  type    = string
-  default = "turbot-test-create-update"
+  type        = string
+  default     = "turbot-test-create-update"
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "default"
+  type        = string
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -56,17 +56,17 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_subnet" "my_subnet1" {
-  vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.0.0/24"
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.0.0/24"
   availability_zone = "${var.aws_region}a"
-  depends_on = [aws_internet_gateway.igw]
+  depends_on        = [aws_internet_gateway.igw]
 }
 
 resource "aws_subnet" "my_subnet2" {
-  vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.1.0/24"
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.1.0/24"
   availability_zone = "${var.aws_region}b"
-  depends_on = [aws_internet_gateway.igw]
+  depends_on        = [aws_internet_gateway.igw]
 }
 
 resource "aws_lb" "my_lb" {
@@ -79,16 +79,16 @@ resource "aws_lb" "my_lb" {
 }
 
 resource "aws_lb_target_group" "my_targetGroup" {
-port     = 80
-protocol = "HTTP"
-vpc_id   = aws_vpc.my_vpc.id
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.my_vpc.id
 }
 
 resource "aws_lb_listener" "named_test_resource" {
   load_balancer_arn = aws_lb.my_lb.arn
-  port = "443"
+  port              = "443"
   default_action {
-    type = "forward"
+    type             = "forward"
     target_group_arn = aws_lb_target_group.my_targetGroup.arn
   }
 }
