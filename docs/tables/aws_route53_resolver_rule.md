@@ -4,7 +4,7 @@ The AWS Route 53 Resolver rule specifies how to route DNS queries out of the VPC
 
 ## Examples
 
-### List all rules
+### Basic info
 
 ```sql
 select
@@ -19,24 +19,7 @@ from
 ```
 
 
-### Get a specific rule
-
-```sql
-select
-  name,
-  domain_name owner_id,
-  resolver_endpoint_id,
-  rule_type,
-  share_status,
-  status
-from
-  aws_route53_resolver_rule
-where
-  id = 'rslvr-rr-389d2ef50c092349a';
-```
-
-
-### List all rules where VPCs are not associated
+### List rules that are not associated with VPCs
 
 ```sql
 select
@@ -51,7 +34,7 @@ Where
 ```
 
 
-### List the IP addresses enabled for outbound DNS queries
+### List the IP addresses enabled for outbound DNS queries for each rule
 
 ```sql
 select
@@ -64,7 +47,7 @@ from
 ```
 
 
-### List of resolver rule shared with another account
+### List resolver rules shared with another account
 
 ```sql
 select
