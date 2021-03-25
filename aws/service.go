@@ -323,7 +323,7 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 // EmrService returns the service connection for AWS EMR service
 func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EMRService")
+		return nil, fmt.Errorf("region must be passed EmrService")
 	}
 
 	// have we already created and cached the service?

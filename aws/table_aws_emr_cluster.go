@@ -52,7 +52,6 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Description: "An IAM role for automatic scaling policies.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEmrCluster,
-				Transform:   transform.FromField("AutoScalingRole"),
 			},
 			{
 				Name:        "auto_terminate",

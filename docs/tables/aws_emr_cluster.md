@@ -40,7 +40,7 @@ select
   id,
   name,
   status ->> 'State' as state,
-  status -> 'StateChangeReason' ->> 'Message'  as  state_change_reason
+  status -> 'StateChangeReason' ->> 'Message' as state_change_reason
 from
   aws_emr_cluster
 where
