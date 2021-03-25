@@ -17,7 +17,7 @@ from
 ```
 
 
-### List the detectors which are enabled
+### List detectors which are enabled
 
 ```sql
 select
@@ -28,6 +28,20 @@ from
   aws_guardduty_detector
 where
   status = 'ENABLED';
+```
+
+
+### Get data sources status info for each detectors
+
+```sql
+select
+  detector_id,
+  status as detector_status,
+  data_sources -> 'CloudTrail' -> 'Status' as cloud_trail_status,
+  data_sources -> 'DNSLogs' -> 'Status' as dns_logs_status,
+  data_sources -> 'FlowLogs' -> 'Status' as flow_logs_status
+from
+  aws_guardduty_detector;
 ```
 
 
