@@ -16,7 +16,7 @@ from
 ```
 
 
-### List parameter groups, which are not compatible with redis5.0 and memcached1.5
+### List parameter groups that are not compatible with redis 5.0 and memcached 1.5
 
 ```sql
 select
