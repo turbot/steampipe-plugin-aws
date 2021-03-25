@@ -93,7 +93,7 @@ func listSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listSecurityyhubProduct", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityyHubProduct", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := SecurityHubService(ctx, d, region)
