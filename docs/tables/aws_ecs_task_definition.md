@@ -43,3 +43,18 @@ from
 where
   cd ->> 'Privileged' = 'true';
 ```
+
+
+### List task definitions with containers where logging is disabled
+
+```sql
+select
+  task_definition_arn,
+  cd ->> 'Name' as container_name,
+  cd ->> 'LogConfiguration' as log_configuration
+from
+  aws_ecs_task_definition,
+  jsonb_array_elements(container_definitions) as cd
+where
+ cd ->> 'LogConfiguration' is null;
+```
