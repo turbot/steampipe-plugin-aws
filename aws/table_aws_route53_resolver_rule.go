@@ -22,7 +22,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsRoute53ResolverRule,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsRoute53ResolverRule,
+			Hydrate: listAwsRoute53ResolverRules,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,8 +32,18 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "id",
+				Description: "The ID that Resolver assigned to the Resolver rule when you created it.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "arn",
 				Description: "The ARN (Amazon Resource Name) for the Resolver rule specified by Id.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "A code that specifies the current status of the Resolver rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -44,11 +54,6 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 			{
 				Name:        "domain_name",
 				Description: "DNS queries for this domain name are forwarded to the IP addresses that are specified in TargetIps.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "id",
-				Description: "The ID that Resolver assigned to the Resolver rule when you created it.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -72,11 +77,6 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "status",
-				Description: "A code that specifies the current status of the Resolver rule.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "status_message",
 				Description: "A detailed description of the status of a Resolver rule.",
 				Type:        proto.ColumnType_STRING,
@@ -92,11 +92,10 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the Resolver Rule.",
+				Name:        "resolver_rule_associations",
+				Description: "The associations that were created between Resolver rules and VPCs using the current AWS account, and that match the specified filters, if any.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53ResolverRuleTags,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     listResolverRuleAssociation,
 			},
 			{
 				Name:        "target_ips",
@@ -104,10 +103,11 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "resolver_rule_associations",
-				Description: "The associations that were created between Resolver rules and VPCs using the current AWS account, and that match the specified filters, if any.",
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the Resolver Rule.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listResolverRuleAssociation,
+				Hydrate:     getAwsRoute53ResolverRuleTags,
+				Transform:   transform.FromField("Tags"),
 			},
 			// Standard columns for all tables
 			{
@@ -135,14 +135,13 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
+func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRule", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRules", "AWS_REGION", region)
 
 	// Create session
 	svc, err := Route53ResolverService(ctx, d, region)
@@ -170,7 +169,6 @@ func listAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plu
 func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRule")
-
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
