@@ -16,6 +16,7 @@ from
   aws_kinesis_consumer;
 ```
 
+
 ### Get a specific consumers
 
 ```sql
@@ -28,6 +29,7 @@ from
 where
   consumer_arn = 'arn:aws:kinesis:us-east-1:986325076436:stream/turbot-data-stream/consumer/turbot-consumer:1616584220';
 ```
+
 
 ### List of consumers which can't read data
 
@@ -42,6 +44,7 @@ where
   consumer_status = 'CREATING' or consumer_status = 'DELETING';
 ```
 
+
 ### List of consumers with particular stream
 
 ```sql
@@ -55,6 +58,7 @@ from
 where
   stream_arn = 'arn:aws:kinesis:us-east-1:986325076436:stream/turbot-data-stream';
 ```
+
 
 ### List of active consumers
 
