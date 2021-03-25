@@ -16,7 +16,7 @@ from
 ```
 
 
-### List elasticache parameter groups in the undesired (for example, redis5.0 and memcached1.5 are desired) family types.
+### List parameter groups, which are not compatible with redis5.0 and memcached1.5
 
 ```sql
 select
