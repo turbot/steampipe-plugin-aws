@@ -1,0 +1,17 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "delivery_s3_bucket": "<null>",
+    "delivery_s3_key_prefix": "<null>",
+    "input_parameters": [
+      {
+        "ParameterName": "AccessKeysRotatedParameterMaxAccessKeyAge",
+        "ParameterValue": "90"
+      }
+    ],
+    "name": "{{resourceName}}",
+    "title": "{{resourceName}}"
+  }
+]

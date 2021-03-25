@@ -1,0 +1,13 @@
+[
+  {
+    "encrypted": true,
+    "file_system_id": "{{ output.resource_id.value }}",
+    "performance_mode": "maxIO",
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]

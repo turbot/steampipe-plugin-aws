@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
@@ -32,6 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -231,11 +233,33 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
-// EfsService returns the service connection for AWS EFS service
-func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+// EcsService returns the service connection for AWS ECS service
+func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.ECS, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EFS")
+		return nil, fmt.Errorf("region must be passed EcsService")
 	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ecs-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ecs.ECS), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecs.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// EFSService returns the service connection for AWS Elastic File System service
+func EFSService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EFSService")
+	}
+
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("efs-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
@@ -500,6 +524,26 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 	svc := redshift.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
+}
+
+// Route53ResolverService returns the service connection for AWS route53resolver service
+func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region string) (*route53resolver.Route53Resolver, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Route53Resolver")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("route53resolver-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*route53resolver.Route53Resolver), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := route53resolver.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 
