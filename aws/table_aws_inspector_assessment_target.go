@@ -18,11 +18,10 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector Assessment Target",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{}),
-			Hydrate:           describeAssessmentTarget,
+			Hydrate:           getInspectorAssessmentTarget,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAssessmentTargets,
+			Hydrate: listInspectorAssessmentTargets,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -30,7 +29,7 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the Amazon Inspector assessment target.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeAssessmentTarget,
+				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "arn",
@@ -41,19 +40,19 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 				Name:        "resource_group_arn",
 				Description: "The ARN that specifies the resource group that is associated with the assessment target.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeAssessmentTarget,
+				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "created_at",
 				Description: "The time at which the assessment target is created.",
 				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeAssessmentTarget,
+				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The time at which UpdateAssessmentTarget is called.",
 				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeAssessmentTarget,
+				Hydrate:     getInspectorAssessmentTarget,
 			},
 
 			// Standard columns for all tables
@@ -61,7 +60,7 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeAssessmentTarget,
+				Hydrate:     getInspectorAssessmentTarget,
 				Transform:   transform.FromField("Name"),
 			},
 			{
@@ -76,14 +75,13 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAssessmentTargets", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listInspectorAssessmentTargets", "AWS_REGION", region)
 
 	// Create session
 	svc, err := InspectorService(ctx, d, region)
@@ -109,11 +107,10 @@ func listAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func describeAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("describeAssessmentTarget")
+	logger.Trace("getInspectorAssessmentTarget")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
