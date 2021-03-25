@@ -19,7 +19,7 @@ from
 ```
 
 
-### List clusters which have auto terminate disabled
+### List clusters with auto-termination disabled
 
 ```sql
 select
@@ -48,7 +48,7 @@ where
 ```
 
 
-### List application names and its versions installed on each cluster
+### Get application names and versions installed for each cluster
 
 ```sql
 select
@@ -62,7 +62,7 @@ from
 ```
 
 
-### List clusters for which logging is disabled
+### List clusters with logging disabled
 
 ```sql
 select
@@ -76,7 +76,7 @@ where
 ```
 
 
-### List clusters for which logging is enabled but log encryption is disabled
+### List clusters with logging enabled but log encryption is disabled
 
 ```sql
 select
