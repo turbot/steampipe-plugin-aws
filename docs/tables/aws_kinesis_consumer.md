@@ -27,7 +27,7 @@ select
 from
   aws_kinesis_consumer
 where
-  consumer_arn = 'arn:aws:kinesis:us-east-1:9863250123456:stream/my-data-stream/consumer/my-consumer:1616584220';
+  consumer_arn = 'arn:aws:kinesis:us-east-1:986250123456:stream/my-data-stream/consumer/my-consumer:1616584220';
 ```
 
 
@@ -56,5 +56,5 @@ select
 from
   aws_kinesis_consumer
 where
-  stream_arn = 'arn:aws:kinesis:us-east-1:9863250123456:stream/my-data-stream';
+  stream_arn = 'arn:aws:kinesis:us-east-1:986250123456:stream/my-data-stream';
 ```
