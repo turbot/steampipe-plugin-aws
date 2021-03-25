@@ -36,7 +36,7 @@ where
 ```
 
 
-### List access points that are in available life cycle state
+### List access points for which life cycle state is available
 
 ```sql
 select
