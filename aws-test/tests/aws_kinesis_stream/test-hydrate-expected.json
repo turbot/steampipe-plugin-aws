@@ -1,0 +1,11 @@
+[
+  {
+    "consumer_count": 0,
+    "tags_src": [
+      {
+        "Key": "foo",
+        "Value": "bar"
+      }
+    ]
+  }
+]

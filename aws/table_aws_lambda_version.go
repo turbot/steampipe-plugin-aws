@@ -8,7 +8,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
@@ -186,14 +185,25 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 // do not have a get call
 // using list api call to create get function
 func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getFunctionVersion")
-	svc := lambda.New(session.New())
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("getFunctionVersion", "AWS_REGION", region)
+
+	// Create service
+	svc, err := LambdaService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
 
 	version := d.KeyColumnQuals["version"].GetStringValue()
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 	var functionVersion *lambda.FunctionConfiguration
 
-	err := svc.ListVersionsByFunctionPages(
+	err = svc.ListVersionsByFunctionPages(
 		&lambda.ListVersionsByFunctionInput{FunctionName: aws.String(functionName)},
 		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
 			for _, i := range page.Versions {
