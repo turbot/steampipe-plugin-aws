@@ -21,7 +21,6 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"ListenerNotFound", "LoadBalancerNotFound"}),
-			ItemFromKey:       listenerArnFromKey,
 			Hydrate:           getEc2LoadBalancerListener,
 		},
 		List: &plugin.ListConfig{
@@ -32,43 +31,43 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the listener",
+				Description: "The Amazon Resource Name (ARN) of the listener.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ListenerArn"),
 			},
 			{
 				Name:        "load_balancer_arn",
-				Description: "The Amazon Resource Name (ARN) of the load balancer",
+				Description: "The Amazon Resource Name (ARN) of the load balancer.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "port",
-				Description: "The port on which the load balancer is listening",
+				Description: "The port on which the load balancer is listening.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "protocol",
-				Description: "The protocol for connections from clients to the load balancer",
+				Description: "The protocol for connections from clients to the load balancer.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "ssl_policy",
-				Description: "The security policy that defines which protocols and ciphers are supported",
+				Description: "The security policy that defines which protocols and ciphers are supported.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "alpn_policy",
-				Description: "The name of the Application-Layer Protocol Negotiation (ALPN) policy",
+				Description: "The name of the Application-Layer Protocol Negotiation (ALPN) policy.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "certificates",
-				Description: "The default certificate for the listener",
+				Description: "The default certificate for the listener.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "default_actions",
-				Description: "The default actions for the listener",
+				Description: "The default actions for the listener.",
 				Type:        proto.ColumnType_JSON,
 			},
 
@@ -87,17 +86,6 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 			},
 		}),
 	}
-}
-
-//// BUILD HYDRATE INPUT
-
-func listenerArnFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	listenerArn := quals["arn"].GetStringValue()
-	item := &elbv2.Listener{
-		ListenerArn: &listenerArn,
-	}
-	return item, nil
 }
 
 //// PARENT LIST FUNCTION
@@ -167,14 +155,14 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	loadBalancerListener := h.Item.(*elbv2.Listener)
+	listenerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d, region)
@@ -183,7 +171,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	params := &elbv2.DescribeListenersInput{
-		ListenerArns: []*string{aws.String(*loadBalancerListener.ListenerArn)},
+		ListenerArns: []*string{aws.String(listenerArn)},
 	}
 
 	op, err := svc.DescribeListeners(params)

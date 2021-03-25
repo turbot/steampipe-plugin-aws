@@ -38,53 +38,53 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The friendly name that identifies the group",
+				Description: "The friendly name that identifies the group.",
 				Type:        proto.ColumnType_STRING, Transform: transform.FromField("GroupName"),
 			},
 			{
 				Name:        "group_id",
-				Description: "The stable and unique string identifying the group",
+				Description: "The stable and unique string identifying the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "path",
-				Description: "The path to the group",
+				Description: "The path to the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) specifying the group",
+				Description: "The Amazon Resource Name (ARN) specifying the group.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_date",
-				Description: "The date and time, when the group was created",
+				Description: "The date and time, when the group was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "inline_policies",
-				Description: "A list of policy documents that are embedded as inline policies for the group",
+				Description: "A list of policy documents that are embedded as inline policies for the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
-				Description: "Inline policies in canonical form for the group",
+				Description: "Inline policies in canonical form for the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
 				Name:        "attached_policy_arns",
-				Description: "A list of managed policies attached to the group",
+				Description: "A list of managed policies attached to the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupAttachedPolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "users",
-				Description: "A list of users in the group",
+				Description: "A list of users in the group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamGroupUsers,
 			},
@@ -108,7 +108,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 
 //// ITEM FROM KEY
 
-func groupFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func groupFromKey(_ context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 	item := &iam.Group{
@@ -134,7 +134,7 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 			for _, group := range page.Groups {
 				d.StreamListItem(ctx, group)
 			}
-			return true
+			return !lastPage
 		},
 	)
 	return nil, err
@@ -142,7 +142,7 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 //// HYDRATE FUNCTIONS
 
-func getIamGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIamGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIamGroup")
 

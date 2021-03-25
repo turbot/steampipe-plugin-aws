@@ -1,0 +1,21 @@
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+*.tfvars
+
+.lock/*
+!.lock/.gitkeep
+
+.DS_Store
+
+.*.swo
+.*.swp
+
+
+# Ignore node dependencies
+node_modules

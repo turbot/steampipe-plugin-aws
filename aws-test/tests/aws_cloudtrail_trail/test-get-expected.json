@@ -1,0 +1,15 @@
+[
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"has_custom_event_selectors": true,
+		"has_insight_selectors": false,
+		"home_region": "{{ output.region_name.value }}",
+		"include_global_service_events": false,
+		"is_multi_region_trail": false,
+		"is_organization_trail": false,
+		"log_file_validation_enabled": false,
+		"name": "{{ resourceName }}",
+		"s3_bucket_name": "{{ resourceName }}",
+		"s3_key_prefix": "prefix"
+	}
+]
