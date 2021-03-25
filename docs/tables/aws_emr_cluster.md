@@ -70,7 +70,7 @@ select
   cluster_arn,
   log_uri
 from
-  aws_new.aws_emr_cluster
+  aws_emr_cluster
 where
   log_uri is null
 ```
@@ -85,7 +85,7 @@ select
   log_uri,
   log_encryption_kms_key_id
 from
-  aws_new.aws_emr_cluster
+  aws_emr_cluster
 where
   log_uri is not null and log_encryption_kms_key_id is null;
 ```
