@@ -1,3 +1,3 @@
 select name, title, akas, region, account_id
 from aws_securityhub_product
-order by title asc limit 5;
+where name = 'Aqua Security';

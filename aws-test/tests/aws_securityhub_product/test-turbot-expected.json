@@ -2,42 +2,6 @@
   {
     "account_id": "352685002396",
     "akas": [
-      "arn:aws:securityhub:us-east-1::product/3coresec/3coresec"
-    ],
-    "name": "3CORESec NTA",
-    "region": "us-east-1",
-    "title": "3CORESec NTA"
-  },
-  {
-    "account_id": "352685002396",
-    "akas": [
-      "arn:aws:securityhub:us-east-1:324264561773:product/guardicore/aws-infection-monkey"
-    ],
-    "name": "AWS Infection Monkey",
-    "region": "us-east-1",
-    "title": "AWS Infection Monkey"
-  },
-  {
-    "account_id": "352685002396",
-    "akas": [
-      "arn:aws:securityhub:us-east-1::product/alcide/alcide-kaudit"
-    ],
-    "name": "Alcide kAudit",
-    "region": "us-east-1",
-    "title": "Alcide kAudit"
-  },
-  {
-    "account_id": "352685002396",
-    "akas": [
-      "arn:aws:securityhub:us-east-1::product/cloud-storage-security/antivirus-for-amazon-s3"
-    ],
-    "name": "Antivirus for Amazon S3",
-    "region": "us-east-1",
-    "title": "Antivirus for Amazon S3"
-  },
-  {
-    "account_id": "352685002396",
-    "akas": [
       "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"
     ],
     "name": "Aqua Security",

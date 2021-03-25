@@ -1,25 +1,5 @@
 [
   {
-    "company_name": "3CORESec",
-    "name": "3CORESec NTA",
-    "product_arn": "arn:aws:securityhub:us-east-1::product/3coresec/3coresec"
-  },
-  {
-    "company_name": "Guardicore",
-    "name": "AWS Infection Monkey",
-    "product_arn": "arn:aws:securityhub:us-east-1:324264561773:product/guardicore/aws-infection-monkey"
-  },
-  {
-    "company_name": "Alcide",
-    "name": "Alcide kAudit",
-    "product_arn": "arn:aws:securityhub:us-east-1::product/alcide/alcide-kaudit"
-  },
-  {
-    "company_name": "Cloud Storage Security",
-    "name": "Antivirus for Amazon S3",
-    "product_arn": "arn:aws:securityhub:us-east-1::product/cloud-storage-security/antivirus-for-amazon-s3"
-  },
-  {
     "company_name": "Aqua Security",
     "name": "Aqua Security",
     "product_arn": "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"

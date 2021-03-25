@@ -17,12 +17,12 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_product",
 		Description: "AWS Securityhub Product",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("product_arn"),
-			// ShouldIgnoreError: isNotFoundError([]string{"DBInstanceNotFound"}),
-			Hydrate: GetSecurityhubProduct,
+			KeyColumns:        plugin.SingleColumn("product_arn"),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
+			Hydrate:           getSecurityHubProduct,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listSecurityhubProduct,
+			Hydrate: listSecurityHubProduct,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -35,6 +35,11 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 			{
 				Name:        "product_arn",
 				Description: "The ARN assigned to the product.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "activation_url",
+				Description: "The URL used to activate the product.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -56,11 +61,6 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 				Name:        "integration_types",
 				Description: "The types of integration that the product supports.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "activation_url",
-				Description: "The URL used to activate the product.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "product_subscription_resource_policy",
@@ -87,8 +87,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityhubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func listSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -112,13 +111,17 @@ func listSecurityhubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			return !isLast
 		},
 	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProduct", "query_error", err)
+		return nil, nil
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
-func GetSecurityhubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
