@@ -2,7 +2,7 @@
 
 Parameter Groups are a collection of parameters which control the behavior of the ElastiCache cluster.
 
-### Basic parameter group info
+### Basic info
 
 ```sql
 select
