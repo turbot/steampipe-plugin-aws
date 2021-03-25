@@ -38,14 +38,8 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "workload_id",
-				Description: "The ID assigned to the workload. This ID is unique within an AWS Region.",
+				Description: "The ID assigned to the workload.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "data",
-				Description: "The name of the recorder. By default, AWS Config automatically assigns the name default when creating the configuration recorder.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "architectural_design",
@@ -84,7 +78,7 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "is_review_owner_update_acknowledged",
-				Description: "Flag indicating whether the workload owner has acknowledged that the Review  owner field is required.",
+				Description: "Flag indicating whether the workload owner has acknowledged that the review owner field is required.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getWellArchitectedWorload,
 			},
@@ -226,7 +220,6 @@ func getWellArchitectedWorload(ctx context.Context, d *plugin.QueryData, h *plug
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
 
 	// Create Session
 	svc, err := WellArchitectedService(ctx, d, region)

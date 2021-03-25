@@ -1,13 +1,6 @@
-
-variable "resource_name" {
-  type    = string
-  default = ""
-  description = "Name of the resource used throughout the test."
-}
-
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
