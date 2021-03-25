@@ -60,3 +60,32 @@ from
   aws_emr_cluster,
   jsonb_array_elements(applications) as a;
 ```
+
+
+### List clusters for which logging is disabled
+
+```sql
+select
+  name,
+  cluster_arn,
+  log_uri
+from
+  aws_new.aws_emr_cluster
+where
+  log_uri is null
+```
+
+
+### List clusters for which logging is enabled but log encryption is disabled
+
+```sql
+select
+  name,
+  cluster_arn,
+  log_uri,
+  log_encryption_kms_key_id
+from
+  aws_new.aws_emr_cluster
+where
+  log_uri is not null and log_encryption_kms_key_id is null;
+```
