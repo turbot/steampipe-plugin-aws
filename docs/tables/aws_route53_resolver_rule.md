@@ -32,25 +32,26 @@ select
 from
   aws_route53_resolver_rule
 where
-  id = 'rslvr-rr-389d2ef50c094970b';
+  id = 'rslvr-rr-389d2ef50c092349a';
 ```
 
 
-### List of associations that were created between Resolver rules and VPCs
+### List all rules where VPCs are not associated
 
 ```sql
 select
   name,
-  p ->> 'Id' as id,
-  p ->> 'Status' as status,
-  p ->> 'VPCId' as vpc_id
+  id,
+  arn,
+  resolver_rule_associations
 from
-  aws_route53_resolver_rule,
-  jsonb_array_elements(resolver_rule_associations) as p;
+  aws_route53_resolver_rule
+Where
+  resolver_rule_associations = '[]';
 ```
 
 
-### List of IP addresses and ports that an outbound endpoint forwards DNS queries
+### List the IP addresses enabled for outbound DNS queries
 
 ```sql
 select
@@ -63,7 +64,7 @@ from
 ```
 
 
-### List of resolver rule not shared with another account
+### List of resolver rule shared with another account
 
 ```sql
 select
@@ -74,5 +75,5 @@ select
 from
   aws_route53_resolver_rule
 where
-  share_status = 'NOT_SHARED';
+  share_status = 'SHARED';
 ```
