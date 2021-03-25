@@ -4,20 +4,20 @@ AWS Elastic Beanstalk makes easy for you to create, deploy, and manage scalable,
 
 ## Examples
 
-### Basic ElasticBeanstalk Environment info
+### Basic info
 
 ```sql
 select
-  application_name,
   environment_id,
   environment_name,
+  application_name,
   environment_arn,
   tier
 from
   aws_elastic_beanstalk_environment;
 ```
 
-### list of Environments whose AbortableOperationInProgress is set enable
+### List environments whose configuration update enable
 
 ```sql
 select
@@ -43,7 +43,7 @@ where
   health = 'Red';
 ```
 
-### list of applications running in environment whose health status disabled
+### List applications having health status disabled
 
 ```sql
 select
