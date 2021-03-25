@@ -74,13 +74,12 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	var region string
+  var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listKinesisConsumer", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listKinesisConsumers", "AWS_REGION", region)
 	streamData := *h.Item.(*kinesis.DescribeStreamOutput)
 
 	c, err := getCommonColumns(ctx, d, h)
