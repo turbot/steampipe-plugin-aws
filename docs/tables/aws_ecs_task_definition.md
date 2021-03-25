@@ -10,6 +10,7 @@ A task definition is required to run Docker containers in Amazon ECS.
 select
   task_definition_arn,
   cpu,
+  network_mode,
   title,
   status,
   tags
