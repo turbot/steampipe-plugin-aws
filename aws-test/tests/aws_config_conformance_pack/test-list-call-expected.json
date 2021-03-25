@@ -1,0 +1,12 @@
+[
+  {
+    "input_parameters": [
+        {
+          "ParameterName": "AccessKeysRotatedParameterMaxAccessKeyAge",
+          "ParameterValue": "90"
+        }
+      ],
+    "name": "{{resourceName}}",
+    "title": "{{resourceName}}"
+  }
+]

@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -109,6 +109,10 @@ output "resource_name" {
 
 output "resource_id" {
   value = aws_rds_cluster.named_test_resource.cluster_resource_id
+}
+
+output "endpoint" {
+  value = aws_rds_cluster.named_test_resource.endpoint
 }
 
 output "resource_aka" {
