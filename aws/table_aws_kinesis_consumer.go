@@ -22,7 +22,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listStreams,
-			Hydrate:       listKinesisConsumer,
+			Hydrate:       listKinesisConsumers,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -39,7 +39,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "stream_arn",
-				Description: "When you register a consumer, Kinesis Data Streams generates an ARN for it.",
+				Description: "The ARN of the stream with which you registered the consumer.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsKinesisConsumer,
 				Transform:   transform.FromField("StreamARN"),
@@ -51,7 +51,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "consumer_creation_timestamp",
-				Description: "The name of the consumer is something you choose when you register the consumer.",
+				Description: "Timestamp when consumer was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			// Standard columns for all tables
@@ -73,7 +73,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
