@@ -1,16 +1,13 @@
 [
   {
-    "activation_url": "https://github.com/guardicore/monkey/wiki/Infection-Monkey-and-AWS-Security-Hub",
+    "activation_url": "https://docs.aws.amazon.com/guardduty/latest/ug/securityhub-integration.html",
     "categories": [
-      "Cloud Compliance and Best Practices Checks",
-      "Micro-Segmentation",
-      "Deception",
-      "Network Forensics",
-      "Security Orchestration, Automation, and Response (SOAR)"
+      "User and Entity Behavior Analytics (UEBA)",
+      "Network Intrusion Detection Systems (IDS)"
     ],
-    "company_name": "Guardicore",
-    "description": "The Infection Monkey is an open source attack simulation tool",
-    "name": "AWS Infection Monkey",
-    "product_arn": "arn:aws:securityhub:us-east-1:324264561773:product/guardicore/aws-infection-monkey"
+    "company_name": "Amazon",
+    "description": "A threat detection service that continuously monitors for malicious or unauthorized behavior to help you protect your AWS accounts and workloads.",
+    "name": "GuardDuty",
+    "product_arn": "arn:aws:securityhub:us-east-1::product/aws/guardduty"
   }
 ]
