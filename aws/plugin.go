@@ -75,7 +75,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_parameter_group":        tableAwsElastiCacheParameterGroup(ctx),
 			"aws_emr_cluster":                        tableAwsEmrCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
-      "aws_glacier_vault":                      tableAwsGlacierVault(ctx),
+      			"aws_glacier_vault":                      tableAwsGlacierVault(ctx),
 			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":        tableAwsIamAccountPasswordPolicy(ctx),
