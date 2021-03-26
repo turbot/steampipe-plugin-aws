@@ -69,37 +69,37 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 			{
 				Name:        "addresses",
 				Description: "An array of strings that specify one or more IP addresses or blocks of IP addresses in Classless Inter-Domain Routing (CIDR) notation.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2IpSet,
 			},
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: "A list of tags associated with the resource.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     listTagsForAwsWafv2WebAcl,
-			// 	Transform:   transform.FromField("TagInfoForResource.TagList"),
-			// },
+			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with the resource.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForAwsWafv2IpSet,
+				Transform:   transform.FromField("TagInfoForResource.TagList"),
+			},
 
 			// steampipe standard columns
-			// {
-			// 	Name:        "title",
-			// 	Description: resourceInterfaceDescription("title"),
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("Name"),
-			// },
-			// {
-			// 	Name:        "tags",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     listTagsForAwsWafv2WebAcl,
-			// 	Transform:   transform.FromField("TagInfoForResource.TagList").Transform(webAclTagListToTurbotTags),
-			// },
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("ARN").Transform(arnToAkas),
-			// },
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listTagsForAwsWafv2IpSet,
+				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(ipSetTagListToTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+			},
 
 			// aws standard columns
 			{
@@ -249,40 +249,40 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return op.IPSet, nil
 }
 
-// func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2WebAcl")
+func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
 
-// 	// TODO put me in helper function
-// 	var region string
-// 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-// 	if matrixRegion != nil {
-// 		region = matrixRegion.(string)
-// 	}
-// 	data := webAclData(h.Item)
-// 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	data := ipSetData(h.Item)
+	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 
-// 	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-// 	if locationType == "global" && region != "us-east-1" {
-// 		return nil, nil
-// 	}
+	// To work with CloudFront, you must specify the Region US East (N. Virginia)
+	if locationType == "global" && region != "us-east-1" {
+		return nil, nil
+	}
 
-// 	// Create session
-// 	svc, err := WAFv2Service(ctx, d, region)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	// Create session
+	svc, err := WAFv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// Build param
-// 	param := &wafv2.ListTagsForResourceInput{
-// 		ResourceARN: aws.String(data["Arn"]),
-// 	}
+	// Build param
+	param := &wafv2.ListTagsForResourceInput{
+		ResourceARN: aws.String(data["Arn"]),
+	}
 
-// 	webAclTags, err := svc.ListTagsForResource(param)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return webAclTags, nil
-// }
+	ipSetTags, err := svc.ListTagsForResource(param)
+	if err != nil {
+		return nil, err
+	}
+	return ipSetTags, nil
+}
 
 //// TRANSFORM FUNCTIONS
 
@@ -295,25 +295,25 @@ func ipSetLocation(_ context.Context, d *transform.TransformData) (interface{}, 
 	return "CLOUDFRONT", nil
 }
 
-// func webAclTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("webAclTagListToTurbotTags")
-// 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
+func ipSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("ipSetTagListToTurbotTags")
+	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
-// 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
-// 		return nil, nil
-// 	}
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
+		return nil, nil
+	}
 
-// 	// Mapping the resource tags inside turbotTags
-// 	var turbotTagsMap map[string]string
-// 	if data.TagInfoForResource.TagList != nil {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range data.TagInfoForResource.TagList {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if data.TagInfoForResource.TagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range data.TagInfoForResource.TagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
 
-// 	return turbotTagsMap, nil
-// }
+	return turbotTagsMap, nil
+}
 
 func ipSetRegion(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	data := ipSetData(d.HydrateItem)
