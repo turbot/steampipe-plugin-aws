@@ -4,7 +4,7 @@ A cluster subnet group is a collection of subnets (typically private) that are c
 
 ## Examples
 
-### Basic subnet group info
+### Basic info
 
 ```sql
 select
@@ -17,7 +17,7 @@ from
 ```
 
 
-### Get each subnet info in the subnet group
+### Get subnet info for each subnet group
 
 ```sql
 select
