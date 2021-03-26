@@ -1,6 +1,7 @@
 # Table: aws_redshift_parameter_group
 
 A parameter group is a group of parameters that apply to all of the databases that you create in the cluster. 
+
 ## Examples
 
 ### Basic info
