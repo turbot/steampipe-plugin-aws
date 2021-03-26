@@ -27,8 +27,8 @@ select
   subnet ->> 'SubnetIdentifier' as subnet_identifier,
   subnet ->> 'SubnetStatus' as subnet_status
 from
-  aws_redshift_subnet_group
-  cross join jsonb_array_elements(subnets) as subnet;
+  aws_redshift_subnet_group,
+  jsonb_array_elements(subnets) as subnet;
 ```
 
 

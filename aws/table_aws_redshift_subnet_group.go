@@ -71,7 +71,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRedshiftSubnetGroupTurbotTags),
+				Transform:   transform.From(redshiftSubnetGroupTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -165,11 +165,12 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func getRedshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*redshift.ClusterSubnetGroup)
 	if data.Tags == nil {
 		return nil, nil
 	}
+	
 	// Get the resource tags
 	var turbotTagsMap map[string]string
 	if data.Tags != nil {
