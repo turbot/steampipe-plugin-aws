@@ -17,7 +17,17 @@
 # Ignore JetBrains files
 .idea
 
+# Ignore swap files
+*.swo
+*.swp
+
 # Parliament IAM permissions outputs
 scripts/generate_parliament_iam_permissions/__pycache__
 scripts/generate_parliament_iam_permissions/docs
-scripts/generate_parliament_iam_permissions/generate_go_file.pyc
+scripts/generate_parliament_iam_permissions/generate_go_file.
+
+# Ignore node dependencies
+node_modules
+
+# Ignore file types
+.vscode/launch.json
