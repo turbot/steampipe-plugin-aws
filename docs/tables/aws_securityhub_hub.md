@@ -17,7 +17,7 @@ from
 ```
 
 
-### List of hubs where Auto enable controls is disable
+### List hubs with auto enable controls disabled
 
 ```sql
 select
@@ -30,7 +30,7 @@ where
 ```
 
 
-### Check if the hub missing required tags
+### List hubs with missing required tags
 
 ```sql
 select

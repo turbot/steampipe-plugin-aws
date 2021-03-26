@@ -21,7 +21,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 			Hydrate:           getSecurityHub,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listSecurityHub,
+			Hydrate: listSecurityHubs,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -40,14 +40,13 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 				Description: "The date and time when Security Hub was enabled in the account.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+			/// Standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getSecurityHubTags,
 			},
-
-			/// Standard columns
 			{
 				Name:        "title",
 				Description: "The title of hub. This is a constant value 'default'",
@@ -66,13 +65,13 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listSecurityHub", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityHubs", "AWS_REGION", region)
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d, region)
@@ -84,7 +83,7 @@ func listSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	resp, err := svc.DescribeHub(&securityhub.DescribeHubInput{})
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHub", "query_error", err)
+		plugin.Logger(ctx).Error("listSecurityHubs", "query_error", err)
 		return nil, nil
 	}
 
@@ -151,7 +150,7 @@ func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
+		plugin.Logger(ctx).Debug("getSecurityHubTags", "ERROR", err)
 		return nil, err
 	}
 	return op, nil
