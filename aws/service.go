@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
+	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -744,6 +745,29 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, err
 	}
 	svc := eventbridge.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// GuardDutyService returns the service connection for AWS ELB GuardDuty service
+func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed GuardDutyService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*guardduty.GuardDuty), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := guardduty.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
