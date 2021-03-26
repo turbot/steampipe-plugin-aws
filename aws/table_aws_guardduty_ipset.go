@@ -34,7 +34,7 @@ func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "ipset_id",
-				Description: "The ID of the IPSet resources.",
+				Description: "The ID of the IPSet.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IPSetID"),
 			},
