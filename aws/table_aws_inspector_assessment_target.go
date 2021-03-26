@@ -141,7 +141,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 		logger.Debug("describeAssessmentTarget__", "ERROR", err)
 		return nil, err
 	}
-	if len(data.AssessmentTargets) > 0 {
+	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {
 		return data.AssessmentTargets[0], nil
 	}
 	return nil, nil
