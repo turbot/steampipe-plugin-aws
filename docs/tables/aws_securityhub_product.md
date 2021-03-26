@@ -5,37 +5,42 @@ Security hub Products provides information about product integrations in Securit
 ## Examples
 
 ### Basic info
+
 ```sql
 select
-  name,
-  product_arn,
-  company_name,
-  description
+	name,
+	product_arn,
+	company_name,
+	description
 from
-  aws_securityhub_product;
+	aws_securityhub_product;
 ```
 
 
-### List the products provided by AWS
+### List products provided by AWS
+
 ```sql
 select
-  name,
-  company_name,
-  description
+	name,
+	company_name,
+	description
 from
-  aws_securityhub_product
-where company_name = 'AWS';
+	aws_securityhub_product
+where
+	company_name = 'AWS';
 ```
 
 
-### List of products that send findings to security hub
+### List products that send findings to security hub
+
 ```sql
 select
-  name,
-  product_arn,
-  company_name
+	name,
+	product_arn,
+	company_name
 from
-  aws_securityhub_product,
-  jsonb_array_elements_text(integration_types) as i
-where i = 'SEND_FINDINGS_TO_SECURITY_HUB';
+	aws_securityhub_product,
+	jsonb_array_elements_text(integration_types) as i
+where
+	i = 'SEND_FINDINGS_TO_SECURITY_HUB';
 ```

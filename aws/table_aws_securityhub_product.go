@@ -22,7 +22,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 			Hydrate:           getSecurityHubProduct,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listSecurityHubProduct,
+			Hydrate: listSecurityHubProducts,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -50,6 +50,11 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 			{
 				Name:        "description",
 				Description: "A description of the product.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "marketplace_url",
+				Description: "The URL for the page that contains more information about the product.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -87,13 +92,13 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listSecurityyHubProduct", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityyHubProducts", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := SecurityHubService(ctx, d, region)
@@ -113,7 +118,7 @@ func listSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_product.listSecurityHubProduct", "query_error", err)
+		plugin.Logger(ctx).Error("listSecurityHubProducts", "query_error", err)
 		return nil, nil
 	}
 	return nil, err
