@@ -32,10 +32,9 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ApplicationName"),
 			},
 			{
-				Name:        "arn",
+				Name:        "application_arn",
 				Description: "The Amazon Resource Name (ARN) of the application.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ApplicationArn"),
 			},
 			{
 				Name:        "description",
@@ -102,7 +101,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -137,7 +136,6 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsElasticBeanstalkApplication")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -170,7 +168,6 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsElasticBeanstalkApplicationTags")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {

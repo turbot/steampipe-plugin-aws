@@ -19,7 +19,7 @@ from
 ```
 
 
-### Info of resource life cycle configuration for each application
+### Get resource life cycle configuration details for each application
 
 ```sql
 select
