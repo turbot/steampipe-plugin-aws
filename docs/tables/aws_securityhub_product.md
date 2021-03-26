@@ -8,12 +8,12 @@ Security hub Products provides information about product integrations in Securit
 
 ```sql
 select
-	name,
-	product_arn,
-	company_name,
-	description
+  name,
+  product_arn,
+  company_name,
+  description
 from
-	aws_securityhub_product;
+  aws_securityhub_product;
 ```
 
 
@@ -21,13 +21,13 @@ from
 
 ```sql
 select
-	name,
-	company_name,
-	description
+  name,
+  company_name,
+  description
 from
-	aws_securityhub_product
+  aws_securityhub_product
 where
-	company_name = 'AWS';
+  company_name = 'AWS';
 ```
 
 
@@ -35,12 +35,12 @@ where
 
 ```sql
 select
-	name,
-	product_arn,
-	company_name
+  name,
+  product_arn,
+  company_name
 from
-	aws_securityhub_product,
-	jsonb_array_elements_text(integration_types) as i
+  aws_securityhub_product,
+  jsonb_array_elements_text(integration_types) as i
 where
-	i = 'SEND_FINDINGS_TO_SECURITY_HUB';
+  i = 'SEND_FINDINGS_TO_SECURITY_HUB';
 ```
