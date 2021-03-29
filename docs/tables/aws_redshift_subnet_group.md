@@ -17,7 +17,7 @@ from
 ```
 
 
-### Get subnet info for each subnet group
+### Get the subnet info for each subnet group
 
 ```sql
 select
@@ -32,7 +32,7 @@ from
 ```
 
 
-### List subnet groups without application tag key
+### List subnet groups without the application tag key
 
 ```sql
 select
