@@ -20,7 +20,7 @@ from
 ```
 
 
-### List access points for a specific file system
+### List access points for each file system
 
 ```sql
 select
@@ -31,12 +31,10 @@ select
   root_directory
 from
   aws_efs_access_point
-where
-  file_system_id = 'fs-82c7d9fa';
 ```
 
 
-### List access points for which life cycle state is available
+### List access points in the error lifecycle state
 
 ```sql
 select
@@ -49,5 +47,5 @@ select
 from
   aws_efs_access_point
 where
-  life_cycle_state = 'available';
+  life_cycle_state = 'error';
 ```
