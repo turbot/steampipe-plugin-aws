@@ -24,7 +24,7 @@ from
 ```sql
 select
   task_definition_arn,
-  jsonb_array_length(container_definitions) as no_of_conatiners
+  jsonb_array_length(container_definitions) as num_of_conatiners
 from
   aws_ecs_task_definition;
 ```
