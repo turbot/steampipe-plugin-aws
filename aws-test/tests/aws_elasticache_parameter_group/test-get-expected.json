@@ -1,0 +1,9 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"cache_parameter_group_family": "redis2.8",
+		"cache_parameter_group_name": "{{ output.resource_name.value }}",
+		"description": "A test parameter group",
+		"title": "{{resourceName}}"
+	}
+]
