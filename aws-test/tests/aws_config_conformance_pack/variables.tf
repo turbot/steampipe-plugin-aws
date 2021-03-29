@@ -1,13 +1,13 @@
 
 variable "resource_name" {
   type        = string
-  default     = "turbot-test-20200125-create-update"
+  default     = "turbot-test-20200125"
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
   type        = string
-  default     = "aws"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -48,7 +48,7 @@ data "null_data_source" "resource" {
 }
 
 # Create AWS > Config > Configuration Recorder
-resource "aws_config_configuration_recorder" "named_test_resource" {
+resource "aws_config_configuration_recorder" "configuration_recorder" {
   name     = var.resource_name
   role_arn = aws_iam_role.r.arn
 }
@@ -73,6 +73,32 @@ resource "aws_iam_role" "r" {
 POLICY
 }
 
+# Create AWS > Config > Conformance pack
+resource "aws_config_conformance_pack" "named_test_resource" {
+  name = var.resource_name
+
+  input_parameter {
+    parameter_name  = "AccessKeysRotatedParameterMaxAccessKeyAge"
+    parameter_value = "90"
+  }
+
+  template_body = <<EOT
+    Parameters:
+      AccessKeysRotatedParameterMaxAccessKeyAge:
+        Type: String
+    Resources:
+      IAMPasswordPolicy:
+        Properties:
+          ConfigRuleName: IAMPasswordPolicy
+          Source:
+            Owner: AWS
+            SourceIdentifier: IAM_PASSWORD_POLICY
+        Type: AWS::Config::ConfigRule
+EOT
+
+  depends_on = [aws_config_configuration_recorder.configuration_recorder]
+}
+
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
@@ -89,19 +115,8 @@ output "resource_name" {
   value = var.resource_name
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:config:$${region}:$${account_id}:config-recorder/$${resource_name}"
-  vars = {
-    resource_name = var.resource_name
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
-    alternate_region = data.aws_region.alternate.name
-  }
+output "resource_aka" {
+  value = aws_config_conformance_pack.named_test_resource.arn
 }
 
-output "resource_aka" {
-  depends_on = [ aws_config_configuration_recorder.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
-}
 

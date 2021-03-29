@@ -435,73 +435,9 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	var params []*rds.Filter
-	if region == "sa-east-1" {
-		params = []*rds.Filter{
-			{
-				Name: aws.String("engine"),
-				Values: []*string{
-					aws.String("mariadb"),
-					aws.String("mysql"),
-					aws.String("oracle-ee"),
-					aws.String("oracle-se"),
-					aws.String("oracle-se1"),
-					aws.String("oracle-se2"),
-					aws.String("postgres"),
-					aws.String("sqlserver-ee"),
-					aws.String("sqlserver-ex"),
-					aws.String("sqlserver-se"),
-					aws.String("sqlserver-web"),
-				},
-			},
-		}
-	} else if region == "eu-north-1" {
-		params = []*rds.Filter{
-			{
-				Name: aws.String("engine"),
-				Values: []*string{
-					aws.String("mariadb"),
-					aws.String("mysql"),
-					aws.String("oracle-ee"),
-					aws.String("oracle-se"),
-					aws.String("oracle-se1"),
-					aws.String("oracle-se2"),
-					aws.String("postgres"),
-					aws.String("sqlserver-ee"),
-					aws.String("sqlserver-se"),
-					aws.String("sqlserver-web"),
-				},
-			},
-		}
-	} else {
-		params = []*rds.Filter{
-			{
-				Name: aws.String("engine"),
-				Values: []*string{
-					aws.String("aurora"),
-					aws.String("aurora-mysql"),
-					aws.String("aurora-postgresql"),
-					aws.String("mariadb"),
-					aws.String("mysql"),
-					aws.String("oracle-ee"),
-					aws.String("oracle-se"),
-					aws.String("oracle-se1"),
-					aws.String("oracle-se2"),
-					aws.String("postgres"),
-					aws.String("sqlserver-ee"),
-					aws.String("sqlserver-se"),
-					aws.String("sqlserver-ex"),
-					aws.String("sqlserver-web"),
-				},
-			},
-		}
-	}
-
 	// List call
 	err = svc.DescribeDBInstancesPages(
-		&rds.DescribeDBInstancesInput{
-			Filters: params,
-		},
+		&rds.DescribeDBInstancesInput{},
 		func(page *rds.DescribeDBInstancesOutput, isLast bool) bool {
 			for _, dbInstance := range page.DBInstances {
 				d.StreamListItem(ctx, dbInstance)

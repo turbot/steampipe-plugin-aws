@@ -1,0 +1,7 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"cache_parameter_group_name": "{{ output.resource_name.value }}",
+		"title": "{{ output.resource_name.value }}"
+	}
+]
