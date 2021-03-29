@@ -20,7 +20,7 @@ from
 ```
 
 
-### List alarms with alarm state
+### List alarms in alarm state
 
 ```sql
 select
@@ -35,12 +35,13 @@ where
 ```
 
 
-### List alarms with actions enabled turned on
+### List alarms with alarm actions enabled
 
 ```sql
 select
   alarm_arn,
-  actions_enabled
+  actions_enabled,
+  alarm_actions
 from
   aws_cloudwatch_alarm
 where
@@ -48,7 +49,7 @@ where
 ```
 
 
-### Get metric attached to alarm based on a single metric
+### Get the metric attached to each alarm based on a single metric
 
 ```sql
 select
@@ -65,7 +66,7 @@ where
 ```
 
 
-### Get metrics attached to alarm based on a metric math expression
+### Get metrics attached to each alarm based on a metric math expression
 
 ```sql
 select
