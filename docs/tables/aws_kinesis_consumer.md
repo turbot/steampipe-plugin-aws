@@ -4,7 +4,7 @@ A consumer, known as an Amazon Kinesis Data Streams application, is an applicati
 
 ## Examples
 
-### List all consumers
+### Basic info
 
 ```sql
 select
@@ -17,21 +17,7 @@ from
 ```
 
 
-### Get details of specific consumer
-
-```sql
-select
-  consumer_name,
-  consumer_arn,
-  stream_arn
-from
-  aws_kinesis_consumer
-where
-  consumer_arn = 'arn:aws:kinesis:us-east-1:986250123456:stream/my-data-stream/consumer/my-consumer:1616584220';
-```
-
-
-### List of consumers which can't read data
+### List consumers which are not in the active state
 
 ```sql
 select
@@ -41,20 +27,5 @@ select
 from
   aws_kinesis_consumer
 where
-  consumer_status != 'ACTIVE';
-```
-
-
-### List of consumers with a particular stream
-
-```sql
-select
-  consumer_name,
-  consumer_status,
-  consumer_arn,
-  stream_arn
-from
-  aws_kinesis_consumer
-where
-  stream_arn = 'arn:aws:kinesis:us-east-1:986250123456:stream/my-data-stream';
+  consumer_status != 'ACTIVE'
 ```
