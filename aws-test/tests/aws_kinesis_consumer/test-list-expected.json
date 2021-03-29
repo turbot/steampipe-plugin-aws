@@ -1,0 +1,6 @@
+[
+  {
+    "consumer_arn": "{{ output.resource_aka.value }}",
+    "consumer_name": "{{ resourceName }}"
+  }
+]
