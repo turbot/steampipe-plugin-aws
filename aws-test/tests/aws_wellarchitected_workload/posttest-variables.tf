@@ -21,7 +21,6 @@ provider "aws" {
   region  = var.aws_region
 }
 
-
 provider "aws" {
   alias   = "alternate"
   profile = var.aws_profile
@@ -44,9 +43,7 @@ data "null_data_source" "resource" {
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT
-    aws wellarchitected delete-workload --workload-id  {{ output.resource_id.value }};
+    aws wellarchitected delete-workload --workload-id {{ output.resource_id.value }};
     EOT
   }
 }
-
-

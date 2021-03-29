@@ -12,17 +12,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
+func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_wellarchitected_workload",
-		Description: "AWS Well Architected Workload",
+		Description: "AWS Well-Architected Workload",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("workload_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getWellArchitectedWorload,
+			Hydrate:           getWellArchitectedWorkload,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listWellArchitectedWorloads,
+			Hydrate: listWellArchitectedWorkloads,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -45,19 +45,19 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "architectural_design",
 				Description: "The URL of the architectural design for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "description",
 				Description: "The description for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "environment",
 				Description: "The environment for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "improvement_status",
@@ -68,25 +68,25 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "industry",
 				Description: "The industry for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "industry_type",
 				Description: "The industry type for the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "is_review_owner_update_acknowledged",
 				Description: "Flag indicating whether the workload owner has acknowledged that the review owner field is required.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "notes",
 				Description: "The notes associated with the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "owner",
@@ -97,13 +97,13 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "review_owner",
 				Description: "The review owner of the workload.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "review_restriction_date",
 				Description: "The date and time recorded.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "share_invitation_id",
@@ -119,13 +119,13 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "account_ids",
 				Description: "The list of AWS account IDs associated with the workload.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "aws_regions",
 				Description: "The list of AWS Regions associated with the workload, for example, us-east-2, or ca-central-1.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "lenses",
@@ -136,19 +136,20 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "non_aws_regions",
 				Description: "The list of non-AWS Regions associated with the workload.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "pillar_priorities",
 				Description: "The priorities of the pillars, which are used to order items in the improvement plan. ",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "risk_counts",
 				Description: "A map from risk names to the count of how questions have that rating.",
 				Type:        proto.ColumnType_JSON,
 			},
+
 			// Standard columns
 			{
 				Name:        "title",
@@ -160,7 +161,7 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWellArchitectedWorload,
+				Hydrate:     getWellArchitectedWorkload,
 			},
 			{
 				Name:        "akas",
@@ -174,13 +175,13 @@ func tableAwsWellArchitectedWorload(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listWellArchitectedWorloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listWellArchitectedWorloads", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listWellArchitectedWorkloads", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WellArchitectedService(ctx, d, region)
@@ -203,9 +204,9 @@ func listWellArchitectedWorloads(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getWellArchitectedWorload(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getWellArchitectedWorload")
+	logger.Trace("getWellArchitectedWorkload")
 
 	var id string
 	if h.Item != nil {
@@ -233,7 +234,7 @@ func getWellArchitectedWorload(ctx context.Context, d *plugin.QueryData, h *plug
 
 	op, err := svc.GetWorkload(params)
 	if err != nil {
-		logger.Debug("getWellArchitectedWorload", "ERROR", err)
+		logger.Debug("getWellArchitectedWorkload", "ERROR", err)
 		return nil, err
 	}
 
