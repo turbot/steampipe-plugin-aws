@@ -33,7 +33,7 @@ where
 ```
 
 
-### List replication groups whose multi AZ feature is not enabled
+### List replication groups with multi-AZ disabled
 
 ```sql
 select
