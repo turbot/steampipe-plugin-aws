@@ -72,6 +72,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGuardDutyDetector,
 			},
+
 			// Standard columns
 			{
 				Name:        "title",
@@ -123,7 +124,7 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			return !isLast
 		},
 	)
-	
+
 	return nil, err
 }
 
@@ -171,14 +172,14 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getAwsGuardDutyDetectorAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyDetectorAkas")
-	id := h.Item.(detectorInfo)
+	data := h.Item.(detectorInfo)
 
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector" + "/" + id.DetectorID
+	aka := []string{"arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID}
 
-	return []string{aka}, nil
+	return aka, nil
 }

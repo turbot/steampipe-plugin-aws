@@ -319,7 +319,7 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 	return svc, nil
 }
 
-// GuardDutyService returns the service connection for AWS ELB GuardDuty service
+// GuardDutyService returns the service connection for AWS GuardDuty service
 func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed GuardDutyService")
