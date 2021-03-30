@@ -12,7 +12,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsECRRepository(_ context.Context) *plugin.Table {
+func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ecr_repository",
 		Description: "AWS ECR Repository",

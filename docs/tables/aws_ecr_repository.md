@@ -10,7 +10,7 @@ Amazon Elastic Container Registry (Amazon ECR) is a managed container image regi
 select
   repository_name,
   registry_id,
-  repository_arn,
+  arn,
   repository_uri,
   created_at,
   region,
@@ -34,7 +34,7 @@ where
 ```
 
 
-### List of repositories where automatic image scanning is disabled
+### List repositories where automatic image scanning is disabled
 
 ```sql
 select
@@ -47,7 +47,7 @@ where
 ```
 
 
-### List of repositories whose image scanning has failed
+### List repositories whose image scanning has failed
 
 ```sql
 select
@@ -75,7 +75,7 @@ where
 ```
 
 
-### Repository image vulnerability count by severity 
+### Get repository image vulnerability count by severity
 
 ```sql
 select
@@ -88,5 +88,3 @@ from
   jsonb_array_elements(image_details) as details,
   jsonb(details) as detail;
 ```
-
-
