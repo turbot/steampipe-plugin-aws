@@ -16,7 +16,7 @@ from
 ```
 
 
-### List of backup_vaults older than 90 days
+### List vaults older than 90 days
 
 ```sql
 select

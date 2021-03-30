@@ -4,8 +4,8 @@ github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/agext/levenshtein v1.2.1 h1:QmvMAjj2aEICytGiWzmxoE0x2KZvE0fvmqMOfy2tjT8=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
-github.com/aliyun/alibaba-cloud-sdk-go v1.61.979 h1:y409Y6IgDHNScO8mwdGOgy3G+DPb5bMKgwNmh3QPQzg=
-github.com/aliyun/alibaba-cloud-sdk-go v1.61.979/go.mod h1:pUKYbK5JQ+1Dfxk80P0qxGqe5dkxDoabbZS7zOcouyA=
+github.com/aliyun/alibaba-cloud-sdk-go v1.61.1009 h1:i51ERWZREmreAUDY8oCrK66YBtTflQ4yXsq2RZlw+zw=
+github.com/aliyun/alibaba-cloud-sdk-go v1.61.1009/go.mod h1:pUKYbK5JQ+1Dfxk80P0qxGqe5dkxDoabbZS7zOcouyA=
 github.com/apparentlymart/go-dump v0.0.0-20180507223929-23540a00eaa3 h1:ZSTrOEhiM5J5RFxEaFvMZVEAM1KvT1YzbEOwB2EAGjA=
 github.com/apparentlymart/go-dump v0.0.0-20180507223929-23540a00eaa3/go.mod h1:oL81AME2rN47vu18xqj1S1jPIPuN7afo62yKTNn3XMM=
 github.com/apparentlymart/go-textseg v1.0.0 h1:rRmlIsPEEhUTIKQb7T++Nz/A5Q6C9IuX2wFoYVvnCs0=
