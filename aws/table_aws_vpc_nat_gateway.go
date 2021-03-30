@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,7 +17,6 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("nat_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NatGatewayMalformed"}),
-			ItemFromKey:       natGatewayFromKey,
 			Hydrate:           getVpcNatGateway,
 		},
 		List: &plugin.ListConfig{
@@ -26,47 +26,47 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "nat_gateway_id",
-				Description: "The ID of the NAT gateway",
+				Description: "The ID of the NAT gateway.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "nat_gateway_addresses",
-				Description: "Information about the IP addresses and network interface associated with the NAT gateway",
+				Description: "Information about the IP addresses and network interface associated with the NAT gateway.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "state",
-				Description: "The current state of the NAT gateway (pending | failed | available | deleting | deleted)",
+				Description: "The current state of the NAT gateway (pending | failed | available | deleting | deleted).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_time",
-				Description: "The date and time the NAT gateway was created",
+				Description: "The date and time the NAT gateway was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC in which the NAT gateway is located",
+				Description: "The ID of the VPC in which the NAT gateway is located.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "subnet_id",
-				Description: "The ID of the subnet in which the NAT gateway is located",
+				Description: "The ID of the subnet in which the NAT gateway is located.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "delete_time",
-				Description: "The date and time the NAT gateway was deleted, if applicable",
+				Description: "The date and time the NAT gateway was deleted, if applicable.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "failure_code",
-				Description: "If the NAT gateway could not be created, specifies the error code for the failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound | Resource.AlreadyAssociated | InternalError | InvalidSubnetID.NotFound)",
+				Description: "If the NAT gateway could not be created, specifies the error code for the failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound | Resource.AlreadyAssociated | InternalError | InvalidSubnetID.NotFound).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "failure_message",
-				Description: "If the NAT gateway could not be created, specifies the error message for the failure",
+				Description: "If the NAT gateway could not be created, specifies the error message for the failure.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -77,7 +77,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags that are attached to NAT gateway",
+				Description: "A list of tags that are attached to NAT gateway.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
@@ -102,17 +102,6 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// ITEM FROM KEY
-
-func natGatewayFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	natGatewayID := quals["nat_gateway_id"].GetStringValue()
-	item := &ec2.NatGateway{
-		NatGatewayId: &natGatewayID,
-	}
-	return item, nil
 }
 
 //// LIST FUNCTION
@@ -149,16 +138,16 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcNatGateway")
-	natGateway := h.Item.(*ec2.NatGateway)
+func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcNatGateway")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	natGatewayID := d.KeyColumnQuals["nat_gateway_id"].GetStringValue()
 
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
@@ -168,15 +157,13 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// Build the params
 	params := &ec2.DescribeNatGatewaysInput{
-		NatGatewayIds: []*string{
-			natGateway.NatGatewayId,
-		},
+		NatGatewayIds: []*string{aws.String(natGatewayID)},
 	}
 
 	// Get call
 	op, err := svc.DescribeNatGateways(params)
 	if err != nil {
-		logger.Debug("getVpcNatGateway__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcNatGateway__", "ERROR", err)
 		return nil, err
 	}
 
@@ -203,7 +190,7 @@ func getVpcNatGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcNatGatewayTurbotData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getVpcNatGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	natGateway := d.HydrateItem.(*ec2.NatGateway)
 	param := d.Param.(string)
 

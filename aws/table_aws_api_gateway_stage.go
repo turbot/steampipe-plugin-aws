@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,6 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "stage_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			ItemFromKey:       accessKeyFromKey,
 			Hydrate:           getAPIGatewayStage,
 		},
 		List: &plugin.ListConfig{
@@ -145,22 +145,6 @@ type stageRowData = struct {
 	RestAPIId *string
 }
 
-//// BUILD HYDRATE INPUT
-
-func apiStageFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	stageName := quals["stage_name"].GetStringValue()
-	RestAPIID := quals["rest_api_id"].GetStringValue()
-	item := &stageRowData{
-		RestAPIId: &RestAPIID,
-		Stage: &apigateway.Stage{
-			StageName: &stageName,
-		},
-	}
-
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -197,10 +181,8 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAPIGatewayStage")
-	apiStage := h.Item.(stageRowData)
+func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayStage")
 
 	// TODO put me in helper function
 	var region string
@@ -215,18 +197,21 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
+	restAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
+
 	params := &apigateway.GetStageInput{
-		RestApiId: apiStage.RestAPIId,
-		StageName: apiStage.Stage.StageName,
+		RestApiId: aws.String(restAPIID),
+		StageName: aws.String(stageName),
 	}
 
 	stageData, err := svc.GetStage(params)
 	if err != nil {
-		logger.Debug("getAPIGatewayStage__", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAPIGatewayStage__", "ERROR", err)
 		return nil, err
 	}
 
-	return &stageRowData{stageData, apiStage.RestAPIId}, nil
+	return &stageRowData{stageData, aws.String(restAPIID)}, nil
 }
 
 func getAPIGatewayStageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

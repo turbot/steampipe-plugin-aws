@@ -35,17 +35,19 @@
       ],
       "Version": "2012-10-17"
     },
-    "attached_policy_arns": null,
+    "attached_policy_arns": [
+      "{{ output.attached_policy_arn.value }}"
+    ],
     "description": "Test Role",
-    "inline_policies": null,
+    "inline_policies": "<null>",
     "max_session_duration": 3600,
     "name": "{{resourceName}}",
     "partition": "{{ output.aws_partition.value }}",
     "path": "/",
-    "permissions_boundary_arn": null,
-    "permissions_boundary_type": null,
-    "role_last_used_date": null,
-    "role_last_used_region": null,
+    "permissions_boundary_arn": "<null>",
+    "permissions_boundary_type": "<null>",
+    "role_last_used_date": "<null>",
+    "role_last_used_region": "<null>",
     "tags": {
       "name": "{{resourceName}}"
     },

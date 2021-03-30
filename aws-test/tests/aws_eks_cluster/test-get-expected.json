@@ -1,0 +1,11 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "endpoint": "{{ output.endpoint.value }}",
+    "name": "{{ output.resource_name.value }}",
+    "platform_version": "{{ output.platform_version.value }}",
+    "role_arn": "{{ output.role_arn.value }}",
+    "status": "{{ output.status.value }}",
+    "version": "{{ output.version.value }}"
+  }
+]

@@ -2,7 +2,7 @@
   {
     "akas": ["{{ output.resource_aka.value }}"],
     "alias_arn": "{{ output.resource_aka.value }}",
-    "description": "",
+    "description": "Test alias.",
     "function_name": "{{resourceName}}",
     "function_version": "$LATEST",
     "name": "{{resourceName}}",
