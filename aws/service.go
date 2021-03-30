@@ -734,10 +734,10 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 	return svc, nil
 }
 
-// WellArchitectedService returns the service connection for AWS Well Architected service
+// WellArchitectedService returns the service connection for AWS Well-Architected service
 func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region string) (*wellarchitected.WellArchitected, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed SsmService")
+		return nil, fmt.Errorf("region must be passed WellArchitectedService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("wellarchitected-%s", region)
