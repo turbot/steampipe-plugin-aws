@@ -168,8 +168,6 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return detectorInfo{*op, id}, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
 func getAwsGuardDutyDetectorAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyDetectorAkas")
 	data := h.Item.(detectorInfo)
