@@ -93,7 +93,7 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsECRRepositoryTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(ecrTagListToTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -316,9 +316,9 @@ func getLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// TRANSFORM FUNCTIONS
 
-func ecrTagListToTurbotTags(ctx context.Context, d *transform.TransformData, h *plugin.HydrateData) (interface{}, error) {
+func ecrTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("ecrTagListToTurbotTags")
-	tags := h.Item.(*ecr.ListTagsForResourceOutput)
+	tags := d.HydrateItem.(*ecr.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
