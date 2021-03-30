@@ -17,7 +17,7 @@ from
 ```
 
 
-### List firehose delivery streams which are not in active
+### List firehose delivery streams which are not active
 
 ```sql
 select

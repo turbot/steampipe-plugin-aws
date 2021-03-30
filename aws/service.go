@@ -412,7 +412,7 @@ func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.E
 	return svc, nil
 }
 
-// Firehose returns the service connection for AWS Kinesis Firehose service
+// FirehoseService returns the service connection for AWS Kinesis Firehose service
 func FirehoseService(ctx context.Context, d *plugin.QueryData, region string) (*firehose.Firehose, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed FirehoseService")

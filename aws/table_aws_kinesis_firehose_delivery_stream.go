@@ -19,7 +19,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("stream_name"),
 			ShouldIgnoreError: isNotFoundError([]string{}),
-			Hydrate:           describeFirehoseDeliveryStreams,
+			Hydrate:           describeFirehoseDeliveryStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFirehoseDeliveryStreams,
@@ -35,77 +35,77 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the delivery stream.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN"),
 			},
 			{
 				Name:        "delivery_stream_status",
 				Description: "The server-side encryption type used on the stream.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamStatus"),
 			},
 			{
 				Name:        "delivery_stream_type",
 				Description: "The delivery stream type.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamType"),
 			},
 			{
 				Name:        "version_id",
 				Description: "The version id of the stream. Each time the destination is updated for a delivery stream, the version ID is changed, and the current version ID is required when updating the destination",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.VersionId"),
 			},
 			{
 				Name:        "create_timestamp",
 				Description: "The date and time that the delivery stream was created.",
 				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.CreateTimestamp"),
 			},
 			{
 				Name:        "has_more_destinations",
 				Description: "Indicates whether there are more destinations available to list.",
 				Type:        pb.ColumnType_BOOL,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.HasMoreDestinations"),
 			},
 			{
 				Name:        "last_update_timestamp",
 				Description: "The date and time that the delivery stream was last updated.",
 				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.LastUpdateTimestamp"),
 			},
 			{
 				Name:        "delivery_stream_encryption_configuration",
 				Description: "Indicates the server-side encryption (SSE) status for the delivery stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamEncryptionConfiguration"),
 			},
 			{
 				Name:        "destinations",
 				Description: "The destinations for the stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.Destinations"),
 			},
 			{
 				Name:        "failure_description",
 				Description: "Provides details in case one of the following operations fails due to an error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,StopDeliveryStreamEncryption.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.FailureDescription"),
 			},
 			{
 				Name:        "source",
 				Description: "If the DeliveryStreamType parameter is KinesisStreamAsSource, a SourceDescription object describing the source Kinesis data stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.Source"),
 			},
 			{
@@ -121,7 +121,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamName"),
 			},
 			{
@@ -135,7 +135,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeFirehoseDeliveryStreams,
+				Hydrate:     describeFirehoseDeliveryStream,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN").Transform(arnToAkas),
 			},
 		}),
@@ -181,9 +181,9 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func describeFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("describeFirehoseDeliveryStreams")
+	logger.Trace("describeFirehoseDeliveryStream")
 
 	// TODO put me in helper function
 	var region string
