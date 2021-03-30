@@ -53,5 +53,5 @@ select
   status,
   finding_publishing_frequency
 from
-  aws_guardduty_detector
+  aws_guardduty_detector;
 ```
