@@ -91,7 +91,7 @@ where
 ```
 
 
-### List buckets where tags key 'application' is not null
+### List buckets without the 'application' tags key
 
 ```sql
 select
