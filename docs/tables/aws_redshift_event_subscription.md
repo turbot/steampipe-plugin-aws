@@ -35,7 +35,7 @@ where
 ```
 
 
-### Details of the source associated with event subscription
+### Get details of the source associated with event subscriptions
 
 ```sql
 select
