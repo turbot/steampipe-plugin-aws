@@ -77,7 +77,6 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Description: "A list of configuration for DNS query logging that is associated with the current AWS account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
-				Transform:   transform.FromField("QueryLoggingConfigs"),
 			},
 			{
 				Name:        "tags_src",
@@ -87,7 +86,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ResourceTagSet.Tags"),
 			},
 
-			// steampipe standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
