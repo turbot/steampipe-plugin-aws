@@ -37,26 +37,15 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "max_results",
-				Description: "The maximum number of repository results returned by DescribeRepositories.",
-				Hydrate:     getAwsECRRepositories,
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "repository_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) that identifies the repository.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("RepositoryArn"),
 			},
 			{
 				Name:        "repository_uri",
 				Description: "The URI for the repository.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "encryption_configuration",
-				Description: "The encryption configuration for the repository.",
-				Hydrate:     getAwsECRRepositories,
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "created_at",
@@ -69,14 +58,26 @@ func tableAwsECRRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "image_scanning_configuration",
-				Description: "The image scanning configuration for a repository.",
+				Name:        "max_results",
+				Description: "The maximum number of repository results returned by DescribeRepositories.",
+				Hydrate:     getAwsECRRepositories,
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "encryption_configuration",
+				Description: "The encryption configuration for the repository.",
+				Hydrate:     getAwsECRRepositories,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "image_details",
 				Description: "A list of ImageDetail objects that contain data about the image.",
 				Hydrate:     getAwsECRDescribeImages,
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "image_scanning_configuration",
+				Description: "The image scanning configuration for a repository.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{

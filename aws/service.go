@@ -258,7 +258,7 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
-// ECRService returns the service connection for AWS ECR service
+// EcrService returns the service connection for AWS ECR service
 func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.ECR, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EcrService")
@@ -267,6 +267,18 @@ func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.E
 	serviceCacheKey := fmt.Sprintf("ecr-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ecr.ECR), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecr.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
 
 // EcsService returns the service connection for AWS ECS service
 func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.ECS, error) {
@@ -283,7 +295,6 @@ func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.E
 	if err != nil {
 		return nil, err
 	}
-	svc := ecr.New(sess)
 	svc := ecs.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
@@ -400,7 +411,6 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 	return svc, nil
 }
 
-
 // EmrService returns the service connection for AWS EMR service
 func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
 	if region == "" {
@@ -423,7 +433,6 @@ func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.E
 
 	return svc, nil
 }
-
 
 // IAMService returns the service connection for AWS IAM service
 func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
