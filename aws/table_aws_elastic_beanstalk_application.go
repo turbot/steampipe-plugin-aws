@@ -32,9 +32,10 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ApplicationName"),
 			},
 			{
-				Name:        "application_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the application.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ApplicationArn"),
 			},
 			{
 				Name:        "description",
@@ -157,7 +158,7 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	// Get call
 	data, err := svc.DescribeApplications(params)
 
-	if len(data.Applications) > 0 && data.Applications[0] != nil {
+	if data.Applications != nil  && len(data.Applications) > 0 {
 		return data.Applications[0], nil
 	}
 
