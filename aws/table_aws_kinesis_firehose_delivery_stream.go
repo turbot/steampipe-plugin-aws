@@ -19,10 +19,10 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("stream_name"),
 			ShouldIgnoreError: isNotFoundError([]string{}),
-			Hydrate:           describeStream,
+			Hydrate:           describeFirehoseDeliveryStreams,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listStreams,
+			Hydrate: listFirehoseDeliveryStreams,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,87 +32,87 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Type:        pb.ColumnType_STRING,
 			},
 			{
-				Name:        "delivery_stream_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the delivery stream.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN"),
 			},
 			{
 				Name:        "delivery_stream_status",
 				Description: "The server-side encryption type used on the stream.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamStatus"),
 			},
 			{
 				Name:        "delivery_stream_type",
 				Description: "The delivery stream type.",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamType"),
 			},
 			{
 				Name:        "version_id",
 				Description: "The version id of the stream. Each time the destination is updated for a delivery stream, the version ID is changed, and the current version ID is required when updating the destination",
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.VersionId"),
 			},
 			{
 				Name:        "create_timestamp",
 				Description: "The date and time that the delivery stream was created.",
 				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.CreateTimestamp"),
-			},
-			{
-				Name:        "last_update_timestamp",
-				Description: "The date and time that the delivery stream was last updated.",
-				Type:        pb.ColumnType_TIMESTAMP,
-				Hydrate:     describeStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.LastUpdateTimestamp"),
 			},
 			{
 				Name:        "has_more_destinations",
 				Description: "Indicates whether there are more destinations available to list.",
 				Type:        pb.ColumnType_BOOL,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.HasMoreDestinations"),
+			},
+			{
+				Name:        "last_update_timestamp",
+				Description: "The date and time that the delivery stream was last updated.",
+				Type:        pb.ColumnType_TIMESTAMP,
+				Hydrate:     describeFirehoseDeliveryStreams,
+				Transform:   transform.FromField("DeliveryStreamDescription.LastUpdateTimestamp"),
 			},
 			{
 				Name:        "delivery_stream_encryption_configuration",
 				Description: "Indicates the server-side encryption (SSE) status for the delivery stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamEncryptionConfiguration"),
-			},
-			{
-				Name:        "source",
-				Description: "If the DeliveryStreamType parameter is KinesisStreamAsSource, a SourceDescription object describing the source Kinesis data stream.",
-				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.Source"),
 			},
 			{
 				Name:        "destinations",
 				Description: "The destinations for the stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.Destinations"),
 			},
 			{
 				Name:        "failure_description",
 				Description: "Provides details in case one of the following operations fails due to an error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,StopDeliveryStreamEncryption.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.FailureDescription"),
+			},
+			{
+				Name:        "source",
+				Description: "If the DeliveryStreamType parameter is KinesisStreamAsSource, a SourceDescription object describing the source Kinesis data stream.",
+				Type:        pb.ColumnType_JSON,
+				Hydrate:     describeFirehoseDeliveryStreams,
+				Transform:   transform.FromField("DeliveryStreamDescription.Source"),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the delivery stream.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsKinesisFirehoseDeliveryStreamTags,
+				Hydrate:     listFirehoseDeliveryStreamTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -121,21 +121,21 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        pb.ColumnType_STRING,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamName"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsKinesisFirehoseDeliveryStreamTags,
+				Hydrate:     listFirehoseDeliveryStreamTags,
 				Transform:   transform.FromField("Tags").Transform(kinesisFirehoseTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     describeStream,
+				Hydrate:     describeFirehoseDeliveryStreams,
 				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN").Transform(arnToAkas),
 			},
 		}),
@@ -144,14 +144,14 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listStreams", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listFirehoseDeliveryStreams", "AWS_REGION", region)
 
 	// Create session
 	svc, err := FirehoseService(ctx, d, region)
@@ -181,9 +181,9 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func describeFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("describeStream")
+	logger.Trace("describeFirehoseDeliveryStreams")
 
 	// TODO put me in helper function
 	var region string
@@ -220,9 +220,9 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 }
 
 // API call for fetching tag list
-func getAwsKinesisFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisFirehoseDeliveryStreamTags")
+	logger.Trace("listFirehoseDeliveryStreamTags")
 
 	// TODO put me in helper function
 	var region string
@@ -247,7 +247,7 @@ func getAwsKinesisFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.Quer
 	// Get call
 	op, err := svc.ListTagsForDeliveryStream(params)
 	if err != nil {
-		logger.Debug("getAwsKinesisFirehoseDeliveryStreamTags", "ERROR", err)
+		logger.Debug("listFirehoseDeliveryStreamTags", "ERROR", err)
 		return nil, err
 	}
 
