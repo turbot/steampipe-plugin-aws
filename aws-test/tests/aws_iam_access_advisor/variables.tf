@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -43,7 +43,7 @@ data "aws_region" "alternate" {
 
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
-    command = "aws sts get-caller-identity"
+    command = "aws sts get-caller-identity --profile ${var.aws_profile}"
   }
 }
 
