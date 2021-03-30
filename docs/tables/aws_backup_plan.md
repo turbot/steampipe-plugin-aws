@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of backup plans older than 90 days
+### List plans older than 90 days
 
 ```sql
 select
@@ -31,11 +31,11 @@ from
   aws_backup_plan
 where
   creation_date <= (current_date - interval '90' day)
-  order by
+order by
   creation_date;
 ```
 
-### List of backup plans order by creation date
+### List plans order by creation date
 
 ```sql
 select
@@ -44,7 +44,7 @@ select
   creation_date
 from
   aws_backup_plan
-  order by
+order by
   creation_date;
 ```
 
