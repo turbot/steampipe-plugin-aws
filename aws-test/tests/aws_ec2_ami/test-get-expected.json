@@ -9,7 +9,9 @@
           "Encrypted":false,
           "Iops":null,
           "KmsKeyId":null,
+          "OutpostArn": null,
           "SnapshotId":"{{ output.snapshot_id.value }}",
+          "Throughput": null,
           "VolumeSize":8,
           "VolumeType":"standard"
         },

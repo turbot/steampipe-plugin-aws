@@ -1,0 +1,18 @@
+[
+	{
+		"account_id": "{{ output.account_id.value }}",
+		"association_id": "{{ output.resource_id.value }}",
+		"association_name": "{{ resourceName }}",
+		"association_version": "1",
+		"document_name": "{{ resourceName }}",
+		"document_version": "$DEFAULT",
+		"partition": "{{ output.aws_partition.value }}",
+		"region": "{{ output.aws_region.value }}",
+		"targets": [
+			{
+				"Key": "InstanceIds",
+				"Values": ["{{ output.instance_id.value }}"]
+			}
+		]
+	}
+]
