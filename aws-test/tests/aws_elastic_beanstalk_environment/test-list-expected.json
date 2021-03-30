@@ -1,7 +1,6 @@
 [
   {
     "application_name": "{{ output.resource_name.value }}",
-    "environment_arn": "{{output.resource_aka.value}}",
     "environment_id": "{{output.resource_id.value}}",
     "environment_name": "{{ output.resource_name.value }}",
     "partition": "{{ output.aws_partition.value }}",

@@ -1,3 +1,3 @@
-select application_name, environment_arn, environment_id,environment_name, partition, region
+select application_name, environment_id,environment_name, partition, region
 from aws.aws_elastic_beanstalk_environment
 where akas::text = '["{{output.resource_aka.value}}"]';

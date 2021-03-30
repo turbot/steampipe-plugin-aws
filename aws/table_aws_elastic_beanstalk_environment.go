@@ -37,24 +37,8 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "date-created",
-				Description: "The creation date for this environment.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "date_updated",
-				Description: "The last modified date for this environment.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "cname",
-				Description: "The URL to the CNAME for this environment.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticBeanstalkEnvironment,
-			},
-			{
-				Name:        "application_name",
-				Description: "The name of the application associated with this environment.",
+				Name:        "arn",
+				Description: "The environment's Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -63,10 +47,9 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "endpoint_url",
-				Description: "The URL to the LoadBalancer.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticBeanstalkEnvironment,
+				Name:        "date-created",
+				Description: "The creation date for this environment.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "abortable_operation_in_progress",
@@ -74,14 +57,25 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "environment_arn",
-				Description: "The environment's Amazon Resource Name (ARN), which can be used in other API requests that require an ARN.",
+				Name:        "application_name",
+				Description: "The name of the application associated with this environment.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "environment_links",
-				Description: "A list of links to other environments in the same group.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "cname",
+				Description: "The URL to the CNAME for this environment.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsElasticBeanstalkEnvironment,
+			},
+			{
+				Name:        "date_updated",
+				Description: "The last modified date for this environment.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "endpoint_url",
+				Description: "The URL to the LoadBalancer.",
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsElasticBeanstalkEnvironment,
 			},
 			{
@@ -105,18 +99,8 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "resources",
-				Description: "The description of the AWS resources used by this environment.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "solution_stack_name",
 				Description: "The name of the SolutionStack deployed with this environment.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "template_name",
-				Description: "The name of the configuration template used to originally launch this environment.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -125,9 +109,9 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tier",
-				Description: "Describes the current tier of this environment.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "template_name",
+				Description: "The name of the configuration template used to originally launch this environment.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "version_label",
@@ -135,11 +119,27 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "environment_links",
+				Description: "A list of links to other environments in the same group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticBeanstalkEnvironment,
+			},
+			{
+				Name:        "resources",
+				Description: "The description of the AWS resources used by this environment.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Repository",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listElasticBeanstalkEnvironmentTags,
 				Transform:   transform.FromField("ResourceTags"),
+			},
+			{
+				Name:        "tier",
+				Description: "Describes the current tier of this environment.",
+				Type:        proto.ColumnType_JSON,
 			},
 
 			// Standard columns for all tables
@@ -287,13 +287,15 @@ func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *tran
 	tags := h.Item.(*elasticbeanstalk.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
+	if tags.ResourceTags == nil {
+		return nil, nil
+	}
 	var turbotTagsMap map[string]string
-	if tags. ResourceTags == nil {
+	if tags.ResourceTags != nil {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tags.ResourceTags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
-
 	return turbotTagsMap, nil
 }
