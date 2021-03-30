@@ -1,6 +1,6 @@
 # Table: aws_elastic_beanstalk_environment
 
-AWS Elastic Beanstalk makes easy for you to create, deploy, and manage scalable, fault-tolerant applications running on the Amazon Web Services cloud.
+AWS Elastic Beanstalk helps to create, deploy, and manage scalable, fault-tolerant applications running on the Amazon Web Services cloud.
 
 ## Examples
 
@@ -11,13 +11,14 @@ select
   environment_id,
   environment_name,
   application_name,
-  environment_arn,
+  arn,
   tier
 from
   aws_elastic_beanstalk_environment;
 ```
 
-### List environments whose configuration update enable
+
+### List environments which has configuration update or application version deployment in-progress
 
 ```sql
 select
@@ -28,6 +29,7 @@ from
 where
   abortable_operation_in_progress = 'true';
 ```
+
 
 ### List environments whose health is not responsive
 
@@ -42,6 +44,7 @@ from
 where
   health = 'Red';
 ```
+
 
 ### List applications having health status disabled
 

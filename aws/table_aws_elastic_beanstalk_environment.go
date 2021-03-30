@@ -130,16 +130,16 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "tier",
+				Description: "Describes the current tier of this environment.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Repository",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listElasticBeanstalkEnvironmentTags,
 				Transform:   transform.FromField("ResourceTags"),
-			},
-			{
-				Name:        "tier",
-				Description: "Describes the current tier of this environment.",
-				Type:        proto.ColumnType_JSON,
 			},
 
 			// Standard columns for all tables
@@ -154,7 +154,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("ResourceTags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listElasticBeanstalkEnvironmentTags,
-				Transform:   transform.FromField("ResourceTags"),
+				Transform:   transform.FromField("ResourceTags").Transform(elasticBeanstalkEnvironmentTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -282,9 +282,9 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 }
 
 //// TRANSFORM FUNCTIONS
-func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData, h *plugin.HydrateData) (interface{}, error) {
+func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("elasticBeanstalkEnvironmentTagListToTurbotTags")
-	tags := h.Item.(*elasticbeanstalk.ListTagsForResourceOutput)
+	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
 	if tags.ResourceTags == nil {
