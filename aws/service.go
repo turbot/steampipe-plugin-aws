@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
@@ -267,6 +268,7 @@ func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.E
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ecs.ECS), nil
 	}
+
 	// so it was not in cache - create service
 	sess, err := getSession(ctx, d, region)
 	if err != nil {
@@ -321,6 +323,27 @@ func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.E
 	return svc, nil
 }
 
+// ElasticBeanstalkService returns the service connection for AWS ElasticBeanstalk service
+func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, region string) (*elasticbeanstalk.ElasticBeanstalk, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ElasticBeanstalkService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elasticbeanstalk-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elasticbeanstalk.ElasticBeanstalk), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := elasticbeanstalk.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // ElastiCacheService returns the service connection for AWS ElastiCache service
 func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
 	if region == "" {
@@ -338,7 +361,6 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string)
 	}
 	svc := elasticache.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
 	return svc, nil
 }
 
