@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elastic_beanstalk_environment",
@@ -167,7 +169,6 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -287,7 +288,7 @@ func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *tran
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tags != nil {
+	if tags. ResourceTags == nil {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tags.ResourceTags {
 			turbotTagsMap[*i.Key] = *i.Value
