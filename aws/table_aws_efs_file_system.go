@@ -153,7 +153,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	// Create Session
-	svc, err := EFSService(ctx, d, region)
+	svc, err := EfsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// create service
-	svc, err := EFSService(ctx, d, region)
+	svc, err := EfsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	fileSystem := h.Item.(*efs.FileSystemDescription)
 
 	// Create session
-	svc, err := EFSService(ctx, d, region)
+	svc, err := EfsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

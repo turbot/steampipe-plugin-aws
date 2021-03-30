@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -151,6 +152,27 @@ func CloudFormationService(ctx context.Context, d *plugin.QueryData, region stri
 	return svc, nil
 }
 
+// CloudWatchService returns the service connection for AWS Cloud Watch service
+func CloudWatchService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatch.CloudWatch, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CloudWatchService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudwatch-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudwatch.CloudWatch), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudwatch.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // CloudWatchLogsService returns the service connection for AWS Cloud Watch Logs service
 func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatchlogs.CloudWatchLogs, error) {
 	if region == "" {
@@ -256,10 +278,10 @@ func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.E
 	return svc, nil
 }
 
-// EFSService returns the service connection for AWS Elastic File System service
-func EFSService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+// EfsService returns the service connection for AWS Elastic File System service
+func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EFSService")
+		return nil, fmt.Errorf("region must be passed EfsService")
 	}
 
 	// have we already created and cached the service?
@@ -267,7 +289,6 @@ func EFSService(ctx context.Context, d *plugin.QueryData, region string) (*efs.E
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*efs.EFS), nil
 	}
-
 	// so it was not in cache - create service
 	sess, err := getSession(ctx, d, region)
 	if err != nil {
