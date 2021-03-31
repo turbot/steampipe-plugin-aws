@@ -19,10 +19,10 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("repository_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException"}),
-			Hydrate:           getAwsECRRepositories,
+			Hydrate:           getAwsEcrRepositories,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsECRRepositories,
+			Hydrate: listAwsEcrRepositories,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -60,19 +60,19 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 			{
 				Name:        "max_results",
 				Description: "The maximum number of repository results returned by DescribeRepositories.",
-				Hydrate:     getAwsECRRepositories,
+				Hydrate:     getAwsEcrRepositories,
 				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "encryption_configuration",
 				Description: "The encryption configuration for the repository.",
-				Hydrate:     getAwsECRRepositories,
+				Hydrate:     getAwsEcrRepositories,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "image_details",
 				Description: "A list of ImageDetail objects that contain data about the image.",
-				Hydrate:     getAwsECRDescribeImages,
+				Hydrate:     getAwsEcrDescribeImages,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -84,7 +84,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Repository.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsECRRepositoryTags,
+				Hydrate:     listAwsEcrRepositoryTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -93,7 +93,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsECRRepositoryTags,
+				Hydrate:     listAwsEcrRepositoryTags,
 				Transform:   transform.FromField("Tags").Transform(ecrTagListToTurbotTags),
 			},
 			{
@@ -114,14 +114,14 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsECRRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsECRRepositories", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsEcrRepositories", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := EcrService(ctx, d, region)
@@ -146,9 +146,9 @@ func listAwsECRRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 ////  HYDRATE FUNCTIONS
 
-func getAwsECRRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsECRRepositories")
+	logger.Trace("getAwsEcrRepositories")
 
 	// TODO put me in helper function
 	var region string
@@ -177,15 +177,15 @@ func getAwsECRRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.DescribeRepositories(params)
 	if err != nil {
-		logger.Debug("getAwsECRRepositories", "ERROR", err)
+		logger.Debug("getAwsEcrRepositories", "ERROR", err)
 		return nil, err
 	}
 	return data.Repositories[0], nil
 }
 
-func getAwsECRRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsECRRepositoryTags")
+	logger.Trace("listAwsEcrRepositoryTags")
 
 	// TODO put me in helper function
 	var region string
@@ -209,15 +209,15 @@ func getAwsECRRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Debug("getAwsECRRepositoryTags", "ERROR", err)
+		logger.Debug("listAwsEcrRepositoryTags", "ERROR", err)
 		return nil, err
 	}
 	return op, nil
 }
 
-func getRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getRepositoryPolicy")
+	logger.Trace("getAwsEcrRepositoryPolicy")
 
 	// TODO put me in helper function
 	var region string
@@ -241,16 +241,16 @@ func getRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Get call
 	op, err := svc.GetRepositoryPolicy(params)
 	if err != nil {
-		logger.Debug("getRepositoryPolicy", "ERROR", err)
+		logger.Debug("getAwsEcrRepositoryPolicy", "ERROR", err)
 		return nil, err
 	}
 
 	return op, nil
 }
 
-func getAwsECRDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsECRDescribeImages")
+	logger.Trace("getAwsEcrDescribeImages")
 
 	// TODO put me in helper function
 	var region string
@@ -275,16 +275,16 @@ func getAwsECRDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	op, err := svc.DescribeImages(params)
 	if err != nil {
-		logger.Debug("getAwsECRDescribeImages", "ERROR", err)
+		logger.Debug("getAwsEcrDescribeImages", "ERROR", err)
 		return nil, err
 	}
 
 	return op, nil
 }
 
-func getLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getLifecyclePolicy")
+	logger.Trace("getAwsEcrRepositoryLifecyclePolicy")
 
 	// TODO put me in helper function
 	var region string
@@ -308,7 +308,7 @@ func getLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	op, err := svc.GetLifecyclePolicy(params)
 	if err != nil {
-		logger.Debug("getLifecyclePolicy", "ERROR", err)
+		logger.Debug("getAwsEcrRepositoryLifecyclePolicy", "ERROR", err)
 		return nil, err
 	}
 

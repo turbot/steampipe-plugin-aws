@@ -4,7 +4,7 @@ Amazon Elastic Container Registry (Amazon ECR) is a managed container image regi
 
 ## Examples
 
-### ECR repository basic info
+### Basic info
 
 ```sql
 select
@@ -20,7 +20,7 @@ from
 ```
 
 
-### List of ECR repositories which are not using Customer Managed Keys(CMK) for encryption
+### List repositories which are not using Customer Managed Keys(CMK) for encryption
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
 ```
 
 
-### List repositories where automatic image scanning is disabled
+### List repositories whose automatic image scanning is disabled
 
 ```sql
 select
@@ -62,7 +62,7 @@ where
 ```
 
 
-### List Repositories whose tag immutability is disabled
+### List repositories whose tag immutability is disabled
 
 ```sql
 select
