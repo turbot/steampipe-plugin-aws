@@ -41,3 +41,18 @@ select
 from
   aws_api_gateway_stage;
 ```
+
+
+### List stages where CloudWatch logging is disabled
+
+```sql
+select
+  deployment_id,
+  name,
+  tracing_enabled,
+  method_settings -> '*/*' ->> 'LoggingLevel' as cloudwatch_log_level
+from
+  aws_api_gateway_stage
+where
+  method_settings -> '*/*' ->> 'LoggingLevel' = 'OFF';
+```
