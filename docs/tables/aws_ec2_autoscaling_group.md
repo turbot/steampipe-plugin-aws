@@ -4,7 +4,7 @@ An Auto Scaling group contains a collection of Amazon EC2 instances that are tre
 
 ## Examples
 
-### Basic auto scaling group info
+### Basic info
 
 ```sql
 select
