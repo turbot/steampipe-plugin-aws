@@ -83,6 +83,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

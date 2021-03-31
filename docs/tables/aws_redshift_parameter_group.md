@@ -16,7 +16,7 @@ from
 ```
 
 
-### Details of the parameters associated with each parameter group
+### Get the details of the parameters associated with each parameter group
 
 ```sql
 select
