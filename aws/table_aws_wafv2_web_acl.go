@@ -23,7 +23,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsWafv2WebAcl,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsWafv2WebAcl,
+			Hydrate: listAwsWafv2WebAcls,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: []*plugin.Column{
@@ -155,14 +155,14 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2WebAcl", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsWafv2WebAcls", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFv2Service(ctx, d, region)
