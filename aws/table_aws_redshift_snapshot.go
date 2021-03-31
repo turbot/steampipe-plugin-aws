@@ -20,10 +20,10 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("snapshot_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
-			Hydrate:           getRedshiftSnapshot,
+			Hydrate:           getAwsRedshiftSnapshot,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listRedshiftSnapshot,
+			Hydrate: listAwsRedshiftSnapshots,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -38,9 +38,9 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "accounts_with_restore_access",
-				Description: "A list of the AWS customer accounts authorized to restore the snapshot.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "snapshot_type",
+				Description: "The snapshot type.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "actual_incremental_backup_size_in_mega_bytes",
@@ -153,11 +153,6 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "restorable_node_types",
-				Description: "The list of node types that this cluster snapshot is able to restore into.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "snapshot_create_time",
 				Description: "The time (in UTC format) when Amazon Redshift began the snapshot.",
 				Type:        proto.ColumnType_STRING,
@@ -166,11 +161,6 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "snapshot_retention_start_time",
 				Description: "A timestamp representing the start of the retention period for the snapshot.",
 				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "snapshot_type",
-				Description: "The snapshot type.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "source_region",
@@ -193,11 +183,22 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "accounts_with_restore_access",
+				Description: "A list of the AWS customer accounts authorized to restore the snapshot.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "restorable_node_types",
+				Description: "The list of node types that this cluster snapshot is able to restore into.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			// Standard columns
 			{
 				Name:        "tags",
@@ -215,21 +216,21 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRedshiftSnapshotAkas,
+				Hydrate:     getAwsRedshiftSnapshotAkas,
 				Transform:   transform.FromValue(),
 			},
 		}),
 	}
 }
 
-func listRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO Put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listRedshiftSnapshot", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRedshiftSnapshots", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := RedshiftService(ctx, d, region)
@@ -252,7 +253,7 @@ func listRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// TODO Put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -288,8 +289,8 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return nil, nil
 }
 
-func getRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftSnapshotAkas")
+func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsRedshiftSnapshotAkas")
 	snapshot := h.Item.(*redshift.Snapshot)
 
 	c, err := getCommonColumns(ctx, d, h)

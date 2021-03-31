@@ -52,12 +52,14 @@ resource "aws_vpc" "my_vpc" {
     Name = var.resource_name
   }
 }
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = "${aws_vpc.my_vpc.id}"
   tags = {
     Name = var.resource_name
   }
 }
+
 resource "aws_subnet" "my_subnet1" {
   cidr_block        = "10.1.1.0/24"
   availability_zone = "${var.aws_region}a"
@@ -69,6 +71,7 @@ resource "aws_subnet" "my_subnet1" {
     Name = var.resource_name
   }
 }
+
 resource "aws_subnet" "my_subnet2" {
   cidr_block        = "10.1.2.0/24"
   availability_zone = "${var.aws_region}b"
@@ -80,10 +83,12 @@ resource "aws_subnet" "my_subnet2" {
     Name = var.resource_name
   }
 }
+
 resource "aws_redshift_subnet_group" "my_subnet_group" {
   name       = var.resource_name
-  subnet_ids = ["${aws_subnet.my_subnet1.id}", "${aws_subnet.my_subnet2.id}"]
+  subnet_ids = [aws_subnet.my_subnet1.id, aws_subnet.my_subnet2.id]
 }
+
 resource "aws_redshift_cluster" "cluster" {
   cluster_identifier        = var.resource_name
   database_name             = "testdb"

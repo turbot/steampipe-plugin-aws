@@ -14,8 +14,6 @@ provider "turbot" {
   profile = var.turbot_profile
 }
 
-
-
 variable "aws_profile" {
   type    = string
   default = "default"
@@ -57,11 +55,13 @@ data "null_data_source" "resource" {
     scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
   }
 }
+
 resource "null_resource" "delay" {
   provisioner "local-exec" {
     command = "sleep 300"
   }
 }
+
 resource "null_resource" "named_test_resource" {
   depends_on    = [null_resource.delay]
   provisioner "local-exec" {

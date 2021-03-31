@@ -5,7 +5,7 @@ Snapshots are point-in-time backups of a cluster. There are two types of snapsho
 
 ## Examples
 
-### Redshift snapshot basic info
+### Basic info
 
 ```sql
 select
@@ -18,7 +18,7 @@ from
 ```
 
 
-### List of all manual redshift snapshots
+### List all manual redshift snapshots
 
 ```sql
 select
@@ -31,7 +31,7 @@ where
 ```
 
 
-### List of snapshots which are not encrypted
+### List snapshots which are not encrypted
 
 ```sql
 select
@@ -47,7 +47,7 @@ where
 ```
 
 
-### Redshift Cluster info of each redshift snapshot
+### Get cluster info of each redshift snapshot
 
 ```sql
 select
