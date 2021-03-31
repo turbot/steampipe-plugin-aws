@@ -70,6 +70,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_route_table":    tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_ecr_repository":                     tableAwsEcrRepository(ctx),
+			"aws_elastic_beanstalk_environment":      tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_ecs_cluster":                        tableAwsEcsCluster(ctx),
 			"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                   tableAwsEfsAccessPoint(ctx),
