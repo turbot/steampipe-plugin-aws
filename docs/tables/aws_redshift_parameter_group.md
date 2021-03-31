@@ -21,12 +21,15 @@ from
 ```sql
 select
   name,
-  p ->> 'Description' as description,
   p ->> 'ParameterName' as parameter_name,
   p ->> 'ParameterValue' as parameter_value,
+  p ->> 'Description' as description,
   p ->> 'Source' as source,
   p ->> 'DataType' as data_type,
-  p ->> 'ApplyType' as apply_type
+  p ->> 'ApplyType' as apply_type,
+  p ->> 'IsModifiable' as is_modifiable,
+  p ->> 'AllowedValues' as allowed_values,
+  p ->> 'MinimumEngineVersion' as minimum_engine_version
 from
   aws_redshift_parameter_group,
   jsonb_array_elements(parameters) as p;
