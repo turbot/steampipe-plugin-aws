@@ -70,13 +70,30 @@ EOF
   }
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:glacier:$${region}:$${account_id}:vaults/${aws_glacier_vault.named_test_resource.name}"
-  vars = {
-    partition  = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region     = data.aws_region.primary.name
-  }
+resource "aws_glacier_vault_lock" "vault_policy" {
+  complete_lock = false
+  policy        = <<EOF
+{
+    "Version":"2012-10-17",
+    "Statement":[
+       {
+          "Sid": "deny-based-on-archive-age",
+          "Principal": "*",
+          "Effect": "Deny",
+          "Action": [
+             "glacier:DeleteArchive"
+          ],
+          "Resource": "${aws_glacier_vault.named_test_resource.arn}",
+          "Condition": {
+            "NumericLessThan": {
+              "glacier:ArchiveAgeInDays" : "365"
+            }
+          }
+       }
+    ]
+}
+EOF
+  vault_name    = aws_glacier_vault.named_test_resource.name
 }
 
 output "resource_name" {
@@ -84,8 +101,7 @@ output "resource_name" {
 }
 
 output "resource_aka" {
-  depends_on = [aws_glacier_vault.named_test_resource]
-  value      = data.template_file.resource_aka.rendered
+  value = "${aws_glacier_vault.named_test_resource.arn}"
 }
 
 output "resource_id" {

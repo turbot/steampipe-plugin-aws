@@ -22,6 +22,33 @@
       "name": "{{resourceName}}"
     },
     "title": "{{ output.resource_id.value }}",
-    "vault_name": "{{ output.resource_id.value }}"
+    "vault_lock_policy_std": {
+      "Statement":[
+         {
+          "Action": [
+            "glacier:deletearchive"
+            ],
+          "Condition": {
+            "NumericLessThan": {
+              "glacier:archiveageindays": [
+                "365"
+              ]
+            }
+          },
+          "Effect": "Deny",
+          "Principal": {
+            "AWS": [
+              "*"
+            ]
+          },
+          "Resource": [
+            "{{ output.resource_aka.value }}"
+          ],
+          "Sid": "deny-based-on-archive-age"
+         }
+      ],
+      "Version":"2012-10-17"
+    },
+  "vault_name": "{{ output.resource_id.value }}"
   }
 ]

@@ -58,6 +58,21 @@ where
 ```
 
 
+### Get the archival age in days before deletion for each vault
+
+```sql
+select
+  title,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' -> 'NumericLessThan' ->> 'glacier:archiveageindays' as archive_age_in_days
+from
+  aws_glacier_vault,
+  jsonb_array_elements(vault_lock_policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Action') as a;
+```
+
+
 ### List vaults without owner tag key
 
 ```sql

@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
+	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -367,7 +368,6 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 	return svc, nil
 }
 
-
 // EmrService returns the service connection for AWS EMR service
 func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
 	if region == "" {
@@ -413,7 +413,6 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*g
 
 	return svc, nil
 }
-
 
 // IAMService returns the service connection for AWS IAM service
 func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {

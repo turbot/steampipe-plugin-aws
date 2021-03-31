@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -72,6 +73,20 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGlacierVaultAccessPolicy,
 				Transform:   transform.FromField("Policy.Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "vault_lock_policy",
+				Description: "The vault lock policy.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlacierVaultLockPolicy,
+				Transform:   transform.FromField("Policy"),
+			},
+			{
+				Name:        "vault_lock_policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlacierVaultLockPolicy,
+				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
 				Name:        "tags_src",
@@ -211,9 +226,52 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 
 	vaultAccessPolicy, err := svc.GetVaultAccessPolicy(param)
 	if err != nil {
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	return vaultAccessPolicy, nil
+}
+
+func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getGlacierVaultLockPolicy")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	data := h.Item.(*glacier.DescribeVaultOutput)
+	accountID := strings.Split(*data.VaultARN, ":")[4]
+
+	// Create session
+	svc, err := GlacierService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build param
+	param := &glacier.GetVaultLockInput{
+		VaultName: data.VaultName,
+		AccountId: aws.String(accountID),
+	}
+
+	vaultLock, err := svc.GetVaultLock(param)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+			return nil, err
+		}
+	}
+	return vaultLock, nil
 }
 
 func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
