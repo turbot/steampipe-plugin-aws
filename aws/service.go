@@ -619,7 +619,7 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 	return svc, nil
 }
 
-// WAFService returns the service connection for AWS WAFv2 service
+// WAFv2Service returns the service connection for AWS WAFv2 service
 func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.WAFV2, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed WAFv2")

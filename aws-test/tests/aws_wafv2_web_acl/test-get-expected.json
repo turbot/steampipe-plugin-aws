@@ -1,13 +1,17 @@
 [
-	{
-		"akas": ["{{ output.resource_aka.value }}"],
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
     "default_action": {
-      "Allow": {},
+      "Allow": {
+
+      },
       "Block": null
     },
-		"description": "Example of a managed rule.",
-		"name": "{{ output.resource_name.value }}",
-		"scope": "REGIONAL",
+    "description": "Example of a managed rule.",
+    "name": "{{ output.resource_name.value }}",
+    "scope": "REGIONAL",
     "tags_src": [
       {
         "Key": "Tag1",
@@ -18,11 +22,11 @@
         "Value": "Value2"
       }
     ],
-		"title": "{{resourceName}}",
+    "title": "{{resourceName}}",
     "visibility_config": {
-			"CloudWatchMetricsEnabled": false,
+      "CloudWatchMetricsEnabled": false,
       "MetricName": "friendly-metric-name",
       "SampledRequestsEnabled": false
-		}
-	}
+    }
+  }
 ]

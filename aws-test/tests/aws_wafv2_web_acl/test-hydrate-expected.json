@@ -1,12 +1,14 @@
 [
-	{
-		"akas": ["{{ output.resource_aka.value }}"],
-		"name": "{{ output.resource_name.value }}",
-		"scope": "REGIONAL",
-		"tags": {
-			"Tag1": "Value1",
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "name": "{{ output.resource_name.value }}",
+    "scope": "REGIONAL",
+    "tags": {
+      "Tag1": "Value1",
       "Tag2": "Value2"
-		},
-		"title": "{{resourceName}}"
-	}
+    },
+    "title": "{{resourceName}}"
+  }
 ]
