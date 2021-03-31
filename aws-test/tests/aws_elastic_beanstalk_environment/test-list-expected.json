@@ -1,0 +1,9 @@
+[
+  {
+    "application_name": "{{ output.resource_name.value }}",
+    "environment_id": "{{output.resource_id.value}}",
+    "environment_name": "{{ output.resource_name.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}"
+  }
+]
