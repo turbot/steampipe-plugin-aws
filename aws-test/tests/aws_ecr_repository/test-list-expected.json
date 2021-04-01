@@ -1,0 +1,12 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "image_scanning_configuration": {
+      "ScanOnPush": false
+    },
+    "image_tag_mutability": "MUTABLE",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "repository_name": "{{ output.resource_name.value }}"
+  }
+]
