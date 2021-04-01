@@ -1,0 +1,25 @@
+[
+  {
+    "akas": ["{{output.resource_aka.value}}"],
+    "application_name": "{{ output.resource_name.value }}",
+    "environment_id": "{{ output.resource_id.value }}",
+    "environment_name": "{{ output.resource_name.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": [
+      {
+        "Key": "elasticbeanstalk:environment-name",
+        "Value": "{{ output.resource_name.value }}"
+      },
+      {
+        "Key": "elasticbeanstalk:environment-id",
+        "Value": "{{ output.resource_id.value }}"
+      },
+      {
+        "Key": "Name",
+        "Value": "{{ output.resource_name.value }}"
+      }
+    ],
+    "title": "{{ output.resource_name.value }}"
+  }
+]
