@@ -19,7 +19,7 @@ from
 ```
 
 
-### List assessment templates that have no user attributes for findings tags
+### List assessment templates having empty 'user_attributes_for_findings' field
 
 ```sql
 select
@@ -73,7 +73,7 @@ where
 ```
 
 
-### List assessment templates that are created within last 7 days
+### List assessment templates that are created before last 7 days
 
 ```sql
 select
@@ -86,5 +86,5 @@ select
 from
   aws_inspector_assessment_template
 where
-  created_at > (current_date - interval '7' day);
+  created_at < (current_date - interval '7' day);
 ```
