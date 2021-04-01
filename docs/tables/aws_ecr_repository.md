@@ -75,6 +75,42 @@ where
 ```
 
 
+### List repositories whose lifecycle policy rule is not configured to remove untagged and old images from your image repository
+
+```sql
+select
+  repository_name,
+  r -> 'selection' ->> 'tagStatus' as tag_status,
+  r -> 'selection' ->> 'countType' as count_type
+from
+  aws_ecr_repository,
+  jsonb_array_elements(lifecycle_policy -> 'rules') as r
+where
+  ((r -> 'selection' ->> 'tagStatus' <>'untagged')
+  and (r -> 'selection' ->> 'countType' <>'sinceImagePushed'));
+```
+
+
+### Repository policy statements that grant full access to the resource
+
+```sql
+select
+  title,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect,
+  s -> 'Condition' as conditions
+from
+  aws_ecr_repository,
+  jsonb_array_elements(policy -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
+where
+  s ->> 'Effect' = 'Allow'
+  and a in ('*', 'ecr:*');
+```
+
+
 ### Get repository image vulnerability count by severity
 
 ```sql

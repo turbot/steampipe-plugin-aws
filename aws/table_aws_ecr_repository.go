@@ -65,22 +65,9 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_DATETIME,
 			},
 			{
-				Name:        "lifecycle_policy",
-				Description: "The JSON lifecycle policy text.",
-				Hydrate:     getAwsEcrRepositoryLifecyclePolicy,
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("LifecyclePolicyText"),
-			},
-			{
 				Name:        "max_results",
 				Description: "The maximum number of repository results returned by DescribeRepositories.",
 				Hydrate:     getAwsEcrRepositories,
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "policy_text",
-				Description: "The JSON repository policy text associated with the repository.",
-				Hydrate:     getAwsEcrRepositoryPolicy,
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -99,6 +86,20 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "image_scanning_configuration",
 				Description: "The image scanning configuration for a repository.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "lifecycle_policy",
+				Description: "The JSON lifecycle policy text.",
+				Hydrate:     getAwsEcrRepositoryLifecyclePolicy,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("LifecyclePolicyText"),
+			},
+			{
+				Name:        "policy",
+				Description: "The JSON repository policy text associated with the repository.",
+				Hydrate:     getAwsEcrRepositoryPolicy,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PolicyText"),
 			},
 			{
 				Name:        "tags_src",
