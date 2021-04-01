@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -72,12 +73,20 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
+				Name:        "query_logging_configs",
+				Description: "A list of configuration for DNS query logging that is associated with the current AWS account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneQueryLoggingConfigs,
+			},
+			{
 				Name:        "tags_src",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneTags,
 				Transform:   transform.FromField("ResourceTagSet.Tags"),
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -176,6 +185,32 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	resp, err := svc.ListTagsForResource(params)
 	if err != nil {
 		return nil, err
+	}
+
+	return resp, nil
+}
+
+func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getHostedZoneQueryLoggingConfigs")
+	hostedZone := h.Item.(*route53.HostedZone)
+
+	// Create session
+	svc, err := Route53Service(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &route53.ListQueryLoggingConfigsInput{
+		HostedZoneId: &strings.Split(*hostedZone.Id, "/")[2],
+	}
+	resp, err := svc.ListQueryLoggingConfigs(params)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "NoSuchHostedZone" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 
 	return resp, nil
