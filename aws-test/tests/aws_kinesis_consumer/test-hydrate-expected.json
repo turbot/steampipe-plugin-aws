@@ -1,0 +1,5 @@
+[
+  {
+    "stream_arn": "{{ output.stream_aka.value }}"
+  }
+]

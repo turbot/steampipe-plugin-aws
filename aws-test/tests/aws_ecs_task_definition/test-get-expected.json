@@ -1,0 +1,12 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "cpu": "<null>",
+    "family": "{{resourceName}}",
+    "memory": "<null>",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.region_name.value }}",
+    "status": "ACTIVE",
+    "task_definition_arn": "{{ output.resource_aka.value }}"
+  }
+]
