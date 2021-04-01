@@ -79,3 +79,60 @@ connection "aws" {
 
 * Open source: https://github.com/turbot/steampipe-plugin-aws
 * Community: [Discussion forums](https://github.com/turbot/steampipe/discussions)
+
+## Advanced configuration options
+
+If you have a `default` profile setup using the AWS CLI Steampipe just works with that connection.
+
+For users with multiple accounts and more complex authentication use cases, here are some examples of advanced configuration options:
+
+The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in any connection profile.  You may also specify one or more regions with the `regions` argument. An AWS connection may connect to multiple regions, however be aware that performance may be negatively affected by both the number of regions and the latency to them.
+
+
+### Credentials via key pair
+```hcl
+connection "aws_account_x" {
+  plugin      = "aws" 
+  secret_key  = "gMCYsoGqjfThisISNotARealKeyVVhh"
+  access_key  = "ASIA3ODZSWFYSN2PFHPJ"  
+  regions     = ["us-east-1" , "us-west-2"]
+}
+```
+### Credentials via AWS config profiles
+
+Named profile from an AWS credential file with the `profile` argument.  A connect per profile is a common configuration:
+
+```hcl
+# credentials via profile
+connection "aws_account_y" {
+  plugin      = "aws" 
+  profile     = "profile_y"
+  regions     = ["us-east-1", "us-west-2"]
+}
+
+# credentials via profile
+connection "aws_account_z" {
+  plugin      = "aws" 
+  profile     = "profile_z"
+  regions     = ["ap-southeast-1", "ap-southeast-2"]
+}
+
+### Credentials from environment variables
+
+```sh
+export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+export AWS_DEFAULT_REGION=eu-west-1
+export AWS_SESSION_TOKEN=AQoDYXdzEJr...
+export AWS_ROLE_SESSION_NAME=steampipe@myaccount
+
+### Credentials from an EC2 instance role
+
+If you are running Steampipe on a AWS EC2 instance, and that instance has an [instance profile attached](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) then Steampipe will automatically use the associated IAM role without other credentials:
+
+```hcl
+connection "aws" {
+  plugin      = "aws" 
+  regions     = ["eu-west-1", "eu-west-2"]
+}
+```
