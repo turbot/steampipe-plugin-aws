@@ -54,7 +54,7 @@ resource "aws_vpc" "my_vpc" {
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = "${aws_vpc.my_vpc.id}"
+  vpc_id = aws_vpc.my_vpc.id
   tags = {
     Name = var.resource_name
   }
@@ -63,7 +63,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "my_subnet1" {
   cidr_block        = "10.1.1.0/24"
   availability_zone = "${var.aws_region}a"
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  vpc_id            = aws_vpc.my_vpc.id
   depends_on = [
       "aws_internet_gateway.igw"
     ]
@@ -75,7 +75,7 @@ resource "aws_subnet" "my_subnet1" {
 resource "aws_subnet" "my_subnet2" {
   cidr_block        = "10.1.2.0/24"
   availability_zone = "${var.aws_region}b"
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  vpc_id            = aws_vpc.my_vpc.id
   depends_on = [
       "aws_internet_gateway.igw"
     ]
