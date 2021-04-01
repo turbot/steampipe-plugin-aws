@@ -195,6 +195,8 @@ func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryDat
 	return []string{aka}, nil
 }
 
+//// TRANSFORM FUNCTION
+
 func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tagListToTurbotTags")
 

@@ -1,6 +1,6 @@
 # Table: aws_redshift_event_subscription
 
-Amazon Redshift Event Subscription notifies when an event occurs for a cluster,snapshot,security group, or parameter group.
+Amazon Redshift Event Subscription notifies when an event occurs for a cluster, snapshot, security group or parameter group.
 
 ## Examples
 
