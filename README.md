@@ -2,7 +2,7 @@
 
 # AWS Plugin for Steampipe
 
-Use SQL to query infrastructure including servers, networks, facilities and more from AWS. 
+Use SQL to query infrastructure including servers, networks, identity and more from AWS. 
 
 * **[Get started →](https://hub.steampipe.io/plugins/turbot/aws)**
 * Documentation: [Table definitions & examples](https://hub.steampipe.io/plugins/turbot/aws/tables)
