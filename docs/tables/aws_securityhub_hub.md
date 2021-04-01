@@ -17,7 +17,7 @@ from
 ```
 
 
-### List hubs with auto enable controls disabled
+### List hubs that do not automatically enable new controls
 
 ```sql
 select
@@ -27,18 +27,4 @@ from
   aws_securityhub_hub
 where
   not auto_enable_controls;
-```
-
-
-### List hubs with missing required tags
-
-```sql
-select
-  hub_arn,
-  tags
-from
-  aws_securityhub_hub
-where
-  tags -> 'owner' is null
-  or tags -> 'app_id' is null;
 ```
