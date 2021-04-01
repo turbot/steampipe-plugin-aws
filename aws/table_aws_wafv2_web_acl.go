@@ -109,7 +109,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
-			// steampipe standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -130,7 +130,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ARN").Transform(arnToAkas),
 			},
 
-			// aws standard columns
+			// AWS standard columns
 			{
 				Name:        "partition",
 				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
