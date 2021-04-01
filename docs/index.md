@@ -60,7 +60,7 @@ steampipe plugin install aws
 | Credentials | Specify a named profile from an AWS credential file with the `profile` argument. |
 | Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
 | Radius | Each connection represents a single AWS account. |
-| Resolution |  1. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />2. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />3. Credentials for the Default profile from the credential file.<br />4. EC2 Instance Role Credentials (if running on an ec2 instance)|
+| Resolution |  1. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />2. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />3. Credentials for the Default profile from the credential file.<br />4. EC2 Instance Role Credentials (if running on an ec2 instance) |
 | Region Resolution | 1. The `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable<br />2. The region specified in the active profile (`AWS_PROFILE` or `default`). |
 
 ### Configuration
