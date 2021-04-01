@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,7 +19,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 		Description: "AWS ECR Repository",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("repository_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
 			Hydrate:           getAwsEcrRepositories,
 		},
 		List: &plugin.ListConfig{
@@ -58,9 +59,28 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "last_evaluated_at",
+				Description: "The time stamp of the last time that the lifecycle policy was run.",
+				Hydrate:     getAwsEcrRepositoryLifecyclePolicy,
+				Type:        proto.ColumnType_DATETIME,
+			},
+			{
+				Name:        "lifecycle_policy",
+				Description: "The JSON lifecycle policy text.",
+				Hydrate:     getAwsEcrRepositoryLifecyclePolicy,
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LifecyclePolicyText"),
+			},
+			{
 				Name:        "max_results",
 				Description: "The maximum number of repository results returned by DescribeRepositories.",
 				Hydrate:     getAwsEcrRepositories,
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "policy_text",
+				Description: "The JSON repository policy text associated with the repository.",
+				Hydrate:     getAwsEcrRepositoryPolicy,
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -241,10 +261,13 @@ func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get call
 	op, err := svc.GetRepositoryPolicy(params)
 	if err != nil {
-		logger.Debug("getAwsEcrRepositoryPolicy", "ERROR", err)
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "RepositoryPolicyNotFoundException" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
-
 	return op, nil
 }
 
@@ -285,7 +308,6 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrRepositoryLifecyclePolicy")
-
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -293,25 +315,25 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 		region = matrixRegion.(string)
 	}
 	repositoryName := h.Item.(*ecr.Repository).RepositoryName
-
 	// Create Session
 	svc, err := EcrService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
 	// Build the params
 	params := &ecr.GetLifecyclePolicyInput{
 		RepositoryName: repositoryName,
 	}
-
 	// Get call
 	op, err := svc.GetLifecyclePolicy(params)
 	if err != nil {
-		logger.Debug("getAwsEcrRepositoryLifecyclePolicy", "ERROR", err)
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "LifecyclePolicyNotFoundException" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
-
 	return op, nil
 }
 
