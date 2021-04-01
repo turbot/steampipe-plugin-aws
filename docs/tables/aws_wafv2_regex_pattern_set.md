@@ -13,7 +13,7 @@ select
   arn,
   id,
   scope,
-  regular_expression_list,
+  regular_expressions,
   region
 from
   aws_wafv2_regex_pattern_set;
@@ -29,7 +29,7 @@ select
   arn,
   id,
   scope,
-  regular_expression_list,
+  regular_expressions,
   region
 from
   aws_wafv2_regex_pattern_set
