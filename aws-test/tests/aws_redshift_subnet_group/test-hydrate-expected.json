@@ -1,0 +1,11 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"cluster_subnet_group_name": "{{ output.resource_id.value }}",
+		"description": "A test subnet group",
+	        "tags": {
+	          "name": "{{ output.resource_id.value }}"
+	         },
+		"title": "{{ output.resource_id.value }}"
+	}
+]

@@ -1,0 +1,8 @@
+[
+  {
+    "active_services_count": 0,
+    "cluster_arn": "{{ output.resource_aka.value }}",
+    "cluster_name": "{{resourceName}}",
+    "status": "ACTIVE"
+  }
+]
