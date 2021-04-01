@@ -71,7 +71,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_vpc_attachment": tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_elastic_beanstalk_environment":      tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_ecs_cluster":                        tableAwsEcsCluster(ctx),
-    	"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
+			"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                   tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                    tableAwsElasticFileSystem(ctx),
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
@@ -141,6 +141,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
+			"aws_wafv2_regex_pattern_set":                       tableAwsWafv2RegexPatternSet(ctx),
 		},
 	}
 
