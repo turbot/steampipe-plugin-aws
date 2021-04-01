@@ -20,7 +20,7 @@ from
 ```
 
 
-### List repositories which are not using Customer Managed Keys(CMK) for encryption
+### List repositories which are not using Customer Managed Keys (CMK) for encryption
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
 ```
 
 
-### List repositories whose automatic image scanning is disabled
+### List repositories with automatic image scanning disabled
 
 ```sql
 select
@@ -75,7 +75,7 @@ where
 ```
 
 
-### List repositories whose lifecycle policy rule is not configured to remove untagged and old images from your image repository
+### List repositories whose lifecycle policy rule is not configured to remove untagged and old images
 
 ```sql
 select
@@ -95,7 +95,7 @@ where
 ```
 
 
-### Repository policy statements that grant full access to the resource
+### List repository policy statements that grant full access for each repository
 
 ```sql
 select
@@ -115,7 +115,7 @@ where
 ```
 
 
-### Get repository image vulnerability count by severity
+### Get repository image vulnerability count by severity for each repository
 
 ```sql
 select
