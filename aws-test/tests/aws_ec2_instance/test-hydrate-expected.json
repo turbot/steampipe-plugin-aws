@@ -36,8 +36,8 @@
         "Status": "initializing"
       }
     },
-    "kernel_id": null,
-    "ram_disk_id": null,
+    "kernel_id": "<null>",
+    "ram_disk_id": "<null>",
     "sriov_net_support": "simple",
     "tags": {
       "Name": "{{ resourceName }}"

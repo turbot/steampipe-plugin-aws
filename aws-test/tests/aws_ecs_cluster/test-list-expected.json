@@ -1,0 +1,22 @@
+[
+  {
+    "active_services_count": 0,
+    "attachments": "<null>",
+    "attachments_status": "<null>",
+    "capacity_providers": [],
+    "cluster_arn": "{{ output.resource_aka.value }}",
+    "cluster_name": "{{resourceName}}",
+    "default_capacity_provider_strategy": [],
+    "pending_tasks_count": 0,
+    "registered_container_instances_count": 0,
+    "running_tasks_count": 0,
+    "settings": [
+      {
+        "Name": "containerInsights",
+        "Value": "disabled"
+      }
+    ],
+    "statistics": [],
+    "status": "ACTIVE"
+  }
+]
