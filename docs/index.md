@@ -116,6 +116,7 @@ connection "aws_account_z" {
   profile     = "profile_z"
   regions     = ["ap-southeast-1", "ap-southeast-2"]
 }
+```
 
 ### Credentials from environment variables
 
@@ -125,6 +126,7 @@ export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 export AWS_DEFAULT_REGION=eu-west-1
 export AWS_SESSION_TOKEN=AQoDYXdzEJr...
 export AWS_ROLE_SESSION_NAME=steampipe@myaccount
+```
 
 ### Credentials from an EC2 instance role
 
