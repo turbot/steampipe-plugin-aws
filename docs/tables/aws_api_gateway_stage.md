@@ -4,7 +4,7 @@ A stage is a named reference to a deployment, which is a snapshot of the API.
 
 ## Examples
 
-### Count of api gateway stages per rest APIs
+### Count of stages per rest APIs
 
 ```sql
 select
@@ -17,7 +17,7 @@ group by
 ```
 
 
-### List of API gateway stages where API caching is enabled
+### List of stages where API caching is enabled
 
 ```sql
 select
@@ -32,7 +32,7 @@ where
 ```
 
 
-### List of web acls associated with the gateway stages
+### List web ACLs associated with the gateway stages
 
 ```sql
 select
@@ -40,4 +40,19 @@ select
   split_part(web_acl_arn, '/', 3) as web_acl_name
 from
   aws_api_gateway_stage;
+```
+
+
+### List stages with CloudWatch logging disabled
+
+```sql
+select
+  deployment_id,
+  name,
+  tracing_enabled,
+  method_settings -> '*/*' ->> 'LoggingLevel' as cloudwatch_log_level
+from
+  aws_api_gateway_stage
+where
+  method_settings -> '*/*' ->> 'LoggingLevel' = 'OFF';
 ```
