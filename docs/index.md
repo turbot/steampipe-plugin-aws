@@ -41,7 +41,7 @@ from
 
 ## Documentation
 
-- **[Table definitions & examples →](aws/tables)**
+- **[Table definitions & examples →](/plugins/turbot/aws/tables)**
 
 ## Get started
 
