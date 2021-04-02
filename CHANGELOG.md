@@ -1,3 +1,9 @@
+## v0.10.1 [20201-04-02]
+
+_Bug fixes_
+
+- Fixed: `Table definitions & examples` link now points to the correct location ([#282](https://github.com/turbot/steampipe-plugin-aws/pull/282))
+
 ## v0.10.0 [20201-04-01]
 
 _What's new?_
