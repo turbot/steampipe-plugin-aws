@@ -41,7 +41,7 @@ from
 
 ## Documentation
 
-- **[Table definitions & examples →](aws/tables)**
+- **[Table definitions & examples →](/plugins/aws/tables)**
 
 ## Get started
 
