@@ -18,7 +18,7 @@ from
 ```
 
 
-## List workloads with production environment
+## List production workloads
 
 ```sql
 select
@@ -32,19 +32,7 @@ where
 ```
 
 
-## Get aws regions associated with each workload
-
-```sql
-select
-  workload_name,
-  workload_id,
-  aws_regions
-from
-  aws_wellarchitected_workload;
-```
-
-
-## Get high risk issues counts for each workload
+## Get high risk issue counts for each workload
 
 ```sql
 select
@@ -56,7 +44,7 @@ from
 ```
 
 
-## List workloads with review owner update acknowledged disabled
+## List workloads that do not require a review owner
 
 ```sql
 select
