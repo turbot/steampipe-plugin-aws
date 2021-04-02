@@ -17,7 +17,7 @@ from
 ```
 
 
-### List firehose delivery streams which are not active
+### List inactive delivery streams
 
 ```sql
 select
@@ -33,7 +33,7 @@ where
 ```
 
 
-### List firehose delivery streams which are not encrypted
+### List delivery streams that are not encrypted
 
 ```sql
 select
@@ -50,24 +50,7 @@ where
 ```
 
 
-### List firehose delivery streams which are not updated in last 7 days
-
-```sql
-select
-  delivery_stream_name,
-  arn,
-  delivery_stream_status,
-  create_timestamp,
-  last_update_timestamp,
-  delivery_stream_type
-from
-  aws_kinesis_firehose_delivery_stream
-where
-  last_update_timestamp < (current_date - interval '7' day);
-```
-
-
-### List firehose delivery streams for a specific delivery stream type
+### List delivery streams for a specific delivery stream type
 
 ```sql
 select
@@ -83,7 +66,7 @@ where
 ```
 
 
-### List firehose delivery streams with failure description
+### List delivery streams with at least one failure
 
 ```sql
 select
