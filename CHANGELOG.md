@@ -1,10 +1,10 @@
-## v0.10.1 [20201-04-02]
+## v0.10.1 [2021-04-02]
 
 _Bug fixes_
 
 - Fixed: `Table definitions & examples` link now points to the correct location ([#282](https://github.com/turbot/steampipe-plugin-aws/pull/282))
 
-## v0.10.0 [20201-04-01]
+## v0.10.0 [2021-04-01]
 
 _What's new?_
 
@@ -31,7 +31,7 @@ _Bug fixes_
 - Fixed: Remove unnecessary engine and region compatibility check when describing instances in the `aws_rds_db_instance` table ([#263](https://github.com/turbot/steampipe-plugin-aws/pull/263))
 - Fixed: The `aws_vpc` table should ignore `InvalidVpcID.NotFound` errors ([#270](https://github.com/turbot/steampipe-plugin-aws/pull/270))
 
-## v0.9.0 [20201-03-25]
+## v0.9.0 [2021-03-25]
 
 _What's new?_
 
