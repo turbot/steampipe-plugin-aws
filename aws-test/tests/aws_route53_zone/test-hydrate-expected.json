@@ -1,6 +1,13 @@
 [
 	{
 		"name": "{{ resourceName}}.com.",
+		"query_logging_configs": [
+			{
+				"CloudWatchLogsLogGroupArn": "{{ output.cloudwatch_log_group_arn.value }}",
+				"HostedZoneId": "{{ output.zone_id.value }}",
+				"Id": "{{ output.logging_configuration_id.value }}"
+			}
+		],
 		"tags_src": [
 			{
 				"Key": "name",
