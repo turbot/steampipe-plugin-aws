@@ -245,18 +245,11 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	/*
-		instanceProfileData, err := svc.ListInstanceProfilesForRole(params)
-		if err != nil {
-			return nil, err
-		}
-	*/
+	var associatedInstanceProfileArns []string
 
 	params := &iam.ListInstanceProfilesForRoleInput{
 		RoleName: role.RoleName,
 	}
-
-	var associatedInstanceProfileArns []string
 
 	err = svc.ListInstanceProfilesForRolePages(
 		params,
@@ -267,14 +260,6 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 			return !lastPage
 		},
 	)
-
-	/*
-		if instanceProfileData.InstanceProfiles != nil {
-			for _, instanceProfile := range instanceProfileData.InstanceProfiles {
-				associatedInstanceProfileArns = append(associatedInstanceProfileArns, *instanceProfile.Arn)
-			}
-		}
-	*/
 
 	return associatedInstanceProfileArns, err
 }
