@@ -4,8 +4,6 @@ variable "resource_name" {
   description = "Name of the resource used throughout the test."
 }
 
-
-
 variable "aws_profile" {
   type        = string
   default     = "integration-tests"
@@ -61,9 +59,11 @@ resource "aws_backup_plan" "named_test_resource" {
     schedule          = "cron(0 12 * * ? *)"
   }
 }
+
 output "id" {
   value = aws_backup_plan.named_test_resource.id
 }
+
 output "resource_aka" {
   value = aws_backup_plan.named_test_resource.arn
 }

@@ -1,6 +1,7 @@
 # Table: aws_backup_plan
 
-In AWS Backup, a backup plan is a policy expression that defines when and how you want to back up your AWS resources, such as Amazon DynamoDB tables or Amazon Elastic File System (Amazon EFS) file systems. You can assign resources to backup plans, and AWS Backup automatically backs up and retains backups for those resources according to the backup plan. You can create multiple backup plans if you have workloads with different backup requirements.
+AWS Backup plan is a policy expression that defines when and how you want to back up your AWS resources, such as Amazon DynamoDB tables or Amazon Elastic File System (Amazon EFS) file systems.
+You can assign resources to backup plans, and AWS Backup automatically backs up and retains backups for those resources according to the backup plan. You can create multiple backup plans if you have workloads with different backup requirements.
 
 ## Examples
 
@@ -45,20 +46,4 @@ from
   aws_backup_plan
 order by
   creation_date;
-```
-
-### List plans which are deleted in last 7 days
-
-```sql
-select
-  name,
-  backup_plan,
-  creation_date,
-  deletion_date
-from
-  aws_backup_plan
-where
-  deletion_date > now() - interval '7' day
-order by
-  deletion_date;
 ```

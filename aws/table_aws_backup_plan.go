@@ -42,7 +42,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "backup_plan_id",
-				Description: "Uniquely identifies a backup plan.",
+				Description: "Specifies the id to identify a backup plan uniquely.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -81,6 +81,8 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Description: "Contains a list of BackupOptions for a resource type.",
 				Type:        proto.ColumnType_JSON,
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -132,6 +134,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+
 	var id string
 	if h.Item != nil {
 		plan := h.Item.(*backup.PlansListMember)
@@ -139,6 +142,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	} else {
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
 	}
+
 	params := &backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(id),
 	}
