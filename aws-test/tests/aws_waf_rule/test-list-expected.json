@@ -1,0 +1,10 @@
+[
+  {
+    "name": "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}"
+  }
+]
