@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -78,6 +78,8 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsBackupVaultNotification,
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -165,15 +167,15 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	op, err := svc.GetBackupVaultNotifications(params)
-	if serverErr, ok := err.(*errors.ServerError); ok {
-		if serverErr.ErrorCode() == "InvalidParameterValue" {
-			plugin.Logger(ctx).Warn("getAwsBackupVaultNotification", "not_found_error", serverErr, "request", params)
-			return nil, nil
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" {
+				plugin.Logger(ctx).Warn("getAwsBackupVaultNotification", "not_found_error", err, "request", params)
+				return nil, nil
+			}
+			return nil, err
 		}
-		plugin.Logger(ctx).Debug("getAwsBackupVaultNotification", "ERROR", err)
-		return nil, err
 	}
-
 	return op, nil
 }
 
@@ -191,14 +193,14 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	op, err := svc.GetBackupVaultAccessPolicy(params)
-
-	if serverErr, ok := err.(*errors.ServerError); ok {
-		if serverErr.ErrorCode() == "InvalidParameterValue" {
-			plugin.Logger(ctx).Warn("getAwsBackupVaultAccessPolicy", "not_found_error", serverErr, "request", params)
-			return nil, nil
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" {
+				plugin.Logger(ctx).Warn("getAwsBackupVaultAccessPolicy", "not_found_error", err, "request", params)
+				return nil, nil
+			}
+			return nil, err
 		}
-		plugin.Logger(ctx).Debug("getAwsBackupVaultAccessPolicy", "ERROR", err)
-		return nil, err
 	}
 	return op, nil
 }
