@@ -47,3 +47,19 @@ select
 from
   aws_redshift_event_subscription;
 ```
+
+
+### List of unencrypted SNS topic associated with event subscriptions
+
+```sql
+select
+  e.cust_subscription_id,
+  e.status,
+  s.kms_master_key_id,
+  s.topic_arn as arn
+from
+  aws_redshift_event_subscription as e
+  join aws_sns_topic as s on s.topic_arn = e.sns_topic_arn
+where
+  s.kms_master_key_id is null;
+```
