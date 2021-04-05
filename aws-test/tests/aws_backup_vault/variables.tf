@@ -84,7 +84,7 @@ POLICY
 output "id" {
   value = aws_backup_vault.named_test_resource.id
 }
+
 output "resource_aka" {
   value = aws_backup_vault.named_test_resource.arn
 }
-
