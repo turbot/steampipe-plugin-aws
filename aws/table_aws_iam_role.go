@@ -12,7 +12,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -68,10 +67,11 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Description: "A user-provided description of the role.",
 			},
 			{
-				Name:        "instance_profile_arn",
-				Description: "The Amazon Resource Name (ARN) specifying the instance profile for the role.",
-				Type:        proto.ColumnType_STRING,
+				Name:        "instance_profile_arns",
+				Description: "A list of instance profiles associated with the role.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamInstanceProfileData,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "max_session_duration",
@@ -238,26 +238,45 @@ func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *p
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsIamInstanceProfileData")
 	role := h.Item.(*iam.Role)
+
 	// create service
 	svc, err := IAMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	params := &iam.GetInstanceProfileInput{
-		InstanceProfileName: role.RoleName,
-	}
-	var arn *string
-	roleData, err := svc.GetInstanceProfile(params)
-	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "NoSuchEntity" {
-				return map[string]interface{}{"InstanceProfileArn": arn}, nil
-			}
+
+	/*
+		instanceProfileData, err := svc.ListInstanceProfilesForRole(params)
+		if err != nil {
 			return nil, err
 		}
+	*/
+
+	params := &iam.ListInstanceProfilesForRoleInput{
+		RoleName: role.RoleName,
 	}
 
-	return map[string]interface{}{"InstanceProfileArn": roleData.InstanceProfile.Arn}, nil
+	var associatedInstanceProfileArns []string
+
+	err = svc.ListInstanceProfilesForRolePages(
+		params,
+		func(page *iam.ListInstanceProfilesForRoleOutput, lastPage bool) bool {
+			for _, instanceProfile := range page.InstanceProfiles {
+				associatedInstanceProfileArns = append(associatedInstanceProfileArns, *instanceProfile.Arn)
+			}
+			return !lastPage
+		},
+	)
+
+	/*
+		if instanceProfileData.InstanceProfiles != nil {
+			for _, instanceProfile := range instanceProfileData.InstanceProfiles {
+				associatedInstanceProfileArns = append(associatedInstanceProfileArns, *instanceProfile.Arn)
+			}
+		}
+	*/
+
+	return associatedInstanceProfileArns, err
 }
 
 func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
