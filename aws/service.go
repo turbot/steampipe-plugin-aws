@@ -48,6 +48,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/waf"
 
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -859,6 +860,26 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return nil, err
 	}
 	svc := sts.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// WafService returns the service connection for AWS WAF service
+func WafService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "waf"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*waf.WAF), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := waf.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil

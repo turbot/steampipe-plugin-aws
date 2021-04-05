@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "metric_name": "{{ output.resource_name.value }}",
+    "title": "{{ output.resource_name.value }}"
+  }
+]
