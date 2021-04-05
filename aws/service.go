@@ -137,6 +137,23 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 	return svc, nil
 }
 
+// BackupService returns the service connection for AWS Backup service
+func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "backup"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*backup.Backup), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := backup.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // CloudFormationService returns the service connection for AWS CloudFormation service
 func CloudFormationService(ctx context.Context, d *plugin.QueryData, region string) (*cloudformation.CloudFormation, error) {
 	if region == "" {
@@ -993,22 +1010,5 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 	svc := eventbridge.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
-	return svc, nil
-}
-
-// BackupService returns the service connection for AWS Backup service
-func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "backup"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*backup.Backup), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	svc := backup.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
