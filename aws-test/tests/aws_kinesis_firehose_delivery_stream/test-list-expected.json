@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "delivery_stream_name": "{{ resourceName }}",
+    "delivery_stream_status": "ACTIVE",
+    "version_id": "1"
+  }
+]

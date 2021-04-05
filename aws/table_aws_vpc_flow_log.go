@@ -53,6 +53,11 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "flow_log_status",
+				Description: "The status of the flow log (ACTIVE).",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "log_group_name",
 				Description: "The name of the flow log group.",
 				Type:        proto.ColumnType_STRING,
