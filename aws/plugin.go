@@ -71,7 +71,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
 			"aws_elasticache_cluster":                tableAwsElastiCacheCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
-			"aws_guardduty_detector":                 tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_threat_intel_set":         tableAwsGuarddutyThreatIntelSet(ctx),
 			"aws_iam_access_advisor":                 tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                     tableAwsIamAccessKey(ctx),
