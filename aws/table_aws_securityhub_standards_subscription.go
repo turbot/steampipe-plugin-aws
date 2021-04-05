@@ -15,7 +15,7 @@ func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
 		Description: "AWS Securityhub standards",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
 			Hydrate:           getSecurityHubStandardSubcription,
 		},
 		List: &plugin.ListConfig{
@@ -24,13 +24,13 @@ func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "standards_arn",
-				Description: "The ARN of a standard.",
+				Name:        "name",
+				Description: "The name of the standard.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "name",
-				Description: "The name of the standard.",
+				Name:        "standards_arn",
+				Description: "The ARN of a standard.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -100,10 +100,14 @@ func listSecurityHubStandardSubcriptions(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	resp, err := svc.DescribeStandards(&securityhub.DescribeStandardsInput{})
+	if err != nil {
+		plugin.Logger(ctx).Error("listSecurityHubStandardSubcriptions", "query_error", err)
+		return nil, nil
+	}
 	for _, standards := range resp.Standards {
 		d.StreamListItem(ctx, standards)
 	}
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
