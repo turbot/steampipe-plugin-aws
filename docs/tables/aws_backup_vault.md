@@ -15,7 +15,6 @@ from
   aws_backup_vault;
 ```
 
-
 ### List vaults older than 90 days
 
 ```sql
@@ -29,4 +28,18 @@ where
   creation_date <= (current_date - interval '90' day)
 order by
   creation_date;
+```
+
+### List vaults where policy is not configured to prevent the deletion of AWS backups in the backup vault
+
+```sql
+select
+  name
+from
+  aws_backup_vault,
+  jsonb_array_elements(policy -> 'Statement') as s
+where
+  s ->> 'Principal' = '*'
+  and s ->> 'Effect' != 'Deny'
+  and s ->> 'Action' like '%DeleteBackupVault%';
 ```
