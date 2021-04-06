@@ -1,0 +1,14 @@
+[
+    {
+        "name": "{{ resourceName }}",
+        "tags": {
+            "name": "{{ resourceName }}"
+        },
+        "tags_src": [
+            {
+                "Key": "name",
+                "Value": "{{ resourceName }}"
+            }
+        ]
+    }
+]
