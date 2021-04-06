@@ -16,7 +16,7 @@ from
 ```
 
 
-### Get the details of the require_ssl parameter associated with each parameter group
+### List the parameter of parameter group where require_ssl is false 
 
 ```sql
 select
@@ -34,12 +34,6 @@ from
   aws_redshift_parameter_group,
   jsonb_array_elements(parameters) as p
 where
-  (
-    p ->> 'ParameterName' = 'require_ssl'
-    and p ->> 'ParameterValue' = 'false'
-  )
-  or (
-    p ->> 'ParameterName' = 'require_ssl'
-    and p ->> 'ParameterValue' = 'true'
-  );
+  p ->> 'ParameterName' = 'require_ssl'
+  and p ->> 'ParameterValue' = 'false';
 ```
