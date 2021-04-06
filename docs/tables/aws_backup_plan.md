@@ -47,3 +47,19 @@ from
 order by
   creation_date;
 ```
+
+### List plans which are deleted in last 7 days
+
+```sql
+select
+  name,
+  arn,
+  creation_date,
+  deletion_date
+from
+  aws_backup_plan
+where
+  deletion_date > now() - interval '7' day
+order by
+  deletion_date;
+```
