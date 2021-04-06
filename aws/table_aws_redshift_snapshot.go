@@ -204,7 +204,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRedshiftSnapshotTurbotTags),
+				Transform:   transform.From(tagListToTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -306,7 +306,7 @@ func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func getRedshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func tagListToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	snapshot := d.HydrateItem.(*redshift.Snapshot)
 
 	if snapshot.Tags != nil {

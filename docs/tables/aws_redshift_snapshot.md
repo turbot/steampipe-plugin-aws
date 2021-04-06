@@ -77,7 +77,7 @@ where
 ```
 
 
-### List snapshots whose AWS customer accounts are not authorized
+### list of accounts that are authorized to restore the snapshots
 
 ```sql
 select
