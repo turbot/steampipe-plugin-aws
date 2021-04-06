@@ -16,7 +16,7 @@ from
 ```
 
 
-### Get the details of the parameters associated with each parameter group
+### Get the details of the require_ssl parameter associated with each parameter group
 
 ```sql
 select
@@ -32,5 +32,14 @@ select
   p ->> 'MinimumEngineVersion' as minimum_engine_version
 from
   aws_redshift_parameter_group,
-  jsonb_array_elements(parameters) as p;
+  jsonb_array_elements(parameters) as p
+where
+  (
+    p ->> 'ParameterName' = 'require_ssl'
+    and p ->> 'ParameterValue' = 'false'
+  )
+  or (
+    p ->> 'ParameterName' = 'require_ssl'
+    and p ->> 'ParameterValue' = 'true'
+  );
 ```
