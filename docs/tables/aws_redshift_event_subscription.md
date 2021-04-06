@@ -35,7 +35,7 @@ where
 ```
 
 
-### Get details of the source associated with event subscriptions
+### Get associated source details for each event subscription
 
 ```sql
 select
@@ -49,7 +49,7 @@ from
 ```
 
 
-### List of unencrypted SNS topic associated with event subscriptions
+### List unencrypted SNS topics associated with each event subscription
 
 ```sql
 select
