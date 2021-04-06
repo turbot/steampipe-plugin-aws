@@ -1,0 +1,54 @@
+# Table: aws_ssm_document
+
+AWS Systems Manager Document defines the actions that SSM performs on managed
+instances. SSM provides more than 100 pre-configured documents that used by
+specifying parameters at runtime.
+
+## Examples
+
+### Basic info
+
+```sql
+select
+  name,
+  document_version,
+  status,
+  owner,
+  document_format,
+  document_type,
+  platform_types,
+  region
+from
+  aws_ssm_document;
+```
+
+
+### List documents not owned by Amazon
+
+```sql
+select
+  name,
+  owner,
+  document_version,
+  status,
+  document_format,
+  document_type
+from
+  aws_ssm_document
+where
+  owner != 'Amazon';
+```
+
+### List documents not owned by Amazon that are shared publicly
+
+```sql
+select
+  name,
+  owner,
+  account_ids
+from
+  aws_ssm_document
+where
+  owner <> 'amazon'
+  and account_ids :: jsonb ? 'all';
+```

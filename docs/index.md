@@ -5,7 +5,7 @@ icon_url: "/images/plugins/turbot/aws.svg"
 brand_color: "#FF9900"
 display_name: "Amazon Web Services"
 short_name: "aws"
-description: "Steampipe plugin for 70+ AWS services and resource types"
+description: "Steampipe plugin for AWS services and resource types."
 ---
 
 # AWS
