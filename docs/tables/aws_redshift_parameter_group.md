@@ -16,7 +16,7 @@ from
 ```
 
 
-### List the parameter of parameter group where require_ssl is false 
+### List parameter groups that have the require_ssl parameter set to false
 
 ```sql
 select
