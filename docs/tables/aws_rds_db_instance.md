@@ -4,7 +4,7 @@ A DB instance is an isolated database environment running in the cloud.
 
 ## Examples
 
-### List of DB instances which are publicly accessible
+### Basic info
 
 ```sql
 select
@@ -15,19 +15,13 @@ select
   publicly_accessible
 from
   aws_rds_db_instance
-where
-  publicly_accessible;
 ```
 
-
-### List of DB instances which are not authenticated through IAM users and roles.
+### List DB instances which are publicly accessible
 
 ```sql
 select
   db_instance_identifier,
-  class,
-  engine,
-  engine_version,
   publicly_accessible
 from
   aws_rds_db_instance
@@ -36,7 +30,20 @@ where
 ```
 
 
-### VPC and subnet info associated with DB instance
+### List DB instances which are not authenticated through IAM users and roles
+
+```sql
+select
+  db_instance_identifier,
+  iam_database_authentication_enabled
+from
+  aws_rds_db_instance
+where
+  not iam_database_authentication_enabled;
+```
+
+
+### Get VPC and subnet info for each DB instance
 
 ```sql
 select
@@ -54,7 +61,7 @@ from
 ```
 
 
-### List of RDS instances where deletion protection is disabled
+### List DB instances with deletion protection disabled
 
 ```sql
 select
@@ -70,7 +77,7 @@ where
 ```
 
 
-### List of RDS instances whose storage is not encrypted
+### List DB instances with unecrypted storage
 
 ```sql
 select
@@ -85,7 +92,7 @@ where
 ```
 
 
-### Endpoint info of each db instances
+### Get endpoint info for each DB instance
 
 ```sql
 select

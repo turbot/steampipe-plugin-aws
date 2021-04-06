@@ -1,10 +1,10 @@
-# Table: aws_autoscaling_group
+# Table: aws_ec2_autoscaling_group
 
 An Auto Scaling group contains a collection of Amazon EC2 instances that are treated as a logical grouping for the purposes of automatic scaling and management.
 
 ## Examples
 
-### Basic auto scaling group info
+### Basic info
 
 ```sql
 select
@@ -48,8 +48,8 @@ select
   ins_detail -> 'LaunchTemplate' ->> 'Version' as launch_template_version,
   ins_detail ->> 'ProtectedFromScaleIn' as protected_from_scale_in
 from
-  aws_ec2_autoscaling_group
-  cross join jsonb_array_elements(instances) as ins_detail;
+  aws_ec2_autoscaling_group,
+  jsonb_array_elements(instances) as ins_detail;
 ```
 
 
