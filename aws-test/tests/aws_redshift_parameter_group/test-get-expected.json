@@ -1,0 +1,9 @@
+[
+  {
+    "family": "redshift-1.0",
+    "name": "{{ resourceName }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+      }
+  }
+]
