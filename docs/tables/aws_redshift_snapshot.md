@@ -1,4 +1,3 @@
-
 # Table: aws_redshift_snapshot
 
 Snapshots are point-in-time backups of a cluster. There are two types of snapshots: automated and manual. Amazon Redshift stores these snapshots internally in Amazon S3 by using an encrypted Secure Sockets Layer (SSL) connection.
