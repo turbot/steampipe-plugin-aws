@@ -1,6 +1,7 @@
 # Table: aws_backup_vault
 
 AWS Backup vault is a container that you organize your backups in. You can use backup vaults to set the AWS Key Management Service (AWS KMS) encryption key that is used to encrypt backups in the backup vault and to control access to the backups in the backup vault.
+
 If you require different encryption keys or access policies for different groups of backups, you can optionally create multiple backup vaults. Otherwise, you can have all your backups organized in the default backup vault.
 
 ## Examples
@@ -31,7 +32,7 @@ order by
   creation_date;
 ```
 
-### List vaults where policy is not configured to prevent the deletion of AWS backups in the backup vault
+### List vaults that do not prevent the deletion of backups in the backup vault
 
 ```sql
 select
