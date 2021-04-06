@@ -29,9 +29,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
@@ -442,11 +442,13 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EventBridgeService")
 	}
+
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("eventbridge-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*eventbridge.EventBridge), nil
 	}
+
 	// so it was not in cache - create service
 	sess, err := getSession(ctx, d, region)
 	if err != nil {
@@ -458,17 +460,6 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 	return svc, nil
 }
 
-// GuardDutyService returns the service connection for AWS GuardDuty service
-func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed GuardDutyService")
-	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*guardduty.GuardDuty), nil
-    
 // EmrService returns the service connection for AWS EMR service
 func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
 	if region == "" {
@@ -486,7 +477,6 @@ func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.E
 	if err != nil {
 		return nil, err
 	}
-	svc := guardduty.New(sess)
 	svc := emr.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
@@ -535,6 +525,28 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*g
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
+}
+
+// GuardDutyService returns the service connection for AWS GuardDuty service
+func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed GuardDutyService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*guardduty.GuardDuty), nil
+	}
+	
+	// so it was not in cache - create service
+  sess, err := getSession(ctx, d, region)
+  if err != nil {
+    return nil, err
+  }
+  svc := guardduty.New(sess)
+  d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+  return svc, nil
 }
 
 // IAMService returns the service connection for AWS IAM service
