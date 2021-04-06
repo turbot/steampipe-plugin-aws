@@ -61,18 +61,15 @@ from
 ```
 
 
-### List snapshots of respective clusters those are not in a VPC
+### List snapshots that are shared with other account
 
 ```sql
 select
   snapshot_identifier,
-  cluster_identifier,
-  node_type,
-  vpc_id
+  p ->> 'AccountId' as account_id
 from
-  aws_redshift_snapshot
-where
-  vpc_id is null;
+  aws_redshift_snapshot,
+  jsonb_array_elements(accounts_with_restore_access) as p;
 ```
 
 
@@ -86,4 +83,19 @@ select
 from
   aws_redshift_snapshot,
   jsonb_array_elements(accounts_with_restore_access) as p;
+```
+
+
+### List snapshots of respective clusters those are not in a VPC
+
+```sql
+select
+  snapshot_identifier,
+  cluster_identifier,
+  node_type,
+  vpc_id
+from
+  aws_redshift_snapshot
+where
+  vpc_id is null;
 ```
