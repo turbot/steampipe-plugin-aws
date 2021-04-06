@@ -18,7 +18,7 @@ from
 ```
 
 
-### List threatintelsets which are enabled
+### List threat intel sets which are disabled
 
 ```sql
 select
@@ -27,7 +27,7 @@ select
 from
   aws_guardduty_threat_intel_set
 where
-  status = 'ACTIVE';
+  status = 'INACTIVE';
 ```
 
 

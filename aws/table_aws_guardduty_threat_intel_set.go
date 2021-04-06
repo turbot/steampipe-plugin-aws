@@ -177,15 +177,14 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyThreatIntelSetAkas")
-	id := h.Item.(threatIntelSetInfo)
-	// data := h.Item.(threatIntelSetInfo)
-
+	data := h.Item.(threatIntelSetInfo)
+	
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector" + "/" + id.DetectorID + "/threatintelset/" + id.ThreatIntelSetID
+	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/threatintelset/" + data.ThreatIntelSetID
 
 	return []string{aka}, nil
 }
