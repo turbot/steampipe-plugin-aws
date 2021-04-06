@@ -103,7 +103,7 @@ resource "aws_redshift_cluster" "cluster" {
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT
-      aws redshift create-cluster-snapshot --cluster-identifier ${aws_redshift_cluster.cluster.cluster_identifier} --snapshot-identifier ${var.resource_name} --tags key=name,value=${var.resource_name --profile ${var.aws_profile} --region ${var.aws_region};
+      aws redshift create-cluster-snapshot --cluster-identifier ${aws_redshift_cluster.cluster.cluster_identifier} --snapshot-identifier ${var.resource_name} --tags Key=name,Value=${var.resource_name --profile ${var.aws_profile} --region ${var.aws_region};
     EOT
   }
 }
