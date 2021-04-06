@@ -14,26 +14,37 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/aws/aws-sdk-go/service/firehose"
+	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
+	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -147,6 +158,27 @@ func CloudFormationService(ctx context.Context, d *plugin.QueryData, region stri
 	return svc, nil
 }
 
+// CloudWatchService returns the service connection for AWS Cloud Watch service
+func CloudWatchService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatch.CloudWatch, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CloudWatchService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudwatch-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudwatch.CloudWatch), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudwatch.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // CloudWatchLogsService returns the service connection for AWS Cloud Watch Logs service
 func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatchlogs.CloudWatchLogs, error) {
 	if region == "" {
@@ -231,6 +263,72 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	return svc, nil
 }
 
+// EcrService returns the service connection for AWS ECR service
+func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.ECR, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EcrService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ecr-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ecr.ECR), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecr.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// EcsService returns the service connection for AWS ECS service
+func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.ECS, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EcsService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ecs-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ecs.ECS), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecs.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// EfsService returns the service connection for AWS Elastic File System service
+func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EfsService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("efs-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*efs.EFS), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := efs.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // EksService returns the service connection for AWS EKS service
 func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.EKS, error) {
 	if region == "" {
@@ -247,6 +345,27 @@ func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.E
 		return nil, err
 	}
 	svc := eks.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ElasticBeanstalkService returns the service connection for AWS ElasticBeanstalk service
+func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, region string) (*elasticbeanstalk.ElasticBeanstalk, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ElasticBeanstalkService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elasticbeanstalk-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elasticbeanstalk.ElasticBeanstalk), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := elasticbeanstalk.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -269,7 +388,6 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string)
 	}
 	svc := elasticache.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
 	return svc, nil
 }
 
@@ -350,6 +468,17 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (
 	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*guardduty.GuardDuty), nil
+    
+// EmrService returns the service connection for AWS EMR service
+func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EmrService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("emr-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*emr.EMR), nil
 	}
 
 	// so it was not in cache - create service
@@ -358,6 +487,51 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (
 		return nil, err
 	}
 	svc := guardduty.New(sess)
+	svc := emr.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// FirehoseService returns the service connection for AWS Kinesis Firehose service
+func FirehoseService(ctx context.Context, d *plugin.QueryData, region string) (*firehose.Firehose, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed FirehoseService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("firehose-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*firehose.Firehose), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := firehose.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// GlacierService returns the service connection for AWS Glacier service
+func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*glacier.Glacier, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed GlacierService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("glacier-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*glacier.Glacier), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := glacier.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -398,6 +572,27 @@ func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*k
 		return nil, err
 	}
 	svc := kinesis.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// KinesisVideoService returns the service connection for AWS Kinesis Video service
+func KinesisVideoService(ctx context.Context, d *plugin.QueryData, region string) (*kinesisvideo.KinesisVideo, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Kinesis Video")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("kinesisvideo-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*kinesisvideo.KinesisVideo), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := kinesisvideo.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -526,6 +721,26 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 	return svc, nil
 }
 
+// Route53ResolverService returns the service connection for AWS route53resolver service
+func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region string) (*route53resolver.Route53Resolver, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Route53Resolver")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("route53resolver-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*route53resolver.Route53Resolver), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := route53resolver.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // Route53Service returns the service connection for AWS route53 service
 func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
 	// have we already created and cached the service?
@@ -539,6 +754,26 @@ func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53,
 		return nil, err
 	}
 	svc := route53.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SecurityHubService returns the service connection for AWS securityHub service
+func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string) (*securityhub.SecurityHub, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SecurityHubService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("securityHub-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*securityhub.SecurityHub), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := securityhub.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }

@@ -7,17 +7,42 @@ A conformance pack is a collection of AWS Config rules and remediation actions t
 ### Basic info
 
 ```sql
-select 
-    name, 
-    conformance_pack_id, 
-    input_parameters, 
-    created_by_svc, 
-    delivery_bucket, 
-    delivery_bucket_prefix, 
-    last_update, 
-    title, 
-    akas
-from 
-    aws.aws_config_conformance_pack;
+select
+  name,
+  conformance_pack_id,
+  created_by,
+  last_update_requested_time,
+  title,
+  akas
+from
+  aws_config_conformance_pack;
+```
+
+
+### Get S3 bucket info for each conformance pack
+
+```sql
+select
+  name,
+  conformance_pack_id,
+  delivery_s3_bucket,
+  delivery_s3_key_prefix
+from
+  aws_config_conformance_pack;
+```
+
+
+### Get input parameter details of each conformance pack
+
+```sql
+select
+  name,
+  inp ->> 'ParameterName' as parameter_name,
+  inp ->> 'ParameterValue' as parameter_value,
+  title,
+  akas
+from
+  aws_config_conformance_pack,
+  jsonb_array_elements(input_parameters) as inp;
 ```
 
