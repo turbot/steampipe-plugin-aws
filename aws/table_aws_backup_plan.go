@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -108,8 +109,9 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	includeDeleted := true
 	err = svc.ListBackupPlansPages(
-		&backup.ListBackupPlansInput{},
+		&backup.ListBackupPlansInput{IncludeDeleted: &includeDeleted},
 		func(page *backup.ListBackupPlansOutput, lastPage bool) bool {
 			for _, plan := range page.BackupPlansList {
 				d.StreamListItem(ctx, plan)
@@ -143,7 +145,11 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.GetBackupPlan(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsBackupPlan", "ERROR", err)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "ResourceNotFoundException" {
+				return backup.GetBackupPlanOutput{}, nil
+			}
+		}
 		return nil, err
 	}
 	return op, nil
