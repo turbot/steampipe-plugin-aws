@@ -77,15 +77,14 @@ where
 ```
 
 
-### list of accounts that are authorized to restore the snapshots
+### List accounts that are authorized to restore the snapshots
 
 ```sql
 select
   snapshot_identifier,
-  accounts_with_restore_access
+  p ->> 'AccountId' as account_id,
+  p ->> 'AccountAlias' as account_alias
 from
-  aws_redshift_snapshot
-where
-  accounts_with_restore_access is null;
-
+  aws_redshift_snapshot,
+  jsonb_array_elements(accounts_with_restore_access) as p;
 ```
