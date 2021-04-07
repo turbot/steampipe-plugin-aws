@@ -9,17 +9,14 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_securityhub_standards_subscription",
-		Description: "AWS Securityhub standards",
-		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
-			Hydrate:           getSecurityHubStandardSubcription,
-		},
+		Description: "Security Hub Standards Subscription",
 		List: &plugin.ListConfig{
-			Hydrate: listSecurityHubStandardSubcriptions,
+			Hydrate: listSecurityHubStandardsSubcriptions,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -82,15 +79,14 @@ func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubStandardSubcriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listSecurityHubStandardSubcriptions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityHubStandardsSubcriptions", "AWS_REGION", region)
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d, region)
@@ -98,58 +94,23 @@ func listSecurityHubStandardSubcriptions(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
-	// List call
-	resp, err := svc.DescribeStandards(&securityhub.DescribeStandardsInput{})
-	if err != nil {
-		plugin.Logger(ctx).Error("listSecurityHubStandardSubcriptions", "query_error", err)
-		return nil, nil
-	}
-	for _, standards := range resp.Standards {
-		d.StreamListItem(ctx, standards)
-	}
+	err = svc.DescribeStandardsPages(
+		&securityhub.DescribeStandardsInput{},
+		func(page *securityhub.DescribeStandardsOutput, isLast bool) bool {
+			for _, standards := range page.Standards {
+				d.StreamListItem(ctx, standards)
+			}
+			return !isLast
+		},
+	)
 	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHubStandardSubcription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHubStandardSubcription")
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	name := d.KeyColumnQuals["name"].GetStringValue()
-
-	// get service
-	svc, err := SecurityHubService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the input
-	input := &securityhub.DescribeStandardsInput{}
-
-	// Get call
-	standards, err := svc.DescribeStandards(input)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range standards.Standards {
-		if *item.Name == name {
-			return item, nil
-		}
-	}
-	return nil, nil
-}
-
 func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("GetEnabledStandards")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
