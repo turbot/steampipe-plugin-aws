@@ -20,13 +20,20 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
 			Hydrate:           getAwsBackupVault,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The name of a logical container where backups are stored.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BackupVaultName"),
+			},
 			{
 				Description: "An Amazon Resource Name (ARN) that uniquely identifies a backup vault.",
 				Type:        proto.ColumnType_STRING,
@@ -162,7 +169,7 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultNotifications(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
 				return backup.GetBackupVaultNotificationsOutput{}, nil
 			}
 			return nil, err
@@ -188,7 +195,7 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultAccessPolicy(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
+			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
 				return backup.GetBackupVaultAccessPolicyOutput{}, nil
 			}
 			return nil, err

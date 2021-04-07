@@ -59,7 +59,7 @@ select
 from
   aws_backup_plan
 where
-  deletion_date > now() - interval '7' day
+  deletion_date > current_date - 7
 order by
   deletion_date;
 ```
