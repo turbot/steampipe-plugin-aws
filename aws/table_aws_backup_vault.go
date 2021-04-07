@@ -35,6 +35,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("BackupVaultName"),
 			},
 			{
+				Name:        "arn",
 				Description: "An Amazon Resource Name (ARN) that uniquely identifies a backup vault.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BackupVaultArn"),

@@ -48,7 +48,7 @@ order by
   creation_date;
 ```
 
-### List plans which are deleted in last 7 days
+### List plans which were deleted in last 7 days
 
 ```sql
 select
