@@ -53,7 +53,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "configuration_Templates",
+				Name:        "configuration_templates",
 				Description: "The names of the configuration templates associated with this application.",
 				Type:        proto.ColumnType_JSON,
 			},
