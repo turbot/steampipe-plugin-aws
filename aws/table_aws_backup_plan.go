@@ -106,7 +106,7 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("listAwsBackupPlans", "AWS_BACKUP", region)
 
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +127,10 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsBackupPlan")
-
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	plugin.Logger(ctx).Trace("getAwsBackupPlan", "AWS_BACKUP", region)
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
