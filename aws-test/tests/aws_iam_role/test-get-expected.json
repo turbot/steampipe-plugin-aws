@@ -21,33 +21,27 @@
     "assume_role_policy_std": {
       "Statement": [
         {
-          "Action": [
-            "sts:assumerole"
-          ],
+          "Action": ["sts:assumerole"],
           "Effect": "Allow",
           "Principal": {
-            "Service": [
-              "ec2.amazonaws.com"
-            ]
+            "Service": ["ec2.amazonaws.com"]
           },
           "Sid": "test"
         }
       ],
       "Version": "2012-10-17"
     },
-    "attached_policy_arns": [
-      "{{ output.attached_policy_arn.value }}"
-    ],
+    "attached_policy_arns": ["{{ output.attached_policy_arn.value }}"],
     "description": "Test Role",
-    "inline_policies": "<null>",
+    "inline_policies": null,
     "max_session_duration": 3600,
     "name": "{{resourceName}}",
     "partition": "{{ output.aws_partition.value }}",
     "path": "/",
-    "permissions_boundary_arn": "<null>",
-    "permissions_boundary_type": "<null>",
-    "role_last_used_date": "<null>",
-    "role_last_used_region": "<null>",
+    "permissions_boundary_arn": null,
+    "permissions_boundary_type": null,
+    "role_last_used_date": null,
+    "role_last_used_region": null,
     "tags": {
       "name": "{{resourceName}}"
     },
