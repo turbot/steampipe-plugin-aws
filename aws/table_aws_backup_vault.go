@@ -162,9 +162,8 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultNotifications(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" {
-				plugin.Logger(ctx).Warn("getAwsBackupVaultNotification", "not_found_error", err, "request", params)
-				return nil, nil
+			if a.Code() == "ResourceNotFoundException" {
+				return backup.GetBackupVaultNotificationsOutput{}, nil
 			}
 			return nil, err
 		}
@@ -189,9 +188,8 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultAccessPolicy(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" {
-				plugin.Logger(ctx).Warn("getAwsBackupVaultAccessPolicy", "not_found_error", err, "request", params)
-				return nil, nil
+			if a.Code() == "ResourceNotFoundException" {
+				return backup.GetBackupVaultAccessPolicyOutput{}, nil
 			}
 			return nil, err
 		}
