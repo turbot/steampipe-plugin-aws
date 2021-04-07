@@ -13,7 +13,7 @@ import (
 func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_guardduty_ipset",
-		Description: "AWS GuarDuty IPSet",
+		Description: "AWS GuardDuty IPSet",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"detector_id", "ipset_id"}),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
@@ -21,10 +21,16 @@ func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
-			Hydrate:       listAwsGuarDutyIPSets,
+			Hydrate:       listAwsGuardDutyIPSets,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The name for the IPSet.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsGuardDutyIPSet,
+			},
 			{
 				Name:        "detector_id",
 				Description: "The ID of the detector.",
@@ -37,12 +43,6 @@ func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
 				Description: "The ID of the IPSet.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IPSetID"),
-			},
-			{
-				Name:        "name",
-				Description: "The name for the IPSet.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsGuardDutyIPSet,
 			},
 			{
 				Name:        "format",
@@ -62,6 +62,7 @@ func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsGuardDutyIPSet,
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -95,7 +96,7 @@ type ipsetInfo = struct {
 
 //// LIST FUNCTION
 
-func listAwsGuarDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -130,7 +131,7 @@ func listAwsGuarDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return nil, err
 }
 
-//// HYDRATE FUNCTIONS
+//// HYDRATE FUNCTION
 
 func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
@@ -173,7 +174,7 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return ipsetInfo{*data, id, detectorID}, nil
 }
 
-//// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTION
 
 func getAwsGuardDutyIPSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyIPSetAkas")

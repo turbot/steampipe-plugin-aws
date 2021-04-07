@@ -18,7 +18,7 @@ from
 ```
 
 
-### List ipsets which are active
+### List IPSets which are not active
 
 ```sql
 select
@@ -28,5 +28,5 @@ select
 from
   aws_guardduty_ipset
 where
-  status = 'ACTIVE';
+  status = 'INACTIVE';
 ```
