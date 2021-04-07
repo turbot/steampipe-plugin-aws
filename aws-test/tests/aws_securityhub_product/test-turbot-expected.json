@@ -1,0 +1,11 @@
+[
+  {
+    "account_id": "352685002396",
+    "akas": [
+      "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"
+    ],
+    "name": "Aqua Security",
+    "region": "us-east-1",
+    "title": "Aqua Security"
+  }
+]
