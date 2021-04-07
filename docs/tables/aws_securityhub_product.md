@@ -1,6 +1,6 @@
 # Table: aws_securityhub_product
 
-Security hub Products provides information about product integrations in Security Hub.
+Security Hub products provide information about product integrations in Security Hub.
 
 ## Examples
 
