@@ -20,13 +20,13 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
 			Hydrate:           getAwsBackupVault,
 		},
-		GetMatrixItem: BuildRegionList,
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -103,7 +103,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("listAwsBackupVaults", "AWS_BACKUP", region)
 
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -123,10 +123,10 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsBackupVault")
-
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	plugin.Logger(ctx).Trace("getAwsBackupVault", "AWS_BACKUP", region)
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -153,10 +153,11 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("getAwsBackupVaultNotification")
 
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -169,9 +170,8 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultNotifications(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" {
-				plugin.Logger(ctx).Warn("getAwsBackupVaultNotification", "not_found_error", err, "request", params)
-				return nil, nil
+			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
+				return backup.GetBackupVaultNotificationsOutput{}, nil
 			}
 			return nil, err
 		}
@@ -180,10 +180,11 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("getAwsBackupVaultAccessPolicy")
 
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -195,9 +196,8 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 	op, err := svc.GetBackupVaultAccessPolicy(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" {
-				plugin.Logger(ctx).Warn("getAwsBackupVaultAccessPolicy", "not_found_error", err, "request", params)
-				return nil, nil
+			if a.Code() == "ResourceNotFoundException" || a.Code() == "InvalidParameter" {
+				return backup.GetBackupVaultAccessPolicyOutput{}, nil
 			}
 			return nil, err
 		}
