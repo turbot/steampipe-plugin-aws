@@ -93,7 +93,7 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(tagSubListToTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(redshiftEventSubListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -197,8 +197,8 @@ func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryDat
 
 //// TRANSFORM FUNCTION
 
-func tagSubListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tagSubListToTurbotTags")
+func redshiftEventSubListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("redshiftEventSubListToTurbotTags")
 
 	tagList := d.HydrateItem.(*redshift.EventSubscription)
 
