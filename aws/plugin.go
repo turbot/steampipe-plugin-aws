@@ -81,6 +81,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_cluster":                tableAwsElastiCacheCluster(ctx),
 			"aws_elasticache_parameter_group":        tableAwsElastiCacheParameterGroup(ctx),
 			"aws_elasticache_replication_group":      tableAwsElastiCacheReplicationGroup(ctx),
+			"aws_elastic_beanstalk_application":      tableAwsElasticBeanstalkApplication(ctx),
 			"aws_emr_cluster":                        tableAwsEmrCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
 			"aws_glacier_vault":                      tableAwsGlacierVault(ctx),
