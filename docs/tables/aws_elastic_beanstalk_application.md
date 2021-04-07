@@ -30,5 +30,3 @@ select
 from
   aws_elastic_beanstalk_application;
 ```
-
- 
