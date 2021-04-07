@@ -523,6 +523,29 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*g
 	return svc, nil
 }
 
+// GuardDutyService returns the service connection for AWS GuardDuty service
+func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed GuardDutyService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*guardduty.GuardDuty), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := guardduty.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // IAMService returns the service connection for AWS IAM service
 func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	// have we already created and cached the service?
@@ -1031,29 +1054,6 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, err
 	}
 	svc := eventbridge.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
-}
-
-// GuardDutyService returns the service connection for AWS GuardDuty service
-func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed GuardDutyService")
-	}
-
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("guardduty-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*guardduty.GuardDuty), nil
-	}
-
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := guardduty.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
