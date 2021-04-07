@@ -16,7 +16,7 @@ from
 ```
 
 
-### List enabled standards in security hub
+### List enabled security hub standards
 
 ```sql
 select
