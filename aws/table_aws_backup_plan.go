@@ -23,10 +23,10 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
 			Hydrate:           getAwsBackupPlan,
 		},
-		GetMatrixItem: BuildRegionList,
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupPlans,
 		},
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
