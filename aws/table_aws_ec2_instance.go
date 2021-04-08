@@ -121,7 +121,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The time the instance was launched.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-
 			{
 				Name:        "outpost_arn",
 				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable.",
