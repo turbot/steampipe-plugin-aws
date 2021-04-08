@@ -1,3 +1,14 @@
+## v0.12.0 [2021-04-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_inspector_assessment_target](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector_assessment_target) ([#234](https://github.com/turbot/steampipe-plugin-aws/pull/234))
+
+_Enhancements_
+
+- Updated: Add `metadata_options` column to `aws_ec2_instance` table ([#306](https://github.com/turbot/steampipe-plugin-aws/pull/306))
+
 ## v0.11.0 [2021-04-08]
 
 _What's new?_
