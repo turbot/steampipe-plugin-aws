@@ -98,6 +98,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_server_certificate":             tableAwsIamServerCertificate(ctx),
 			"aws_iam_user":                           tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":             tableAwsIamVirtualMfaDevice(ctx),
+			"aws_inspector_assessment_target":        tableAwsInspectorAssessmentTarget(ctx),
 			"aws_kinesis_consumer":                   tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":   tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                     tableAwsKinesisStream(ctx),
