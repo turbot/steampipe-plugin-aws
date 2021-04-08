@@ -139,14 +139,17 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // BackupService returns the service connection for AWS Backup service
-func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
+func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*backup.Backup, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed BackupService")
+	}
 	// have we already created and cached the service?
-	serviceCacheKey := "backup"
+	serviceCacheKey := fmt.Sprintf("backup-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*backup.Backup), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -405,6 +408,26 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, err
 	}
 	svc := elasticache.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// ElasticBeanstalkService returns the service connection for AWS ElasticBeanstalk service
+func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, region string) (*elasticbeanstalk.ElasticBeanstalk, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ElasticBeanstalkService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elasticbeanstalk-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elasticbeanstalk.ElasticBeanstalk), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := elasticbeanstalk.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
