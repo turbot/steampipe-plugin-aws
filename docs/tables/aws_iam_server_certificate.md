@@ -17,7 +17,7 @@ from
   aws_iam_server_certificate;
 ```
 
-### List certificates which are expired
+### List expired certificates
 
 ```sql
 select
@@ -28,16 +28,4 @@ from
   aws_iam_server_certificate
 where
   expiration > (current_date - interval '1' second);
-```
-
-### List certificates without application tag key
-
-```sql
-select
-  name,
-  arn
-from
-  aws_iam_server_certificate
-where
-  not tags :: JSONB ? 'application';
 ```
