@@ -122,6 +122,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "metadata_options",
+				Description: "The metadata options for the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "outpost_arn",
 				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable.",
 				Type:        proto.ColumnType_STRING,
@@ -284,18 +289,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2InstanceTurbotData,
 				Transform:   transform.FromValue(),
-			},
-			{
-				Name:        "metadata_options_http_endpoint",
-				Description: "Indicates whether the instance metadata service is enabled (disabled | enabled).",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("MetadataOptions.HttpEndpoint"),
-			},
-			{
-				Name:        "metadata_options_http_tokens",
-				Description: "Indicates whether IMDSv2 auth tokens are requrired to retrieve instance metadata (optional | required).",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("MetadataOptions.HttpTokens"),
 			},
 		}),
 	}
