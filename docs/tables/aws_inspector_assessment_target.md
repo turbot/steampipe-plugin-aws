@@ -19,7 +19,7 @@ from
 ```
 
 
-### List assessment targets that are created within last 7 days
+### List assessment targets created within the last 7 days
 
 ```sql
 select
@@ -36,7 +36,7 @@ where
 ```
 
 
-### List assessment targets that are updated after creation
+### List assessment targets that were updated after creation
 
 ```sql
 select
