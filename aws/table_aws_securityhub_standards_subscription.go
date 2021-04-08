@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -14,7 +15,7 @@ import (
 func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_securityhub_standards_subscription",
-		Description: "Security Hub Standards Subscription",
+		Description: "AWS Security Hub Standards Subscription",
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubStandardsSubcriptions,
 		},
@@ -103,7 +104,7 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 			return !isLast
 		},
 	)
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -130,7 +131,12 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Get call
 	standardsSubscriptions, err := svc.GetEnabledStandards(input)
 	if err != nil {
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidAccessException" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 
 	for _, item := range standardsSubscriptions.StandardsSubscriptions {
@@ -138,5 +144,5 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			return item, nil
 		}
 	}
-	return nil, nil
+	return nil, err
 }

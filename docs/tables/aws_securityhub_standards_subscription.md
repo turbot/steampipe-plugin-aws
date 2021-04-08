@@ -10,7 +10,8 @@ Security Hub also generates its own findings as the result of running automated 
 select
   name,
   standards_arn,
-  description region
+  description,
+  region
 from
   aws_securityhub_standards_subscription;
 ```
