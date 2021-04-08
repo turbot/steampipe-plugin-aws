@@ -287,7 +287,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "metadata_options_state",
+				Name:        "metadata_options_http_endpoint",
 				Description: "Indicates whether the instance metadata service is enabled (disabled | enabled).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("MetadataOptions.HttpEndpoint"),
