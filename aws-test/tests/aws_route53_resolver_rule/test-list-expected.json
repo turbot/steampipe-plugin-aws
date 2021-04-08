@@ -1,0 +1,11 @@
+[
+  {
+    "id": "{{ output.resource_id.value }}",
+    "name": "{{ resourceName }}",
+    "share_status": "NOT_SHARED",
+    "status": "COMPLETE",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]
