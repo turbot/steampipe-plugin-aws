@@ -124,7 +124,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "metadata_options",
 				Description: "The metadata options for the instance.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "outpost_arn",
