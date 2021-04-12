@@ -1,8 +1,84 @@
 [
-  {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
-    "title": "{{ output.resource_aka.value.split('/')[2] }}-{{ output.resource_aka.value.split('/')[4] }}"
-  }
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"ssl_policy_detail": {
+			"Ciphers": [
+				{
+					"Name": "ECDHE-ECDSA-AES128-GCM-SHA256",
+					"Priority": 1
+				},
+				{
+					"Name": "ECDHE-RSA-AES128-GCM-SHA256",
+					"Priority": 2
+				},
+				{
+					"Name": "ECDHE-ECDSA-AES128-SHA256",
+					"Priority": 3
+				},
+				{
+					"Name": "ECDHE-RSA-AES128-SHA256",
+					"Priority": 4
+				},
+				{
+					"Name": "ECDHE-ECDSA-AES128-SHA",
+					"Priority": 5
+				},
+				{
+					"Name": "ECDHE-RSA-AES128-SHA",
+					"Priority": 6
+				},
+				{
+					"Name": "ECDHE-ECDSA-AES256-GCM-SHA384",
+					"Priority": 7
+				},
+				{
+					"Name": "ECDHE-RSA-AES256-GCM-SHA384",
+					"Priority": 8
+				},
+				{
+					"Name": "ECDHE-ECDSA-AES256-SHA384",
+					"Priority": 9
+				},
+				{
+					"Name": "ECDHE-RSA-AES256-SHA384",
+					"Priority": 10
+				},
+				{
+					"Name": "ECDHE-RSA-AES256-SHA",
+					"Priority": 11
+				},
+				{
+					"Name": "ECDHE-ECDSA-AES256-SHA",
+					"Priority": 12
+				},
+				{
+					"Name": "AES128-GCM-SHA256",
+					"Priority": 13
+				},
+				{
+					"Name": "AES128-SHA256",
+					"Priority": 14
+				},
+				{
+					"Name": "AES128-SHA",
+					"Priority": 15
+				},
+				{
+					"Name": "AES256-GCM-SHA384",
+					"Priority": 16
+				},
+				{
+					"Name": "AES256-SHA256",
+					"Priority": 17
+				},
+				{
+					"Name": "AES256-SHA",
+					"Priority": 18
+				}
+			],
+			"Name": "ELBSecurityPolicy-2016-08",
+			"SslProtocols": ["TLSv1", "TLSv1.1", "TLSv1.2"]
+		},
+		"title": "{{ output.resource_aka.value.split('/')[2] }}-{{ output.resource_aka.value.split('/')[4] }}"
+	}
 ]

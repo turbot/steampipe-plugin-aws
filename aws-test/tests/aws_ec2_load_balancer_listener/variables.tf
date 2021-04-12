@@ -47,6 +47,34 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+}
+
+resource "tls_self_signed_cert" "example" {
+  key_algorithm   = "RSA"
+  private_key_pem = tls_private_key.example.private_key_pem
+
+  subject {
+    common_name  = "turbot.com"
+    organization = "Turbot HQ Pvt. Ltd."
+  }
+
+  validity_period_hours = 12
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "aws_iam_server_certificate" "test_cert_alt" {
+  name             = var.resource_name
+  certificate_body = tls_self_signed_cert.example.cert_pem
+  private_key      = tls_private_key.example.private_key_pem
+}
+
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
@@ -73,7 +101,7 @@ resource "aws_lb" "my_lb" {
   name               = var.resource_name
   internal           = false
   load_balancer_type = "application"
-  subnets            = ["${aws_subnet.my_subnet1.id}", "${aws_subnet.my_subnet2.id}"]
+  subnets            = [aws_subnet.my_subnet1.id, aws_subnet.my_subnet2.id]
 
   enable_deletion_protection = false
 }
@@ -87,6 +115,10 @@ resource "aws_lb_target_group" "my_targetGroup" {
 resource "aws_lb_listener" "named_test_resource" {
   load_balancer_arn = aws_lb.my_lb.arn
   port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_iam_server_certificate.test_cert_alt.arn
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.my_targetGroup.arn

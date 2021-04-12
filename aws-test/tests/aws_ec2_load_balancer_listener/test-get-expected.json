@@ -1,31 +1,31 @@
 [
-  {
-    "arn": "{{ output.resource_aka.value }}",
-    "default_actions": [
-      {
-        "AuthenticateCognitoConfig": null,
-        "AuthenticateOidcConfig": null,
-        "FixedResponseConfig": null,
-        "ForwardConfig": {
-          "TargetGroupStickinessConfig": {
-            "DurationSeconds": null,
-            "Enabled": false
-          },
-          "TargetGroups": [
-            {
-              "TargetGroupArn": "{{ output.target_group_arn.value }}",
-              "Weight": 1
-            }
-          ]
-        },
-        "Order": 1,
-        "RedirectConfig": null,
-        "TargetGroupArn": "{{ output.target_group_arn.value }}",
-        "Type": "forward"
-      }
-    ],
-    "load_balancer_arn": "{{ output.load_balancer_arn.value }}",
-    "port": 443,
-    "protocol": "HTTP"
-  }
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"default_actions": [
+			{
+				"AuthenticateCognitoConfig": null,
+				"AuthenticateOidcConfig": null,
+				"FixedResponseConfig": null,
+				"ForwardConfig": {
+					"TargetGroupStickinessConfig": {
+						"DurationSeconds": null,
+						"Enabled": false
+					},
+					"TargetGroups": [
+						{
+							"TargetGroupArn": "{{ output.target_group_arn.value }}",
+							"Weight": 1
+						}
+					]
+				},
+				"Order": 1,
+				"RedirectConfig": null,
+				"TargetGroupArn": "{{ output.target_group_arn.value }}",
+				"Type": "forward"
+			}
+		],
+		"load_balancer_arn": "{{ output.load_balancer_arn.value }}",
+		"port": 443,
+		"protocol": "HTTPS"
+	}
 ]
