@@ -66,10 +66,11 @@ from
 ```sql
 select
   snapshot_identifier,
-  p ->> 'AccountId' as account_id
+  accounts_with_restore_access
 from
-  aws_redshift_snapshot,
-  jsonb_array_elements(accounts_with_restore_access) as p;
+  aws_redshift_snapshot
+where
+  accounts_with_restore_access is not null;
 ```
 
 

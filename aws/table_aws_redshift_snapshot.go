@@ -201,16 +201,16 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 
 			// Standard columns
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(tagListToTurbotTags),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("SnapshotIdentifier"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(redshiftSnapshotTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -299,16 +299,20 @@ func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier}
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier
 
-	return aka, nil
+	// Get data for turbot defined properties
+	akas := []string{arn}
+
+	return akas, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
-func tagListToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func redshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	snapshot := d.HydrateItem.(*redshift.Snapshot)
 
+	// Get the resource tags
 	if snapshot.Tags != nil {
 		turbotTagsMap := map[string]string{}
 		for _, i := range snapshot.Tags {
