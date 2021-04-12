@@ -1,0 +1,7 @@
+[
+  {
+    "company_name": "Aqua Security",
+    "name": "Aqua Security",
+    "product_arn": "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"
+  }
+]
