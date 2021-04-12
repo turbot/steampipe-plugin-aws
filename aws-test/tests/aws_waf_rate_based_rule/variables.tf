@@ -60,6 +60,9 @@ resource "aws_waf_rate_based_rule" "named_test_resource" {
   metric_name = var.resource_name
   rate_key = "IP"
   rate_limit = 100
+  tags = {
+    name = var.resource_name
+  }
 }
 
 output "account_id" {

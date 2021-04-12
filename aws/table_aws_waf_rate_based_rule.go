@@ -13,11 +13,11 @@ import (
 func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_waf_rate_based_rule",
-		Description: "AWS WAF RateBasedRule",
+		Description: "AWS WAF Rate Based Rule",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("rule_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
-			Hydrate:           getAwsWafRateBasedRules,
+			Hydrate:           getAwsWafRateBasedRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafRateBasedRules,
@@ -37,26 +37,26 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Name:        "metric_name",
 				Description: "The name or description for the metrics for a RateBasedRule.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafRateBasedRules,
-			},
-			{
-				Name:        "predicates",
-				Description: "The format of the file that contains the IPSet.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWafRateBasedRules,
-				Transform:   transform.FromField("MatchPredicates"),
+				Hydrate:     getAwsWafRateBasedRule,
 			},
 			{
 				Name:        "rate_key",
-				Description: "The name or description for the metrics for a RateBasedRule.",
+				Description: "The field that AWS WAF uses to determine if requests are likely arriving from single source and thus subject to rate monitoring.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafRateBasedRules,
+				Hydrate:     getAwsWafRateBasedRule,
 			},
 			{
 				Name:        "rate_limit",
-				Description: "The name or description for the metrics for a RateBasedRule.",
+				Description: "The maximum number of requests, which have an identical value in the field specified by the RateKey, allowed in a five-minute period.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafRateBasedRules,
+				Hydrate:     getAwsWafRateBasedRule,
+			},
+			{
+				Name:        "predicates",
+				Description: "The Predicates object contains one Predicate element for each ByteMatchSet, IPSet or SqlInjectionMatchSet object that you want to include in a RateBasedRule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsWafRateBasedRule,
+				Transform:   transform.FromField("MatchPredicates"),
 			},
 			{
 				Name:        "tags_src",
@@ -66,7 +66,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
-			// // Standard columns for all tables
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -121,7 +121,7 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 }
 
 ////  HYDRATE FUNCTIONS
-func getAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsWafRateBasedRules")
 	var id string
@@ -201,6 +201,7 @@ func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (inter
 	if tagList.TagInfoForResource.TagList == nil {
 		return nil, nil
 	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if tagList != nil {
