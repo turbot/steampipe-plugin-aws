@@ -12,7 +12,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsSecurityHubStandardSubscription(_ context.Context) *plugin.Table {
+func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_securityhub_standards_subscription",
 		Description: "AWS Security Hub Standards Subscription",
