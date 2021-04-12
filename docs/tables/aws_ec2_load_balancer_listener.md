@@ -6,7 +6,7 @@ Note: This table lists the listeners for application load balancers and network 
 
 ## Examples
 
-### Load balancer listener basic info
+### Basic info
 
 ```sql
 select
@@ -31,12 +31,12 @@ select
   action -> 'ForwardConfig' -> 'TargetGroupStickinessConfig' ->> 'DurationSeconds' as duration_seconds,
   action -> 'ForwardConfig' -> 'TargetGroupStickinessConfig' ->> 'Enabled' as target_group_stickiness_config_enabled
 from
-  aws_ec2_load_balancer_listener
-  cross join jsonb_array_elements(default_actions) as action;
+  aws_ec2_load_balancer_listener,
+  jsonb_array_elements(default_actions) as action;
 ```
 
 
-### List of load balancer listeners which listen to HTTP protocol
+### List load balancer listeners which listen to HTTP protocol
 
 ```sql
 select

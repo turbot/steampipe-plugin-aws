@@ -14,7 +14,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table {
+func tableAwsEc2LoadBalancerListener(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_load_balancer_listener",
 		Description: "AWS EC2 Load Balancer Listener",
@@ -56,6 +56,13 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "ssl_policy_detail",
+				Description: "Describes the specified policies used for SSL negotiation.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2LoadBalancerListenerSslPolicies,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "alpn_policy",
 				Description: "The name of the Application-Layer Protocol Negotiation (ALPN) policy.",
 				Type:        proto.ColumnType_JSON,
@@ -71,12 +78,12 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				Type:        proto.ColumnType_JSON,
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getEc2ApplicationLoadBalancerListenerTurbotTitle),
+				Transform:   transform.From(extractLoadBalancerListenerTitle),
 			},
 			{
 				Name:        "akas",
@@ -97,7 +104,7 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listEc2ApplicationLoadBalancers", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEc2LoadBalancers", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := ELBv2Service(ctx, d, region)
@@ -185,9 +192,41 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 	return nil, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+func getEc2LoadBalancerListenerSslPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2LoadBalancerListenerSslPolicies")
 
-func getEc2ApplicationLoadBalancerListenerTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	data := h.Item.(*elbv2.Listener)
+
+	// Create service
+	svc, err := ELBv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &elbv2.DescribeSSLPoliciesInput{
+		Names: []*string{data.SslPolicy},
+	}
+
+	op, err := svc.DescribeSSLPolicies(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if op.SslPolicies != nil && len(op.SslPolicies) > 0 {
+		return op.SslPolicies[0], nil
+	}
+	return nil, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func extractLoadBalancerListenerTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*elbv2.Listener)
 	splitID := strings.Split(string(*data.ListenerArn), "/")
 	title := splitID[2] + "-" + splitID[4]
