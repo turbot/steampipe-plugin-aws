@@ -27,5 +27,5 @@ select
 from
   aws_iam_server_certificate
 where
-  expiration > (current_date - interval '1' second);
+  expiration < now()::timestamp;
 ```
