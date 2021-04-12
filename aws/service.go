@@ -538,12 +538,12 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*guardduty.GuardDuty), nil
 	}
-	
+
 	// so it was not in cache - create service
-  sess, err := getSession(ctx, d, region)
-  if err != nil {
-    return nil, err
-  }
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
   svc := guardduty.New(sess)
   d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
   return svc, nil
