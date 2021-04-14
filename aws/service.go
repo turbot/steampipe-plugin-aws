@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
@@ -33,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -49,6 +51,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/wellarchitected"
 
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -134,6 +137,26 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 	svc := autoscaling.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
+}
+
+// BackupService returns the service connection for AWS Backup service
+func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*backup.Backup, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed BackupService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("backup-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*backup.Backup), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := backup.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 
@@ -544,9 +567,9 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (
 	if err != nil {
 		return nil, err
 	}
-  svc := guardduty.New(sess)
-  d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-  return svc, nil
+	svc := guardduty.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 }
 
 // IAMService returns the service connection for AWS IAM service
@@ -563,6 +586,27 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	}
 	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
 	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// InspectorService returns the service connection for AWS Inspector service
+func InspectorService(ctx context.Context, d *plugin.QueryData, region string) (*inspector.Inspector, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed InspectorService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("inspector-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*inspector.Inspector), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := inspector.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -905,6 +949,27 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return nil, err
 	}
 	svc := sts.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// WellArchitectedService returns the service connection for AWS Well-Architected service
+func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region string) (*wellarchitected.WellArchitected, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed WellArchitectedService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("wellarchitected-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*wellarchitected.WellArchitected), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := wellarchitected.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
