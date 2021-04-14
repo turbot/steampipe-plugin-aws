@@ -17,7 +17,7 @@ from
 ```
 
 
-### Get network info of each subnet group
+### Get network info for each subnet group
 
 ```sql
 select
@@ -31,14 +31,14 @@ from
 ```
 
 
-### List clusters in each subnet group
+### List ElastiCache clusters in each subnet group
 
 ```sql
 select
   c.cache_cluster_id,
-  sb.cache_subnet_group_name,
-  sb.vpc_id
+  sg.cache_subnet_group_name,
+  sg.vpc_id
 from
-  aws_elasticache_subnet_group as sb
-  join aws_elasticache_cluster as c on sb.cache_subnet_group_name = c.cache_subnet_group_name;
+  aws_elasticache_subnet_group as sg
+  join aws_elasticache_cluster as c on sg.cache_subnet_group_name = c.cache_subnet_group_name;
 ```
