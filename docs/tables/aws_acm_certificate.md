@@ -4,7 +4,7 @@ AWS Certificate Manager (ACM) handles the complexity of creating, storing, and r
 
 ## Examples
 
-### Basic ACM certificate info
+### Basic info
 
 ```sql
 select
@@ -33,7 +33,21 @@ where
 ```
 
 
-### List of ACM certificates without application tag key
+### List certificates for which transparency logging is disabled
+
+```sql
+select
+  certificate_arn,
+  domain_name,
+  status
+from
+  aws_acm_certificate
+where
+  certificate_transparency_logging_preference <> 'ENABLED';
+```
+
+
+### List certificates without application tag key
 
 ```sql
 select

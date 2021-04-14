@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -140,14 +141,17 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // BackupService returns the service connection for AWS Backup service
-func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
+func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*backup.Backup, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed BackupService")
+	}
 	// have we already created and cached the service?
-	serviceCacheKey := "backup"
+	serviceCacheKey := fmt.Sprintf("backup-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*backup.Backup), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -456,6 +460,29 @@ func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.E
 	return svc, nil
 }
 
+// EventBridgeService returns the service connection for AWS EventBridge service
+func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string) (*eventbridge.EventBridge, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EventBridgeService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("eventbridge-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*eventbridge.EventBridge), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := eventbridge.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // EmrService returns the service connection for AWS EMR service
 func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
 	if region == "" {
@@ -560,6 +587,27 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	}
 	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
 	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// InspectorService returns the service connection for AWS Inspector service
+func InspectorService(ctx context.Context, d *plugin.QueryData, region string) (*inspector.Inspector, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed InspectorService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("inspector-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*inspector.Inspector), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := inspector.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1036,25 +1084,4 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		region = "us-east-1"
 	}
 	return region
-}
-
-// EventBridgeService returns the service connection for AWS EventBridge service
-func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string) (*eventbridge.EventBridge, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EventBridgeService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("eventbridge-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*eventbridge.EventBridge), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := eventbridge.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
 }
