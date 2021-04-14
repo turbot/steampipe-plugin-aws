@@ -19,7 +19,7 @@ from
 ```
 
 
-### List assessment templates having empty 'user_attributes_for_findings' field
+### List assessment templates that have no assigned finding attributes
 
 ```sql
 select
@@ -37,7 +37,7 @@ where
 ```
 
 
-### List assessment templates that have zero assessment runs
+### List assessment templates that have no assessment runs
 
 ```sql
 select
@@ -55,7 +55,7 @@ where
 ```
 
 
-### List assessment templates with assessment run duration less than 1 hour
+### List assessment templates with run duration less than 1 hour
 
 ```sql
 select
@@ -70,21 +70,4 @@ from
   aws_inspector_assessment_template
 where
   duration_in_seconds < 3600;
-```
-
-
-### List assessment templates that are created before last 7 days
-
-```sql
-select
-  name,
-  arn,
-  assessment_run_count,
-  created_at,
-  assessment_target_arn,
-  region
-from
-  aws_inspector_assessment_template
-where
-  created_at < (current_date - interval '7' day);
 ```
