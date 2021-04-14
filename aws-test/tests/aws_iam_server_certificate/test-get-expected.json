@@ -1,0 +1,10 @@
+[
+	{
+		"account_id": "{{ output.account_id.value }}",
+		"arn": "{{ output.resource_aka.value}}",
+		"certificate_body": "{{ output.certificate_body.value.replace('-----END CERTIFICATE-----\\n', '-----END CERTIFICATE-----') }}",
+		"name": "{{ resourceName }}",
+		"path": "/",
+		"region": "global"
+	}
+]
