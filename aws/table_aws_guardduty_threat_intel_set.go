@@ -17,10 +17,10 @@ type threatIntelSetInfo = struct {
 	DetectorID       string
 }
 
-func tableAwsGuarddutyThreatIntelSet(_ context.Context) *plugin.Table {
+func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_guardduty_threat_intel_set",
-		Description: "AWS Guardduty ThreatIntelSet",
+		Description: "AWS GuardDuty ThreatIntelSet",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
@@ -178,7 +178,7 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyThreatIntelSetAkas")
 	data := h.Item.(threatIntelSetInfo)
-	
+
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err

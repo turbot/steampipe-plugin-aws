@@ -570,6 +570,7 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (
 	svc := guardduty.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
 }
 
 // IAMService returns the service connection for AWS IAM service
