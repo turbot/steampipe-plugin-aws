@@ -4,7 +4,20 @@ An Amazon S3 bucket is a public cloud storage resource available in Amazon Web S
 
 ## Examples
 
-### List of buckets where versioning is not enabled
+### Basic info
+
+```sql
+select
+  name,
+  region,
+  account_id,
+  bucket_policy_is_public
+from
+  aws_s3_bucket;
+```
+
+
+### List buckets with versioning disabled
 
 ```sql
 select
@@ -19,7 +32,7 @@ where
 ```
 
 
-### List of buckets which do not have default encryption enabled
+### List buckets with default encryption disabled
 
 ```sql
 select
@@ -32,7 +45,7 @@ where
 ```
 
 
-### List of buckets where public access to S3 bucket is not blocked
+### List buckets that do not block public access
 
 ```sql
 select
@@ -51,7 +64,7 @@ where
 ```
 
 
-### List of buckets which have public access enabled in bucket policies
+### List buckets that block public access through bucket policies
 
 ```sql
 select
@@ -64,7 +77,7 @@ where
 ```
 
 
-### List of buckets where server access logging destination is same as the source bucket
+### List buckets where the server access logging destination is the same as the source bucket
 
 ```sql
 select
@@ -77,7 +90,7 @@ where
 ```
 
 
-### List of buckets where tags key 'fizz' is not null
+### List buckets without the 'application' tags key
 
 ```sql
 select
@@ -86,10 +99,10 @@ select
 from
   aws_s3_bucket
 where
-  tags ->> 'fizz' is not null;
+  tags ->> 'application' is not null;
 ```
 
-### List of buckets that enforce encryption in transit
+### List buckets that enforce encryption in transit
 
 ```sql
 select
@@ -114,7 +127,7 @@ where
 ```
 
 
-### List of buckets that DO NOT enforce encryption in transit
+### List buckets that do not enforce encryption in transit
 
 ```sql
 select
@@ -141,7 +154,7 @@ where
 ```
 
 
-### List of Bucket policy statements that grant external access
+### List bucket policy statements that grant external access for each bucket
 ```sql
 select
   title,

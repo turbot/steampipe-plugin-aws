@@ -1,0 +1,10 @@
+[
+  {
+    "account_id": "352685002396",
+    "akas": [
+      "arn:aws:securityhub:us-east-1:352685002396:hub/default"
+    ],
+    "partition": "aws",
+    "region": "us-east-1"
+  }
+]

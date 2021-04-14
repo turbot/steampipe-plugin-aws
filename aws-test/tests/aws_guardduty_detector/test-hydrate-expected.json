@@ -1,0 +1,11 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "detector_id": "{{ output.resource_id.value }}",
+    "status": "ENABLED",
+    "tags": {
+      "name": "{{ output.resource_name.value }}"
+    },
+    "title": "{{ output.resource_id.value }}"
+  }
+]
