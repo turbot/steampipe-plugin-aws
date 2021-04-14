@@ -18,7 +18,7 @@ from
 ```
 
 
-### List threat intel sets which are disabled
+### List disabled threat intel sets
 
 ```sql
 select
@@ -29,5 +29,3 @@ from
 where
   status = 'INACTIVE';
 ```
-
-
