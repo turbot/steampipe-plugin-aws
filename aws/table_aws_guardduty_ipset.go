@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsGuarDutyIPSet(_ context.Context) *plugin.Table {
+func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_guardduty_ipset",
 		Description: "AWS GuardDuty IPSet",
@@ -103,7 +103,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsGuarDutyIPSets", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsGuardDutyIPSets", "AWS_REGION", region)
 
 	var id string
 	id = h.Item.(detectorInfo).DetectorID
