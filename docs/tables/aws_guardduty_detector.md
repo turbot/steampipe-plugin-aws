@@ -16,8 +16,7 @@ from
   aws_guardduty_detector;
 ```
 
-
-### List detectors which are enabled
+### List enabled detectors
 
 ```sql
 select
@@ -31,7 +30,7 @@ where
 ```
 
 
-### Get data sources status info for each detectors
+### Get data source status info for each detector
 
 ```sql
 select
@@ -40,18 +39,6 @@ select
   data_sources -> 'CloudTrail' ->> 'Status' as cloud_trail_status,
   data_sources -> 'DNSLogs' ->> 'Status' as dns_logs_status,
   data_sources -> 'FlowLogs' ->> 'Status' as flow_logs_status
-from
-  aws_guardduty_detector;
-```
-
-
-### Get finding publishing frequency info for detectors
-
-```sql
-select
-  detector_id,
-  status,
-  finding_publishing_frequency
 from
   aws_guardduty_detector;
 ```
