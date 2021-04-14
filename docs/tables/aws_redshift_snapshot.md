@@ -17,7 +17,7 @@ from
 ```
 
 
-### List all manual redshift snapshots
+### List manual snapshots
 
 ```sql
 select
@@ -30,7 +30,7 @@ where
 ```
 
 
-### List snapshots which are not encrypted
+### List unencrypted snapshots
 
 ```sql
 select
@@ -46,7 +46,7 @@ where
 ```
 
 
-### Get cluster info of each redshift snapshot
+### Get cluster info for each snapshot
 
 ```sql
 select
@@ -61,7 +61,7 @@ from
 ```
 
 
-### List snapshots that are shared with other account
+### List snapshots that are shared with other accounts
 
 ```sql
 select
@@ -74,7 +74,7 @@ where
 ```
 
 
-### List accounts that are authorized to restore the snapshots
+### List accounts that are authorized to restore each snapshot
 
 ```sql
 select
@@ -84,19 +84,4 @@ select
 from
   aws_redshift_snapshot,
   jsonb_array_elements(accounts_with_restore_access) as p;
-```
-
-
-### List snapshots of respective clusters those are not in a VPC
-
-```sql
-select
-  snapshot_identifier,
-  cluster_identifier,
-  node_type,
-  vpc_id
-from
-  aws_redshift_snapshot
-where
-  vpc_id is null;
 ```
