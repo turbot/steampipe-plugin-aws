@@ -836,14 +836,18 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // S3ControlService returns the service connection for AWS s3control service
-func S3ControlService(ctx context.Context, d *plugin.QueryData) (*s3control.S3Control, error) {
+func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (*s3control.S3Control, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3ControlService")
+	}
+
 	// have we already created and cached the service?
-	serviceCacheKey := "s3control"
+	serviceCacheKey := fmt.Sprintf("s3control-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*s3control.S3Control), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
