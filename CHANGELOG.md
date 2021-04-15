@@ -1,3 +1,23 @@
+## v0.13.0 [2021-04-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_elasticache_subnet_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_subnet_group) ([#247](https://github.com/turbot/steampipe-plugin-aws/pull/247))
+  - [aws_guardduty_detector](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_guardduty_detector) ([#251](https://github.com/turbot/steampipe-plugin-aws/pull/251))
+  - [aws_guardduty_ipset](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_guardduty_ipset) ([#259](https://github.com/turbot/steampipe-plugin-aws/pull/259))
+  - [aws_guardduty_threat_intel_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_guardduty_threat_intel_set) ([#271](https://github.com/turbot/steampipe-plugin-aws/pull/271))
+  - [aws_inspector_assessment_template](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector_assessment_template) ([#248](https://github.com/turbot/steampipe-plugin-aws/pull/248))
+  - [aws_redshift_snapshot](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshift_snapshot) ([#238](https://github.com/turbot/steampipe-plugin-aws/pull/238))
+
+_Enhancements_
+
+- Updated: Add `arn` column to `aws_s3_bucket` table ([#313](https://github.com/turbot/steampipe-plugin-aws/pull/313))
+
+_Bug fixes_
+
+- Fixed: Query example in `aws_iam_server_certificate` table docs ([#309](https://github.com/turbot/steampipe-plugin-aws/pull/309))
+
 ## v0.12.0 [2021-04-08]
 
 _What's new?_
