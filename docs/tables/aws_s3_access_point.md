@@ -10,7 +10,7 @@ An Amazon S3 bucket is a public cloud storage resource available in Amazon Web S
 select
   name,
   access_point_arn,
-  bucket_name,
+  bucket_name
 from
   aws_s3_access_point;
 ```
