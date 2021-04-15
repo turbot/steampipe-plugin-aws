@@ -63,16 +63,19 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getBucketTagging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
-			{
-				Func:    getBucketARN,
-				Depends: []plugin.HydrateFunc{getBucketLocation},
-			},
 		},
 		Columns: awsS3Columns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The user friendly name of the bucket.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The ARN of the AWS S3 Bucket.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "creation_date",
@@ -210,13 +213,6 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getBucketLocation,
 				Transform:   transform.FromField("LocationConstraint"),
-			},
-			{
-				Name:        "arn",
-				Description: "The ARN of the AWS S3 Bucket.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketARN,
-				Transform:   transform.FromValue(),
 			},
 		}),
 	}
