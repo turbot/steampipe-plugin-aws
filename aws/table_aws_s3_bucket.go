@@ -63,6 +63,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getBucketTagging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getBucketARN,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsS3Columns([]*plugin.Column{
 			{
@@ -206,6 +210,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getBucketLocation,
 				Transform:   transform.FromField("LocationConstraint"),
+			},
+			{
+				Name:        "arn",
+				Description: "The ARN of the AWS S3 Bucket.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -565,6 +576,21 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return bucketTags, nil
+}
+
+func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsS3BucketArn")
+	bucket := h.Item.(*s3.Bucket)
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucket.Name
+
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS
