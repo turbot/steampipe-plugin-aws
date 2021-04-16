@@ -189,7 +189,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeBuildProject,
-				Transform:   transform.From(getCodeBuildProjectTurbotTags),
+				Transform:   transform.From(codeBuildProjectTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -280,7 +280,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// TRANSFORM FUNCTIONS
 
-func getCodeBuildProjectTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func codeBuildProjectTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*codebuild.Project)
 

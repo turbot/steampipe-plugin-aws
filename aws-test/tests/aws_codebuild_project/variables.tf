@@ -50,19 +50,23 @@ data "null_data_source" "resource" {
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.1.0.0/16"
 }
+
 resource "aws_subnet" "my_subnet1" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.1.1.0/24"
 }
+
 resource "aws_subnet" "my_subnet2" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.1.2.0/24"
 }
+
 resource "aws_s3_bucket" "test_bucket" {
   bucket        = var.resource_name
   acl           = "private"
   force_destroy = true
 }
+
 resource "aws_iam_role" "test_role" {
   name               = var.resource_name
   assume_role_policy = <<EOF
@@ -80,6 +84,7 @@ resource "aws_iam_role" "test_role" {
 }
 EOF
 }
+
 resource "aws_iam_role_policy" "test_role_policy" {
   role   = aws_iam_role.test_role.name
   policy = <<POLICY
@@ -152,7 +157,7 @@ resource "aws_codebuild_project" "named_test_resource" {
   }
   cache {
     type     = "S3"
-    location = "${aws_s3_bucket.test_bucket.bucket}"
+    location = aws_s3_bucket.test_bucket.bucket
   }
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"

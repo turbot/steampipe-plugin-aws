@@ -43,7 +43,7 @@ from
 ```
 
 
-### List of projects which are not created within a VPC
+### List projects which are not created within a VPC
 
 ```sql
 select
@@ -57,7 +57,7 @@ where
 ```
 
 
-### List of projects in which logging is not enabled
+### List projects in which logging is not enabled
 
 ```sql
 select

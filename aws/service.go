@@ -163,10 +163,10 @@ func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*ba
 // CodeBuildService returns the service connection for AWS CodeBuild service
 func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (*codebuild.CodeBuild, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed BackupService")
+		return nil, fmt.Errorf("region must be passed CodeBuildService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("backup-%s", region)
+	serviceCacheKey := fmt.Sprintf("codebuild-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*codebuild.CodeBuild), nil
 	}
