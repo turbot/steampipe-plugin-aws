@@ -22,7 +22,7 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 			Hydrate: listS3AccessPoints,
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
+			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
 			Hydrate:           getS3AccessPoint,
 			ShouldIgnoreError: isNotFoundError([]string{"NoSuchAccessPoint", "AccessDenied", "InvalidParameter"}),
 		},
@@ -182,11 +182,18 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, err
 	}
 
-	var name string
+	var name, region string
 	if h.Item != nil {
 		name = *h.Item.(*s3control.AccessPoint).Name
+		region = commonColumnData.Region
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
+		region = d.KeyColumnQuals["region"].GetStringValue()
+	}
+
+	// Return nil, if given region doesn't match config region
+	if region != commonColumnData.Region {
+		return nil, nil
 	}
 
 	// Build params

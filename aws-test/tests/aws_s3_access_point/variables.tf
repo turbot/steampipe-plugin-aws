@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -93,4 +93,8 @@ output "account_id" {
 
 output "aws_partition" {
   value = data.aws_partition.current.partition
+}
+
+output "region_id" {
+  value = split(":", aws_s3_access_point.named_test_resource.arn)[3]
 }

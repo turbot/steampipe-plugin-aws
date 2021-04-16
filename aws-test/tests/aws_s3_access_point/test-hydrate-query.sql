@@ -4,4 +4,5 @@ select
 from 
   aws.aws_s3_access_point
 where 
-  name = '{{ resourceName }}';
+  name = '{{ resourceName }}'
+  and region = '{{ output.region_id.value }}';

@@ -90,7 +90,7 @@ func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData,
 	s3Account := h.Item.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, "us-east-1")
+	svc, err := S3ControlService(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
