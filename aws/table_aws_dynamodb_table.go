@@ -10,8 +10,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
+
+//// TABLE DEFINITION
 
 func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -163,11 +166,26 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ContinuousBackupsDescription.PointInTimeRecoveryDescription"),
 			},
 			{
+				Name:        "scalable_targets",
+				Description: "A list of scalable targets.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDynamoDbTableScalableTargets,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,
 				Transform:   transform.FromField("Tags"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("TableName"),
 			},
 			{
 				Name:        "tags",
@@ -175,12 +193,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,
 				Transform:   transform.From(getTableTurbotTags),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("TableName"),
 			},
 			{
 				Name:        "akas",
@@ -266,6 +278,46 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return nil, nil
+}
+
+func getDynamoDbTableScalableTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDynamoDbTableScalableTargets")
+	table := h.Item.(*dynamodb.TableDescription)
+
+	// Return if the billing mode is not PROVISIONED, as the scaling properties can't be modified if the mode is PAY_PER_REQUEST
+	if table.BillingModeSummary != nil && *table.BillingModeSummary.BillingMode == "PAY_PER_REQUEST" {
+		return nil, nil
+	}
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	// Create Session
+	svc, err := ApplicationAutoscalingService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var scalableTargets []*applicationautoscaling.ScalableTarget
+	err = svc.DescribeScalableTargetsPages(
+		&applicationautoscaling.DescribeScalableTargetsInput{
+			ServiceNamespace: aws.String("dynamodb"),
+			ResourceIds:      []*string{aws.String("table/" + *table.TableName)},
+		},
+		func(page *applicationautoscaling.DescribeScalableTargetsOutput, isLast bool) bool {
+			scalableTargets = append(scalableTargets, page.ScalableTargets...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return scalableTargets, nil
 }
 
 func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

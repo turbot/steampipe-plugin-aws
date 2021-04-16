@@ -52,6 +52,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
+	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -114,6 +115,27 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string
 		return nil, err
 	}
 	svc := apigatewayv2.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ApplicationAutoscalingService returns the service connection for AWS ACM service
+func ApplicationAutoscalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ApplicationAutoscalingService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("applicationautoscaling-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*applicationautoscaling.ApplicationAutoScaling), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := applicationautoscaling.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
