@@ -65,20 +65,8 @@ resource "aws_elasticsearch_domain" "named_test_resource" {
   }
 }
 
-data "template_file" "resource_aka" {
-  template = "arn:$${partition}:es:$${region}:$${account_id}:domain/$${resource_name}"
-  vars = {
-    resource_name = var.resource_name
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
-    alternate_region = data.aws_region.alternate.name
-  }
-}
-
 output "resource_aka" {
-  depends_on = [ aws_elasticsearch_domain.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
+  value = aws_elasticsearch_domain.named_test_resource.arn
 }
 
 output "aws_region" {
