@@ -1,0 +1,17 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "domain_name": "{{ resourceName }}",
+    "ebs_enabled":  true,
+    "elasticsearch_version": "5.6",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "volume_size": 10
+  }
+]
