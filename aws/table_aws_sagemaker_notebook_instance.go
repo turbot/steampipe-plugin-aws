@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -159,12 +159,13 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
+				Transform:   transform.From(getAwsSageMakerNotebookInstanceTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("NotebookInstanceArn"),
+				Transform:   transform.FromField("NotebookInstanceArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -292,4 +293,24 @@ func instanceName(item interface{}) string {
 		return *item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceName
 	}
 	return ""
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+	error) {
+	instanceTags := d.HydrateItem.(*sagemaker.ListTagsOutput)
+
+	if instanceTags.Tags == nil {
+		return nil, nil
+	}
+
+	if instanceTags.Tags != nil {
+		turbotTagsMap := map[string]string{}
+		for _, i := range instanceTags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+		return turbotTagsMap, nil
+	}
+	return nil, nil
 }

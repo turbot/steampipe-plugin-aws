@@ -1,15 +1,15 @@
 [
-	{
-		"account_id": "{{ output.account_id.value }}",
-		"arn": "{{ output.resource_aka.value }}",
-		"name": "{{ resourceName }}",
-		"partition": "{{ output.aws_partition.value }}",
-		"region": "{{ output.aws_region.value }}",
-		"tags": [
-			{
-				"Key": "name",
-				"Value": "{{ resourceName }}"
-			}
-		]
-	}
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "arn": "{{ output.resource_aka.value }}",
+    "name": "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": [
+      {
+        "Key": "name",
+        "Value": "{{ resourceName }}"
+      }
+    ]
+  }
 ]

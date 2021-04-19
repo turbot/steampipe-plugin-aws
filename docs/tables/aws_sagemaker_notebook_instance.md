@@ -44,6 +44,7 @@ where
   kms_key_id is null;
 ```
 
+
 ### List notebook instances that are publicly available
 
 ```sql
