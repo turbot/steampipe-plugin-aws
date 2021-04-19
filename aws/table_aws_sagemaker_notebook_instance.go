@@ -45,7 +45,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "default_code_repository",
-				Description: "The date and time that the cluster was created.",
+				Description: "The Git repository associated with the notebook instance as its default code repository.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -118,7 +118,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "volume_size_in_gb",
-				Description: "Describes a group of DeferredMaintenanceWindow objects.",
+				Description: "The size, in GB, of the ML storage volume attached to the notebook instance.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getAwsSageMakerNotebookInstance,
 			},
@@ -146,13 +146,8 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			// Standard columns
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -160,11 +155,16 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("NotebookInstanceName"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listAwsSageMakerNotebookInstanceTags,
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSageMakerNotebookInstanceAka,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("NotebookInstanceArn"),
 			},
 		}),
 	}
@@ -271,18 +271,18 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	return op, nil
 }
 
-func getAwsSageMakerNotebookInstanceAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSageMakerNotebookInstanceAka")
-	NotebookInstanceName := instanceName(h.Item)
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":sagemaker:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":notebook-instance/" + NotebookInstanceName}
+// func getAwsSageMakerNotebookInstanceAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	plugin.Logger(ctx).Trace("getAwsSageMakerNotebookInstanceAka")
+// 	NotebookInstanceName := instanceName(h.Item)
+// 	c, err := getCommonColumns(ctx, d, h)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	commonColumnData := c.(*awsCommonColumnData)
+// 	aka := []string{"arn:" + commonColumnData.Partition + ":sagemaker:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":notebook-instance/" + NotebookInstanceName}
 
-	return aka, nil
-}
+// 	return aka, nil
+// }
 
 func instanceName(item interface{}) string {
 	switch item.(type) {

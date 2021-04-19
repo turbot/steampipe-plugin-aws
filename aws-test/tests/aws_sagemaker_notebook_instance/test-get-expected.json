@@ -6,10 +6,10 @@
 		"partition": "{{ output.aws_partition.value }}",
 		"region": "{{ output.aws_region.value }}",
 		"tags": [
-      {
-        "Key": "name",
-        "Value": "{{ resourceName }}"
-      }
-    ]
+			{
+				"Key": "name",
+				"Value": "{{ resourceName }}"
+			}
+		]
 	}
 ]

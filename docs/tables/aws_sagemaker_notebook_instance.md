@@ -32,7 +32,19 @@ where
 ```
 
 
-### List notebook instances that are not publicly available
+### List notebook instances whose data encrypted with kms customer master keys
+
+```sql
+select
+  name,
+  kms_key_id
+from
+  aws_sagemaker_notebook_instance
+where
+  kms_key_id is null;
+```
+
+### List notebook instances that are publicly available
 
 ```sql
 select
@@ -45,7 +57,7 @@ where
 ```
 
 
-### List notebook instances whose root access for users disabled
+### List notebook instances which provides root access to the users
 
 ```sql
 select
@@ -54,5 +66,5 @@ select
 from
   aws_sagemaker_notebook_instance
 where
-  root_access = 'Disabled';
+  root_access = 'Enabled';
 ```
