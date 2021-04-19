@@ -159,7 +159,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.From(getAwsSageMakerNotebookInstanceTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(getAwsSageMakerNotebookInstanceTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -215,7 +215,7 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	if h.Item != nil {
 		name = instanceName(h.Item)
 	} else {
-		name = d.KeyColumnQuals["notebook_instance_name"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create service
@@ -232,7 +232,7 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	data, err := svc.DescribeNotebookInstance(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsSagemakerNotebookInstance", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsSageMakerNotebookInstance", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
@@ -249,7 +249,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 		region = matrixRegion.(string)
 	}
 
-	resourceArn := h.Item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceArn
+	resourceArn := h.Item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceArn
 
 	// Create Session
 	svc, err := SageMakerService(ctx, d, region)
@@ -271,19 +271,6 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 
 	return op, nil
 }
-
-// func getAwsSageMakerNotebookInstanceAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("getAwsSageMakerNotebookInstanceAka")
-// 	NotebookInstanceName := instanceName(h.Item)
-// 	c, err := getCommonColumns(ctx, d, h)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	commonColumnData := c.(*awsCommonColumnData)
-// 	aka := []string{"arn:" + commonColumnData.Partition + ":sagemaker:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":notebook-instance/" + NotebookInstanceName}
-
-// 	return aka, nil
-// }
 
 func instanceName(item interface{}) string {
 	switch item.(type) {

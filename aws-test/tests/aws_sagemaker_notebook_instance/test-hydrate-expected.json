@@ -4,11 +4,8 @@
       "{{ output.resource_aka.value }}"
     ],
     "name": "{{ output.resource_name.value }}",
-    "tags": [
-      {
-        "Key": "name",
-        "Value": "{{ resourceName }}"
-      }
-    ]
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
   }
 ]
