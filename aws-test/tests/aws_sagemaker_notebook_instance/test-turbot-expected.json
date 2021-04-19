@@ -4,8 +4,8 @@
 		"akas": ["{{ output.resource_aka.value }}"],
 		"region": "{{ output.aws_region.value }}",
 		"tags": {
-      "name": "{{ resourceName }}"
-    },
+      		  "name": "{{ resourceName }}"
+   		},
 		"title": "{{ resourceName }}"
 	}
 ]
