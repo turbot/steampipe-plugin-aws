@@ -272,6 +272,26 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	return op, nil
 }
 
+//// TRANSFORM FUNCTION
+
+func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+	error) {
+		data := d.HydrateItem.(*sagemaker.ListTagsOutput)
+
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	if data.Tags != nil {
+		turbotTagsMap := map[string]string{}
+		for _, i := range data.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
 func instanceName(item interface{}) string {
 	switch item.(type) {
 	case *sagemaker.NotebookInstanceSummary:
@@ -280,24 +300,4 @@ func instanceName(item interface{}) string {
 		return *item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceName
 	}
 	return ""
-}
-
-//// TRANSFORM FUNCTIONS
-
-func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
-	error) {
-	instanceTags := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if instanceTags.Tags == nil {
-		return nil, nil
-	}
-
-	if instanceTags.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range instanceTags.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
-	}
-	return nil, nil
 }
