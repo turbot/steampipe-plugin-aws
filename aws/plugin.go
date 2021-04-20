@@ -132,6 +132,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_route53_zone":                       tableAwsRoute53Zone(ctx),
 			"aws_s3_account_settings":                tableAwsS3AccountSettings(ctx),
 			"aws_s3_bucket":                          tableAwsS3Bucket(ctx),
+			"aws_secrets_manager_secret":             tableAwsSecretsManagerSecret(ctx),
 			"aws_securityhub_hub":                    tableAwsSecurityHub(ctx),
 			"aws_securityhub_product":                tableAwsSecurityhubProduct(ctx),
 			"aws_sns_topic":                          tableAwsSnsTopic(ctx),
