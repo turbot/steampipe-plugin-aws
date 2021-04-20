@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_iam_role" "my_role" {
-  name = var.resource_name
+  name               = var.resource_name
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -69,26 +69,27 @@ resource "aws_vpc" "my_vpc" {
 }
 
 resource "aws_subnet" "my_subnet1" {
-  cidr_block        = "10.1.1.0/24"
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  cidr_block = "10.1.1.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
 }
 
 resource "aws_subnet" "my_subnet2" {
-  cidr_block        = "10.1.2.0/24"
-  vpc_id            = "${aws_vpc.my_vpc.id}"
+  cidr_block = "10.1.2.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
 }
 
 resource "aws_dax_subnet_group" "my_subnet_group" {
   name       = var.resource_name
-  subnet_ids = ["${aws_subnet.my_subnet1.id}", "${aws_subnet.my_subnet2.id}"]
+  subnet_ids = [aws_subnet.my_subnet1.id, aws_subnet.my_subnet2.id]
 }
 
 resource "aws_dax_cluster" "named_test_resource" {
-  cluster_name = var.resource_name
-  iam_role_arn = aws_iam_role.my_role.arn
-  node_type = "dax.r4.large"
+  cluster_name       = var.resource_name
+  description        = "A test cluster"
+  iam_role_arn       = aws_iam_role.my_role.arn
+  node_type          = "dax.r4.large"
   replication_factor = 1
-  subnet_group_name = aws_dax_subnet_group.my_subnet_group.name
+  subnet_group_name  = aws_dax_subnet_group.my_subnet_group.name
   tags = {
     name = var.resource_name
   }

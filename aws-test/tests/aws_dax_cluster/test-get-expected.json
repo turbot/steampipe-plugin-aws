@@ -2,6 +2,8 @@
 	{
 		"arn": "{{ output.resource_aka.value }}",
 		"cluster_name": "{{resourceName}}",
+		"description": "A test cluster",
+		"node_type": "dax.r4.large",
 		"tags": {
 			"name": "{{resourceName}}"
 		}
