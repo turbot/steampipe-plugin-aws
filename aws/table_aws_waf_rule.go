@@ -53,6 +53,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsWAFRuleTag,
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -146,8 +147,6 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return data.Rule, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
 func getAwsWAFRuleTag(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsWAFRuleTag")
 
@@ -193,6 +192,8 @@ func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	return []string{aka}, nil
 }
+
+//// TRANSFORM FUNCTION
 
 func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tagListToTurbotTags")
