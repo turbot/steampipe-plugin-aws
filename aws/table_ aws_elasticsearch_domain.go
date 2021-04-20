@@ -55,13 +55,6 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
-				Name:        "policy_std",
-				Description: "Contains the policy in a canonical form for easier searching.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("AccessPolicies").Transform(unescape).Transform(policyToCanonical),
-			},
-			{
 				Name:        "elasticsearch_version",
 				Description: "The version for the Elasticsearch domain.",
 				Type:        proto.ColumnType_STRING,
@@ -103,6 +96,13 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsElasticsearchDomain,
 				Transform:   transform.FromField("NodeToNodeEncryptionOptions.Enabled"),
+			},
+			{
+				Name:        "policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+				Transform:   transform.FromField("AccessPolicies").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
 				Name:        "ebs_options",
