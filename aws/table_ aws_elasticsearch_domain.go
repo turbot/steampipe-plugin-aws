@@ -55,6 +55,13 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
+				Name:        "policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+				Transform:   transform.FromField("AccessPolicies").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "elasticsearch_version",
 				Description: "The version for the Elasticsearch domain.",
 				Type:        proto.ColumnType_STRING,
@@ -98,53 +105,18 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("NodeToNodeEncryptionOptions.Enabled"),
 			},
 			{
-				Name:        "ebs_enabled",
+				Name:        "ebs_options",
 				Description: "Specifies whether EBS-based storage is enabled.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("EBSOptions.EBSEnabled"),
-			},
-			{
-				Name:        "volume_size",
-				Description: "Specify the size of an EBS volume.",
-				Type:        proto.ColumnType_INT,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("EBSOptions.VolumeSize"),
-			},
-			{
-				Name:        "volume_type",
-				Description: "Specifies the volume type for EBS-based storage.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("EBSOptions.VolumeType"),
-			},
-			{
-				Name:        "availability_zones",
-				Description: "The availability zones for the Elasticsearch domain.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("VPCOptions.AvailabilityZones"),
+				Transform:   transform.FromField("EBSOptions"),
 			},
 			{
-				Name:        "security_group_ids",
-				Description: "Specifies the security groups for VPC endpoint.",
+				Name:        "vpc_options",
+				Description: "Specifies whether EBS-based storage is enabled.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("VPCOptions.SecurityGroupIds"),
-			},
-			{
-				Name:        "subnet_ids",
-				Description: "Specifies the subnets for VPC endpoint.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("VPCOptions.SubnetIds"),
-			},
-			{
-				Name:        "vpc_id",
-				Description: "The VPC Id for the Elasticsearch domain.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("VPCOptions.VPCId"),
+				Transform:   transform.FromField("VPCOptions"),
 			},
 			{
 				Name:        "advanced_options",
@@ -210,13 +182,6 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 
 			// Standard columns for all tables
 			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -228,6 +193,13 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsElasticsearchDomainTags,
 				Transform:   transform.FromField("TagList").Transform(getAwsElasticsearchDomaintagListToTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+				Transform:   transform.FromField("ARN").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -329,7 +301,7 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	params := &elasticsearchservice.ListTagsInput{
 		ARN: arn,
 	}
-	
+
 	// Get call
 	op, err := svc.ListTags(params)
 	if err != nil {
@@ -338,6 +310,8 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 
 	return op, nil
 }
+
+//// TRANSFORM FUNCTION
 
 func getAwsElasticsearchDomaintagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsElasticsearchDomaintagListToTurbotTags")
@@ -357,4 +331,3 @@ func getAwsElasticsearchDomaintagListToTurbotTags(ctx context.Context, d *transf
 
 	return turbotTagsMap, nil
 }
-

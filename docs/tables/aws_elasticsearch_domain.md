@@ -12,8 +12,7 @@ select
   domain_id,
   arn,
   elasticsearch_version,
-  created,
-  deleted
+  created
 from
   aws_elasticsearch_domain;
 ```
@@ -40,29 +39,29 @@ where
 select
   domain_name,
   domain_id,
-  volume_size,
-  volume_type,
-  ebs_enabled
+  ebs_options ->> 'VolumeSize' as volume_size,
+  ebs_options ->> 'VolumeType' as volume_type,
+  ebs_options ->> 'EBSEnabled' as ebs_enabled
 from
   aws_elasticsearch_domain
 where
-  ebs_enabled = true;
+  ebs_options ->> 'EBSEnabled' = 'true';
 ```
 
 
-### Get details of vpc associated with domain
+### Get network details associated with domain
 
 ```sql
 select
   domain_name,
-  availability_zones,
-  security_group_ids,
-  subnet_ids,
-  vpc_id
+  vpc_options ->> 'AvailabilityZones' as availability_zones,
+  vpc_options ->> 'SecurityGroupIds' as security_group_ids,
+  vpc_options ->> 'SubnetIds' as subnet_ids,
+  vpc_options ->> 'VPCId' as vpc_id
 from
   aws_elasticsearch_domain
 where
-  availability_zones is not null;
+  vpc_options ->> 'AvailabilityZones' is not null;
 ```
 
 
@@ -76,4 +75,37 @@ select
   elasticsearch_cluster_config ->> 'InstanceCount' as instance_count
 from
   aws_elasticsearch_domain;
+```
+
+
+### List of domains policy statements that grant anonymous access
+
+```sql
+select
+  domain_name,
+  p as principal,
+  a as action,
+  s ->> 'Effect' as effect
+from
+  aws_elasticsearch_domain,
+  jsonb_array_elements(policy_std -> 'Statement') as s,
+  jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
+  jsonb_array_elements_text(s -> 'Action') as a
+where
+  p = '*'
+  and s ->> 'Effect' = 'Allow';
+```
+
+
+### List of domains which are plan for deletion
+
+```sql
+select
+  domain_name,
+  domain_id,
+  deleted
+from
+  aws_elasticsearch_domain
+where
+  deleted is not false;
 ```
