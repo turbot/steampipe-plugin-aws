@@ -78,7 +78,7 @@ from
 ```
 
 
-### List of domains policy statements that grant anonymous access
+### List domains that grant anonymous access
 
 ```sql
 select
@@ -97,7 +97,7 @@ where
 ```
 
 
-### List of domains which are plan for deletion
+### List domains which are planned for deletion
 
 ```sql
 select
@@ -107,5 +107,5 @@ select
 from
   aws_elasticsearch_domain
 where
-  deleted is not false;
+  not deleted;
 ```
