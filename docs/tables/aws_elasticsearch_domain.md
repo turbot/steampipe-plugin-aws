@@ -33,7 +33,7 @@ where
 ```
 
 
-### Get details of ebs associated with each domain
+### Get details of the domain storage which are using EBS storage type
 
 ```sql
 select
