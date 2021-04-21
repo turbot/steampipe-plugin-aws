@@ -13,7 +13,7 @@ select
   description,
   last_accessed_date
 from
-  aws_secrets_manager_secret;
+  aws_secretsmanager_secret;
 ```
 
 
@@ -26,7 +26,7 @@ select
   description,
   rotation_enabled
 from
-  aws_secrets_manager_secret
+  aws_secretsmanager_secret
 where
   not rotation_enabled;
 ```
@@ -42,7 +42,7 @@ select
   rotation_enabled,
   rotation_rules
 from
-  aws_secrets_manager_secret
+  aws_secretsmanager_secret
 where
   rotation_rules -> 'AutomaticallyAfterDays' > '7';
 ```
@@ -57,7 +57,7 @@ select
   description,
   replication_status
 from
-  aws_secrets_manager_secret
+  aws_secretsmanager_secret
 where
   replication_status is NULL;
 ```

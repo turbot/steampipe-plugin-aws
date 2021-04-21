@@ -1,3 +1,3 @@
 select *
-from aws_secrets_manager_secret
+from aws_secretsmanager_secret
 where arn = 'TestNotFound';
