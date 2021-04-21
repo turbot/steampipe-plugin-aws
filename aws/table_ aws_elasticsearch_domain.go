@@ -112,13 +112,6 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("EBSOptions"),
 			},
 			{
-				Name:        "vpc_options",
-				Description: "Specifies whether EBS-based storage is enabled.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticsearchDomain,
-				Transform:   transform.FromField("VPCOptions"),
-			},
-			{
 				Name:        "advanced_options",
 				Description: "Specifies the status of the AdvancedOptions.",
 				Type:        proto.ColumnType_JSON,
@@ -171,6 +164,13 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Description: "Specifies the status of the SnapshotOptions.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
+				Name:        "vpc_options",
+				Description: "The VPCOptions for the specified domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+				Transform:   transform.FromField("VPCOptions"),
 			},
 			{
 				Name:        "tags_src",
