@@ -50,7 +50,8 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Name:        "is_aws_managed",
 				Description: "Specifies whether the policy is AWS Managed or Customer Managed. If true policy is aws managed otherwise customer managed.",
 				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.From(isPolicyAwsManaged),
+				Hydrate:     isPolicyAwsManaged,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "is_attachable",
@@ -203,22 +204,29 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return version, nil
 }
 
-//// Transform Function
-
 // isPolicyAwsManaged returns true if policy is aws managed
-func isPolicyAwsManaged(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("isPolicyAwsManaged")
 
-	policy := d.HydrateItem.(*iam.Policy)
+	policy := h.Item.(*iam.Policy)
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
 
 	// TODO arn:{{ partition }}:iam::aws:policy
-	if strings.HasPrefix(*policy.Arn, "arn:aws:iam::aws:policy") {
+	if strings.HasPrefix(*policy.Arn, "arn:"+commonColumnData.Partition+":iam::"+commonColumnData.Partition+":policy") {
 		return true, nil
 	}
 
 	return false, nil
 }
+
+//// Transform Function
 
 func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	policy := d.HydrateItem.(*iam.Policy)

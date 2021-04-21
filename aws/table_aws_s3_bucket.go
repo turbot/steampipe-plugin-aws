@@ -205,7 +205,8 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(s3NameToAkas),
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue().Transform(arnToAkas),
 			},
 			{
 				Name:        "region",
@@ -590,12 +591,6 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 //// TRANSFORM FUNCTIONS
-
-func s3NameToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("s3NameToAkas")
-	bucket := d.HydrateItem.(*s3.Bucket)
-	return []string{"arn:aws:s3:::" + *bucket.Name}, nil
-}
 
 func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")
