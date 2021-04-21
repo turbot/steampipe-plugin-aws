@@ -1,4 +1,4 @@
-# Table: aws_secrets_manager_secret
+# Table: aws_secretsmanager_secret
 
 The AWS Secrets Manager Secret resource creates a secret and stores it in Secrets Manager.
 
@@ -28,11 +28,11 @@ select
 from
   aws_secrets_manager_secret
 where
-  rotation_enabled = 'false';
+  not rotation_enabled;
 ```
 
 
-### List secrets whose automatic rotation interval is greater tha 7 days
+### List secrets whose automatic rotation interval is more than 7 days
 
 ```sql
 select

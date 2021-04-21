@@ -14,7 +14,7 @@ import (
 
 func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_secrets_manager_secret",
+		Name:        "aws_secretsmanager_secret",
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn, name"),
@@ -120,19 +120,19 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns for all tables
+			// Standard columns for all tables
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     describeSecretsManagerSecret,
 				Transform:   transform.FromField("Tags").Transform(secretsManagerSecretTagListToTurbotTags),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
@@ -214,7 +214,7 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTION
 
 func secretsManagerSecretTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("secretsManagerSecretTagListToTurbotTags")
