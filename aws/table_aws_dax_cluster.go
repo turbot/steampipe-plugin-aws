@@ -172,8 +172,8 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			return nil, err
 		}
 
-		for _, clusters := range result.Clusters {
-			d.StreamListItem(ctx, clusters)
+		for _, cluster := range result.Clusters {
+			d.StreamListItem(ctx, cluster)
 		}
 
 		if result.NextToken != nil {
@@ -249,7 +249,7 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return clusterdata, nil
 }
 
-// TRANSFORM FUNCTION
+//// TRANSFORM FUNCTION
 
 func daxClusterTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*dax.ListTagsOutput)
@@ -257,7 +257,7 @@ func daxClusterTurbotData(_ context.Context, d *transform.TransformData) (interf
 		return nil, nil
 	}
 
-	// Get the resource tags
+	// Mapping the resource tags inside turbotTags
 	if data.Tags != nil {
 		turbotTagsMap := map[string]string{}
 		for _, i := range data.Tags {
