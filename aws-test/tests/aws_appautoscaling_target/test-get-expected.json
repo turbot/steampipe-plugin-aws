@@ -1,0 +1,8 @@
+[
+  {
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "service_namespace": "dynamodb"
+  }
+]
+
