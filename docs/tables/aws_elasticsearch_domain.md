@@ -95,17 +95,3 @@ where
   p = '*'
   and s ->> 'Effect' = 'Allow';
 ```
-
-
-### List domains which are planned for deletion
-
-```sql
-select
-  domain_name,
-  domain_id,
-  deleted
-from
-  aws_elasticsearch_domain
-where
-  not deleted;
-```
