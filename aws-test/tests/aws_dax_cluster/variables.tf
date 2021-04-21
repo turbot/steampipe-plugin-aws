@@ -1,3 +1,4 @@
+
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125"
