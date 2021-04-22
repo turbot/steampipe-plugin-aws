@@ -17,7 +17,7 @@ from
 ```
 
 
-### List secrets whose automatic rotation is not enabled
+### List secrets that do not automatically rotate
 
 ```sql
 select
@@ -32,7 +32,7 @@ where
 ```
 
 
-### List secrets whose automatic rotation interval is more than 7 days
+### List secrets that automatically rotate every 7 days
 
 ```sql
 select
@@ -48,7 +48,7 @@ where
 ```
 
 
-### List secrets which are not replicated in other regions
+### List secrets that are not replicated in other regions
 
 ```sql
 select
@@ -59,5 +59,5 @@ select
 from
   aws_secretsmanager_secret
 where
-  replication_status is NULL;
+  replication_status is null;
 ```
