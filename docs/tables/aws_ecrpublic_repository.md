@@ -19,20 +19,6 @@ from
   aws_ecrpublic_repository;
 ```
 
-### List repositories whose image scanning has failed
-
-```sql
-select
-  repository_name,
-  detail -> 'ImageScanStatus' ->> 'Status' as scan_status
-from
-  aws_ecrpublic_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail
-where
-  detail -> 'ImageScanStatus' ->> 'Status' = 'FAILED';
-```
-
 ### List repository policy statements that grant full access for each repository
 
 ```sql
@@ -50,18 +36,4 @@ from
 where
   s ->> 'Effect' = 'Allow'
   and a in ('*', 'ecr-public:*');
-```
-
-### Get repository image vulnerability count by severity for each repository
-
-```sql
-select
-  repository_name,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts
-from
-  aws_ecrpublic_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail;
 ```
