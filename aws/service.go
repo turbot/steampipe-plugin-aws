@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -156,6 +157,26 @@ func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*ba
 		return nil, err
 	}
 	svc := backup.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// CodeBuildService returns the service connection for AWS CodeBuild service
+func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (*codebuild.CodeBuild, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodeBuildService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codebuild-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codebuild.CodeBuild), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codebuild.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
