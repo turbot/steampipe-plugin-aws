@@ -49,7 +49,7 @@ from
   jsonb_array_elements_text(s -> 'Action') as a
 where
   s ->> 'Effect' = 'Allow'
-  and a in ('*', 'ecr:*');
+  and a in ('*', 'ecr-public:*');
 ```
 
 ### Get repository image vulnerability count by severity for each repository
