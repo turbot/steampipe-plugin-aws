@@ -1,6 +1,6 @@
 # Table: aws_codebuild_project
 
-AWS CodeBuild is a fully managed continuous integration service that compiles source code, runs tests, and produces software packages that are ready to deploy.
+An AWS CodeBuild project configures how CodeBuild builds your source code. For example, it tells CodeBuild where to get the source code and which build environment to use.
 
 ## Examples
 
@@ -22,7 +22,7 @@ from
 ```
 
 
-### Get the build input details of the projects
+### Get the build input details for each project
 
 ```sql
 select
@@ -57,7 +57,7 @@ where
 ```
 
 
-### List projects in which logging is not enabled
+### List projects that do not have logging enabled
 
 ```sql
 select
