@@ -15,11 +15,10 @@ select
   notebook_instance_status
 from
   aws_sagemaker_notebook_instance;
-
 ```
 
 
-### List notebook instances with unecrypted data on the ML storage volume
+### List notebook instances that do not have encryption at rest enabled
 
 ```sql
 select
@@ -32,20 +31,7 @@ where
 ```
 
 
-### List notebook instances whose data encrypted with kms customer master keys
-
-```sql
-select
-  name,
-  kms_key_id
-from
-  aws_sagemaker_notebook_instance
-where
-  kms_key_id is null;
-```
-
-
-### List notebook instances that are publicly available
+### List publicly available notebook instances
 
 ```sql
 select
@@ -58,7 +44,7 @@ where
 ```
 
 
-### List notebook instances which provides root access to the users
+### List notebook instances that allow root access
 
 ```sql
 select
