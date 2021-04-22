@@ -48,6 +48,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -833,6 +834,26 @@ func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53,
 		return nil, err
 	}
 	svc := route53.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SecretsManagerService returns the service connection for AWS secretsManager service
+func SecretsManagerService(ctx context.Context, d *plugin.QueryData, region string) (*secretsmanager.SecretsManager, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SecretsManagerService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("secretsManager-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*secretsmanager.SecretsManager), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := secretsmanager.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
