@@ -218,8 +218,10 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	commonColumnData := c.(*awsCommonColumnData)
 
-	// TODO arn:{{ partition }}:iam::aws:policy
-	if strings.HasPrefix(*policy.Arn, "arn:"+commonColumnData.Partition+":iam::"+commonColumnData.Partition+":policy") {
+	// policy arn for aws managed policy
+	// arn:aws-us-gov:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in us gov cloud
+	// arn:aws:iam::aws:policy/aws-service-role/AccessAnalyzerServiceRolePolicy in commercial cloud
+	if strings.HasPrefix(*policy.Arn, "arn:"+commonColumnData.Partition+":iam::aws:policy") {
 		return true, nil
 	}
 

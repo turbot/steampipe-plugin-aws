@@ -206,7 +206,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketARN,
-				Transform:   transform.FromValue().Transform(arnToAkas),
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "region",
