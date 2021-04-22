@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
@@ -433,6 +434,26 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, err
 	}
 	svc := elasticache.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// ElasticsearchService returns the service connection for AWS Elasticsearch service
+func ElasticsearchService(ctx context.Context, d *plugin.QueryData, region string) (*elasticsearchservice.ElasticsearchService, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ElasticsearchService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elasticsearchservice.ElasticsearchService), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := elasticsearchservice.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
