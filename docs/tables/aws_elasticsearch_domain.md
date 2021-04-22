@@ -1,6 +1,6 @@
 # Table: aws_elasticsearch_domain
 
-Amazon ES is a managed service that helps to deploy,operate,scale Elasticsearch clusters in the AWS Cloud. ES domain is synonymous with an Elasticsearch cluster.
+Amazon ES is a managed service that helps to deploy, operate, and scale Elasticsearch clusters in the AWS Cloud. Domains are clusters with the settings, instance types, instance counts, and storage resources that you specify.
 
 ## Example
 
@@ -33,7 +33,7 @@ where
 ```
 
 
-### Get details of the domain storage which are using EBS storage type
+### Get storage details for domains that are using EBS storage type
 
 ```sql
 select
@@ -49,7 +49,7 @@ where
 ```
 
 
-### Get network details associated with domain
+### Get network details for each domain
 
 ```sql
 select
@@ -65,7 +65,7 @@ where
 ```
 
 
-### Get the details of instance associated with domain cluster
+### Get the instance details for each domain
 
 ```sql
 select
