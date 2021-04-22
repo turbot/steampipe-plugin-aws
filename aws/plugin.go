@@ -86,6 +86,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_emr_cluster":                        tableAwsEmrCluster(ctx),
 			"aws_eventbridge_rule":                   tableAwsEventBridgeRule(ctx),
 			"aws_glacier_vault":                      tableAwsGlacierVault(ctx),
+			"aws_glue_catalog_database":							tableAwsGlueDatabase(ctx),
 			"aws_guardduty_detector":                 tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_ipset":                    tableAwsGuardDutyIPSet(ctx),
 			"aws_guardduty_threat_intel_set":         tableAwsGuardDutyThreatIntelSet(ctx),
