@@ -28,6 +28,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
+			"aws_accessanalyzer_analyzer":						tableAwsAccessAnalyzerAnalyzer(ctx),
 			"aws_account":                            tableAwsAccount(ctx),
 			"aws_acm_certificate":                    tableAwsAcmCertificate(ctx),
 			"aws_api_gateway_api_key":                tableAwsAPIGatewayAPIKey(ctx),

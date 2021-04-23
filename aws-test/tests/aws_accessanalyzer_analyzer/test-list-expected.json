@@ -1,0 +1,12 @@
+[
+  {
+    "status": "ACTIVE",
+    "name": "{{ resourceName }}",
+    "type": "ACCOUNT",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}"
+  }
+]
