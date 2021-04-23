@@ -50,6 +50,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codebuild_project":                  tableAwsCodeBuildProject(ctx),
 			"aws_config_configuration_recorder":      tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":            tableAwsConfigConformancePack(ctx),
+			"aws_dax_cluster":                        tableAwsDaxCluster(ctx),
 			"aws_dynamodb_backup":                    tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":              tableAwsDynamoDBGlobalTable(ctx),
 			"aws_dynamodb_table":                     tableAwsDynamoDBTable(ctx),
