@@ -33,7 +33,7 @@ where
 ```
 
 
-### List clusters provisioned with undesired (for example, dax.r4.large and dax.t2.medium are desired) node types
+### List clusters provisioned with undesired (for example, cache.m5.large and cache.m4.4xlarge are desired) node types
 
 ```sql
 select
