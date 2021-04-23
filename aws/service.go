@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -263,6 +264,27 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 		return nil, err
 	}
 	svc := cloudtrail.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DaxService returns the service connection for AWS DAX service
+func DaxService(ctx context.Context, d *plugin.QueryData, region string) (*dax.DAX, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DaxService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("dax-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*dax.DAX), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := dax.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
