@@ -20,12 +20,12 @@
             "Prefix": "log/",
             "Tags": [
               {
-                "Key": "autoclean",
-                "Value": "true"
-              },
-              {
                 "Key": "rule",
                 "Value": "log"
+              },
+              {
+                "Key": "autoclean",
+                "Value": "true"
               }
             ]
           },
@@ -70,7 +70,7 @@
         "Transitions": null
       }
     ],
-    "logging": "<null>",
+    "logging": null,
     "name": "{{resourceName}}",
     "partition": "{{ output.aws_partition.value }}",
     "restrict_public_buckets": false,

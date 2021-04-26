@@ -1,0 +1,32 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
+    "arn": "{{ output.resource_aka.value }}",
+    "deleted_date": null,
+    "description": "Test secret.",
+    "kms_key_id": null,
+    "last_accessed_date": null,
+    "last_rotated_date": null,
+    "name": "{{ resourceName }}",
+    "owning_service": null,
+    "partition": "{{ output.aws_partition.value }}",
+    "primary_region": null,
+    "region": "{{ output.aws_region.value }}",
+    "replication_status": null,
+    "rotation_enabled": null,
+    "rotation_lambda_arn": null,
+    "rotation_rules": null,
+    "secret_versions_to_stages": null,
+    "tags": {
+      "foo": "bar"
+    },
+    "tags_src": [
+      {
+        "Key": "foo",
+        "Value": "bar"
+      }
+    ],
+    "title": "{{ resourceName }}"
+  }
+]
