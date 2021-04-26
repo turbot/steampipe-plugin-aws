@@ -13,10 +13,10 @@ import (
 func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_accessanalyzer_analyzer",
-		Description: "AWS IAM Access Analyzer Analyzer",
+		Description: "AWS IAM Access Analyzer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException", "ThrottlingException", "AccessDeniedException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
 			Hydrate:           getAwsAccessAnalyzerAnalyzer,
 		},
 		List: &plugin.ListConfig{
@@ -41,7 +41,7 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "last_resource_analyzed",
-				Description: "he resource that was most recently analyzed by the analyzer.",
+				Description: "The resource that was most recently analyzed by the analyzer.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -69,7 +69,7 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "tags",
@@ -132,11 +132,7 @@ func getAwsAccessAnalyzerAnalyzer(ctx context.Context, d *plugin.QueryData, h *p
 		region = matrixRegion.(string)
 	}
 	var name string
-	if h.Item != nil {
-		name = analyzerName(h.Item)
-	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
-	}
+	name = d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := AccessAnalyzerService(ctx, d, region)
@@ -157,12 +153,4 @@ func getAwsAccessAnalyzerAnalyzer(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	return data.Analyzer, nil
-}
-
-func analyzerName(item interface{}) string {
-	switch item.(type) {
-	case *accessanalyzer.AnalyzerSummary:
-		return *item.(*accessanalyzer.AnalyzerSummary).Name
-	}
-	return ""
 }
