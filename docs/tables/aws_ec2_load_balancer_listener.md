@@ -49,3 +49,18 @@ from
 where
   protocol = 'HTTP';
 ```
+
+
+### List load balancer listeners contains security policy with weak cipher
+
+```sql
+select
+  arn,
+  ssl_policy_detail ->> 'Name' ssl_policy_name,
+  cipher ->> 'Name' cipher
+from
+  aws_ec2_load_balancer_listener,
+  jsonb_array_elements(ssl_policy_detail -> 'Ciphers') cipher
+where
+  cipher ->> 'Name' = 'DES-CBC3-SHA';
+```
