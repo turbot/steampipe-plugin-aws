@@ -2,7 +2,10 @@ package aws
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -203,6 +206,12 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The reason code for the state change.",
 				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("State.Code"),
+			},
+			{
+				Name:        "state_change_time",
+				Description: "The reason code for the state change.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.From(ec2InstanceStateChangeTime),
 			},
 			{
 				Name:        "subnet_id",
@@ -601,4 +610,15 @@ func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (i
 		}
 	}
 	return title, nil
+}
+
+func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*ec2.Instance)
+	if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
+		regexExp := regexp.MustCompile(`\((.*?) *\)`)
+		stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)[1]
+		stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
+		return stateTransitionTimeInUTC, nil
+	}
+	return nil, nil
 }
