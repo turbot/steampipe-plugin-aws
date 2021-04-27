@@ -23,6 +23,7 @@ where
 
 ```sql
 select
+  resource_id,
   scalable_dimension
 from
   aws_appautoscaling_target
