@@ -143,12 +143,7 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, h *plug
 		region = matrixRegion.(string)
 	}
 
-	var name string
-	if h.Item != nil {
-		name = *h.Item.(*ecrpublic.Repository).RepositoryName
-	} else {
-		name = d.KeyColumnQuals["repository_name"].GetStringValue()
-	}
+	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 
 	// Create Session
 	svc, err := EcrPublicService(ctx, d, region)
@@ -164,10 +159,10 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, h *plug
 	// Get call
 	data, err := svc.DescribeRepositories(params)
 	if err != nil {
-		logger.Debug("getAwsEcrpublicRepositories", "ERROR", err)
+		logger.Debug("getAwsEcrpublicRepository", "ERROR", err)
 		return nil, err
 	}
-	if len(data.Repositories) > 0 {
+	if data.Repositories != nil && len(data.Repositories) > 0 {
 		return data.Repositories[0], nil
 	}
 
