@@ -175,24 +175,23 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	// List all regional web acls
 	pagesLeft := true
-	regionalWebAclParams := &wafv2.ListWebACLsInput{
+	params := &wafv2.ListWebACLsInput{
 		Scope: scope,
 	}
 	for pagesLeft {
-		response, err := svc.ListWebACLs(regionalWebAclParams)
+		response, err := svc.ListWebACLs(params)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, reginalWebACLs := range response.WebACLs {
-			d.StreamListItem(ctx, reginalWebACLs)
+		for _, webAcl := range response.WebACLs {
+			d.StreamListItem(ctx, webAcl)
 		}
 
 		if response.NextMarker != nil {
 			pagesLeft = true
-			regionalWebAclParams.NextMarker = response.NextMarker
+			params.NextMarker = response.NextMarker
 		} else {
 			pagesLeft = false
 		}
