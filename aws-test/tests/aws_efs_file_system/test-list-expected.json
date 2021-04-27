@@ -1,8 +1,7 @@
 [
   {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
+    "akas": ["{{ output.resource_aka.value }}"],
+    "automatic_backup": "disabled",
     "encrypted": true,
     "file_system_id": "{{ output.resource_id.value }}",
     "performance_mode": "maxIO",

@@ -11,6 +11,7 @@ select
   name,
   file_system_id,
   owner_id,
+  automatic_backup,
   creation_token,
   creation_time,
   life_cycle_state,
