@@ -1,6 +1,0 @@
-[
-  {
-    "service_namespace": "dynamodb",
-    "title": "{{ output.resource_name.value }}"
-  }
-]

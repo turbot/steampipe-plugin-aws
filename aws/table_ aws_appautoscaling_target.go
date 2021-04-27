@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/turbot/go-kit/types"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,13 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_appautoscaling_target",
 		Description: "AWS ApplicationAutoScaling Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"service_namespace", "resource_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getAwsApplicationAutoScalingTarget,
+			KeyColumns: plugin.AllColumns([]string{"service_namespace", "resource_id"}),
+			// ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
+			Hydrate: getAwsApplicationAutoScalingTarget,
+		},
+		List: &plugin.ListConfig{
+			KeyColumns: plugin.SingleColumn("service_namespace"),
+			Hydrate:    listAwsApplicationAutoScalingTargets,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -28,49 +32,41 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				Name:        "service_namespace",
 				Description: "The namespace of the AWS service that provides the resource, or a custom-resource.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "resource_id",
 				Description: "The identifier of the resource associated with the scalable target.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "scalable_dimension",
 				Description: "The scalable dimension associated with the scalable target. This string consists of the service namespace, resource type, and scaling property.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "creation_time",
 				Description: " The Unix timestamp for when the scalable target was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "min_capacity",
 				Description: "The minimum value to scale to in response to a scale-in activity.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "max_capacity",
 				Description: "The maximum value to scale to in response to a scale-out activity.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "role_arn",
 				Description: "The ARN of an IAM role that allows Application Auto Scaling to modify the scalable target on your behalf.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 			{
 				Name:        "suspended_state",
 				Description: "Specifies whether the scaling activities for a scalable target are in a suspended state.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsApplicationAutoScalingTarget,
 			},
 
 			// Standard columns for all tables
@@ -82,6 +78,42 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+//// LIST FUNCTION
+
+func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsApplicationAutoScalingTargets", "AWS_REGION", region)
+
+	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
+
+	// Create Session
+	svc, err := ApplicationAutoScalingService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// List call
+	err = svc.DescribeScalableTargetsPages(
+		&applicationautoscaling.DescribeScalableTargetsInput{
+			ServiceNamespace: &name,
+		},
+		func(page *applicationautoscaling.DescribeScalableTargetsOutput, isLast bool) bool {
+			for _, scalableTarget := range page.ScalableTargets {
+				d.StreamListItem(ctx, scalableTarget)
+
+			}
+			return !isLast
+		},
+	)
+
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -106,7 +138,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 	// Build the params
 	params := &applicationautoscaling.DescribeScalableTargetsInput{
 		ServiceNamespace: &name,
-		ResourceIds:      []*string{types.String("table/" + ID)},
+		ResourceIds:      []*string{types.String(ID)},
 	}
 
 	// Get call
