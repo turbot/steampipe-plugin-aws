@@ -222,8 +222,10 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		if locationType == "regional" {
 			scope = "REGIONAL"
+			regionName = strings.Split(string(data["Arn"]), ":")[3]
 		} else {
 			scope = "CLOUDFRONT"
+			regionName = "global"
 		}
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
