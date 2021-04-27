@@ -70,3 +70,4 @@ output "api_endpoint" {
 output "resource_name" {
   value = var.resource_name
 }
+arn:${Partition}:apigateway:${Region}::/apis/${ApiId}/integrations/${IntegrationId}/
