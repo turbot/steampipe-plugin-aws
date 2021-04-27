@@ -1,0 +1,10 @@
+[
+  {
+    "detector_id": "{{ output.resource_id.value }}",
+    "finding_publishing_frequency": "SIX_HOURS",
+    "status": "ENABLED",
+    "tags": {
+      "name": "{{ output.resource_name.value }}"
+    }
+  }
+]
