@@ -38,6 +38,20 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "default_ebs_encryption_enabled",
+				Description: "Indicates whether encryption by default is enabled.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getDefaultEBSVolumeEncryption,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "default_ebs_encryption_key",
+				Description: "The Amazon Resource Name (ARN) or alias of the default CMK for encryption by default.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getDefaultEBSVolumeEncryptionKey,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -129,6 +143,48 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	}
 
 	return nil, nil
+}
+
+func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryption")
+	data := h.Item.(*ec2.Region)
+
+	// Returning false for disabled regions to avoid permission denied error AuthFailure
+	if(*data.OptInStatus == "not-opted-in"){
+		return false, nil
+	}
+	// Create session
+	svc, err := Ec2Service(ctx, d, *data.RegionName)
+	if err != nil {
+		return nil, err
+	}
+	params := &ec2.GetEbsEncryptionByDefaultInput{}
+	defaultEncryption, err := svc.GetEbsEncryptionByDefault(params)
+	if err != nil {
+		return nil, err
+	}
+	return defaultEncryption.EbsEncryptionByDefault, nil
+}
+
+func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryptionKey")
+	data := h.Item.(*ec2.Region)
+
+	// Returning default ebs key alias for disabled regions to avoid permission denied error AuthFailure
+	if(*data.OptInStatus == "not-opted-in"){
+		return "alias/aws/ebs", nil
+	}
+	// Create session
+	svc, err := Ec2Service(ctx, d, *data.RegionName)
+	if err != nil {
+		return nil, err
+	}
+	params := &ec2.GetEbsDefaultKmsKeyIdInput{}
+	defaultEncryptionKey, err := svc.GetEbsDefaultKmsKeyId(params)
+	if err != nil {
+		return nil, err
+	}
+	return defaultEncryptionKey.KmsKeyId, nil
 }
 
 //// TRANSFORM FUNCTIONS
