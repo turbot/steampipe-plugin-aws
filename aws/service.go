@@ -309,10 +309,10 @@ func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.E
 	return svc, nil
 }
 
-// EcrpublicService returns the service connection for AWS ECRPublic service
-func EcrpublicService(ctx context.Context, d *plugin.QueryData, region string) (*ecrpublic.ECRPublic, error) {
+// EcrPublicService returns the service connection for AWS ECRPublic service
+func EcrPublicService(ctx context.Context, d *plugin.QueryData, region string) (*ecrpublic.ECRPublic, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed EcrpublicService")
+		return nil, fmt.Errorf("region must be passed EcrPublicService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("ecrpublic-%s", region)

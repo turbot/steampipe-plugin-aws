@@ -16,11 +16,11 @@ import (
 func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ecrpublic_repository",
-		Description: "AWS ECRPublic Repository",
+		Description: "AWS ECR Public Repository",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("repository_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
-			Hydrate:           getAwsEcrpublicRepositories,
+			Hydrate:           getAwsEcrpublicRepository,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
@@ -34,7 +34,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "registry_id",
-				Description: "The AWS account ID associated with the public registry that contains the repository",
+				Description: "The AWS account ID associated with the public registry that contains the repository.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -68,25 +68,25 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags assigned to the Repository.",
+				Description: "A list of tags assigned to the repository.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsEcrpublicRepositoryTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("RepositoryName"),
+			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsEcrpublicRepositoryTags,
 				Transform:   transform.FromField("Tags").Transform(ecrpublicTagListToTurbotTags),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RepositoryName"),
 			},
 			{
 				Name:        "akas",
@@ -110,7 +110,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 	plugin.Logger(ctx).Trace("listAwsEcrpublicRepositories", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := EcrpublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -132,9 +132,9 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 
 ////  HYDRATE FUNCTIONS
 
-func getAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrpublicRepositories")
+	logger.Trace("getAwsEcrpublicRepository")
 
 	// TODO put me in helper function
 	var region string
@@ -142,6 +142,7 @@ func getAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, h *pl
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*ecrpublic.Repository).RepositoryName
@@ -150,7 +151,7 @@ func getAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Create Session
-	svc, err := EcrpublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,11 @@ func getAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, h *pl
 		logger.Debug("getAwsEcrpublicRepositories", "ERROR", err)
 		return nil, err
 	}
-	return data.Repositories[0], nil
+	if len(data.Repositories) > 0 {
+		return data.Repositories[0], nil
+	}
+
+	return nil, nil
 }
 
 func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -182,7 +187,7 @@ func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h 
 	resourceArn := h.Item.(*ecrpublic.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrpublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +219,7 @@ func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrpublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +256,7 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrpublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -276,6 +281,10 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 func ecrpublicTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("ecrpublicTagListToTurbotTags")
 	tags := d.HydrateItem.(*ecrpublic.ListTagsForResourceOutput)
+
+	if tags == nil {
+		return nil, nil
+	}
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
