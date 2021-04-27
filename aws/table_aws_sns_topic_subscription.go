@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -193,7 +194,13 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	// As of 7th september 2020, Next token is not supported in go
 	op, err := svc.GetSubscriptionAttributes(input)
 	if err != nil {
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			plugin.Logger(ctx).Trace("SubErrorCode", a.Code())
+			if a.Code() == "NotFound" || a.Code() == "InvalidParameter" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	return op, nil
 }
