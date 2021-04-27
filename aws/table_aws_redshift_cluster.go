@@ -255,12 +255,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "The list of tags for the cluster.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
-			{
 				Name:        "vpc_id",
 				Description: "The identifier of the VPC the cluster is in, if the cluster is in a VPC.",
 				Type:        proto.ColumnType_STRING,
@@ -269,6 +263,19 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "vpc_security_groups",
 				Description: "A list of Amazon Virtual Private Cloud (Amazon VPC) security groups that are associated with the cluster. This parameter is returned only if the cluster is in a VPC.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "logging_details",
+				Description: "Describes the status of logging for a cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRedshiftLoggingDetails,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "tags_src",
+				Description: "The list of tags for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
 			},
 			// Standard columns
 			{
@@ -371,6 +378,39 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return op.Clusters[0], nil
 	}
 	return nil, nil
+}
+
+func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// TODO Put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	var name string
+	if h.Item != nil {
+		name = *h.Item.(*redshift.Cluster).ClusterIdentifier
+	} else {
+		name = d.KeyColumnQuals["cluster_identifier"].GetStringValue()
+	}
+
+	// Create service
+	svc, err := RedshiftService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &redshift.DescribeLoggingStatusInput{
+		ClusterIdentifier: aws.String(name),
+	}
+
+	op, err := svc.DescribeLoggingStatus(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return op, nil
 }
 
 func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
