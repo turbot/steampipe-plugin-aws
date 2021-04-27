@@ -4,30 +4,27 @@ An API Gateway integration type for a client to access resources inside a custom
 
 ## Examples
 
-### List of API gateway integrations for a particular API
+### Basic info
 
 ```sql
 select
   integration_id,
+  api_id,
   integration_type,
+  integration_uri,
   description
 from
-  aws_api_gatewayv2_integration 
-where
-  api_id='bjs3huf77d';
+  aws_api_gatewayv2_integration;
 ```
 
-### Get API gateway integration URI details for a particular API and Integration
+### Count of integrations per API
 
 ```sql
 select 
-  integration_id, 
-  integration_type, 
-  integration_uri
+  api_id,
+  count(integration_id)
 from 
   aws_api_gatewayv2_integration
-where 
-  api_id='bjs3huf77d' 
-and 
-  integration_id='sbhzv9u';
+group by
+  api_id;
 ```

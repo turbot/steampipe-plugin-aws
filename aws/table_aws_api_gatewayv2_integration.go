@@ -59,8 +59,13 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "integration_uri",
-				Description: "A string representation of a URI with a length between [1-2048]. For a Lambda integration, specify the URI of a Lambda function. For an HTTP integration, specify a fully-qualified URL. For an HTTP API private integration, specify the ARN of an Application Load Balancer listener, Network Load Balancer listener, or AWS Cloud Map service. If you specify the ARN of an AWS Cloud Map service, API Gateway uses DiscoverInstances to identify resources. You can use query parameters to target specific resources. To learn more, see DiscoverInstances (https://docs.aws.amazon.com/cloud-map/latest/api/API_DiscoverInstances.html). For private integrations, all resources must be owned by the same AWS account.",
+				Description: "A string representation of a URI with a length between [1-2048]. For a Lambda integration, specify the URI of a Lambda function. For an HTTP integration, specify a fully-qualified URL.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "api_gateway_managed",
+				Description: "Specifies whether an integration is managed by API Gateway. If you created an API using using quick create, the resulting integration is managed by API Gateway. You can update a managed integration, but you can't delete it.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "connection_id",
@@ -73,33 +78,23 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "timeout_in_millis",
-				Description: "Custom timeout between 50 and 29,000 milliseconds for WebSocket APIs and between 50 and 30,000 milliseconds for HTTP APIs. The default timeout is 29 seconds for WebSocket APIs and 30 seconds for HTTP APIs.",
-				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "integration_subtype",
-				Description: "A string with a length between [1-128].",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "api_gateway_managed",
-				Description: "Specifies whether an integration is managed by API Gateway. If you created an API using using quick create, the resulting integration is managed by API Gateway. You can update a managed integration, but you can't delete it.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
 				Name:        "content_handling_strategy",
 				Description: "Specifies how to handle response payload content type conversions. Supported only for WebSocket APIs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "credentials_arn",
-				Description: "Represents an Amazon Resource Name (ARN).",
+				Description: "Specifies the credentials required for the integration, if any. For AWS integrations, three options are available. To specify an IAM Role for API Gateway to assume, use the role's Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "integration_response_selection_expression",
 				Description: "An expression used to extract information at runtime. See Selection Expressions(https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-apikey-selection-expressions for more information.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "integration_subtype",
+				Description: "A string with a length between [1-128].",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -111,6 +106,16 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Name:        "payload_format_version",
 				Description: "Specifies the format of the payload sent to an integration. Required for HTTP APIs.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "template_selection_expression",
+				Description: "The template selection expression for the integration. Supported only for WebSocket APIs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "timeout_in_millis",
+				Description: "Indicates custom timeout between 50 and 29,000 milliseconds for WebSocket APIs and between 50 and 30,000 milliseconds for HTTP APIs. The default timeout is 29 seconds for WebSocket APIs and 30 seconds for HTTP APIs.",
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "request_parameters",
@@ -126,11 +131,6 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Name:        "response_parameters",
 				Description: "API requests and responses (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-parameter-mapping.html).",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "template_selection_expression",
-				Description: "The template selection expression for the integration. Supported only for WebSocket APIs.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "tls_config",
