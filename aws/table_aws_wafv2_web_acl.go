@@ -18,14 +18,14 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_web_acl",
 		Description: "AWS WAFv2 Web ACL",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException"}),
+			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope", "region"}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			Hydrate:           getAwsWafv2WebAcl,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItem: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
@@ -155,12 +155,17 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+	scope := aws.String("REGIONAL")
+
+	if region == "global" {
+		region = "us-east-1"
+		scope = aws.String("CLOUDFRONT")
 	}
 	plugin.Logger(ctx).Trace("listAwsWafv2WebAcls", "AWS_REGION", region)
 
@@ -173,7 +178,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// List all regional web acls
 	pagesLeft := true
 	regionalWebAclParams := &wafv2.ListWebACLsInput{
-		Scope: aws.String("REGIONAL"),
+		Scope: scope,
 	}
 	for pagesLeft {
 		response, err := svc.ListWebACLs(regionalWebAclParams)
@@ -193,32 +198,6 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 	}
 
-	// List all global web acls
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if region == "us-east-1" {
-		pagesLeft = true
-		globalWebAclParams := &wafv2.ListWebACLsInput{
-			Scope: aws.String("CLOUDFRONT"),
-		}
-		for pagesLeft {
-			response, err := svc.ListWebACLs(globalWebAclParams)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, globalWebACLs := range response.WebACLs {
-				d.StreamListItem(ctx, globalWebACLs)
-			}
-
-			if response.NextMarker != nil {
-				pagesLeft = true
-				globalWebAclParams.NextMarker = response.NextMarker
-			} else {
-				pagesLeft = false
-			}
-		}
-	}
-
 	return nil, nil
 }
 
@@ -234,7 +213,7 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		region = matrixRegion.(string)
 	}
 
-	var id, name, scope string
+	var id, name, scope, regionName string
 	if h.Item != nil {
 		data := webAclData(h.Item)
 		id = data["ID"]
@@ -250,17 +229,26 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		id = d.KeyColumnQuals["id"].GetStringValue()
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		scope = d.KeyColumnQuals["scope"].GetStringValue()
+		regionName = d.KeyColumnQuals["region"].GetStringValue()
+	}
+
+	if region != regionName {
+		return nil, nil
+	}
+
+	// To work with CloudFront, you must specify the Region US East (N. Virginia)
+	if strings.ToLower(scope) == "cloudfront" && region != "global" {
+		return nil, nil
+	}
+
+	if region == "global" {
+		region = "us-east-1"
 	}
 
 	// Create Session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
-	}
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if strings.ToLower(scope) == "cloudfront" && region != "us-east-1" {
-		return nil, nil
 	}
 
 	params := &wafv2.GetWebACLInput{
@@ -286,6 +274,10 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	if region == "global" {
+		region = "us-east-1"
 	}
 	data := webAclData(h.Item)
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
