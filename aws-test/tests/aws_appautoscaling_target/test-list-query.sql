@@ -1,3 +1,3 @@
-select service_namespace, partition, region, resource_id
+select partition, region, resource_id
 from aws.aws_appautoscaling_target
-where resource_id = '{{ output.resource_id.value }}';;
+where service_namespace = 'dynamodb' and title = '{{ output.resource_id.value }}';

@@ -19,8 +19,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 		Description: "AWS ApplicationAutoScaling Target",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"service_namespace", "resource_id"}),
-			// ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate: getAwsApplicationAutoScalingTarget,
+			Hydrate:    getAwsApplicationAutoScalingTarget,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.SingleColumn("service_namespace"),
@@ -74,7 +73,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ServiceNamespace"),
+				Transform:   transform.FromField("ResourceId"),
 			},
 		}),
 	}

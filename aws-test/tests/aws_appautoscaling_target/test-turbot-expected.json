@@ -2,6 +2,6 @@
   {
     "account_id": "{{ output.account_id.value }}",
     "region": "{{ output.aws_region.value }}",
-    "title": "dynamodb"
+    "title": "{{ output.resource_id.value }}"
   }
 ]
