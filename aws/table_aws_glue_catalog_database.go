@@ -42,18 +42,18 @@ func tableAwsGlueDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "create_time",
-				Description: "The time at which the metadata database was created in the catalog.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
 				Name:        "location_uri",
 				Description: "The location of the database (for example, an HDFS path).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "target_database",
-				Description: "A DatabaseIdentifier structure that describes a target database for resource linking.",
+				Name:        "create_time",
+				Description: "The time at which the metadata database was created in the catalog.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "create_table_default_permissions",
+				Description: "Creates a set of default permissions on the table for principals.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -62,8 +62,8 @@ func tableAwsGlueDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "create_table_default_permissions",
-				Description: "Creates a set of default permissions on the table for principals.",
+				Name:        "target_database",
+				Description: "A DatabaseIdentifier structure that describes a target database for resource linking.",
 				Type:        proto.ColumnType_JSON,
 			},
 			// Standard columns

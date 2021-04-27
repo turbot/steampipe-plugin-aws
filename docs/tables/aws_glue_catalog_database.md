@@ -12,23 +12,21 @@ select
   catalog_id,
   create_time,
   description,
-  location_uri
+  location_uri,
+  create_table_default_permissions
 from
   aws_glue_catalog_database;
 ```
 
 
-### List databases by Catalog ID
+### Count databases per Catalog ID
 
 ```sql
 select
-  name,
   catalog_id,
-  create_time,
-  description,
-  location_uri
+  count(name)
 from
   aws_glue_catalog_database
-where
-  catalog_id = '453319552164';
+group by
+  catalog_id;
 ```
