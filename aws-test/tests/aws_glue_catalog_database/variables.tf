@@ -1,5 +1,3 @@
-
-
 variable "resource_name" {
   type    = string
   default = "turbot-test-20200125-create-update"
@@ -67,4 +65,8 @@ output "aws_partition" {
 
 output "resource_name" {
   value = var.resource_name
+}
+
+output "aws_account" {
+  value = data.aws_caller_identity.current.account_id
 }
