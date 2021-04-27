@@ -16,6 +16,7 @@ type integrationInfo = struct {
 }
 
 //// TABLE DEFINITION
+
 func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_api_gatewayv2_integration",
@@ -33,22 +34,22 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "integration_id",
-				Description: "The identifier.",
+				Description: "Represents the identifier of an integration.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "api_id",
-				Description: "TODO",
+				Description: "Represents the identifier of an API.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "description",
-				Description: "A string with a length between [0-1024].",
+				Description: "Represents the description of an integration.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "integration_method",
-				Description: "A string with a length between [1-64].",
+				Description: "Specifies the integration's HTTP method type.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -58,12 +59,12 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "integration_uri",
-				Description: "A string representation of a URI with a length between [1-2048].",
+				Description: "A string representation of a URI with a length between [1-2048]. For a Lambda integration, specify the URI of a Lambda function. For an HTTP integration, specify a fully-qualified URL. For an HTTP API private integration, specify the ARN of an Application Load Balancer listener, Network Load Balancer listener, or AWS Cloud Map service. If you specify the ARN of an AWS Cloud Map service, API Gateway uses DiscoverInstances to identify resources. You can use query parameters to target specific resources. To learn more, see DiscoverInstances (https://docs.aws.amazon.com/cloud-map/latest/api/API_DiscoverInstances.html). For private integrations, all resources must be owned by the same AWS account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "connection_id",
-				Description: "A string with a length between [1-1024].",
+				Description: "The ID of the VPC link for a private integration. Supported only for HTTP APIs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -73,7 +74,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "timeout_in_millis",
-				Description: "",
+				Description: "Custom timeout between 50 and 29,000 milliseconds for WebSocket APIs and between 50 and 30,000 milliseconds for HTTP APIs. The default timeout is 29 seconds for WebSocket APIs and 30 seconds for HTTP APIs.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -108,27 +109,27 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "payload_format_version",
-				Description: "A string with a length between [1-64].",
+				Description: "Specifies the format of the payload sent to an integration. Required for HTTP APIs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "request_parameters",
-				Description: "",
+				Description: "For HTTP API itegrations, without a specified integrationSubtype request parameters are a key-value map specifying how to transform HTTP requests before sending them to backend integrations. The key should follow the pattern <action>:<header|querystring|path>.<location>. The action can be append, overwrite or remove. For values, you can provide static values, or map request data, stage variables, or context variables that are evaluated at runtime. To learn more, see Transforming API requests and responses (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-parameter-mapping.html).",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "request_templates",
-				Description: "",
+				Description: "Represents a map of Velocity templates that are applied on the request payload based on the value of the Content-Type header sent by the client. The content type value is the key in this map, and the template (as a String) is the value. Supported only for WebSocket APIs.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "response_parameters",
-				Description: "",
+				Description: "API requests and responses (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-parameter-mapping.html).",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "template_selection_expression",
-				Description: "",
+				Description: "The template selection expression for the integration. Supported only for WebSocket APIs.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -136,6 +137,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Description: "The TLS configuration for a private integration. If you specify a TLS configuration, private integration traffic uses the HTTPS protocol. Supported only for HTTP APIs.",
 				Type:        proto.ColumnType_JSON,
 			},
+
 			// Standard columns
 			{
 				Name:        "akas",
@@ -204,7 +206,6 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plu
 	api := d.KeyColumnQuals["api_id"].GetStringValue()
 	key := d.KeyColumnQuals["integration_id"].GetStringValue()
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
