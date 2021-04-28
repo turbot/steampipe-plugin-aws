@@ -18,7 +18,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_web_acl",
 		Description: "AWS WAFv2 Web ACL",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope", "region"}),
+			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
 			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			Hydrate:           getAwsWafv2WebAcl,
 		},
@@ -212,7 +212,7 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		region = matrixRegion.(string)
 	}
 
-	var id, name, scope, regionName string
+	var id, name, scope string
 	if h.Item != nil {
 		data := webAclData(h.Item)
 		id = data["ID"]
@@ -221,23 +221,26 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		if locationType == "regional" {
 			scope = "REGIONAL"
-			regionName = strings.Split(string(data["Arn"]), ":")[3]
 		} else {
 			scope = "CLOUDFRONT"
-			regionName = "global"
 		}
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		scope = d.KeyColumnQuals["scope"].GetStringValue()
-		regionName = d.KeyColumnQuals["region"].GetStringValue()
 	}
 
-	if region != regionName {
+	/*
+	 * The region endpoint is same for both Global Web ACL and the Regional Web ACL created in us-east-1.
+	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
+	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
+	 * For the Regional Web ACL, region value should not be 'global', as 'global' region is only used to get Global Web ACLs.
+	 * For any other region, region value will be same as working region.
+	 */
+	if scope == "REGIONAL" && region == "global" {
 		return nil, nil
 	}
 
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
 	if strings.ToLower(scope) == "cloudfront" && region != "global" {
 		return nil, nil
 	}
