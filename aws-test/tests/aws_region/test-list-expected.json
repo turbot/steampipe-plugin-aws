@@ -4,6 +4,8 @@
     "akas": [
       "arn:{{ output.aws_partition.value }}::ap-south-1:{{ output.account_id.value }}"
     ],
+    "default_ebs_encryption_enabled": false,
+    "default_ebs_encryption_key": "alias/aws/ebs",
     "name": "ap-south-1",
     "opt_in_status": "opt-in-not-required",
     "partition": "{{ output.aws_partition.value }}",
