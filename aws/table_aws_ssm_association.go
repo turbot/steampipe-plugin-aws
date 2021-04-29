@@ -64,7 +64,6 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Name:        "instance_id",
 				Description: "The ID of the instance.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSSMAssociation,
 			},
 			{
 				Name:        "last_execution_date",
@@ -88,25 +87,20 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_STRING,
 			},
-			// {
-			// 	Name:        "instance_patches",
-			// 	Description: "Information about the state of a patch on a particular instance as it relates to the patch baseline used to patch the instance.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getInstancePatches,
-			// },
-			// {
-			// 	Name:        "instance_patch_states",
-			// 	Description: "Defines the high-level patch compliance state for a managed instance, providing information about the number of installed, missing, not applicable, and failed patches along with metadata about the operation when this information was gathered for the instance.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getInstancePatchStates,
-			// },
+			{
+				Name:        "instance_patch_states",
+				Description: "Defines the high-level patch compliance state for a managed instance, providing information about the number of installed, missing, not applicable, and failed patches along with metadata about the operation when this information was gathered for the instance.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getInstancePatchStates,
+				Transform:   transform.FromField("InstancePatchStates"),
+			},
 			{
 				Name:        "targets",
 				Description: "A cron expression that specifies a schedule when the association runs.",
 				Type:        proto.ColumnType_JSON,
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -193,38 +187,6 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return data.AssociationDescription, nil
 }
 
-func getInstancePatches(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstancePatches")
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	instanceId := instanceID(h.Item)
-
-	// get service
-	svc, err := SsmService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	params := &ssm.DescribeInstancePatchesInput{
-		InstanceId: aws.String(instanceId),
-	}
-
-	// Get call
-	data, err := svc.DescribeInstancePatches(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("getInstancePatches__", "ERROR", err)
-		return nil, err
-	}
-	return data, nil
-}
-
 func getInstancePatchStates(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstancePatchStates")
 
@@ -235,8 +197,25 @@ func getInstancePatchStates(ctx context.Context, d *plugin.QueryData, h *plugin.
 		region = matrixRegion.(string)
 	}
 
-	instanceId := aws.String(instanceID(h.Item))
-	instanceIds := []*string{instanceId}
+	var instanceIds []*string
+	switch h.Item.(type) {
+	case *ssm.Association:
+		association := *h.Item.(*ssm.Association)
+		targets := association.Targets
+		for _, target := range targets {
+			if *target.Key == "InstanceIds" {
+				instanceIds = target.Values
+			}
+		}
+	case *ssm.AssociationDescription:
+		association := *h.Item.(*ssm.AssociationDescription)
+		targets := association.Targets
+		for _, target := range targets {
+			if *target.Key == "InstanceIds" {
+				instanceIds = target.Values
+			}
+		}
+	}
 
 	// get service
 	svc, err := SsmService(ctx, d, region)
@@ -277,16 +256,6 @@ func associationID(item interface{}) string {
 		return *item.(*ssm.Association).AssociationId
 	case *ssm.AssociationDescription:
 		return *item.(*ssm.AssociationDescription).AssociationId
-	}
-	return ""
-}
-
-func instanceID(item interface{}) string {
-	switch item.(type) {
-	case *ssm.Association:
-		return *item.(*ssm.Association).InstanceId
-	case *ssm.AssociationDescription:
-		return *item.(*ssm.AssociationDescription).InstanceId
 	}
 	return ""
 }
