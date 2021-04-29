@@ -16,7 +16,7 @@ from
 ```
 
 
-### List access points that accepts requests only from a VPC
+### List access points that only accept requests from a VPC
 
 ```sql
 select
@@ -49,7 +49,7 @@ where
 ```
 
 
-### List buckets that allows public access through policies
+### List buckets that allows public access through their policies
 
 ```sql
 select
@@ -62,7 +62,7 @@ where
 ```
 
 
-### Count of access points per bucket
+### Count the number of access points per bucket
 
 ```sql
 select
