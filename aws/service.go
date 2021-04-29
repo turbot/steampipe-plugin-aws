@@ -848,7 +848,7 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 // Route53DomainsService returns the service connection for AWS route53domains service
 func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region string) (*route53domains.Route53Domains, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed Route53Domain")
+		return nil, fmt.Errorf("region must be passed Route53Domains")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("route53domain-%s", region)
@@ -859,6 +859,7 @@ func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region stri
 	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
+
 	}
 	svc := route53domains.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
