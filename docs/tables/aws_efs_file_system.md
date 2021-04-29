@@ -96,3 +96,18 @@ where
       and ssl :: bool = false
   );
 ```
+
+
+### List file systems that have enable automatic backup
+
+```sql
+select
+  name,
+  automatic_backup,
+  file_system_arn,
+  file_system_id
+from
+  aws_efs_file_system
+where
+  automatic_backup = 'enabled';
+```
