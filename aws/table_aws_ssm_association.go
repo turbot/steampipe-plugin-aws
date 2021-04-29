@@ -50,6 +50,12 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "compliance_severity",
+				Description: "A cron expression that specifies a schedule when the association runs.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "association_version",
 				Description: "The association version.",
 				Type:        proto.ColumnType_STRING,
@@ -102,8 +108,20 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "compliance_severity",
-				Description: "A cron expression that specifies a schedule when the association runs.",
+				Name:        "max_concurrency",
+				Description: "The maximum number of targets allowed to run the association at the same time.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "max_errors",
+				Description: "The number of errors that are allowed before the system stops sending requests to run the association on additional targets.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "sync_compliance",
+				Description: "The mode for generating association compliance. You can specify AUTO or MANUAL.",
 				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_STRING,
 			},
@@ -115,12 +133,6 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 			{
 				Name:        "output_location",
 				Description: "An S3 bucket where you want to store the output details of the request.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMAssociation,
-			},
-			{
-				Name:        "parameters",
-				Description: "A description of the parameters for a document.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMAssociation,
 			},

@@ -6,6 +6,7 @@
 		"association_version": "1",
 		"document_name": "{{ resourceName }}",
 		"document_version": "$DEFAULT",
+		"name": "{{ output.name.value }}",
 		"partition": "{{ output.aws_partition.value }}",
 		"region": "{{ output.aws_region.value }}",
 		"targets": [
