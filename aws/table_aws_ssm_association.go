@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -231,8 +232,12 @@ func getInstancePatchStates(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Get call
 	data, err := svc.DescribeInstancePatchStates(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getInstancePatchStates__", "ERROR", err)
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ValidationException" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	return data, nil
 }
