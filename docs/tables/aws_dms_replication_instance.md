@@ -19,34 +19,38 @@ from
   aws_dms_replication_instance;
 ```
 
-## TODO
-### List clusters that does not enforce server-side encryption (SSE)
+
+### List replication instances having Auto Minor Version Upgrade feature disabled
 
 ```sql
 select
-  cluster_name,
-  description,
-  sse_description ->> 'Status' as sse_status
+  replication_instance_identifier,
+  replication_instance_arn,
+  engine_version,
+  instance_create_time,
+  auto_minor_version_upgrade,
+  region
 from
   aws_dms_replication_instance
 where
-  sse_description ->> 'Status' = 'DISABLED';
+  not auto_minor_version_upgrade;
 ```
 
-## TODO
-### List clusters provisioned with undesired (for example, cache.m5.large and cache.m4.4xlarge are desired) node types
+
+### List replication instances provisioned with undesired (for example, dms.r5.16xlarge and dms.r5.24xlarge are not desired) instance class
 
 ```sql
 select
-  cluster_name,
-  node_type,
-  count(*) as count
+  replication_instance_identifier,
+  replication_instance_arn,
+  engine_version,
+  instance_create_time,
+  replication_instance_class,
+  region
 from
   aws_dms_replication_instance
 where
-  node_type not in ('cache.m5.large', 'cache.m4.4xlarge')
-group by
-  cluster_name, node_type;
+  replication_instance_class not in ('dms.r5.16xlarge', 'dms.r5.24xlarge');
 ```
 
 
@@ -61,7 +65,7 @@ select
 from
   aws_dms_replication_instance
 where
-  publicly_access = 'true';
+  publicly_access;
 ```
 
 
@@ -77,5 +81,5 @@ select
 from
   aws_dms_replication_instance
 where
-  multi_az = 'false';
+  not multi_az;
 ```
