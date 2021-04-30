@@ -89,11 +89,11 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "instance_patch_states",
-				Description: "Defines the high-level patch compliance state for a managed instance, providing information about the number of installed, missing, not applicable, and failed patches along with metadata about the operation when this information was gathered for the instance.",
+				Name:        "compliance_items",
+				Description: "A list of compliance information for the specified resource ID.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getInstancePatchStates,
-				Transform:   transform.FromField("InstancePatchStates"),
+				Hydrate:     getComplianceItems,
+				Transform:   transform.FromField("ComplianceItems"),
 			},
 			{
 				Name:        "targets",
@@ -188,8 +188,8 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return data.AssociationDescription, nil
 }
 
-func getInstancePatchStates(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstancePatchStates")
+func getComplianceItems(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getComplianceItems")
 
 	// TODO put me in helper function
 	var region string
@@ -225,15 +225,14 @@ func getInstancePatchStates(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Build the params
-	params := &ssm.DescribeInstancePatchStatesInput{
-		InstanceIds: instanceIds,
+	params := &ssm.ListComplianceItemsInput{
+		ResourceIds: instanceIds,
 	}
 
-	// Get call
-	data, err := svc.DescribeInstancePatchStates(params)
+	data, err := svc.ListComplianceItems(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ValidationException" {
+			if a.Code() == "InvalidResourceId" || a.Code() == "ValidationException" {
 				return nil, nil
 			}
 			return nil, err
