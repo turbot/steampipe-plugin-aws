@@ -1,4 +1,4 @@
-# Table: aws_route53_domain
+# Table: aws_route53_domains
 
 Amazon Route 53 enables you to register and transfer domain names using your AWS account.
 
