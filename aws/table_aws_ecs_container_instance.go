@@ -207,7 +207,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 //// HYDRATE FUNCTIONS
 
 func getEcsContainerInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("describeEcsContainerInstance")
+	plugin.Logger(ctx).Trace("getEcsContainerInstance")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
