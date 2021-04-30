@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecrpublic"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -349,6 +350,28 @@ func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.E
 		return nil, err
 	}
 	svc := ecr.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// EcrPublicService returns the service connection for AWS ECRPublic service
+func EcrPublicService(ctx context.Context, d *plugin.QueryData, region string) (*ecrpublic.ECRPublic, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EcrPublicService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ecrpublic-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ecrpublic.ECRPublic), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ecrpublic.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -922,14 +945,18 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // S3ControlService returns the service connection for AWS s3control service
-func S3ControlService(ctx context.Context, d *plugin.QueryData) (*s3control.S3Control, error) {
+func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (*s3control.S3Control, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3ControlService")
+	}
+
 	// have we already created and cached the service?
-	serviceCacheKey := "s3control"
+	serviceCacheKey := fmt.Sprintf("s3control-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*s3control.S3Control), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
