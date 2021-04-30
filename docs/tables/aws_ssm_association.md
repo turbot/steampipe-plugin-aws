@@ -18,7 +18,6 @@ from
   aws_ssm_association;
 ```
 
-
 ### List associations that have a failed status
 
 ```sql
@@ -32,7 +31,6 @@ from
 where
   overview ->> 'Status' = 'Failed';
 ```
-
 
 ### List instances targeted by the association
 
@@ -50,7 +48,6 @@ where
   target ->> 'Key' = 'InstanceIds';
 ```
 
-
 ### List associations with a critical compliance severity level
 
 ```sql
@@ -63,4 +60,34 @@ from
   aws_ssm_association
 where
   compliance_severity = 'CRITICAL';
+```
+
+### List compliant associations
+
+```sql
+select
+  association_id,
+  association_name,
+  c ->> 'Status' as compliance_status
+from
+  aws_ssm_association,
+  jsonb_array_elements(compliance_items) as c
+where
+  c ->> 'ComplianceType' = 'Association'
+  and c ->> 'Status' = 'COMPLIANT';
+```
+
+### List compliant patches
+
+```sql
+select
+  association_id,
+  c ->> 'Title' as patch_name,
+  c ->> 'Status' as compliance_status
+from
+  aws_ssm_association,
+  jsonb_array_elements(compliance_items) as c
+where
+  c ->> 'ComplianceType' = 'Patch'
+  and c ->> 'Status' = 'COMPLIANT';
 ```
