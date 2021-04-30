@@ -98,7 +98,7 @@ where
 ```
 
 
-### List file systems that have enable automatic backup
+### List file systems with automatic backup feature enabled
 
 ```sql
 select
