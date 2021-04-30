@@ -30,5 +30,5 @@ from
 where
   service_namespace = 'dynamodb'
   and scalable_dimension = 'dynamodb:table:ReadCapacityUnits'
-  or 'scalable_dimension' = 'dynamodb:table:WriteCapacityUnits';
+  or scalable_dimension = 'dynamodb:table:WriteCapacityUnits';
 ```

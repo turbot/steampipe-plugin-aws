@@ -141,7 +141,7 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 	return svc, nil
 }
 
-// ApplicationAutoScalingService returns the service connection for AWS ApplicationAutoScaling service
+// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ApplicationAutoScalingService")

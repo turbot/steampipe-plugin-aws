@@ -16,7 +16,7 @@ import (
 func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_appautoscaling_target",
-		Description: "AWS ApplicationAutoScaling Target",
+		Description: "AWS Application Auto Scaling Target",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"service_namespace", "resource_id"}),
 			Hydrate:    getAwsApplicationAutoScalingTarget,
@@ -44,7 +44,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_time",
-				Description: " The Unix timestamp for when the scalable target was created.",
+				Description: "The Unix timestamp for when the scalable target was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -126,7 +126,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 	}
 
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
-	ID := d.KeyColumnQuals["resource_id"].GetStringValue()
+	id := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// create service
 	svc, err := ApplicationAutoScalingService(ctx, d, region)
@@ -137,7 +137,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 	// Build the params
 	params := &applicationautoscaling.DescribeScalableTargetsInput{
 		ServiceNamespace: &name,
-		ResourceIds:      []*string{types.String(ID)},
+		ResourceIds:      []*string{types.String(id)},
 	}
 
 	// Get call
@@ -145,7 +145,7 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		return nil, err
 	}
-	if len(op.ScalableTargets) > 0 {
+	if op.ScalableTargets != nil && len(op.ScalableTargets) > 0 {
 		return op.ScalableTargets[0], nil
 	}
 
