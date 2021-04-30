@@ -155,10 +155,6 @@ output "resource_id" {
   value = aws_ssm_association.named_test_resource.association_id
 }
 
-output "name" {
-  value = aws_ssm_association.named_test_resource.name
-}
-
 output "resource_name" {
   value = var.resource_name
 }
