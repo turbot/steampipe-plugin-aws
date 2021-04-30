@@ -69,6 +69,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_load_balancer_listener":         tableAwsEc2ApplicationLoadBalancerListener(ctx),
 			"aws_ec2_network_interface":              tableAwsEc2NetworkInterface(ctx),
 			"aws_ec2_network_load_balancer":          tableAwsEc2NetworkLoadBalancer(ctx),
+			"aws_ec2_security_policy":                tableAwsEc2SecurityPolicy(ctx),
 			"aws_ec2_target_group":                   tableAwsEc2TargetGroup(ctx),
 			"aws_ec2_transit_gateway":                tableAwsEc2TransitGateway(ctx),
 			"aws_ec2_transit_gateway_route_table":    tableAwsEc2TransitGatewayRouteTable(ctx),
