@@ -63,7 +63,7 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsRoute53DomainTags,
-				Transform:   transform.FromField("TagList").Transform(route53DomainTagListToTurbotTags),
+				Transform:   transform.FromField("TagList").Transform(route53DomainsTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -84,6 +84,7 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+
 	// List call
 	err = svc.ListDomainsPages(
 		&route53domains.ListDomainsInput{},
@@ -153,6 +154,7 @@ func getAwsRoute53DomainAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+
 	commonColumnData := c.(*awsCommonColumnData)
 	aka := "arn:" + commonColumnData.Partition + ":route53domains:" + ":" + commonColumnData.AccountId
 	return []string{aka}, nil
@@ -160,8 +162,8 @@ func getAwsRoute53DomainAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 
 //// TRANSFORM FUNCTION
 
-func route53DomainTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53DomainTagListToTurbotTags")
+func route53DomainsTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("route53DomainsTagListToTurbotTags")
 
 	tags := d.HydrateItem.(*route53domains.ListTagsForDomainOutput)
 

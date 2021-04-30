@@ -12,7 +12,7 @@ select
   auto_renew,
   expiry
 from
-  aws_route53_domain;
+  aws_route53_domains;
 ```
 
 ### List Route53 domain names are renewed before their expiration.
@@ -23,7 +23,7 @@ select
   auto_renew,
   expiry
 from
-  aws_route53_domain
+  aws_route53_domains
 where
   auto_renew = 'true';
 ```
@@ -36,7 +36,7 @@ select
   auto_renew,
   expiry
 from
-  aws_route53_domain
+  aws_route53_domains
 where
   expiry <= (expiry - interval '7' day);
 ```
@@ -48,7 +48,7 @@ select
   name,
   expiry
 from
-  aws_route53_domain
+  aws_route53_domains
 where
   transfer_lock = 'true';
 ```

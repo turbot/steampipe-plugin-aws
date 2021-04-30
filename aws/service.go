@@ -845,7 +845,7 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 	return svc, nil
 }
 
-// Route53DomainsService returns the service connection for AWS route53domains service
+// Route53DomainsService returns the service connection for AWS route53 domains service
 func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region string) (*route53domains.Route53Domains, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Route53Domains")
