@@ -8,7 +8,6 @@ An association is a configuration that is assigned to your managed instances. Th
 
 ```sql
 select
-  name,
   association_id,
   association_name,
   association_version,
