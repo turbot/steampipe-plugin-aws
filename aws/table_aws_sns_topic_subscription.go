@@ -32,7 +32,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				Name:        "subscription_arn",
 				Description: "Amazon Resource Name of the subscription.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Attributes.SubscriptionArn"),
+				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(subscriptionArnNotconformStatus),
 			},
 			{
 				Name:        "topic_arn",
@@ -117,7 +117,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(subscriptionArnToAkas),
 			},
 		}),
 	}
@@ -203,4 +203,27 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 	}
 	return op, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func subscriptionArnNotconformStatus(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("pendingConfirmationArn")
+	arn := types.SafeString(d.Value)
+
+	if arn == "PendingConfirmation" {
+		return "null", nil
+	}
+
+	return arn, nil
+}
+
+func subscriptionArnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	arn := types.SafeString(d.Value)
+
+	if arn == "PendingConfirmation" {
+		return []string{}, nil
+	}
+
+	return []string{arn}, nil
 }
