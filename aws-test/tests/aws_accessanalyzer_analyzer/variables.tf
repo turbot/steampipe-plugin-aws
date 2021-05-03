@@ -1,26 +1,25 @@
 
-
 variable "resource_name" {
-  type    = string
-  default = "turbot-test-20200125-create-update"
+  type        = string
+  default     = "turbot-test-20200125-create-update"
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "integration-tests"
+  type        = string
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
 variable "aws_region_alternate" {
-  type    = string
-  default = "us-east-2"
+  type        = string
+  default     = "us-east-2"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -50,7 +49,7 @@ data "null_data_source" "resource" {
 
 resource "aws_accessanalyzer_analyzer" "named_test_resource" {
   analyzer_name = var.resource_name
-  type = "ACCOUNT"
+  type          = "ACCOUNT"
   tags = {
     name = var.resource_name
   }
@@ -59,17 +58,17 @@ resource "aws_accessanalyzer_analyzer" "named_test_resource" {
 data "template_file" "resource_aka" {
   template = "arn:$${partition}:access-analyzer:$${region}:$${account_id}:analyzer/$${resource_name}"
   vars = {
-    resource_name = var.resource_name
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
+    resource_name    = var.resource_name
+    partition        = data.aws_partition.current.partition
+    account_id       = data.aws_caller_identity.current.account_id
+    region           = data.aws_region.primary.name
     alternate_region = data.aws_region.alternate.name
   }
 }
 
 output "resource_aka" {
-  depends_on = [ aws_accessanalyzer_analyzer.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
+  depends_on = [aws_accessanalyzer_analyzer.named_test_resource]
+  value      = data.template_file.resource_aka.rendered
 }
 
 output "aws_region" {

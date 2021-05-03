@@ -10,17 +10,19 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
+//// TABLE DEFINITION
+
+func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_accessanalyzer_analyzer",
 		Description: "AWS IAM Access Analyzer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getAwsAccessAnalyzerAnalyzer,
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			Hydrate:           getAwsAccessAnalyzer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsAccessAnalyzerAnalyzers,
+			Hydrate: listAwsAccessAnalyzers,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,6 +34,16 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 			{
 				Name:        "arn",
 				Description: "The ARN of the analyzer.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "The status of the analyzer.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "type",
+				Description: "The type of analyzer, which corresponds to the zone of trust chosen for the analyzer.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -50,26 +62,17 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "status",
-				Description: "The status of the analyzer.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "status_reason",
 				Description: "The statusReason provides more details about the current status of the analyzer.",
 				Type:        proto.ColumnType_STRING,
 			},
+
+			// Steampipe standard columns
 			{
-				Name:        "type",
-				Description: "The type of analyzer, which corresponds to the zone of trust chosen for the analyzer.",
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-			},
-			// Standard columns
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
@@ -78,10 +81,10 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -89,14 +92,14 @@ func tableAwsAccessAnalyzerAnalyzer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAccessAnalyzerAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsAccessAnalyzerAnalyzers", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsAccessAnalyzers", "AWS_REGION", region)
 
 	// Create session
 	svc, err := AccessAnalyzerService(ctx, d, region)
@@ -110,7 +113,6 @@ func listAwsAccessAnalyzerAnalyzers(ctx context.Context, d *plugin.QueryData, _ 
 		func(page *accessanalyzer.ListAnalyzersOutput, isLast bool) bool {
 			for _, analyzer := range page.Analyzers {
 				d.StreamListItem(ctx, analyzer)
-
 			}
 			return !isLast
 		},
@@ -121,9 +123,8 @@ func listAwsAccessAnalyzerAnalyzers(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAccessAnalyzerAnalyzer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsAccessAnalyzerAnalyzer")
+func getAwsAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsAccessAnalyzer")
 
 	// TODO put me in helper function
 	var region string
@@ -131,8 +132,7 @@ func getAwsAccessAnalyzerAnalyzer(ctx context.Context, d *plugin.QueryData, h *p
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	var name string
-	name = d.KeyColumnQuals["name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := AccessAnalyzerService(ctx, d, region)
@@ -148,7 +148,7 @@ func getAwsAccessAnalyzerAnalyzer(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.GetAnalyzer(params)
 	if err != nil {
-		logger.Debug("getAwsAccessAnalyzerAnalyzer", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsAccessAnalyzer", "ERROR", err)
 		return nil, err
 	}
 

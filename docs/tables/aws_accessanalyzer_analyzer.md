@@ -23,6 +23,7 @@ from
 ```sql
 select
   name,
+  status
   last_resource_analyzed,
   last_resource_analyzed_at,
   tags
@@ -38,6 +39,7 @@ where
 ```sql
 select
   name,
+  type,
   last_resource_analyzed,
   last_resource_analyzed_at,
   tags

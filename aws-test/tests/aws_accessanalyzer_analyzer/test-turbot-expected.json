@@ -1,13 +1,11 @@
 [
-    {
-     "akas": [
-      "{{ output.resource_aka.value }}"
-     ],
-     "name": "{{ resourceName }}",
-     "region": "{{ output.aws_region.value }}",
-     "tags": {
-        "name": "{{ resourceName }}"
-     },
-     "title": "{{ resourceName }}"
-    }
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"name": "{{ resourceName }}",
+		"region": "{{ output.aws_region.value }}",
+		"tags": {
+			"name": "{{ resourceName }}"
+		},
+		"title": "{{ resourceName }}"
+	}
 ]
