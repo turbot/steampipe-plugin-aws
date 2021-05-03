@@ -150,7 +150,7 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *
 	data := h.Item.(*ec2.Region)
 
 	// Returning false for disabled regions to avoid permission denied error AuthFailure
-	if(*data.OptInStatus == "not-opted-in"){
+	if *data.OptInStatus == "not-opted-in" {
 		return false, nil
 	}
 	// Create session
@@ -171,7 +171,7 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 	data := h.Item.(*ec2.Region)
 
 	// Returning default ebs key alias for disabled regions to avoid permission denied error AuthFailure
-	if(*data.OptInStatus == "not-opted-in"){
+	if *data.OptInStatus == "not-opted-in" {
 		return "alias/aws/ebs", nil
 	}
 	// Create session
