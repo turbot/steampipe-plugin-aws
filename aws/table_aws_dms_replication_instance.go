@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsDMSReplicationInstance(_ context.Context) *plugin.Table {
+func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_dms_replication_instance",
 		Description: "AWS DMS Replication Instance",
@@ -274,7 +274,7 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 	return replicationInstanceTags, nil
 }
 
-//// TRANSFORM FUNCTION
+//// TRANSFORM FUNCTIONS
 
 func dmsReplicationInstanceTagListToTagsMap(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*databasemigrationservice.ListTagsForResourceOutput)

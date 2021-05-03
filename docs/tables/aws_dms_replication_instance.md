@@ -1,6 +1,6 @@
 # Table: aws_dms_replication_instance
 
-AWS Database Migration Service (DMS) replication instance is used to connect to your source data store, read the source data, and format the data for consumption by the target data store. A replication instance also loads the data into the target data store.
+AWS Database Migration Service (DMS) replication instance is used to connect to your source data store, read the source data, and format the data for consumption by the target data store along with loading the data into the target data store.
 
 ## Examples
 
@@ -60,12 +60,12 @@ where
 select
   replication_instance_identifier,
   replication_instance_arn,
-  publicly_access,
+  publicly_accessible,
   region
 from
   aws_dms_replication_instance
 where
-  publicly_access;
+  publicly_accessible;
 ```
 
 
@@ -75,7 +75,7 @@ where
 select
   replication_instance_identifier,
   replication_instance_arn,
-  publicly_access,
+  publicly_accessible,
   multi_az,
   region
 from
