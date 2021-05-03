@@ -69,3 +69,18 @@ from
   aws_wafv2_web_acl,
   jsonb_array_elements(rules) as r;
 ```
+
+
+### List all regional web ACLs
+
+```sql
+select
+  name,
+  id,
+  scope,
+  region
+from
+  aws_wafv2_web_acl
+where
+  scope = 'REGIONAL';
+```
