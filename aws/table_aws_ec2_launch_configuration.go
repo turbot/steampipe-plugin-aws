@@ -147,6 +147,8 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 				Description: "A list that contains the security groups to assign to the instances in the Auto Scaling group.",
 				Type:        proto.ColumnType_JSON,
 			},
+
+			/// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
