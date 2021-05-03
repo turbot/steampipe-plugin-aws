@@ -32,7 +32,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				Name:        "subscription_arn",
 				Description: "Amazon Resource Name of the subscription.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(subscriptionArnNotconformStatus),
+				Transform:   transform.FromField("Attributes.SubscriptionArn").NullIfEqual("PendingConfirmation"),
 			},
 			{
 				Name:        "topic_arn",
@@ -206,17 +206,6 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 //// TRANSFORM FUNCTIONS
-
-func subscriptionArnNotconformStatus(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("pendingConfirmationArn")
-	arn := types.SafeString(d.Value)
-
-	if arn == "PendingConfirmation" {
-		return "null", nil
-	}
-
-	return arn, nil
-}
 
 func subscriptionArnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	arn := types.SafeString(d.Value)
