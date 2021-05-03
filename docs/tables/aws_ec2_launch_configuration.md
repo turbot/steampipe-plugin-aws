@@ -20,7 +20,6 @@ from
   aws_ec2_launch_configuration;
 ```
 
-
 ### IAM role attached to each Launch Configurations
 
 ```sql
@@ -30,7 +29,6 @@ select
 from
   aws_ec2_launch_configuration;
 ```
-
 
 ### List Launch Configurations with public IPs
 
@@ -44,7 +42,6 @@ where
   associate_public_ip_address;
 ```
 
-
 ### Security groups attached to each Launch Configuration
 
 ```sql
@@ -53,4 +50,18 @@ select
   jsonb_array_elements_text(security_groups) as security_groups
 from
   aws_ec2_launch_configuration;
+```
+
+### List Launch Configurations having secrets in user data
+
+```sql
+select
+  name,
+  user_data
+from
+  aws_ec2_launch_configuration
+where
+  user_data like any (
+    array ['%pass%', '%secret%','%token%','%key%','(?=.*[a-z]
+  )(? =.* [A-Z])(? =.* \ d)(? =.* [@$!%*?&]) [A-Za-z\d@$!%*?&] ']);
 ```
