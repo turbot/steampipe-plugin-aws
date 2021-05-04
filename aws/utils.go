@@ -148,7 +148,7 @@ func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}
 	return getLastPathElement(types.SafeString(d.Value)), nil
 }
 
-func getBase64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func base64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data, err := base64.StdEncoding.DecodeString(types.SafeString(d.Value))
 	if err != nil {
 		return nil, nil

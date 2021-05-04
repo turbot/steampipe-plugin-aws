@@ -214,7 +214,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The user data of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceUserData,
-				Transform:   transform.FromField("UserData.Value").Transform(getBase64DecodedData),
+				Transform:   transform.FromField("UserData.Value").Transform(base64DecodedData),
 			},
 			{
 				Name:        "virtualization_type",
