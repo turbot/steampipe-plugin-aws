@@ -61,7 +61,6 @@ select
 from
   aws_ec2_launch_configuration
 where
-  user_data like any (
-    array ['%pass%', '%secret%','%token%','%key%','(?=.*[a-z]
-  )(? =.* [A-Z])(? =.* \ d)(? =.* [@$!%*?&]) [A-Za-z\d@$!%*?&] ']);
+  user_data like any (array ['%pass%', '%secret%','%token%','%key%'])
+  or user_data ~ '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]';
 ```
