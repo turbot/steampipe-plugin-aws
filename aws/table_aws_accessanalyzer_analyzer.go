@@ -15,14 +15,14 @@ import (
 func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_accessanalyzer_analyzer",
-		Description: "AWS IAM Access Analyzer",
+		Description: "AWS Access Analyzer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsAccessAnalyzer,
+			Hydrate:           getAccessAnalyzer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsAccessAnalyzers,
+			Hydrate: listAccessAnalyzers,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -66,6 +66,13 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 				Description: "The statusReason provides more details about the current status of the analyzer.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "findings",
+				Description: "A list of findings retrieved from the analyzer that match the filter criteria specified, if any.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listAccessAnalyzerFindings,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe standard columns
 			{
@@ -92,14 +99,14 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsAccessAnalyzers", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAccessAnalyzers", "AWS_REGION", region)
 
 	// Create session
 	svc, err := AccessAnalyzerService(ctx, d, region)
@@ -123,8 +130,8 @@ func listAwsAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAccessAnalyzer")
+func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAccessAnalyzer")
 
 	// TODO put me in helper function
 	var region string
@@ -148,9 +155,43 @@ func getAwsAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Get call
 	data, err := svc.GetAnalyzer(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsAccessAnalyzer", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAccessAnalyzer", "ERROR", err)
 		return nil, err
 	}
 
 	return data.Analyzer, nil
+}
+
+func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listAccessAnalyzerFindings")
+
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	data := h.Item.(*accessanalyzer.AnalyzerSummary)
+
+	// Create Session
+	svc, err := AccessAnalyzerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var findings []*accessanalyzer.FindingSummary
+	err = svc.ListFindingsPages(
+		&accessanalyzer.ListFindingsInput{
+			AnalyzerArn: data.Arn,
+		},
+		func(page *accessanalyzer.ListFindingsOutput, isLast bool) bool {
+			findings = append(findings, page.Findings...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return findings, nil
 }
