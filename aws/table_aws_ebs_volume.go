@@ -32,6 +32,13 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the volume.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEBSVolumeArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "volume_type",
 				Description: "The volume type. This can be gp2 for General Purpose SSD, io1 or io2 for Provisioned IOPS SSD, st1 for Throughput Optimized HDD, sc1 for Cold HDD, or standard for Magnetic volumes.",
 				Type:        proto.ColumnType_STRING,
@@ -116,7 +123,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -133,7 +140,8 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEBSVolumeAkas,
+				Hydrate:     getEBSVolumeArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -267,8 +275,8 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return volumeAttributes, nil
 }
 
-func getEBSVolumeAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEBSVolumeTurbotTags")
+func getEBSVolumeArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEBSVolumeArn")
 	volume := h.Item.(*ec2.Volume)
 
 	c, err := getCommonColumns(ctx, d, h)
@@ -277,13 +285,9 @@ func getEBSVolumeAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":volume/" + *volume.VolumeId}
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":volume/" + *volume.VolumeId
 
-	// Mapping all the turbot defined properties
-	return map[string]interface{}{
-		"Akas": akas,
-	}, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS
