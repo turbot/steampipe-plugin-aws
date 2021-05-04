@@ -25,7 +25,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItem: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
@@ -101,7 +101,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ARN").Transform(arnToAkas),
 			},
 
-			// aws standard columns
+			// AWS standard columns
 			{
 				Name:        "partition",
 				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
@@ -127,11 +127,16 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+	scope := aws.String("REGIONAL")
+
+	if region == "global" {
+		region = "us-east-1"
+		scope = aws.String("CLOUDFRONT")
 	}
 	plugin.Logger(ctx).Trace("listAwsWafv2IpSets", "AWS_REGION", region)
 
@@ -141,52 +146,26 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	// List all regional web acls
+	// List all IP sets
 	pagesLeft := true
-	regionalIPSetParams := &wafv2.ListIPSetsInput{
-		Scope: aws.String("REGIONAL"),
+	params := &wafv2.ListIPSetsInput{
+		Scope: scope,
 	}
 	for pagesLeft {
-		response, err := svc.ListIPSets(regionalIPSetParams)
+		response, err := svc.ListIPSets(params)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, regionalIPSets := range response.IPSets {
-			d.StreamListItem(ctx, regionalIPSets)
+		for _, ipSets := range response.IPSets {
+			d.StreamListItem(ctx, ipSets)
 		}
 
 		if response.NextMarker != nil {
 			pagesLeft = true
-			regionalIPSetParams.NextMarker = response.NextMarker
+			params.NextMarker = response.NextMarker
 		} else {
 			pagesLeft = false
-		}
-	}
-
-	// List all global web acls
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if region == "us-east-1" {
-		pagesLeft = true
-		globalIPSetParams := &wafv2.ListIPSetsInput{
-			Scope: aws.String("CLOUDFRONT"),
-		}
-		for pagesLeft {
-			response, err := svc.ListIPSets(globalIPSetParams)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, globalIPSets := range response.IPSets {
-				d.StreamListItem(ctx, globalIPSets)
-			}
-
-			if response.NextMarker != nil {
-				pagesLeft = true
-				globalIPSetParams.NextMarker = response.NextMarker
-			} else {
-				pagesLeft = false
-			}
 		}
 	}
 
@@ -223,15 +202,29 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		scope = d.KeyColumnQuals["scope"].GetStringValue()
 	}
 
+	/*
+	 * The region endpoint is same for both Global IP Set and the Regional IP Set created in us-east-1.
+	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
+	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
+	 * For the Regional IP Set, region value should not be 'global', as 'global' region is only used to get Global IP Sets.
+	 * For any other region, region value will be same as working region.
+	 */
+	 if scope == "REGIONAL" && region == "global" {
+		return nil, nil
+	}
+
+	if strings.ToLower(scope) == "cloudfront" && region != "global" {
+		return nil, nil
+	}
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+
 	// Create Session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
-	}
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if strings.ToLower(scope) == "cloudfront" && region != "us-east-1" {
-		return nil, nil
 	}
 
 	params := &wafv2.GetIPSetInput{
@@ -257,6 +250,10 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	if region == "global" {
+		region = "us-east-1"
 	}
 	data := ipSetData(h.Item)
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
