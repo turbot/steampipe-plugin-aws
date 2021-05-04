@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -12,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsGlueDatabase(_ context.Context) *plugin.Table {
+func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_glue_catalog_database",
-		Description: "AWS Glue Database",
+		Description: "AWS Glue Catalog Database",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("Name"),
 			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
-			Hydrate:           getAwsGlueDatabase,
+			Hydrate:           getGlueCatalogDatabase,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsGlueDatabases,
+			Hydrate: listGlueCatalogDatabases,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -66,19 +67,20 @@ func tableAwsGlueDatabase(_ context.Context) *plugin.Table {
 				Description: "A DatabaseIdentifier structure that describes a target database for resource linking.",
 				Type:        proto.ColumnType_JSON,
 			},
-			// Standard columns
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsGlueDatabaseAkas,
-				Transform:   transform.FromValue(),
-			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlueCatalogDatabaseAkas,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
@@ -86,13 +88,13 @@ func tableAwsGlueDatabase(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsGlueDatabases(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsGlueDatabases", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listGlueCatalogDatabases", "AWS_REGION", region)
 
 	// Create session
 	svc, err := GlueService(ctx, d, region)
@@ -117,17 +119,15 @@ func listAwsGlueDatabases(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsGlueDatabase(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsGlueDatabase")
+func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlueCatalogDatabase")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	var name string
-	name = d.KeyColumnQuals["name"].GetStringValue()
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := GlueService(ctx, d, region)
@@ -137,22 +137,24 @@ func getAwsGlueDatabase(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	// Build the params
 	params := &glue.GetDatabaseInput{
-		Name: &name,
+		Name: aws.String(name),
 	}
 
 	// Get call
 	data, err := svc.GetDatabase(params)
 	if err != nil {
-		logger.Debug("getAwsGlueDatabase", "ERROR", err)
+		plugin.Logger(ctx).Debug("getGlueCatalogDatabase", "ERROR", err)
 		return nil, err
 	}
 
 	return data.Database, nil
 }
 
-func getAwsGlueDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGlueDatabaseAkas")
+func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlueCatalogDatabaseAkas")
 	data := h.Item.(*glue.Database)
+
+	// Get common columns
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
