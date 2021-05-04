@@ -178,7 +178,8 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(instanceTypeDataToAkas),
+				Hydrate:     instanceTypeDataToAkas,
+				Transform:   transform.FromValue(),
 			},
 		},
 	}
@@ -277,17 +278,23 @@ func describeInstanceType(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
-func instanceTypeDataToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func instanceTypeDataToAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("instanceTypeDataToAkas")
-	var data *ec2.DescribeInstanceTypesOutput
-	akas := []string{}
-
-	if d.HydrateResults["describeInstanceType"] != nil {
-		data = d.HydrateResults["describeInstanceType"].(*ec2.DescribeInstanceTypesOutput)
-		akas = []string{"arn:aws:ec2:::instance-type/" + *data.InstanceTypes[0].InstanceType}
+	var instanceType string
+	switch h.Item.(type) {
+	case *ec2.InstanceTypeOffering:
+		instanceType = *h.Item.(*ec2.InstanceTypeOffering).InstanceType
+	case *ec2.DescribeInstanceTypesOutput:
+		instanceType = *h.Item.(*ec2.DescribeInstanceTypesOutput).InstanceTypes[0].InstanceType
 	}
+
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:::instance-type/" + instanceType}
 
 	return akas, nil
 }
