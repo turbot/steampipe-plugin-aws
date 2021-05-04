@@ -37,7 +37,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the instance.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEc2InstanceArn,
+				Hydrate:     getEc2InstanceARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -294,7 +294,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEc2InstanceArn,
+				Hydrate:     getEc2InstanceARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -372,8 +372,8 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return nil, nil
 }
 
-func getEc2InstanceArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2InstanceArn")
+func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2InstanceARN")
 	instance := h.Item.(*ec2.Instance)
 
 	commonData, err := getCommonColumns(ctx, d, h)
