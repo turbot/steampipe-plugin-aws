@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -61,6 +62,27 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
+
+// AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
+func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData, region string) (*accessanalyzer.AccessAnalyzer, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AccessAnalyzerService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("accessanalyzer-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*accessanalyzer.AccessAnalyzer), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := accessanalyzer.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
 
 // ACMService returns the service connection for AWS ACM service
 func ACMService(ctx context.Context, d *plugin.QueryData, region string) (*acm.ACM, error) {
