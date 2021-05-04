@@ -34,6 +34,13 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the instance.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEc2InstanceArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "instance_type",
 				Description: "The instance type.",
 				Type:        proto.ColumnType_STRING,
@@ -287,8 +294,8 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2InstanceTurbotData,
-				Transform:   transform.FromValue(),
+				Hydrate:     getEc2InstanceArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -365,19 +372,19 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return nil, nil
 }
 
-func getAwsEc2InstanceTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2InstanceTurbotData")
+func getEc2InstanceArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2InstanceArn")
 	instance := h.Item.(*ec2.Instance)
+
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":instance/" + *instance.InstanceId}
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":instance/" + *instance.InstanceId
 
-	return akas, nil
+	return arn, nil
 }
 
 func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
