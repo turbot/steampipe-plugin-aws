@@ -35,7 +35,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the volume.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEBSVolumeArn,
+				Hydrate:     getEBSVolumeARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -140,7 +140,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEBSVolumeArn,
+				Hydrate:     getEBSVolumeARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -275,8 +275,8 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return volumeAttributes, nil
 }
 
-func getEBSVolumeArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEBSVolumeArn")
+func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEBSVolumeARN")
 	volume := h.Item.(*ec2.Volume)
 
 	c, err := getCommonColumns(ctx, d, h)
