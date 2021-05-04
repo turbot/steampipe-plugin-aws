@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "task_definition_arn": "{{ output.resource_aka.value }}",
+    "title": "{{ output.resource_aka.value.split('/').pop() }}"
+  }
+]

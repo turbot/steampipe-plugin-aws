@@ -1,15 +1,17 @@
 [
   {
     "akas": [
-      "arn:{{ output.aws_partition.value }}:config:{{ output.region_name.value }}:{{ output.account_id.value }}:conformance-pack/{{resourceName}}"
+      "{{ output.resource_aka.value }}"
+    ],
+    "delivery_s3_bucket": "<null>",
+    "delivery_s3_key_prefix": "<null>",
+    "input_parameters": [
+      {
+        "ParameterName": "AccessKeysRotatedParameterMaxAccessKeyAge",
+        "ParameterValue": "90"
+      }
     ],
     "name": "{{resourceName}}",
-    "conformance_pack_id": null,
-    "input_parameters": null,
-    "created_by_svc": null,
-    "delivery_bucket": null,
-    "delivery_bucket_prefix": null,
-    "last_update": null,
     "title": "{{resourceName}}"
   }
 ]

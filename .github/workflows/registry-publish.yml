@@ -37,7 +37,7 @@ jobs:
 
       - name: Exit if goreleaser file is missing
         run: |
-          test -f .goreleaser.yaml
+          test -f .goreleaser.yml
 
       - name: Set up Go
         uses: actions/setup-go@v2

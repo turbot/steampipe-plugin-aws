@@ -1,0 +1,16 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "auto_terminate": false,
+    "cluster_arn": "{{ output.resource_aka.value }}",
+    "id": "{{ output.resource_id.value }}",
+    "name": "{{resourceName}}",
+    "region": "{{ output.region_name.value }}",
+    "tags": {
+      "name": "{{resourceName}}"
+    }
+  }
+]

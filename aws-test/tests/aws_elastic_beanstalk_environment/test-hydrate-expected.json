@@ -1,0 +1,21 @@
+[
+  {
+    "akas": ["{{output.resource_aka.value}}"],
+    "environment_name": "{{ output.resource_name.value }}",
+    "tags": [
+      {
+        "Key": "elasticbeanstalk:environment-name",
+        "Value": "{{ output.resource_name.value }}"
+      },
+      {
+        "Key": "elasticbeanstalk:environment-id",
+        "Value": "{{ output.resource_id.value }}"
+      },
+      {
+        "Key": "Name",
+        "Value": "{{ output.resource_name.value }}"
+      }
+    ],
+    "title": "{{ output.resource_name.value }}"
+  }
+]

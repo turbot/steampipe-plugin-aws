@@ -1,0 +1,6 @@
+[
+  {
+    "access_point_policy_is_public": false,
+    "name": "{{ resourceName }}"
+  }
+]
