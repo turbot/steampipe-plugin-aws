@@ -34,3 +34,6 @@
 - name: release
   description: New version
   color: 0EE607
+- name: stale
+  description: The lable will be attach to tha Issue/PR if there is not activity found from last 30 days on the particular Issue/PR
+  color: eb7134
