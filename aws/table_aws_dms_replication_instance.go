@@ -145,13 +145,13 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tags currently associated with the DMS Replication Instance.",
+				Description: "A list of tags currently associated with the replication instance.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDmsReplicationInstanceTags,
 				Transform:   transform.FromField("TagList"),
 			},
 
-			// Standard columns
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -178,7 +178,6 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -210,8 +209,7 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
+func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -254,7 +252,7 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	replicationInstanceArn := *h.Item.(*databasemigrationservice.ReplicationInstance).ReplicationInstanceArn
+	replicationInstanceArn := h.Item.(*databasemigrationservice.ReplicationInstance).ReplicationInstanceArn
 
 	// Create service
 	svc, err := DatabaseMigrationService(ctx, d, region)
@@ -263,7 +261,7 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	params := &databasemigrationservice.ListTagsForResourceInput{
-		ResourceArn: &replicationInstanceArn,
+		ResourceArn: replicationInstanceArn,
 	}
 
 	replicationInstanceTags, err := svc.ListTagsForResource(params)
@@ -278,9 +276,6 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 
 func dmsReplicationInstanceTagListToTagsMap(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*databasemigrationservice.ListTagsForResourceOutput)
-	if data.TagList == nil {
-		return nil, nil
-	}
 
 	// Mapping the resource tags inside turbotTags
 	if data.TagList != nil {

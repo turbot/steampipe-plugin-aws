@@ -294,10 +294,10 @@ func DaxService(ctx context.Context, d *plugin.QueryData, region string) (*dax.D
 // DatabaseMigrationService returns the service connection for AWS Database Migration service
 func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData, region string) (*databasemigrationservice.DatabaseMigrationService, error) {
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DmsService")
+		return nil, fmt.Errorf("region must be passed DatabaseMigrationService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("dms-%s", region)
+	serviceCacheKey := fmt.Sprintf("databasemigrationservice-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*databasemigrationservice.DatabaseMigrationService), nil
 	}
