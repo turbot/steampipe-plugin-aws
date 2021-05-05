@@ -18,13 +18,13 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_rule_group",
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			Hydrate:           getAwsWafv2RuleGroup,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			Hydrate:    getAwsWafv2RuleGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItem: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
@@ -105,7 +105,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ARN").Transform(arnToAkas),
 			},
 
-			// aws standard columns
+			// AWS standard columns
 			{
 				Name:        "partition",
 				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
@@ -137,6 +137,12 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+	scope := aws.String("REGIONAL")
+
+	if region == "global" {
+		region = "us-east-1"
+		scope = aws.String("CLOUDFRONT")
+	}
 	plugin.Logger(ctx).Trace("listAwsWafv2RuleGroups", "AWS_REGION", region)
 
 	// Create session
@@ -145,52 +151,26 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	// List all regional Regex Pattern Sets
+	// List all rule groups
 	pagesLeft := true
-	regionalRuleGroupParams := &wafv2.ListRuleGroupsInput{
-		Scope: aws.String("REGIONAL"),
+	params := &wafv2.ListRuleGroupsInput{
+		Scope: scope,
 	}
 	for pagesLeft {
-		response, err := svc.ListRuleGroups(regionalRuleGroupParams)
+		response, err := svc.ListRuleGroups(params)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, regionalRuleGroups := range response.RuleGroups {
-			d.StreamListItem(ctx, regionalRuleGroups)
+		for _, ruleGroups := range response.RuleGroups {
+			d.StreamListItem(ctx, ruleGroups)
 		}
 
 		if response.NextMarker != nil {
 			pagesLeft = true
-			regionalRuleGroupParams.NextMarker = response.NextMarker
+			params.NextMarker = response.NextMarker
 		} else {
 			pagesLeft = false
-		}
-	}
-
-	// List all global Regex Pattern Sets
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if region == "us-east-1" {
-		pagesLeft = true
-		globalRuleGroupParams := &wafv2.ListRuleGroupsInput{
-			Scope: aws.String("CLOUDFRONT"),
-		}
-		for pagesLeft {
-			response, err := svc.ListRuleGroups(globalRuleGroupParams)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, globalRuleGroups := range response.RuleGroups {
-				d.StreamListItem(ctx, globalRuleGroups)
-			}
-
-			if response.NextMarker != nil {
-				pagesLeft = true
-				globalRuleGroupParams.NextMarker = response.NextMarker
-			} else {
-				pagesLeft = false
-			}
 		}
 	}
 
@@ -227,15 +207,29 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		scope = d.KeyColumnQuals["scope"].GetStringValue()
 	}
 
+	/*
+	 * The region endpoint is same for both Global Rule Group and the Regional Rule Group created in us-east-1.
+	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
+	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
+	 * For the Regional Rule Group, region value should not be 'global', as 'global' region is only used to get Global Rule Groups.
+	 * For any other region, region value will be same as working region.
+	 */
+	if scope == "REGIONAL" && region == "global" {
+		return nil, nil
+	}
+
+	if strings.ToLower(scope) == "cloudfront" && region != "global" {
+		return nil, nil
+	}
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+
 	// Create Session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
-	}
-
-	// To work with CloudFront, you must specify the Region US East (N. Virginia)
-	if strings.ToLower(scope) == "cloudfront" && region != "us-east-1" {
-		return nil, nil
 	}
 
 	params := &wafv2.GetRuleGroupInput{
@@ -261,6 +255,10 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	if region == "global" {
+		region = "us-east-1"
 	}
 	data := ruleGroupData(h.Item)
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
