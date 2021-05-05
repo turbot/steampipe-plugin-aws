@@ -11,7 +11,7 @@ select
   name,
   file_system_id,
   owner_id,
-  automatic_backup,
+  automatic_backups,
   creation_token,
   creation_time,
   life_cycle_state,
@@ -98,16 +98,16 @@ where
 ```
 
 
-### List file systems with automatic backup feature enabled
+### List file systems with automatic backups enabled
 
 ```sql
 select
   name,
-  automatic_backup,
+  automatic_backups,
   file_system_arn,
   file_system_id
 from
   aws_efs_file_system
 where
-  automatic_backup = 'enabled';
+  automatic_backups = 'enabled';
 ```
