@@ -31,6 +31,13 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
+				Name:        "arn",
+				Description: "Amazon resource name of Configuration Recorder",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsConfigurationRecorderARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "recording_group",
 				Description: "Specifies the types of AWS resources for which AWS Config records configuration changes.",
 				Type:        proto.ColumnType_JSON,
@@ -61,8 +68,8 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsConfigurationRecorderAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getAwsConfigurationRecorderARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "title",
@@ -170,9 +177,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 	return status.ConfigurationRecordersStatus[0], nil
 }
 
-//// TRANSFORM FUNCTIONS
-
-func getAwsConfigurationRecorderAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
 	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
 	c, err := getCommonColumns(ctx, d, h)
@@ -180,7 +185,7 @@ func getAwsConfigurationRecorderAkas(ctx context.Context, d *plugin.QueryData, h
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":config:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
+	arn := "arn:" + commonColumnData.Partition + ":config:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
 
-	return []string{aka}, nil
+	return arn, nil
 }

@@ -1,7 +1,7 @@
 [
   {
     "name": "{{resourceName}}",
-    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/awsconfig-example",
+    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/{{resourceName}}",
     "status": {
       "LastErrorCode": null,
       "LastErrorMessage": null,

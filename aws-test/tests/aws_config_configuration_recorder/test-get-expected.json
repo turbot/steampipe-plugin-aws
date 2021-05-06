@@ -3,8 +3,9 @@
     "akas": [
       "arn:{{ output.aws_partition.value }}:config:{{ output.region_name.value }}:{{ output.account_id.value }}:config-recorder/{{resourceName}}"
     ],
+    "arn": "arn:{{ output.aws_partition.value }}:config:{{ output.region_name.value }}:{{ output.account_id.value }}:config-recorder/{{resourceName}}",
     "name": "{{resourceName}}",
-    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/awsconfig-example",
+    "role_arn": "arn:{{ output.aws_partition.value }}:iam::{{ output.account_id.value }}:role/{{resourceName}}",
     "status": {
       "LastErrorCode": null,
       "LastErrorMessage": null,
