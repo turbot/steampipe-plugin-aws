@@ -19,7 +19,7 @@ where
 ```
 
 
-### Check whether autoscaling is enabled of both read-write capacity
+### List targets for DynamoDB tables with read or write auto scaling enabled
 
 ```sql
 select
