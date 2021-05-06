@@ -168,6 +168,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
+			"aws_wafv2_web_acl":                      tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":           tableAwsWellArchitectedWorkload(ctx),
 		},
 	}
