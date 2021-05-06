@@ -7,13 +7,13 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
   type        = string
-  default     = "us-west-2"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
