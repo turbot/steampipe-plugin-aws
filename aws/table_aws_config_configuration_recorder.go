@@ -32,7 +32,7 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "Amazon resource name of Configuration Recorder",
+				Description: "The Amazon Resource Name (ARN) of the configuration recorder.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsConfigurationRecorderARN,
 				Transform:   transform.FromValue(),
@@ -176,6 +176,8 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 
 	return status.ConfigurationRecordersStatus[0], nil
 }
+
+//// TRANSFORM FUNCTIONS
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
