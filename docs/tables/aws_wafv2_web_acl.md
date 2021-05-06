@@ -19,7 +19,7 @@ from
 ```
 
 
-### Get the cloudwatch metrics details for each web ACL
+### Get CloudWatch metrics details for each web ACL
 
 ```sql
 select
@@ -46,7 +46,7 @@ where
 ```
 
 
-### Get the attack patterns defined in the rule for each web ACL
+### Get the attack patterns defined in each rule for each web ACL
 
 ```sql
 select
@@ -71,7 +71,7 @@ from
 ```
 
 
-### List all regional web ACLs
+### List regional web ACLs
 
 ```sql
 select
