@@ -1,48 +1,46 @@
 [
-  {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
-    "disable_api_termination": false,
-    "instance_id": "{{ output.resource_id.value }}",
-    "instance_initiated_shutdown_behavior": "stop",
-    "instance_status": {
-      "AvailabilityZone": "{{ output.availability_zone.value }}",
-      "Events": null,
-      "InstanceId": "{{ output.resource_id.value }}",
-      "InstanceState": {
-        "Code": 16,
-        "Name": "running"
-      },
-      "InstanceStatus": {
-        "Details": [
-          {
-            "ImpairedSince": null,
-            "Name": "reachability",
-            "Status": "initializing"
-          }
-        ],
-        "Status": "initializing"
-      },
-      "OutpostArn": null,
-      "SystemStatus": {
-        "Details": [
-          {
-            "ImpairedSince": null,
-            "Name": "reachability",
-            "Status": "initializing"
-          }
-        ],
-        "Status": "initializing"
-      }
-    },
-    "kernel_id": "<null>",
-    "ram_disk_id": "<null>",
-    "sriov_net_support": "simple",
-    "tags": {
-      "Name": "{{ resourceName }}"
-    },
-    "title": "{{ resourceName }}",
-    "user_data": "dHVyYm90"
-  }
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"disable_api_termination": false,
+		"instance_id": "{{ output.resource_id.value }}",
+		"instance_initiated_shutdown_behavior": "stop",
+		"instance_status": {
+			"AvailabilityZone": "{{ output.availability_zone.value }}",
+			"Events": null,
+			"InstanceId": "{{ output.resource_id.value }}",
+			"InstanceState": {
+				"Code": 16,
+				"Name": "running"
+			},
+			"InstanceStatus": {
+				"Details": [
+					{
+						"ImpairedSince": null,
+						"Name": "reachability",
+						"Status": "initializing"
+					}
+				],
+				"Status": "initializing"
+			},
+			"OutpostArn": null,
+			"SystemStatus": {
+				"Details": [
+					{
+						"ImpairedSince": null,
+						"Name": "reachability",
+						"Status": "initializing"
+					}
+				],
+				"Status": "initializing"
+			}
+		},
+		"kernel_id": null,
+		"ram_disk_id": null,
+		"sriov_net_support": "simple",
+		"tags": {
+			"Name": "{{ resourceName }}"
+		},
+		"title": "{{ resourceName }}",
+		"user_data": "dHVyYm90"
+	}
 ]

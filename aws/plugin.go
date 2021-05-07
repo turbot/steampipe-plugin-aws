@@ -28,6 +28,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
+			"aws_accessanalyzer_analyzer":            tableAwsAccessAnalyzer(ctx),
 			"aws_account":                            tableAwsAccount(ctx),
 			"aws_acm_certificate":                    tableAwsAcmCertificate(ctx),
 			"aws_api_gateway_api_key":                tableAwsAPIGatewayAPIKey(ctx),
@@ -38,6 +39,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_api":                  tableAwsAPIGatewayV2Api(ctx),
 			"aws_api_gatewayv2_domain_name":          tableAwsAPIGatewayV2DomainName(ctx),
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
+			"aws_appautoscaling_target":              tableAwsAppAutoScalingTarget(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
 			"aws_backup_plan":                        tableAwsBackupPlan(ctx),
 			"aws_backup_vault":                       tableAwsBackupVault(ctx),
@@ -167,6 +169,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
 			"aws_wafv2_regex_pattern_set":                       tableAwsWafv2RegexPatternSet(ctx),
+			"aws_wafv2_web_acl":                      tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":           tableAwsWellArchitectedWorkload(ctx),
 		},
 	}

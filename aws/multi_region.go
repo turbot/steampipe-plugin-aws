@@ -47,3 +47,29 @@ func getInvalidRegions(regions []string) []string {
 	}
 	return invalidRegions
 }
+
+// BuildWafRegionList :: return a list of matrix items for AWS WAF resources, one per region specified in the connection config
+func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
+	// retrieve regions from connection config
+	awsConfig := GetConfig(connection)
+
+	if &awsConfig != nil && awsConfig.Regions != nil {
+		regions := awsConfig.Regions
+
+		if len(getInvalidRegions(regions)) > 0 {
+			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(regions), ","))
+		}
+		regions = append(regions, "global")
+
+		// validate regions list
+		matrix := make([]map[string]interface{}, len(regions))
+		for i, region := range regions {
+			matrix[i] = map[string]interface{}{matrixKeyRegion: region}
+		}
+		return matrix
+	}
+
+	return []map[string]interface{}{
+		{matrixKeyRegion: GetDefaultRegion()},
+	}
+}
