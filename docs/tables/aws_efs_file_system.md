@@ -11,6 +11,7 @@ select
   name,
   file_system_id,
   owner_id,
+  automatic_backups,
   creation_token,
   creation_time,
   life_cycle_state,
@@ -94,4 +95,19 @@ where
       and s ->> 'Effect' = 'Deny'
       and ssl :: bool = false
   );
+```
+
+
+### List file systems with automatic backups enabled
+
+```sql
+select
+  name,
+  automatic_backups,
+  file_system_arn,
+  file_system_id
+from
+  aws_efs_file_system
+where
+  automatic_backups = 'enabled';
 ```

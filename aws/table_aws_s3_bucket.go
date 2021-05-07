@@ -71,6 +71,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The ARN of the AWS S3 Bucket.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "creation_date",
 				Description: "The date and tiem when bucket was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -198,7 +205,8 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(s3NameToAkas),
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "region",
@@ -567,13 +575,22 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return bucketTags, nil
 }
 
-//// TRANSFORM FUNCTIONS
+func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsS3BucketArn")
+	bucket := h.Item.(*s3.Bucket)
 
-func s3NameToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("s3NameToAkas")
-	bucket := d.HydrateItem.(*s3.Bucket)
-	return []string{"arn:aws:s3:::" + *bucket.Name}, nil
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucket.Name
+
+	return arn, nil
 }
+
+//// TRANSFORM FUNCTIONS
 
 func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")

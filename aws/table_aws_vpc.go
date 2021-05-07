@@ -30,6 +30,13 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the vpc.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getVpcARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "cidr_block",
 				Description: "The primary IPv4 CIDR block for the VPC.",
 				Type:        proto.ColumnType_CIDR,
@@ -78,23 +85,23 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 
 			// Standard columns for all tables
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getVpcTurbotTags),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(getVpcTurbotTitle),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getVpcTurbotTags),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsVpcTurbotData,
-				Transform:   transform.FromValue(),
+				Hydrate:     getVpcARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -165,8 +172,8 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 	return nil, nil
 }
 
-func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsVpcTurbotData")
+func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcARN")
 	vpc := h.Item.(*ec2.Vpc)
 
 	commonData, err := getCommonColumns(ctx, d, h)
@@ -175,10 +182,9 @@ func getAwsVpcTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId}
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId
 
-	return akas, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS

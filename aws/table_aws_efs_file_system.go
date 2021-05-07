@@ -59,6 +59,12 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "automatic_backups",
+				Description: "Automatic backups use a default backup plan with the AWS Backup recommended settings for automatic backups.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Tags").Transform(automaticBackupsValue),
+			},
+			{
 				Name:        "life_cycle_state",
 				Description: "The lifecycle phase of the file system.",
 				Type:        proto.ColumnType_STRING,
@@ -274,4 +280,17 @@ func getElasticFileSystemTurbotTitle(_ context.Context, d *transform.TransformDa
 	}
 
 	return fileSystemTitle.FileSystemId, nil
+}
+
+func automaticBackupsValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	automaticBackup := d.HydrateItem.(*efs.FileSystemDescription)
+
+	if automaticBackup.Tags != nil {
+		for _, i := range automaticBackup.Tags {
+			if *i.Key == "aws:elasticfilesystem:default-backup" {
+				return *i.Value, nil
+			}
+		}
+	}
+	return "disabled", nil
 }
