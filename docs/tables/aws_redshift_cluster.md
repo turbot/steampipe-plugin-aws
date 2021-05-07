@@ -58,12 +58,14 @@ where
   not encrypted;
 ```
 
-### List clusters audit logging status
+### List logging status for a specific cluster
 
 ```sql
 select
   cluster_identifier,
   logging_details -> 'LoggingEnabled' as LoggingEnabled
 from
-  aws_redshift_cluster;
+  aws_redshift_cluster
+where
+  cluster_identifier = 'redshift-cluster-1';
 ```
