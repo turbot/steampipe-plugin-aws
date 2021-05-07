@@ -66,6 +66,7 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 				Name:        "expiry",
 				Description: "Expiration date of the domain in Unix time format and Coordinated Universal Time (UTC).",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("ExpirationDate"),
 			},
 			{
 				Name:        "nameservers",

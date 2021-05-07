@@ -8,7 +8,7 @@ Amazon Route 53 enables you to register and transfer domain names using your AWS
 
 ```sql
 select
-  name,
+  domain_name,
   auto_renew,
   expiry
 from
@@ -19,7 +19,7 @@ from
 
 ```sql
 select
-  name,
+  domain_name,
   auto_renew,
   expiry
 from
@@ -32,7 +32,7 @@ where
 
 ```sql
 select
-  name,
+  domain_name,
   auto_renew,
   expiry
 from
@@ -45,8 +45,9 @@ where
 
 ```sql
 select
-  name,
-  expiry
+  domain_name,
+  expiry,
+  transfer_lock
 from
   aws_route53_domains
 where
