@@ -1,0 +1,7 @@
+[
+  {
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "resource_id": "{{ output.resource_id.value }}"
+  }
+]
