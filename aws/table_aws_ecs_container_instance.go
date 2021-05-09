@@ -11,7 +11,7 @@ import (
 
 func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ecs_container",
+		Name:        "aws_ecs_container_instance",
 		Description: "AWS ECS Container Instance",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEcsClusters,
