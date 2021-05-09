@@ -21,7 +21,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "arn",
-				Description: "The namespace Amazon Resource Name (ARN) of the cluster.",
+				Description: "The namespace Amazon Resource Name (ARN) of the container instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContainerInstanceArn"),
 			},
@@ -93,7 +93,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "version",
 				Description: "The reason that the container instance reached its current status.",
-				Type:      proto.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "version_info",
@@ -175,9 +175,9 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 	for _, arns := range containerInstanceArns {
 		input := &ecs.DescribeContainerInstancesInput{
-			Cluster: aws.String(clusterArn),
+			Cluster:            aws.String(clusterArn),
 			ContainerInstances: arns,
-			Include: []*string{aws.String("TAGS")},
+			Include:            []*string{aws.String("TAGS")},
 		}
 		result, err := svc.DescribeContainerInstances(input)
 		if err != nil {
