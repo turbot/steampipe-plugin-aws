@@ -26,7 +26,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ContainerInstanceArn"),
 			},
 			{
-				Name:        "instance_id",
+				Name:        "ec2_instance_id",
 				Description: "The EC2 instance ID of the container instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Ec2InstanceId"),
