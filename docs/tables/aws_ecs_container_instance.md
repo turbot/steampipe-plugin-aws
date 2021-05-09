@@ -1,6 +1,7 @@
 # Table: aws_ecs_container_instance
 
-An Amazon ECS container instance is a EC2 instance that is running the Amazon ECS agent and has been registered with an ECS cluster.
+An Amazon ECS container instance is a EC2 instance that is running the Amazon ECS agent and has been registered with an
+ECS cluster.
 
 ## Examples
 
@@ -8,8 +9,8 @@ An Amazon ECS container instance is a EC2 instance that is running the Amazon EC
 
 ```sql
 select
-  container_instance_arn,
-  instance_id,
+  arn,
+  ec2_instance_id,
   status,
   status_reason,
   running_tasks_count,
@@ -23,10 +24,11 @@ from
 
 ```sql
 select
-  cluster_arn,
-  status
+  arn,
+  status,
+  status_reason
 from
-  aws_ecs_cluster
+  aws_ecs_container_instance
 where
   status = 'REGISTRATION_FAILED';
 ```
@@ -36,12 +38,12 @@ where
 
 ```sql
 select
-  cluster_arn,
+  arn,
   attachment ->> 'id' as attachment_id,
   attachment ->> 'status' as attachment_status,
   attachment ->> 'type' as attachment_type
 from
-  aws_ecs_cluster,
+  aws_ecs_container_instance,
   jsonb_array_elements(attachments) as attachment;
 ```
 
@@ -50,7 +52,7 @@ from
 
 ```sql
 select
-  container_instance_arn,
+  arn,
   setting ->> 'Name' as name,
   setting ->> 'Value' as value
 from
