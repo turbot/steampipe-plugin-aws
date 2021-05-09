@@ -165,7 +165,9 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 			MaxResults: aws.Int64(100),
 		},
 		func(page *ecs.ListContainerInstancesOutput, isLast bool) bool {
-			containerInstanceArns = append(containerInstanceArns, page.ContainerInstanceArns)
+			if len(page.ContainerInstanceArns) != 0 {
+				containerInstanceArns = append(containerInstanceArns, page.ContainerInstanceArns)
+			}
 			return !isLast
 		},
 	)
