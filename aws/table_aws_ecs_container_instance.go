@@ -20,7 +20,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{
 			{
-				Name:        "container_instance_arn",
+				Name:        "arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContainerInstanceArn"),
