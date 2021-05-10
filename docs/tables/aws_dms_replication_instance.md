@@ -20,7 +20,7 @@ from
 ```
 
 
-### List replication instances having Auto Minor Version Upgrade feature disabled
+### List replication instances with auto minor version upgrades disabled
 
 ```sql
 select
@@ -37,7 +37,7 @@ where
 ```
 
 
-### List replication instances provisioned with undesired (for example, dms.r5.16xlarge and dms.r5.24xlarge are not desired) instance class
+### List replication instances provisioned with undesired (for example, dms.r5.16xlarge and dms.r5.24xlarge are not desired) instance classes
 
 ```sql
 select
@@ -54,7 +54,7 @@ where
 ```
 
 
-### List replication instances that are publicly accessible
+### List publicly accessible replication instances
 
 ```sql
 select
@@ -69,7 +69,7 @@ where
 ```
 
 
-### List replication instances not using Multi-AZ deployment configurations
+### List replication instances not using multi-AZ deployment configurations
 
 ```sql
 select
