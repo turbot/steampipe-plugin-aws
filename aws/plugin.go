@@ -79,6 +79,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ecr_repository":                     tableAwsEcrRepository(ctx),
 			"aws_ecrpublic_repository":               tableAwsEcrpublicRepository(ctx),
 			"aws_ecs_cluster":                        tableAwsEcsCluster(ctx),
+			"aws_ecs_container_instance":             tableAwsEcsContainerInstance(ctx),
 			"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                   tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                    tableAwsElasticFileSystem(ctx),
