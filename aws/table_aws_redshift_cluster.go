@@ -388,7 +388,7 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 		region = matrixRegion.(string)
 	}
 
-	name := *h.Item.(*redshift.Cluster).ClusterIdentifier
+	name := h.Item.(*redshift.Cluster).ClusterIdentifier
 
 	// Create service
 	svc, err := RedshiftService(ctx, d, region)
@@ -397,7 +397,7 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	params := &redshift.DescribeLoggingStatusInput{
-		ClusterIdentifier: aws.String(name),
+		ClusterIdentifier: name,
 	}
 
 	op, err := svc.DescribeLoggingStatus(params)
