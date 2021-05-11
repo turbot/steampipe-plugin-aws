@@ -18,8 +18,9 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_regex_pattern_set",
 		Description: "AWS WAFv2 Regex Pattern Set",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
-			Hydrate:    getAwsWafv2RegexPatternSet,
+			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException"}),
+			Hydrate:           getAwsWafv2RegexPatternSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,
@@ -57,13 +58,15 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "lock_token",
 				Description: "A token used for optimistic locking.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsWafv2RegexPatternSetLockToken,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "regular_expressions",
 				Description: "The list of regular expression patterns in the set.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2RegexPatternSet,
-				Transform:   transform.FromField("RegularExpressionList").Transform(RegularExpressionObjectListToRegularExpressionList),
+				Transform:   transform.FromField("RegularExpressionList").Transform(regularExpressionObjectListToRegularExpressionList),
 			},
 			{
 				Name:        "tags_src",
@@ -120,7 +123,6 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -171,7 +173,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSet")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -236,10 +237,76 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	return op.RegexPatternSet, nil
 }
 
+func getAwsWafv2RegexPatternSetLockToken(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSetLockToken")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	var id, name, scope string
+	if h.Item != nil {
+		data := regexPatternSetData(h.Item)
+		id = data["ID"]
+		name = data["Name"]
+		locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+
+		if locationType == "regional" {
+			scope = "REGIONAL"
+		} else {
+			scope = "CLOUDFRONT"
+		}
+	} else {
+		id = d.KeyColumnQuals["id"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
+		scope = d.KeyColumnQuals["scope"].GetStringValue()
+	}
+
+	/*
+	 * The region endpoint is same for both Global Regex Pattern Set and the Regional Regex Pattern Set created in us-east-1.
+	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
+	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
+	 * For the Regional Regex Pattern Set, region value should not be 'global', as 'global' region is only used to get Global Regex Pattern Sets.
+	 * For any other region, region value will be same as working region.
+	 */
+	if scope == "REGIONAL" && region == "global" {
+		return nil, nil
+	}
+
+	if strings.ToLower(scope) == "cloudfront" && region != "global" {
+		return nil, nil
+	}
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+
+	// Create Session
+	svc, err := WAFv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &wafv2.GetRegexPatternSetInput{
+		Id:    aws.String(id),
+		Name:  aws.String(name),
+		Scope: aws.String(scope),
+	}
+
+	op, err := svc.GetRegexPatternSet(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("GetRegexPatternSet", "ERROR", err)
+		return nil, err
+	}
+
+	return op.LockToken, nil
+}
+
 func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RegexPatternSet")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -306,8 +373,8 @@ func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.Transf
 	return turbotTagsMap, nil
 }
 
-func RegularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("RegularExpressionObjectListToRegularExpressionList")
+func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("regularExpressionObjectListToRegularExpressionList")
 	data := d.HydrateItem.(*wafv2.RegexPatternSet)
 
 	if data.RegularExpressionList == nil || len(data.RegularExpressionList) < 1 {
