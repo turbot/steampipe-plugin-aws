@@ -43,6 +43,13 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the integration.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAPIGatewayV2IntegrationAkas,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "description",
 				Description: "Represents the description of an integration.",
 				Type:        proto.ColumnType_STRING,
@@ -140,17 +147,17 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 
 			// Standard columns
 			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAPIGatewayV2IntegrationAkas,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IntegrationId"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAPIGatewayV2IntegrationAkas,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -203,8 +210,6 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayV2Integration")
-	api := d.KeyColumnQuals["api_id"].GetStringValue()
-	key := d.KeyColumnQuals["integration_id"].GetStringValue()
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -218,6 +223,8 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	api := d.KeyColumnQuals["api_id"].GetStringValue()
+	key := d.KeyColumnQuals["integration_id"].GetStringValue()
 	params := &apigatewayv2.GetIntegrationInput{
 		ApiId:         aws.String(api),
 		IntegrationId: aws.String(key),
@@ -268,7 +275,7 @@ func getAPIGatewayV2IntegrationAkas(ctx context.Context, d *plugin.QueryData, h 
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId}
+	akas := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId
 
 	return akas, nil
 }
