@@ -18,8 +18,9 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_rule_group",
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
-			Hydrate:    getAwsWafv2RuleGroup,
+			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException"}),
+			Hydrate:           getAwsWafv2RuleGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
@@ -63,6 +64,8 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "lock_token",
 				Description: "A token used for optimistic locking.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsWafv2RuleGroupLockToken,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "rules",
@@ -131,7 +134,6 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -182,7 +184,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsWafv2EuleGroup")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -247,10 +248,76 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return op.RuleGroup, nil
 }
 
+func getAwsWafv2RuleGroupLockToken(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsWafv2RuleGroupLockToken")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	var id, name, scope string
+	if h.Item != nil {
+		data := ruleGroupData(h.Item)
+		id = data["ID"]
+		name = data["Name"]
+		locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+
+		if locationType == "regional" {
+			scope = "REGIONAL"
+		} else {
+			scope = "CLOUDFRONT"
+		}
+	} else {
+		id = d.KeyColumnQuals["id"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
+		scope = d.KeyColumnQuals["scope"].GetStringValue()
+	}
+
+	/*
+	 * The region endpoint is same for both Global Rule Group and the Regional Rule Group created in us-east-1.
+	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
+	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
+	 * For the Regional Rule Group, region value should not be 'global', as 'global' region is only used to get Global Rule Groups.
+	 * For any other region, region value will be same as working region.
+	 */
+	if scope == "REGIONAL" && region == "global" {
+		return nil, nil
+	}
+
+	if strings.ToLower(scope) == "cloudfront" && region != "global" {
+		return nil, nil
+	}
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+
+	// Create Session
+	svc, err := WAFv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &wafv2.GetRuleGroupInput{
+		Id:    aws.String(id),
+		Name:  aws.String(name),
+		Scope: aws.String(scope),
+	}
+
+	op, err := svc.GetRuleGroup(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("GetRuleGroup", "ERROR", err)
+		return nil, err
+	}
+
+	return op.LockToken, nil
+}
+
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RuleGroup")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
