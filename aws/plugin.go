@@ -44,6 +44,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_backup_plan":                        tableAwsBackupPlan(ctx),
 			"aws_backup_vault":                       tableAwsBackupVault(ctx),
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
+			"aws_cloudfront_distribution":            tableAwsCloudfrontDistribution(ctx),
 			"aws_cloudtrail_trail":                   tableAwsCloudtrailTrail(ctx),
 			"aws_cloudwatch_alarm":                   tableAwsCloudWatchAlarm(ctx),
 			"aws_cloudwatch_log_group":               tableAwsCloudwatchLogGroup(ctx),

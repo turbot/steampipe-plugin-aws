@@ -1,0 +1,14 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "default_root_object": "index.html",
+    "domain_name": "{{ output.domain_name.value }}",
+    "e_tag": "{{ output.etag.value }}",
+    "id": "{{ output.resource_id.value }}",
+    "price_class": "PriceClass_200",
+    "status": "Deployed",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]
