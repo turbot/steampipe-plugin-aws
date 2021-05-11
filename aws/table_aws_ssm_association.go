@@ -122,7 +122,6 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -155,7 +154,6 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMAssociation")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -191,11 +189,16 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getComplianceItems(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getComplianceItems")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
+	}
+
+	// get service
+	svc, err := SsmService(ctx, d, region)
+	if err != nil {
+		return nil, err
 	}
 
 	var instanceIds []*string
@@ -216,12 +219,6 @@ func getComplianceItems(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 				instanceIds = target.Values
 			}
 		}
-	}
-
-	// get service
-	svc, err := SsmService(ctx, d, region)
-	if err != nil {
-		return nil, err
 	}
 
 	// Build the params
