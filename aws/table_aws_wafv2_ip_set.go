@@ -19,7 +19,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		Description: "AWS WAFv2 IP Set",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
 			Hydrate:           getAwsWafv2IpSet,
 		},
 		List: &plugin.ListConfig{
