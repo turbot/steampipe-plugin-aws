@@ -19,7 +19,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			Hydrate:           getAwsWafv2RuleGroup,
 		},
 		List: &plugin.ListConfig{
