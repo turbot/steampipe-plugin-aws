@@ -50,7 +50,7 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 			{
 				Name:        "create_timestamp",
 				Description: "The current timestamp when the application was created.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getKinesisAnalyticsV2Application,
 			},
 			{
@@ -62,7 +62,7 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_update_timestamp",
 				Description: "The current timestamp when the application was last updated.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getKinesisAnalyticsV2Application,
 			},
 			{
@@ -195,7 +195,7 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	arn := getApplicationArn(h.Item)
+	arn := applicationArn(h.Item)
 
 	// Create Session
 	svc, err := KinesisAnalyticsV2Service(ctx, d, region)
@@ -221,11 +221,7 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 //// TRANSFORM FUNCTIONS
 
 func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")
-
-	if d.Value == nil {
-		return nil, nil
-	}
+	plugin.Logger(ctx).Trace("kinesisAnalyticsV2ApplicationTagListToTurbotTags")
 	tagList := d.Value.([]*kinesisanalyticsv2.Tag)
 
 	// Mapping the resource tags inside turbotTags
@@ -242,7 +238,7 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 	return turbotTagsMap, nil
 }
 
-func getApplicationArn(item interface{}) *string {
+func applicationArn(item interface{}) *string {
 	switch item.(type) {
 	case *kinesisanalyticsv2.ApplicationDetail:
 		return item.(*kinesisanalyticsv2.ApplicationDetail).ApplicationARN

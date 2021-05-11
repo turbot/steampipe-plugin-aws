@@ -701,7 +701,7 @@ func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*k
 	return svc, nil
 }
 
-// KinesisAnalyticsV2Service returns the service connection for AWS Kinesis Analytics V2 service
+// KinesisAnalyticsV2Service returns the service connection for AWS Kinesis AnalyticsV2 service
 func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData, region string) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed KinesisAnalyticsV2Service")
