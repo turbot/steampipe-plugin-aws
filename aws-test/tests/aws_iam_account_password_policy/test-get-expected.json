@@ -1,14 +1,14 @@
 [
   {
     "account_id": "{{ output.aws_account.value }}",
-    "allow_users_to_change_password": "{{ output.allow_users_to_change_password.value }}",
-    "expire_passwords": "{{ output.expire_passwords.value }}",
-    "minimum_password_length": "{{ output.minimum_password_length.value }}",
+    "allow_users_to_change_password": {{ output.allow_users_to_change_password.value }},
+    "expire_passwords": {{ output.expire_passwords.value }},
+    "minimum_password_length": {{ output.minimum_password_length.value }},
     "partition": "{{ output.aws_partition.value }}",
     "region": "global",
-    "require_lowercase_characters": "{{ output.require_lowercase_characters.value }}",
-    "require_numbers": "{{ output.require_numbers.value }}",
-    "require_symbols": "{{ output.require_symbols.value }}",
-    "require_uppercase_characters": "{{ output.require_uppercase_characters.value }}"
+    "require_lowercase_characters": {{ output.require_lowercase_characters.value }},
+    "require_numbers": {{ output.require_numbers.value }},
+    "require_symbols": {{ output.require_symbols.value }},
+    "require_uppercase_characters": {{ output.require_uppercase_characters.value }}
   }
 ]
