@@ -21,7 +21,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsWAFRule,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:       listAwsWAFRules,
+			Hydrate: listAwsWAFRules,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -66,7 +66,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWAFRuleTag,
-				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(tagListToTurbotTags),
+				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(wafRuleTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -82,7 +82,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	
+
 	plugin.Logger(ctx).Trace("listAwsWAFRules")
 
 	// Create session
@@ -95,20 +95,20 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	params := &waf.ListRulesInput{}
 	pagesLeft := true
 	for pagesLeft {
-			response, err := svc.ListRules(params)
-			if err != nil {
-				return nil, err
-			}
-			for _, rule := range response.Rules {
-				d.StreamListItem(ctx, rule)
-			}
-			if response.NextMarker != nil {
-				pagesLeft = true
-				params.NextMarker = response.NextMarker
-			} else {
-				pagesLeft = false
-			}
-			
+		response, err := svc.ListRules(params)
+		if err != nil {
+			return nil, err
+		}
+		for _, rule := range response.Rules {
+			d.StreamListItem(ctx, rule)
+		}
+		if response.NextMarker != nil {
+			pagesLeft = true
+			params.NextMarker = response.NextMarker
+		} else {
+			pagesLeft = false
+		}
+
 	}
 
 	return nil, nil
@@ -135,7 +135,7 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	// Build the params
 	param := &waf.GetRuleInput{
-		RuleId:    aws.String(id),
+		RuleId: aws.String(id),
 	}
 
 	// Get call
@@ -151,7 +151,7 @@ func getAwsWAFRuleTag(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	plugin.Logger(ctx).Trace("getAwsWAFRuleTag")
 
 	id := ruleData(h.Item)
-	
+
 	commonAwsColumns, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
@@ -188,14 +188,14 @@ func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":rule" + "/" + id 
+	aka := "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":rule" + "/" + id
 
 	return []string{aka}, nil
 }
 
 //// TRANSFORM FUNCTION
 
-func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func wafRuleTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tagListToTurbotTags")
 	tagList := d.HydrateItem.(*waf.ListTagsForResourceOutput)
 
@@ -207,7 +207,7 @@ func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (inter
 	var turbotTagsMap map[string]string
 	if tagList != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range tagList.TagInfoForResource.TagList  {
+		for _, i := range tagList.TagInfoForResource.TagList {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
