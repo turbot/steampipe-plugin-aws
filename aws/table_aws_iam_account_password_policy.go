@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -102,6 +103,11 @@ func listAccountPasswordPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	resp, err := svc.GetAccountPasswordPolicy(&iam.GetAccountPasswordPolicyInput{})
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "NoSuchEntity" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 

@@ -97,6 +97,9 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Get details of detector
+	detectorID := h.Item.(detectorInfo).DetectorID
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -110,17 +113,14 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	var id string
-	id = h.Item.(threatIntelSetInfo).DetectorID
-
 	// List call
 	err = svc.ListThreatIntelSetsPages(
-		&guardduty.ListThreatIntelSetsInput{DetectorId: &id},
+		&guardduty.ListThreatIntelSetsInput{DetectorId: &detectorID},
 		func(page *guardduty.ListThreatIntelSetsOutput, isLast bool) bool {
 			for _, result := range page.ThreatIntelSetIds {
 				d.StreamLeafListItem(ctx, threatIntelSetInfo{
 					ThreatIntelSetID: *result,
-					DetectorID:       id,
+					DetectorID:       detectorID,
 				})
 			}
 			return !isLast
@@ -135,6 +135,7 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getGuardDutyThreatIntelSet")
+
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
