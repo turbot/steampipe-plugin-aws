@@ -46,7 +46,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the integration.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAPIGatewayV2IntegrationAkas,
+				Hydrate:     getAPIGatewayV2IntegrationARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -156,7 +156,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAPIGatewayV2IntegrationAkas,
+				Hydrate:     getAPIGatewayV2IntegrationARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -266,7 +266,7 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plu
 	return nil, nil
 }
 
-func getAPIGatewayV2IntegrationAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayV2IntegrationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(integrationInfo)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -275,7 +275,7 @@ func getAPIGatewayV2IntegrationAkas(ctx context.Context, d *plugin.QueryData, h 
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId
+	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId
 
-	return akas, nil
+	return arn, nil
 }
