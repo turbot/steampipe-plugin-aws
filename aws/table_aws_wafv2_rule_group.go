@@ -31,17 +31,19 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the rule group.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name", "RuleGroup.Name"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the entity.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ARN"),
+				Transform:   transform.FromField("ARN", "RuleGroup.ARN"),
 			},
 			{
 				Name:        "id",
 				Description: "A unique identifier for the rule group.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Id", "RuleGroup.Id"),
 			},
 			{
 				Name:        "scope",
@@ -53,31 +55,34 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "description",
 				Description: "A description of the rule group that helps with identification.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Description", "RuleGroup.Description"),
 			},
 			{
 				Name:        "capacity",
 				Description: "The web ACL capacity units (WCUs) required for this rule group.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getAwsWafv2RuleGroup,
+				Transform:   transform.FromField("RuleGroup.Capacity"),
 			},
 			{
 				Name:        "lock_token",
 				Description: "A token used for optimistic locking.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafv2RuleGroupLockToken,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("LockToken", "RuleGroupSummary.LockToken"),
 			},
 			{
 				Name:        "rules",
 				Description: "The Rule statements used to identify the web requests that you want to allow, block, or count.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2RuleGroup,
+				Transform:   transform.FromField("RuleGroup.Rules"),
 			},
 			{
 				Name:        "visibility_config",
 				Description: "Defines and enables Amazon CloudWatch metrics and web request sample collection.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2RuleGroup,
+				Transform:   transform.FromField("RuleGroup.VisibilityConfig"),
 			},
 			{
 				Name:        "tags_src",
@@ -92,7 +97,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("Name", "RuleGroup.Name"),
 			},
 			{
 				Name:        "tags",
@@ -105,7 +110,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+				Transform:   transform.FromField("ARN", "RuleGroup.ARN").Transform(arnToAkas),
 			},
 
 			// AWS standard columns
@@ -245,74 +250,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	return op.RuleGroup, nil
-}
-
-func getAwsWafv2RuleGroupLockToken(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2RuleGroupLockToken")
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	var id, name, scope string
-	if h.Item != nil {
-		data := ruleGroupData(h.Item)
-		id = data["ID"]
-		name = data["Name"]
-		locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-		if locationType == "regional" {
-			scope = "REGIONAL"
-		} else {
-			scope = "CLOUDFRONT"
-		}
-	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
-	}
-
-	/*
-	 * The region endpoint is same for both Global Rule Group and the Regional Rule Group created in us-east-1.
-	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
-	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
-	 * For the Regional Rule Group, region value should not be 'global', as 'global' region is only used to get Global Rule Groups.
-	 * For any other region, region value will be same as working region.
-	 */
-	if scope == "REGIONAL" && region == "global" {
-		return nil, nil
-	}
-
-	if strings.ToLower(scope) == "cloudfront" && region != "global" {
-		return nil, nil
-	}
-
-	if region == "global" {
-		region = "us-east-1"
-	}
-
-	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	params := &wafv2.GetRuleGroupInput{
-		Id:    aws.String(id),
-		Name:  aws.String(name),
-		Scope: aws.String(scope),
-	}
-
-	op, err := svc.GetRuleGroup(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("GetRuleGroup", "ERROR", err)
-		return nil, err
-	}
-
-	return op.LockToken, nil
+	return op, nil
 }
 
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -403,11 +341,11 @@ func ruleGroupRegion(ctx context.Context, d *transform.TransformData) (interface
 func ruleGroupData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.RuleGroup:
-		data["ID"] = *item.Id
-		data["Arn"] = *item.ARN
-		data["Name"] = *item.Name
-		data["Description"] = *item.Description
+	case *wafv2.GetRuleGroupOutput:
+		data["ID"] = *item.RuleGroup.Id
+		data["Arn"] = *item.RuleGroup.ARN
+		data["Name"] = *item.RuleGroup.Name
+		data["Description"] = *item.RuleGroup.Description
 	case *wafv2.RuleGroupSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
