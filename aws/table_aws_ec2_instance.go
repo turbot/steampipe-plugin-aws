@@ -216,7 +216,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "state_change_time",
-				Description: "The reason code for the state change.",
+				Description: "The date and time, the instance state was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.From(ec2InstanceStateChangeTime),
 			},
