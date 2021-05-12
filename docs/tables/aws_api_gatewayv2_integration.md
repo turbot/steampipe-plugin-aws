@@ -22,7 +22,7 @@ from
 ```sql
 select 
   api_id,
-  count(integration_id)
+  count(integration_id) as integration_count
 from 
   aws_api_gatewayv2_integration
 group by
