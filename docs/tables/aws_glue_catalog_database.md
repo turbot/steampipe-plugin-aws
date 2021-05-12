@@ -24,7 +24,7 @@ from
 ```sql
 select
   catalog_id,
-  count(name)
+  count(name) as database_count
 from
   aws_glue_catalog_database
 group by

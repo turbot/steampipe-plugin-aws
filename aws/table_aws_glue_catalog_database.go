@@ -38,6 +38,11 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "create_time",
+				Description: "The time at which the metadata database was created in the catalog.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
 				Name:        "description",
 				Description: "A description of the database.",
 				Type:        proto.ColumnType_STRING,
@@ -46,11 +51,6 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 				Name:        "location_uri",
 				Description: "The location of the database (for example, an HDFS path).",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "create_time",
-				Description: "The time at which the metadata database was created in the catalog.",
-				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "create_table_default_permissions",
