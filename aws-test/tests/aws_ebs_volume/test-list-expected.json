@@ -1,18 +1,16 @@
 [
-  {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
-    "tags": {
-      "Name": "{{ resourceName }}"
-    },
-    "tags_src": [
-      {
-        "Key": "Name",
-        "Value": "{{ resourceName }}"
-      }
-    ],
-    "title":"{{ resourceName }}",
-    "volume_id":"{{ output.resource_id.value }}"
-  }
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"tags": {
+			"Name": "{{ resourceName }}"
+		},
+		"tags_src": [
+			{
+				"Key": "Name",
+				"Value": "{{ resourceName }}"
+			}
+		],
+		"title": "{{ resourceName }}",
+		"volume_id": "{{ output.resource_id.value }}"
+	}
 ]

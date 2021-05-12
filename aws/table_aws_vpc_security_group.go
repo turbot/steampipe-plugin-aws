@@ -35,6 +35,13 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the security group.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getVpcSecurityGroupARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "description",
 				Description: "A description of the security group.",
 				Type:        proto.ColumnType_STRING,
@@ -83,8 +90,8 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getVpcSecurityGroupTurbotAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getVpcSecurityGroupARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -159,8 +166,8 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	return nil, nil
 }
 
-func getVpcSecurityGroupTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcSecurityGroupTurbotAkas")
+func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcSecurityGroupARN")
 	securityGroup := h.Item.(*ec2.SecurityGroup)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -168,10 +175,9 @@ func getVpcSecurityGroupTurbotAkas(ctx context.Context, d *plugin.QueryData, h *
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId}
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId
 
-	return akas, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS

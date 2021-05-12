@@ -1,5 +1,6 @@
 [
   {
+    "arn": "{{ output.resource_aka.value }}",
     "description": "Test Security Group.",
     "group_id": "{{ output.resource_id.value }}",
     "group_name": "{{resourceName}}",

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -31,7 +32,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				Name:        "subscription_arn",
 				Description: "Amazon Resource Name of the subscription.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Attributes.SubscriptionArn"),
+				Transform:   transform.FromField("Attributes.SubscriptionArn").NullIfEqual("PendingConfirmation"),
 			},
 			{
 				Name:        "topic_arn",
@@ -116,7 +117,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("Attributes.SubscriptionArn").Transform(subscriptionArnToAkas),
 			},
 		}),
 	}
@@ -193,7 +194,25 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	// As of 7th september 2020, Next token is not supported in go
 	op, err := svc.GetSubscriptionAttributes(input)
 	if err != nil {
-		return nil, err
+		if a, ok := err.(awserr.Error); ok {
+			plugin.Logger(ctx).Trace("SubErrorCode", a.Code())
+			if a.Code() == "NotFound" || a.Code() == "InvalidParameter" {
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	return op, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func subscriptionArnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	arn := types.SafeString(d.Value)
+
+	if arn == "PendingConfirmation" {
+		return []string{}, nil
+	}
+
+	return []string{arn}, nil
 }
