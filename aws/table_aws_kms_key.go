@@ -294,6 +294,9 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 			if a.Code() == "AccessDeniedException" {
 				return kms.GetKeyRotationStatusOutput{}, nil
 			}
+			if a.Code() == "UnsupportedOperationException" {
+				return kms.GetKeyRotationStatusOutput{}, nil
+			}
 		}
 		return nil, err
 	}
