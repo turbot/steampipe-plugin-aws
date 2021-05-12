@@ -49,7 +49,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "scope",
 				Description: "Specifies the scope of the Regex Pattern Set. Possible values are: 'REGIONAL' and 'CLOUDFRONT'.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Scope", "RegexPatternSet.Scope").Transform(regexPatternSetLocation),
+				Transform:   transform.From(regexPatternSetLocation),
 			},
 			{
 				Name:        "description",
@@ -68,7 +68,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Description: "The list of regular expression patterns in the set.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2RegexPatternSet,
-				Transform:   transform.FromField("RegularExpressionList", "RegexPatternSet.RegularExpressionList").Transform(regularExpressionObjectListToRegularExpressionList),
+				Transform:   transform.FromField("RegexPatternSet.RegularExpressionList").Transform(regularExpressionObjectListToRegularExpressionList),
 			},
 			{
 				Name:        "tags_src",
