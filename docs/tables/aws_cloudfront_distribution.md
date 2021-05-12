@@ -16,7 +16,6 @@ select
   e_tag,
   http_version,
   is_ipv6_enabled
-
 from
   aws_cloudfront_distribution;
 ```
@@ -28,7 +27,7 @@ from
 select
   id,
   logging ->> 'Bucket' as bucket,
-  logging ->> 'Enabled' as logging_enable,
+  logging ->> 'Enabled' as logging_enabled,
   logging ->> 'IncludeCookies' as include_cookies
 from
   aws_cloudfront_distribution
