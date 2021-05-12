@@ -19,7 +19,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		Description: "AWS WAFv2 Regex Pattern Set",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
 			Hydrate:           getAwsWafv2RegexPatternSet,
 		},
 		List: &plugin.ListConfig{
@@ -31,42 +31,44 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the Regex Pattern set.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name", "RegexPatternSet.Name"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the entity.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ARN"),
+				Transform:   transform.FromField("ARN", "RegexPatternSet.ARN"),
 			},
 			{
 				Name:        "id",
 				Description: "A unique identifier for the Regex Pattern set.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Id", "RegexPatternSet.Id"),
 			},
 			{
 				Name:        "scope",
 				Description: "Specifies the scope of the Regex Pattern Set. Possible values are: 'REGIONAL' and 'CLOUDFRONT'.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(regexPatternSetLocation),
+				Transform:   transform.FromField("Scope", "RegexPatternSet.Scope").Transform(regexPatternSetLocation),
 			},
 			{
 				Name:        "description",
 				Description: "A description of the Regex Pattern set that helps with identification.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Description", "RegexPatternSet.Description"),
 			},
 			{
 				Name:        "lock_token",
 				Description: "A token used for optimistic locking.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafv2RegexPatternSetLockToken,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("LockToken", "RegexPatternSetSummary.LockToken"),
 			},
 			{
 				Name:        "regular_expressions",
 				Description: "The list of regular expression patterns in the set.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2RegexPatternSet,
-				Transform:   transform.FromField("RegularExpressionList").Transform(regularExpressionObjectListToRegularExpressionList),
+				Transform:   transform.FromField("RegularExpressionList", "RegexPatternSet.RegularExpressionList").Transform(regularExpressionObjectListToRegularExpressionList),
 			},
 			{
 				Name:        "tags_src",
@@ -81,7 +83,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("Name", "RegexPatternSet.Name"),
 			},
 			{
 				Name:        "tags",
@@ -94,7 +96,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+				Transform:   transform.FromField("ARN", "RegexPatternSet.ARN").Transform(arnToAkas),
 			},
 
 			// AWS standard columns
@@ -108,7 +110,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(regexPatternSetRegion),
+				Transform:   transform.FromField("Region", "RegexPatternSet.Region").Transform(regexPatternSetRegion),
 			},
 			{
 				Name:        "account_id",
@@ -234,74 +236,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
-	return op.RegexPatternSet, nil
-}
-
-func getAwsWafv2RegexPatternSetLockToken(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSetLockToken")
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	var id, name, scope string
-	if h.Item != nil {
-		data := regexPatternSetData(h.Item)
-		id = data["ID"]
-		name = data["Name"]
-		locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
-		if locationType == "regional" {
-			scope = "REGIONAL"
-		} else {
-			scope = "CLOUDFRONT"
-		}
-	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-		name = d.KeyColumnQuals["name"].GetStringValue()
-		scope = d.KeyColumnQuals["scope"].GetStringValue()
-	}
-
-	/*
-	 * The region endpoint is same for both Global Regex Pattern Set and the Regional Regex Pattern Set created in us-east-1.
-	 * The following checks are required to remove duplicate resource entries due to above mentioned condition, when performing GET operation.
-	 * To work with CloudFront, you must specify the Region US East (N. Virginia) or us-east-1
-	 * For the Regional Regex Pattern Set, region value should not be 'global', as 'global' region is only used to get Global Regex Pattern Sets.
-	 * For any other region, region value will be same as working region.
-	 */
-	if scope == "REGIONAL" && region == "global" {
-		return nil, nil
-	}
-
-	if strings.ToLower(scope) == "cloudfront" && region != "global" {
-		return nil, nil
-	}
-
-	if region == "global" {
-		region = "us-east-1"
-	}
-
-	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	params := &wafv2.GetRegexPatternSetInput{
-		Id:    aws.String(id),
-		Name:  aws.String(name),
-		Scope: aws.String(scope),
-	}
-
-	op, err := svc.GetRegexPatternSet(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("GetRegexPatternSet", "ERROR", err)
-		return nil, err
-	}
-
-	return op.LockToken, nil
+	return op, nil
 }
 
 func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -375,16 +310,16 @@ func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.Transf
 
 func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("regularExpressionObjectListToRegularExpressionList")
-	data := d.HydrateItem.(*wafv2.RegexPatternSet)
+	data := d.HydrateItem.(*wafv2.GetRegexPatternSetOutput)
 
-	if data.RegularExpressionList == nil || len(data.RegularExpressionList) < 1 {
+	if data.RegexPatternSet.RegularExpressionList == nil || len(data.RegexPatternSet.RegularExpressionList) < 1 {
 		return nil, nil
 	}
 
 	// Fetching the regex patterns from the array of object & storing as a list
 	var regexList []string
-	if data.RegularExpressionList != nil {
-		for _, i := range data.RegularExpressionList {
+	if data.RegexPatternSet.RegularExpressionList != nil {
+		for _, i := range data.RegexPatternSet.RegularExpressionList {
 			regexList = append(regexList, *i.RegexString)
 		}
 	}
@@ -411,11 +346,11 @@ func regexPatternSetRegion(ctx context.Context, d *transform.TransformData) (int
 func regexPatternSetData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.RegexPatternSet:
-		data["ID"] = *item.Id
-		data["Arn"] = *item.ARN
-		data["Name"] = *item.Name
-		data["Description"] = *item.Description
+	case *wafv2.GetRegexPatternSetOutput:
+		data["ID"] = *item.RegexPatternSet.Id
+		data["Arn"] = *item.RegexPatternSet.ARN
+		data["Name"] = *item.RegexPatternSet.Name
+		data["Description"] = *item.RegexPatternSet.Description
 	case *wafv2.RegexPatternSetSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
