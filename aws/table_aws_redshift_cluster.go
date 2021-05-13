@@ -265,7 +265,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "logging_details",
+				Name:        "logging_status",
 				Description: "Describes the status of logging for a cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getRedshiftLoggingDetails,

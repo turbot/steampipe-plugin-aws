@@ -63,7 +63,7 @@ where
 ```sql
 select
   cluster_identifier,
-  logging_details -> 'LoggingEnabled' as LoggingEnabled
+  logging_status -> 'LoggingEnabled' as LoggingEnabled
 from
   aws_redshift_cluster
 where
