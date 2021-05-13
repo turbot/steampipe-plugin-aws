@@ -40,7 +40,7 @@ where
 ```
 
 
-### List IP sets having IPv4 address version
+### List IP sets with an IPv4 address version
 
 ```sql
 select
