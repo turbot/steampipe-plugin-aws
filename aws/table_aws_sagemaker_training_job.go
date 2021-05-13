@@ -13,7 +13,7 @@ import (
 func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sagemaker_training_job",
-		Description: "AWS Sagemaker Training Job",
+		Description: "AWS SageMaker Training Job",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
@@ -54,12 +54,6 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerTrainingJob,
 			},
 			{
-				Name:        "checkpoint_config",
-				Description: "The billable time in seconds. Billable time refers to the absolute wall-clock time.",
-				Type:        proto.ColumnType_INT,
-				Hydrate:     getAwsSageMakerTrainingJob,
-			},
-			{
 				Name:        "creation_time",
 				Description: "A timestamp that shows when the training job was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -77,7 +71,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsSageMakerTrainingJob,
 			},
 			{
-				Name:        "enableInter_container_traffic_encryption",
+				Name:        "enable_inter_container_traffic_encryption",
 				Description: "To encrypt all communications between ML compute instances in distributed training, choose True.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsSageMakerTrainingJob,
@@ -143,6 +137,12 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 			{
 				Name:        "algorithm_specification",
 				Description: "Information about the algorithm used for training, and algorithm metadata.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSageMakerTrainingJob,
+			},
+			{
+				Name:        "checkpoint_config",
+				Description: "Contains information about the output location for managed spot training checkpoint data.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerTrainingJob,
 			},
@@ -274,7 +274,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerTrainingJobTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerTrainingJobtagListToTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(sageMakerTrainingJobTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -390,8 +390,8 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 
 //// TRANSFORM FUNCTION
 
-func sageMakerTrainingJobtagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("sageMakerTrainingJobtagListToTurbotTags")
+func sageMakerTrainingJobTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("sageMakerTrainingJobTagListToTurbotTags")
 	tagList := d.HydrateItem.(*sagemaker.ListTagsOutput)
 
 	if tagList.Tags == nil {

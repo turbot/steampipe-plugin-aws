@@ -44,15 +44,3 @@ from
 where
   training_job_status = 'Failed';
 ```
-
-### List training jobs by status
-
-```sql
-select
-  secondary_status,
-  count(*)
-from
-  aws_sagemaker_training_job
-group by
-  secondary_status;
-```
