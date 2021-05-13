@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	pb "github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -29,6 +30,13 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Name:        "snapshot_id",
 				Description: "The ID of the snapshot. Each snapshot receives a unique identifier when it is created.",
 				Type:        pb.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the snapshot.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsEBSSnapshotArn,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "state",
@@ -120,8 +128,8 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsEBSSnapshotAka,
-				Transform:   transform.FromValue(),
+				Hydrate:     getAwsEBSSnapshotArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -229,8 +237,8 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	return resp, nil
 }
 
-func getAwsEBSSnapshotAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEBSSnapshotAka")
+func getAwsEBSSnapshotArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsEBSSnapshotArn")
 	snapshotData := h.Item.(*ec2.Snapshot)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -238,10 +246,10 @@ func getAwsEBSSnapshotAka(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	// Get the resource akas
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId}
+	// Get the resource arn
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
 
-	return akas, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS
