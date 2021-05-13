@@ -16,7 +16,7 @@ from
   aws_sagemaker_model;
 ```
 
-### List models which are isolated
+### List network isolated models
 
 ```sql
 select
