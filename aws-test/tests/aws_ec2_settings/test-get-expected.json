@@ -1,0 +1,8 @@
+[
+  {
+    "default_ebs_encryption_enabled": true,
+    "default_ebs_encryption_key": "{{ output.resource_aka.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "title": "EC2 Settings"
+  }
+]
