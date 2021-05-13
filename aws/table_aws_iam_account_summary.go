@@ -54,6 +54,13 @@ func tableAwsIamAccountSummary(_ context.Context) *plugin.Table {
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the account summary.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAccountSummaryArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "access_keys_per_user_quota",
 				Description: "Specifies the allowed quota of access keys per user.",
 				Type:        proto.ColumnType_INT,
@@ -307,4 +314,20 @@ func listAccountSummary(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	d.StreamListItem(ctx, accountSummary)
 	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getAccountSummaryArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAccountSummaryArn")
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	// Get the resource arn
+	arn := "arn:" + commonColumnData.Partition + ":iam:" + commonColumnData.AccountId + ":accountSummary"
+
+	return arn, nil
 }
