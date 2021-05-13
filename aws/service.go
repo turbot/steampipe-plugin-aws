@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -59,6 +60,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 
@@ -331,6 +333,27 @@ func DaxService(ctx context.Context, d *plugin.QueryData, region string) (*dax.D
 		return nil, err
 	}
 	svc := dax.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DatabaseMigrationService returns the service connection for AWS Database Migration service
+func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData, region string) (*databasemigrationservice.DatabaseMigrationService, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DatabaseMigrationService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("databasemigrationservice-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*databasemigrationservice.DatabaseMigrationService), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := databasemigrationservice.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1128,6 +1151,26 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return nil, err
 	}
 	svc := sts.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// WAFService returns the service connection for AWS WAF service
+func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "waf"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*waf.WAF), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := waf.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
