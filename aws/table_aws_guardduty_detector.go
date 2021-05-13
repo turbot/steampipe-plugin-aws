@@ -37,6 +37,13 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DetectorID"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the detector.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsGuardDutyDetectorAkas,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "status",
 				Description: "The detector status.",
 				Type:        proto.ColumnType_STRING,
@@ -91,7 +98,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsGuardDutyDetectorAkas,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromValue().Transform(arnToAkas),
 			},
 		}),
 	}
@@ -177,7 +184,7 @@ func getAwsGuardDutyDetectorAkas(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID}
+	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
 
 	return aka, nil
 }
