@@ -35,5 +35,5 @@
   description: New version
   color: 0EE607
 - name: stale
-  description: The lable will be attach to tha Issue/PR if there is not activity found on it from last 30 days
+  description: No recent activity has been detected on this issue/PR and it will be closed
   color: eb7134
