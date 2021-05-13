@@ -38,6 +38,13 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the association.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsSSMAssociationAkas,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "document_name",
 				Description: "The name of the Systems Manager document.",
 				Type:        proto.ColumnType_STRING,
@@ -106,7 +113,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMAssociationAkas,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromValue().Transform(arnToAkas),
 			},
 		}),
 	}
@@ -189,7 +196,7 @@ func getAwsSSMAssociationAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData}
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData
 
 	return aka, nil
 }
