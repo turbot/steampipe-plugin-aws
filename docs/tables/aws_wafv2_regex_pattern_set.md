@@ -1,6 +1,6 @@
 # Table: aws_wafv2_regex_pattern_set
 
-An AWS WAFv2 Regex Pattern Set contains a set of regex patterns to allow or block web requests if the regex patterns appears in the request.
+An AWS WAFv2 regex pattern set contains a set of regex patterns to allow or block web requests if the regex patterns appears in the request.
 
 ## Examples
 
@@ -20,7 +20,7 @@ from
 ```
 
 
-### List global (CLOUDFRONT) Regex Pattern sets
+### List global (CloudFront) regex pattern sets
 
 ```sql
 select
@@ -38,7 +38,7 @@ where
 ```
 
 
-### List Regex Pattern sets having a specific regex pattern
+### List regex pattern sets with a specific regex pattern
 
 ```sql
 select
@@ -53,5 +53,5 @@ from
   aws_wafv2_regex_pattern_set,
   jsonb_array_elements_text(regular_expressions) as regex
 where
-  regex = '^turbot';
+  regex = '^steampipe';
 ```
