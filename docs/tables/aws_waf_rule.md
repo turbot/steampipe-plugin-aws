@@ -15,8 +15,7 @@ from
   aws_waf_rule;
 ```
 
-
-### Get details of predicate element associated with rule
+### Get predicate details for each rule
 
 ```sql
 select

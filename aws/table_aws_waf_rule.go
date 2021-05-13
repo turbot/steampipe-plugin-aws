@@ -50,7 +50,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Rule.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWAFRuleTag,
+				Hydrate:     getAwsWAFRuleTags,
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
@@ -65,7 +65,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWAFRuleTag,
+				Hydrate:     getAwsWAFRuleTags,
 				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(wafRuleTagListToTurbotTags),
 			},
 			{
@@ -147,8 +147,8 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return data.Rule, nil
 }
 
-func getAwsWAFRuleTag(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWAFRuleTag")
+func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsWAFRuleTags")
 
 	id := ruleData(h.Item)
 
