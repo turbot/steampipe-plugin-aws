@@ -6,15 +6,15 @@ brand_color: "#FF9900"
 display_name: "Amazon Web Services"
 short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
-og_description: Query AWS with SQL! Open source CLI. No DB required. 
+og_description: "Query AWS with SQL! Open source CLI. No DB required." 
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
 ---
 
 # AWS + Steampipe
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
-
 [AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis. 
+
+[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
 
 For example:
 
@@ -78,7 +78,7 @@ connection "aws" {
 ## Get involved
 
 * Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Discussion forums](https://github.com/turbot/steampipe/discussions)
+* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
 
 ## Advanced configuration options
 
