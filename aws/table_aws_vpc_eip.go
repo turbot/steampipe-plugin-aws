@@ -31,7 +31,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) specifying the vpc eip.",
+				Description: "The Amazon Resource Name (ARN) specifying the VPC EIP.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getVpcEipARN,
 				Transform:   transform.FromValue(),
