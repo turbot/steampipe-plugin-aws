@@ -35,7 +35,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the snapshot.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsEBSSnapshotArn,
+				Hydrate:     getEBSSnapshotARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -128,7 +128,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsEBSSnapshotArn,
+				Hydrate:     getEBSSnapshotARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -237,8 +237,8 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	return resp, nil
 }
 
-func getAwsEBSSnapshotArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEBSSnapshotArn")
+func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
 	snapshotData := h.Item.(*ec2.Snapshot)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
