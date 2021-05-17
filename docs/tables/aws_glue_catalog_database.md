@@ -1,6 +1,6 @@
 # Table: aws_glue_catalog_database
 
-AWS Glue Catalog Database is a set of associated table definitions, organized into a logical group.
+AWS Glue catalog database is a set of associated table definitions, organized into a logical group.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
 ```
 
 
-### Count databases per Catalog ID
+### Count the number of databases per catalog
 
 ```sql
 select
