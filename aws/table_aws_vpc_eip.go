@@ -33,7 +33,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the vpc eip.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getVpcEipTurbotArn,
+				Hydrate:     getVpcEipARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -120,7 +120,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getVpcEipTurbotArn,
+				Hydrate:     getVpcEipARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -191,8 +191,8 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	return nil, nil
 }
 
-func getVpcEipTurbotArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcEipTurbotArn")
+func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcEipARN")
 	eip := h.Item.(*ec2.Address)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
