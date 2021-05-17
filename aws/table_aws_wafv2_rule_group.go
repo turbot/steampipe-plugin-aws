@@ -52,17 +52,17 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.From(regexPatternSetLocation),
 			},
 			{
-				Name:        "description",
-				Description: "A description of the rule group that helps with identification.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Description", "RuleGroup.Description"),
-			},
-			{
 				Name:        "capacity",
 				Description: "The web ACL capacity units (WCUs) required for this rule group.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getAwsWafv2RuleGroup,
 				Transform:   transform.FromField("RuleGroup.Capacity"),
+			},
+			{
+				Name:        "description",
+				Description: "A description of the rule group that helps with identification.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Description", "RuleGroup.Description"),
 			},
 			{
 				Name:        "lock_token",
