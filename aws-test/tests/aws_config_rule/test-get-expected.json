@@ -1,0 +1,19 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "description": null,
+    "name": "{{ resourceName }}",
+    "rule_arn": "{{ output.resource_aka.value }}",
+    "rule_id": "{{ output.rule_id.value }}",
+    "rule_state": "ACTIVE",
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "title": "{{ resourceName }}"
+  }
+]

@@ -1,0 +1,8 @@
+[
+  {
+    "name": "{{ resourceName }}",
+    "rule_arn": "{{ output.resource_aka.value }}",
+    "rule_id": "{{ output.rule_id.value }}",
+    "title": "{{ resourceName }}"
+  }
+]
