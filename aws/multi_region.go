@@ -9,6 +9,7 @@ import (
 )
 
 const matrixKeyRegion = "region"
+const matrixKeyAudit = "auditType"
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config
 func BuildRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
@@ -65,6 +66,37 @@ func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[
 		matrix := make([]map[string]interface{}, len(regions))
 		for i, region := range regions {
 			matrix[i] = map[string]interface{}{matrixKeyRegion: region}
+		}
+		return matrix
+	}
+
+	return []map[string]interface{}{
+		{matrixKeyRegion: GetDefaultRegion()},
+	}
+}
+
+// BuildAuditRegionList :: return a list of matrix items for AWS audit resources, one per region specified in the connection config
+func BuildAuditRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
+	// retrieve regions from connection config
+	awsConfig := GetConfig(connection)
+
+	if &awsConfig != nil && awsConfig.Regions != nil {
+		regions := GetConfig(connection).Regions
+
+		if len(getInvalidRegions(regions)) > 0 {
+			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(regions), ","))
+		}
+
+		auditTypes := []string{"Standard", "Custom"}
+		// validate regions list
+		matrix := make([]map[string]interface{}, len(regions)*2)
+		for i, region := range regions {
+			for j, auditType := range auditTypes {
+				matrix[len(auditTypes)*i+j] = map[string]interface{}{
+					matrixKeyRegion: region,
+					matrixKeyAudit:  auditType,
+				}
+			}
 		}
 		return matrix
 	}

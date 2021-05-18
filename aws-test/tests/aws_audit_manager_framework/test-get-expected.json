@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.arn.value }}",
+    "id": "{{ output.id.value }}",
+    "name": "{{ output.name.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "type": "{{ output.type.value }}"
+  }
+]
