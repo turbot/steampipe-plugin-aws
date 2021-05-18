@@ -1,3 +1,26 @@
+## v0.17.0 [2021-05-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_dms_replication_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dms_replication_instance) ([#357](https://github.com/turbot/steampipe-plugin-aws/pull/357))
+  - [aws_ecs_container_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_container_instance) ([#340](https://github.com/turbot/steampipe-plugin-aws/pull/340))
+  - [aws_sagemaker_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_model) ([#371](https://github.com/turbot/steampipe-plugin-aws/pull/371))
+  - [aws_waf_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_waf_rule) ([#287](https://github.com/turbot/steampipe-plugin-aws/pull/287))
+  - [aws_wafv2_ip_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafv2_ip_set) ([#255](https://github.com/turbot/steampipe-plugin-aws/pull/255))
+  - [aws_wafv2_regex_pattern_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafv2_regex_pattern_set) ([#276](https://github.com/turbot/steampipe-plugin-aws/pull/276))
+
+_Enhancements_
+
+- Updated: README.md and docs/index.md now contain links to our Slack community ([#411](https://github.com/turbot/steampipe-plugin-aws/pull/411))
+- Updated: Add `logging_status` column to `aws_redshift_cluster` table ([#350](https://github.com/turbot/steampipe-plugin-aws/pull/350))
+- Updated: Add missing columns available in the hydrate data to `aws_ssm_association` table ([#356](https://github.com/turbot/steampipe-plugin-aws/pull/356))
+- Updated: Bump lodash from 4.17.20 to 4.17.21 in /aws-test ([#389](https://github.com/turbot/steampipe-plugin-aws/pull/389))
+
+_Bug fixes_
+
+- Fixed: Querying the aws_iam_account_password_policy table should not error if no password policy exists ([#382](https://github.com/turbot/steampipe-plugin-aws/pull/382))
+
 ## v0.16.0 [2021-05-06]
 
 _What's new?_
