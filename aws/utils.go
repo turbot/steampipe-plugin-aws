@@ -146,3 +146,7 @@ func getLastPathElement(path string) string {
 func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	return getLastPathElement(types.SafeString(d.Value)), nil
 }
+
+func convertSafeString(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	return types.SafeString(d.Value), nil
+}
