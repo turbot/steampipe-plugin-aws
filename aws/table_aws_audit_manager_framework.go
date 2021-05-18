@@ -18,14 +18,14 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_audit_manager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
+			KeyColumns:        plugin.AllColumns([]string{"id", "type"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			Hydrate:           getAuditManagerFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItem: BuildAuditRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -46,7 +46,6 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Name:        "created_at",
 				Description: "Specifies when the framework was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField(""),
 			},
 			{
 				Name:        "created_by",
@@ -62,12 +61,12 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 			{
 				Name:        "controls_count",
 				Description: "The number of controls associated with the specified framework.",
-				Type:        proto.ColumnType_DOUBLE,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "control_sets_count",
 				Description: "The number of control sets associated with the specified framework.",
-				Type:        proto.ColumnType_DOUBLE,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "control_sources",
@@ -84,7 +83,6 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Name:        "last_updated_at",
 				Description: "Specifies when the framework was most recently updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField(""),
 			},
 			{
 				Name:        "last_updated_by",
@@ -108,13 +106,6 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAuditManagerFramework,
 			},
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getAuditManagerFramework,
-			// 	//	Transform:   transform.FromValue(),
-			// },
 
 			// Steampipe standard columns
 			{
@@ -128,13 +119,12 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAuditManagerFramework,
-				//	Transform:   transform.From(getFrameworkTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -144,26 +134,24 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	//auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
-	//	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "Audit", auditType, "REGION", region)
+	auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
+	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "AuditType", auditType, "REGION", region)
 
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	auditTypes := []string{"Standard", "Custom"}
-	for _, auditType := range auditTypes {
-		err = svc.ListAssessmentFrameworksPages(
-			&auditmanager.ListAssessmentFrameworksInput{FrameworkType: &auditType},
-			func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
-				for _, framework := range page.FrameworkMetadataList {
-					d.StreamListItem(ctx, framework)
-				}
-				return !lastPage
-			},
-		)
-	}
+	err = svc.ListAssessmentFrameworksPages(
+		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: &auditType},
+		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
+			for _, framework := range page.FrameworkMetadataList {
+				d.StreamListItem(ctx, framework)
+			}
+			return !lastPage
+		},
+	)
+
 	return nil, err
 }
 
@@ -171,11 +159,18 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getAuditManagerFramework", "AWS_AuditManager", region)
+	auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
+	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "AuditType", auditType, "REGION", region)
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+
+	// Restrict the api call to only one type/ per region
+	auditManagerType := d.KeyColumnQuals["type"].GetStringValue()
+	if auditManagerType != auditType {
+		return nil, nil
 	}
 
 	var id string
@@ -196,13 +191,3 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	return op.Framework, nil
 }
-
-//// TRANSFORM FUNCTIONS
-
-// func getFrameworkTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	framework := d.HydrateItem.(*auditmanager.Framework)
-// 	if framework == nil {
-// 		return nil, nil
-// 	}
-// 	tags := framework.Tags
-// }

@@ -5,11 +5,20 @@ import (
 	"strings"
 
 	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/connection"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
 const matrixKeyRegion = "region"
 const matrixKeyAudit = "auditType"
+
+var pluginQueryData *plugin.QueryData
+
+func init() {
+	pluginQueryData = &plugin.QueryData{
+		ConnectionManager: connection.NewManager(),
+	}
+}
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config
 func BuildRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
@@ -76,9 +85,17 @@ func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[
 }
 
 // BuildAuditRegionList :: return a list of matrix items for AWS audit resources, one per region specified in the connection config
-func BuildAuditRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
+func BuildAuditRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
+	// cache audit region matrix
+	cacheKey := "AuditRegionList"
+
+	if cachedData, ok := pluginQueryData.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]map[string]interface{})
+	}
+
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
+	auditTypes := []string{"Standard", "Custom"}
 
 	if &awsConfig != nil && awsConfig.Regions != nil {
 		regions := GetConfig(connection).Regions
@@ -87,9 +104,8 @@ func BuildAuditRegionList(_ context.Context, connection *plugin.Connection) []ma
 			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(regions), ","))
 		}
 
-		auditTypes := []string{"Standard", "Custom"}
 		// validate regions list
-		matrix := make([]map[string]interface{}, len(regions)*2)
+		matrix := make([]map[string]interface{}, len(regions)*len(auditTypes))
 		for i, region := range regions {
 			for j, auditType := range auditTypes {
 				matrix[len(auditTypes)*i+j] = map[string]interface{}{
@@ -98,10 +114,20 @@ func BuildAuditRegionList(_ context.Context, connection *plugin.Connection) []ma
 				}
 			}
 		}
+		// set AuditRegionList cache
+		pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
 		return matrix
 	}
 
-	return []map[string]interface{}{
-		{matrixKeyRegion: GetDefaultRegion()},
+	defaultMatrix := make([]map[string]interface{}, len(auditTypes))
+	for j, auditType := range auditTypes {
+		defaultMatrix[j] = map[string]interface{}{
+			matrixKeyRegion: GetDefaultRegion(),
+			matrixKeyAudit:  auditType,
+		}
 	}
+
+	// set AuditRegionList cache
+	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, defaultMatrix)
+	return defaultMatrix
 }

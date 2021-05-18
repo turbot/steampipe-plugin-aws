@@ -8,10 +8,24 @@ The framework library is the central place from which you can access and manage 
 
 ```sql
 select
+  name,
   arn,
   id,
-  name,
   type
 from
   aws_audit_manager_framework;
+```
+
+### List custom audit manager frameworks
+
+```sql
+select
+  name,
+  arn,
+  id,
+  type
+from
+  aws_audit_manager_framework
+where
+  type = 'Custom';
 ```
