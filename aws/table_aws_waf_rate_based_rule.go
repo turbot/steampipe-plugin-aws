@@ -78,7 +78,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsWafRateBasedRuleTags,
-				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(tagListToTurbotTags),
+				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(wafRateBasedRuletagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -95,7 +95,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWafRateBasedRules")
 	// Create session
-	svc, err := WafService(ctx, d)
+	svc, err := WAFService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.
 		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
 	// Create Session
-	svc, err := WafService(ctx, d)
+	svc, err := WAFService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 	commonColumnData := commonAwsColumns.(*awsCommonColumnData)
 	// Create Session
-	svc, err := WafService(ctx, d)
+	svc, err := WAFService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	return []string{aka}, nil
 }
 
-func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func wafRateBasedRuletagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tagListToTurbotTags")
 	tagList := d.HydrateItem.(*waf.ListTagsForResourceOutput)
 	if tagList.TagInfoForResource.TagList == nil {

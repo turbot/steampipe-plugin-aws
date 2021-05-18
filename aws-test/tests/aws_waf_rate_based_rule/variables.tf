@@ -1,3 +1,4 @@
+
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -43,15 +44,6 @@ data "aws_region" "alternate" {
 data "null_data_source" "resource" {
   inputs = {
     scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
-resource "aws_waf_ipset" "ipset" {
-  name = "tfIPSet"
-
-  ip_set_descriptors {
-    type  = "IPV4"
-    value = "192.0.7.0/24"
   }
 }
 

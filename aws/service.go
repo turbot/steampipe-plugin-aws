@@ -1156,8 +1156,8 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 	return svc, nil
 }
 
-// WafService returns the service connection for AWS WAF service
-func WafService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
+// WAFService returns the service connection for AWS WAF service
+func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 
 	// have we already created and cached the service?
 	serviceCacheKey := "waf"
@@ -1171,7 +1171,11 @@ func WafService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 		return nil, err
 	}
 	svc := waf.New(sess)
-  d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // WAFv2Service returns the service connection for AWS WAFv2 service
 func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.WAFV2, error) {
 	if region == "" {
