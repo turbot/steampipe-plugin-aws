@@ -47,9 +47,9 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "scope",
-				Description: "Specifies the scope of the Regex Pattern Set. Possible values are: 'REGIONAL' and 'CLOUDFRONT'.",
+				Description: "Specifies the scope of the rule group. Possible values are: 'REGIONAL' and 'CLOUDFRONT'.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(regexPatternSetLocation),
+				Transform:   transform.From(ruleGroupLocation),
 			},
 			{
 				Name:        "capacity",
@@ -293,7 +293,7 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 
 //// TRANSFORM FUNCTIONS
 
-func regexPatternSetLocation(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func ruleGroupLocation(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := ruleGroupData(d.HydrateItem)
 	loc := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 	if loc == "regional" {
