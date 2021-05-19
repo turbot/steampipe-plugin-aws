@@ -28,7 +28,7 @@ select
 from
   aws_ec2_settings
 where
-  region='ap-south-1';
+  region = 'ap-south-1';
 ```
 
 
@@ -42,5 +42,5 @@ select
 from
   aws_ec2_settings
 where
-  default_ebs_encryption_enabled='true';
+  default_ebs_encryption_enabled;
 ```
