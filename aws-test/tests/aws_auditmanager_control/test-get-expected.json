@@ -1,0 +1,9 @@
+[
+  {
+    "tags_src": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{ output.resource_id.value }}",
+    "vault_name": "{{ output.resource_id.value }}"
+  }
+]
