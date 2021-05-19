@@ -18,7 +18,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_audit_manager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "type"}),
+			KeyColumns:        plugin.AllColumns([]string{"id", "type", "region"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			Hydrate:           getAuditManagerFramework,
 		},
@@ -167,9 +167,10 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	// Restrict the api call to only one type/ per region
+	// Restrict the api call to only specific type and region as provided
 	auditManagerType := d.KeyColumnQuals["type"].GetStringValue()
-	if auditManagerType != auditType {
+	auditManagerRegion := d.KeyColumnQuals["region"].GetStringValue()
+	if auditManagerType != auditType || auditManagerRegion != region {
 		return nil, nil
 	}
 
