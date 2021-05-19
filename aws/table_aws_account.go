@@ -29,6 +29,12 @@ func tableAwsAccount(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Aliases"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the Account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(accountArn),
+			},
+			{
 				Name:        "organization_id",
 				Description: "The unique identifier (ID) of an organization, if applicable.",
 				Type:        proto.ColumnType_STRING,
@@ -179,4 +185,13 @@ func accountDataToAkas(ctx context.Context, d *transform.TransformData) (interfa
 	akas := []string{"arn:" + accountInfo.commonColumnData.Partition + ":::" + accountInfo.commonColumnData.AccountId}
 
 	return akas, nil
+}
+
+func accountArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("accountArn")
+	accountInfo := d.HydrateItem.(*accountData)
+
+	arn := "arn:" + accountInfo.commonColumnData.Partition + ":::" + accountInfo.commonColumnData.AccountId
+
+	return arn, nil
 }
