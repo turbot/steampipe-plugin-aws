@@ -1,5 +1,3 @@
-
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -45,7 +43,6 @@ data "aws_region" "alternate" {
 locals {
   path = "${path.cwd}/output.json"
 }
-
 
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
