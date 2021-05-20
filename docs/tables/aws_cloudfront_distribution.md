@@ -61,7 +61,7 @@ select
   default_cache_behavior ->> 'DefaultTTL' as default_ttl
 from
   aws_cloudfront_distribution
-WHERE
+where
   default_cache_behavior ->> 'FieldLevelEncryptionId' <> '';
 ```
 
@@ -95,6 +95,6 @@ select
 from
   aws_cloudfront_distribution,
   jsonb_array_elements(origins) as p
-WHERE
+where
   p -> 'CustomOriginConfig' -> 'OriginSslProtocols' -> 'Items' ?& array['SSLv3'];
 ```
