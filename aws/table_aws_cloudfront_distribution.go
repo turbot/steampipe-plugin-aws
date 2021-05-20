@@ -173,7 +173,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 				Name:        "origins",
 				Description: "A complex type that contains information about origins for this distribution.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Origins", "Distribution.DistributionConfig.Origins"),
+				Transform:   transform.FromField("Origins.Items", "Distribution.DistributionConfig.Origins.Items"),
 			},
 			{
 				Name:        "origin_groups",

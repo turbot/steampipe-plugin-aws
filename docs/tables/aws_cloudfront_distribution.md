@@ -49,3 +49,52 @@ from
 where
   is_ipv6_enabled = 'false';
 ```
+
+
+### CloudFront distributions enforce field-level encryption
+
+```sql
+select
+  id,
+  arn,
+  default_cache_behavior ->> 'FieldLevelEncryptionId' as field_level_encryption_id,
+  default_cache_behavior ->> 'DefaultTTL' as default_ttl
+from
+  aws_cloudfront_distribution
+WHERE
+  default_cache_behavior ->> 'FieldLevelEncryptionId' <> '';
+```
+
+
+### The traffic between the CloudFront distributions and their origins is encrypted
+
+```sql
+select
+  id,
+  arn,
+  p -> 'CustomOriginConfig' -> 'HTTPPort' as http_port,
+  p -> 'CustomOriginConfig' -> 'HTTPSPort' as https_port,
+  p -> 'CustomOriginConfig' -> 'OriginKeepaliveTimeout' as origin_keepalive_timeout,
+  p -> 'CustomOriginConfig' -> 'OriginProtocolPolicy' as origin_protocol_policy
+from
+  aws_cloudfront_distribution,
+  jsonb_array_elements(origins) as p
+where
+  p -> 'CustomOriginConfig' ->> 'OriginProtocolPolicy' = 'https-only';
+```
+
+
+### CloudFront distributions origins use insecure SSL protocols
+
+```sql
+select
+  id,
+  arn,
+  p -> 'CustomOriginConfig' -> 'OriginSslProtocols' -> 'Items' as items,
+  p -> 'CustomOriginConfig' -> 'OriginSslProtocols' -> 'Quantity' as quantity
+from
+  aws_cloudfront_distribution,
+  jsonb_array_elements(origins) as p
+WHERE
+  p -> 'CustomOriginConfig' -> 'OriginSslProtocols' -> 'Items' ?& array['SSLv3'];
+```
