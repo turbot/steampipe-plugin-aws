@@ -8,23 +8,23 @@ An AWS Config rule represents an AWS Lambda function that you create for a custo
 
 ```sql
 select
-    name,
-    rule_id,
-    rule_arn,
-    rule_state,
-    description,
-    created_by,
-    input_parameters,
-    maximum_execution_frequency,
-    scope,
-    source,
-    tags_src,
-    title,
-    tags, 
-    akas,
-    partition,
-    region,
-    account_id
+  name,
+  rule_id,
+  rule_arn,
+  rule_state,
+  description,
+  created_by,
+  input_parameters,
+  maximum_execution_frequency,
+  scope,
+  source,
+  tags_src,
+  title,
+  tags, 
+  akas,
+  partition,
+  region,
+  account_id
 from
     aws_config_rule;
 ```
@@ -33,17 +33,17 @@ from
 
 ```sql
 select
-    name,
-    rule_id,
-    rule_arn,
-    rule_state 
+  name,
+  rule_id,
+  rule_arn,
+  rule_state 
 from 
     aws_config_rule;
 where
     rule_state='ACTIVE'
 ```
 
-### List rules which do not have Lambda tag key
+### List rules which have Lambda tag key
 
 ```sql
 select
@@ -53,5 +53,5 @@ select
 from
   aws_config_rule
 where
-  tags -> 'Lambda' is not null;
+  tags -> 'Lambda' not null;
 ```

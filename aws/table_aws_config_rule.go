@@ -20,7 +20,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 			Hydrate:           getConfigRule,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listConfigRule,
+			Hydrate: listConfigRules,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -112,7 +112,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -189,7 +189,6 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
 
 	// Create Session
 	svc, err := ConfigService(ctx, d, region)
