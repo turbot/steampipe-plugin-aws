@@ -1,3 +1,20 @@
+## v0.18.0 [2021-05-20]
+
+_What's new?_
+
+- New tables added
+  - [aws_glue_catalog_database](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_catalog_database) ([#337](https://github.com/turbot/steampipe-plugin-aws/pull/337))
+
+_Enhancements_
+
+- Updated: Add `arn` column to `aws_ebs_snapshot` table ([#405](https://github.com/turbot/steampipe-plugin-aws/pull/405))
+- Updated: Add `arn` column to `aws_vpc_eip` table ([#407](https://github.com/turbot/steampipe-plugin-aws/pull/407))
+- Updated: Improve availability zone count example in `aws_lambda_function` table doc ([#413](https://github.com/turbot/steampipe-plugin-aws/pull/413))
+
+_Bug fixes_
+
+- Fixed: Getting key rotation status for external keys should not error in `aws_kms_key` table ([#398](https://github.com/turbot/steampipe-plugin-aws/pull/398))
+
 ## v0.17.0 [2021-05-13]
 
 _What's new?_
