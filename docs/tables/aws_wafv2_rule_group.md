@@ -20,8 +20,7 @@ from
   aws_wafv2_rule_group;
 ```
 
-
-### List global (CLOUDFRONT) Rule Groups
+### List global (CloudFront) Rule Groups
 
 ```sql
 select
@@ -37,7 +36,6 @@ from
 where
   scope = 'CLOUDFRONT';
 ```
-
 
 ### List Rule Groups having having capacity less than 5
 
