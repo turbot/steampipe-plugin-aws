@@ -13,17 +13,17 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEc2SecurityPolicy(_ context.Context) *plugin.Table {
+func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ec2_security_policy",
-		Description: "AWS EC2 Security Policy",
+		Name:        "aws_ec2_ssl_policy",
+		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"name"}),
-			Hydrate:           getEc2SecurityPolicy,
+			Hydrate:           getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2SecurityPolicies,
+			Hydrate: listEc2SslPolicies,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -54,7 +54,7 @@ func tableAwsEc2SecurityPolicy(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2SecurityPolicyAkas,
+				Hydrate:     getEc2SslPolicyAkas,
 				Transform:   transform.FromValue(),
 			},
 		}),
@@ -63,14 +63,15 @@ func tableAwsEc2SecurityPolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2SecurityPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
+func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listEc2SslPolicies")
+	
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listEc2SecurityPolicies", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEc2SslPolicies", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := ELBv2Service(ctx, d, region)
@@ -104,8 +105,8 @@ func listEc2SecurityPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getEc2SecurityPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2SecurityPolicy")
+func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -137,8 +138,8 @@ func getEc2SecurityPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	return nil, nil
 }
 
-func getAwsEc2SecurityPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2SecurityPolicyAkas")
+func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2SslPolicyAkas")
 	data := h.Item.(*elbv2.SslPolicy)
 
 	commonData, err := getCommonColumns(ctx, d, h)

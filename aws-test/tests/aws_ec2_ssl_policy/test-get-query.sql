@@ -5,6 +5,6 @@ select
   account_id, 
   partition
 from 
-  aws.aws_ec2_security_policy
+  aws.aws_ec2_ssl_policy
 where 
   name = '{{ resourceName }}';
