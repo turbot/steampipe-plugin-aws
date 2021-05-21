@@ -138,7 +138,6 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 		region = matrixRegion.(string)
 	}
 	plugin.Logger(ctx).Trace("listAuditManagerControls", "AWS_REGION", region)
-	// restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
@@ -209,8 +208,6 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 		plugin.Logger(ctx).Debug("getAuditManagerControl", "ERROR", err)
 		return nil, err
 	}
-
-	plugin.Logger(ctx).Trace("BalBabu", op.Control)
 
 	return op.Control, nil
 }
