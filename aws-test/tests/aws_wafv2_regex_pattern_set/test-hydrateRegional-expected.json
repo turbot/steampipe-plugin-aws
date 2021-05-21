@@ -1,0 +1,16 @@
+[
+  {
+    "description": "A regional Regex Pattern set for testing.",
+    "name": "{{ output.resource_name_regional.value }}",
+    "tags_src": [
+      {
+        "Key": "foo",
+        "Value": "bar"
+      },
+      {
+        "Key": "scope",
+        "Value": "regional"
+      }
+    ]
+  }
+]

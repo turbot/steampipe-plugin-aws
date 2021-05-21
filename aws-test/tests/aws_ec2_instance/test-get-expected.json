@@ -1,18 +1,20 @@
 [
-  {
-    "cpu_options_core_count": 1,
-    "cpu_options_threads_per_core": 1,
-    "ebs_optimized": false,
-    "hypervisor": "xen",
-    "image_id": "{{ output.image_id.value }}",
-    "instance_id": "{{ output.resource_id.value }}",
-    "instance_type": "t2.micro",
-    "monitoring_state": "disabled",
-    "tags_src": [
-      {
-        "Key": "Name",
-        "Value": "{{resourceName}}"
-      }
-    ]
-  }
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"arn": "{{ output.resource_aka.value }}",
+		"cpu_options_core_count": 1,
+		"cpu_options_threads_per_core": 1,
+		"ebs_optimized": false,
+		"hypervisor": "xen",
+		"image_id": "{{ output.image_id.value }}",
+		"instance_id": "{{ output.resource_id.value }}",
+		"instance_type": "t2.micro",
+		"monitoring_state": "disabled",
+		"tags_src": [
+			{
+				"Key": "Name",
+				"Value": "{{resourceName}}"
+			}
+		]
+	}
 ]

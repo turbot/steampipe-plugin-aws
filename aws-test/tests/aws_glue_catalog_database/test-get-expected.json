@@ -1,0 +1,18 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"catalog_id": "{{ output.aws_account.value }}",
+		"create_table_default_permissions": [
+			{
+				"Permissions": ["ALL"],
+				"Principal": {
+					"DataLakePrincipalIdentifier": "IAM_ALLOWED_PRINCIPALS"
+				}
+			}
+		],
+		"description": "integration testing",
+		"location_uri": null,
+		"name": "{{ resourceName }}",
+		"title": "{{ resourceName }}"
+	}
+]
