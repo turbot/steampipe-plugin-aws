@@ -1,6 +1,6 @@
 # Table: aws_cloudfront_distribution
 
-AWS Systems CloudFront is a web service that speeds up distribution of your static and dynamic web content, such as .html, .css, .js, and image files, to your users.
+AWS CloudFront is a web service that speeds up distribution of your static and dynamic web content, such as .html, .css, .js, and image files, to your users.
 
 ## Examples
 
@@ -21,7 +21,7 @@ from
 ```
 
 
-### List distributions with logging not enabled
+### List distributions with logging disabled
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
 ```
 
 
-### CloudFront distributions enforce field-level encryption
+### List distributions that enforce field-level encryption
 
 ```sql
 select
@@ -66,7 +66,7 @@ where
 ```
 
 
-### The traffic between the CloudFront distributions and their origins is encrypted
+### List distributions whose origins use encrypted traffic
 
 ```sql
 select
@@ -84,7 +84,7 @@ where
 ```
 
 
-### CloudFront distributions origins use insecure SSL protocols
+### List distributions whose origins use insecure SSL protocols
 
 ```sql
 select
