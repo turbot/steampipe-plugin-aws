@@ -1,6 +1,6 @@
 # Table: aws_wafv2_rule_group
 
-An AWS WAFv2 Rule Group a collection of rules for inspecting and controlling web requests.
+An AWS WAFv2 rule group is a collection of rules for inspecting and controlling web requests.
 
 ## Examples
 
@@ -20,7 +20,7 @@ from
   aws_wafv2_rule_group;
 ```
 
-### List global (CloudFront) Rule Groups
+### List global (CloudFront) rule groups
 
 ```sql
 select
@@ -37,7 +37,7 @@ where
   scope = 'CLOUDFRONT';
 ```
 
-### List Rule Groups having having capacity less than 5
+### List rule groups with fewer than 5 web ACL capacity units (WCUs)
 
 ```sql
 select
