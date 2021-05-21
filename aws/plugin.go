@@ -83,6 +83,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ecs_task_definition":                tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                   tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                    tableAwsElasticFileSystem(ctx),
+			"aws_efs_mount_target":                   tableAwsEfsMountTarget(ctx),
 			"aws_eks_cluster":                        tableAwsEksCluster(ctx),
 			"aws_elastic_beanstalk_application":      tableAwsElasticBeanstalkApplication(ctx),
 			"aws_elastic_beanstalk_environment":      tableAwsElasticBeanstalkEnvironment(ctx),
