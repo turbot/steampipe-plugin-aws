@@ -13,6 +13,7 @@ select
   association_version,
   last_execution_date,
   document_name,
+  compliance_severity,
   region
 from
   aws_ssm_association;

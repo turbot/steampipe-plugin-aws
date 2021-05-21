@@ -294,7 +294,7 @@ func getAwsEcsTaskDefinitionTurbotData(ctx context.Context, d *transform.Transfo
 
 	if param == "Tags" {
 		if ecsTaskDefinition.Tags == nil {
-		  return nil, nil
+			return nil, nil
 		}
 
 		// Get the resource tags
