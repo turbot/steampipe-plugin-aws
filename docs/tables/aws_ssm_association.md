@@ -63,32 +63,38 @@ where
   compliance_severity = 'CRITICAL';
 ```
 
-### List compliant associations
+### List non compliant associations
 
 ```sql
 select
   association_id,
   association_name,
+  c ->> 'ResourceId' as instance_id,
   c ->> 'Status' as compliance_status
 from
   aws_ssm_association,
   jsonb_array_elements(compliance_items) as c
 where
   c ->> 'ComplianceType' = 'Association'
-  and c ->> 'Status' = 'COMPLIANT';
+  and c ->> 'Status' <> 'COMPLIANT'
+  and compliance_items is not null
+  and compliance_items <> '{}';
 ```
 
-### List compliant patches
+### List non compliant patches
 
 ```sql
 select
   association_id,
   c ->> 'Title' as patch_name,
+  c ->> 'ResourceId' as instance_id,
   c ->> 'Status' as compliance_status
 from
   aws_ssm_association,
   jsonb_array_elements(compliance_items) as c
 where
   c ->> 'ComplianceType' = 'Patch'
-  and c ->> 'Status' = 'COMPLIANT';
+  and c ->> 'Status' <> 'COMPLIANT'
+  and compliance_items is not null
+  and compliance_items <> '{}';
 ```

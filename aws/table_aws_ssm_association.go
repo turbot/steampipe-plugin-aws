@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -150,7 +151,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "targets",
-				Description: "A cron expression that specifies a schedule when the association runs.",
+				Description: "The instances targeted by the request to create an association.",
 				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_STRING,
 			},
@@ -159,7 +160,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Description: "A list of compliance information for the specified resource ID.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getComplianceItems,
-				Transform:   transform.FromField("ComplianceItems"),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "target_locations",
@@ -288,9 +289,49 @@ func getComplianceItems(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		}
 	}
 
+	var wg sync.WaitGroup
+	complianceCh := make(chan *ssm.ListComplianceItemsOutput, len(instanceIds))
+	errorCh := make(chan error, len(instanceIds))
+	for _, instanceId := range instanceIds {
+		wg.Add(1)
+		go getComplianceItemsAsync(instanceId, svc, &wg, complianceCh, errorCh)
+	}
+
+	// wait for all instances to be processed
+	wg.Wait()
+
+	// NOTE: close channel before ranging over results
+	close(complianceCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		return nil, err
+	}
+
+	var complianceItems []*ssm.ComplianceItem
+	for item := range complianceCh {
+		complianceItems = append(complianceItems, item.ComplianceItems...)
+	}
+
+	return complianceItems, nil
+}
+
+func getComplianceItemsAsync(instanceId *string, svc *ssm.SSM, wg *sync.WaitGroup, complianceCh chan *ssm.ListComplianceItemsOutput, errorCh chan error) {
+	defer wg.Done()
+
+	complianceInfo, err := getComplianceDetails(instanceId, svc)
+	if err != nil {
+		errorCh <- err
+	} else if complianceInfo != nil {
+		complianceCh <- complianceInfo
+	}
+}
+
+func getComplianceDetails(instanceId *string, svc *ssm.SSM) (*ssm.ListComplianceItemsOutput, error) {
 	// Build the params
 	params := &ssm.ListComplianceItemsInput{
-		ResourceIds: instanceIds,
+		ResourceIds: []*string{instanceId},
 	}
 
 	data, err := svc.ListComplianceItems(params)
@@ -302,6 +343,7 @@ func getComplianceItems(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 			return nil, err
 		}
 	}
+
 	return data, nil
 }
 
