@@ -1,0 +1,9 @@
+[
+	{
+		"description": "integration testing",
+		"name": "{{ resourceName }}",
+		"partition": "{{ output.aws_partition.value }}",
+		"region": "{{ output.aws_region.value }}",
+		"title": "{{ resourceName }}"
+	}
+]

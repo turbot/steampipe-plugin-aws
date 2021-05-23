@@ -14,11 +14,11 @@ select
   association_version,
   last_execution_date,
   document_name,
+  compliance_severity,
   region
 from
   aws_ssm_association;
 ```
-
 
 ### List associations that have a failed status
 
@@ -33,7 +33,6 @@ from
 where
   overview ->> 'Status' = 'Failed';
 ```
-
 
 ### List instances targeted by the association
 
@@ -50,7 +49,6 @@ from
 where
   target ->> 'Key' = 'InstanceIds';
 ```
-
 
 ### List associations with a critical compliance severity level
 

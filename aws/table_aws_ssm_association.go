@@ -57,8 +57,26 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "compliance_severity",
+				Description: "A cron expression that specifies a schedule when the association runs.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "apply_only_at_cron_interval",
+				Description: "By default, when you create a new associations, the system runs it immediately after it is created and then according to the schedule you specified. Specify this option if you don't want an association to run immediately after you create it. This parameter is not supported for rate expressions.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "association_version",
 				Description: "The association version.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "automation_target_parameter_name",
+				Description: "Specify the target for the association. This target is required for associations that use an Automation document and target resources by using rate controls.",
+				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -79,9 +97,16 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "overview",
-				Description: "Information about the association.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "last_successful_execution_date",
+				Description: "The last date on which the association was successfully run.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsSSMAssociation,
+			},
+			{
+				Name:        "last_update_association_date",
+				Description: "The date when the association was last updated.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsSSMAssociation,
 			},
 			{
 				Name:        "schedule_expression",
@@ -90,18 +115,59 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "max_concurrency",
+				Description: "The maximum number of targets allowed to run the association at the same time.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "max_errors",
+				Description: "The number of errors that are allowed before the system stops sending requests to run the association on additional targets.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "sync_compliance",
+				Description: "The mode for generating association compliance. You can specify AUTO or MANUAL.",
+				Hydrate:     getAwsSSMAssociation,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "overview",
+				Description: "Information about the association.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "output_location",
+				Description: "An S3 bucket where you want to store the output details of the request.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
+			},
+			{
+				Name:        "parameters",
+				Description: "A description of the parameters for a document.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
+			},
+			{
+				Name:        "status",
+				Description: "The association status.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMAssociation,
+			},
+			{
 				Name:        "targets",
 				Description: "A cron expression that specifies a schedule when the association runs.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "compliance_severity",
-				Description: "A cron expression that specifies a schedule when the association runs.",
+				Name:        "target_locations",
+				Description: "The combination of AWS Regions and AWS accounts where you want to run the association.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSSMAssociation,
-				Type:        proto.ColumnType_STRING,
 			},
 
-			// Standard columns for all tables
+			// Steampipe Standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),

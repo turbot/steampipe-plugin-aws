@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.resource_aka_regional.value }}",
+    "id": "{{ output.resource_id_regional.value }}",
+    "name": "{{ output.resource_name_regional.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "scope": "REGIONAL"
+  }
+]
