@@ -11,6 +11,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_audit_manager_assessment",
@@ -50,16 +51,37 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Status", "Metadata.Status"),
 			},
 			{
+				Name:        "compliance_type",
+				Description: "The name of the compliance standard related to the assessment.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ComplianceType", "Metadata.ComplianceType"),
+			},
+			{
+				Name:        "assessment_report_destination",
+				Description: "The destination of the assessment report.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsAuditManagerAssessment,
+				Transform:   transform.FromField("Metadata.AssessmentReportsDestination.Destination"),
+			},
+			{
+				Name:        "assessment_report_destination_type",
+				Description: "The destination type, such as Amazon S3.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsAuditManagerAssessment,
+				Transform:   transform.FromField("Metadata.AssessmentReportsDestination.DestinationType"),
+			},
+			{
 				Name:        "creation_time",
 				Description: "Specifies when the assessment was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("CreationTime", "Metadata.CreationTime"),
 			},
 			{
-				Name:        "compliance_type",
-				Description: "The name of the compliance standard related to the assessment.",
+				Name:        "description",
+				Description: "The description of the assessment.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ComplianceType", "Metadata.ComplianceType"),
+				Hydrate:     getAwsAuditManagerAssessment,
+				Transform:   transform.FromField("Metadata.Description"),
 			},
 			{
 				Name:        "last_updated",
@@ -93,13 +115,13 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsAuditManagerAssessment,
 			},
 			{
-				Name:        "Roles",
+				Name:        "roles",
 				Description: "The roles associated with the assessment.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Roles", "Metadata.Roles"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -111,7 +133,6 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsAuditManagerAssessment,
-				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "akas",
@@ -125,6 +146,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -132,11 +154,13 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 		region = matrixRegion.(string)
 	}
 	plugin.Logger(ctx).Trace("listAwsAuditManagerAssessments", "AWS_REGION", region)
+
 	// Create session
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
+
 	// List call
 	err = svc.ListAssessmentsPages(
 		&auditmanager.ListAssessmentsInput{},
@@ -151,22 +175,22 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 }
 
 //// HYDRATE FUNCTIONS
+
 func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsAuditManagerAssessment")
+	plugin.Logger(ctx).Trace("getAwsAuditManagerAssessment")
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
+
 	var id string
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
-
-	logger.Debug("getAwsAuditManagerAssessment", "123IDERROR", id)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
@@ -178,13 +202,13 @@ func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *p
 	params := &auditmanager.GetAssessmentInput{
 		AssessmentId: aws.String(id),
 	}
-	logger.Debug("getAwsAuditManagerAssessment", "12PARAMSERROR", params)
+
 	// Get call
 	data, err := svc.GetAssessment(params)
 	if err != nil {
-		logger.Debug("getAwsAuditManagerAssessment", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAwsAuditManagerAssessment", "ERROR", err)
 		return nil, err
 	}
-	logger.Debug("getAwsAuditManagerAssessment", "123DATAERROR", data)
+
 	return data.Assessment, nil
 }
