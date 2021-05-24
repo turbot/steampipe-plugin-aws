@@ -168,17 +168,16 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	// Restrict the api call to only specific type and region as provided
-	auditManagerType := d.KeyColumnQuals["type"].GetStringValue()
-	auditManagerRegion := d.KeyColumnQuals["region"].GetStringValue()
-	if auditManagerType != auditType || auditManagerRegion != region {
-		return nil, nil
-	}
-
 	var id string
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.AssessmentFrameworkMetadata).Id
 	} else {
+		// Restrict the api call to only specific type and region as provided
+		auditManagerType := d.KeyColumnQuals["type"].GetStringValue()
+		auditManagerRegion := d.KeyColumnQuals["region"].GetStringValue()
+		if auditManagerType != auditType || auditManagerRegion != region {
+			return nil, nil
+		}
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
