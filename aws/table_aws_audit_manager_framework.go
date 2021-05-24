@@ -43,6 +43,11 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "type",
+				Description: "The framework type, such as standard or custom.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "created_at",
 				Description: "Specifies when the framework was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -96,11 +101,6 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "type",
-				Description: "The framework type, such as standard or custom.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "control_sets",
 				Description: "The control sets associated with the framework.",
 				Type:        proto.ColumnType_JSON,
@@ -124,7 +124,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(convertSafeString).Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -161,6 +161,7 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
 	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "AuditType", auditType, "REGION", region)
+
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {

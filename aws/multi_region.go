@@ -95,6 +95,8 @@ func BuildAuditRegionList(ctx context.Context, connection *plugin.Connection) []
 
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
+
+	// retrieve information for both the audit types
 	auditTypes := []string{"Standard", "Custom"}
 
 	if &awsConfig != nil && awsConfig.Regions != nil {
