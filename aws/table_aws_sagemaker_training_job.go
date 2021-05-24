@@ -262,7 +262,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -326,7 +326,7 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 
 	var name string
 	if h.Item != nil {
-		name = trainingJobName(h.Item)
+		name = *h.Item.(*sagemaker.TrainingJobSummary).TrainingJobName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
@@ -361,13 +361,7 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 		region = matrixRegion.(string)
 	}
 
-	var arn string
-	if h.Item != nil {
-		arn = trainingJobArn(h.Item)
-	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
-	}
-
+	arn := trainingJobArn(h.Item)
 	// Create Session
 	svc, err := SageMakerService(ctx, d, region)
 	if err != nil {
@@ -388,7 +382,7 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	return op, nil
 }
 
-//// TRANSFORM FUNCTION
+//// TRANSFORM FUNCTIONS
 
 func sageMakerTrainingJobTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("sageMakerTrainingJobTagListToTurbotTags")
@@ -407,16 +401,6 @@ func sageMakerTrainingJobTagListToTurbotTags(ctx context.Context, d *transform.T
 	}
 
 	return turbotTagsMap, nil
-}
-
-func trainingJobName(item interface{}) string {
-	switch item.(type) {
-	case *sagemaker.TrainingJobSummary:
-		return *item.(*sagemaker.TrainingJobSummary).TrainingJobName
-	case *sagemaker.DescribeTrainingJobOutput:
-		return *item.(*sagemaker.DescribeTrainingJobOutput).TrainingJobName
-	}
-	return ""
 }
 
 func trainingJobArn(item interface{}) string {
