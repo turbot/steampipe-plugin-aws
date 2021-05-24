@@ -1,6 +1,6 @@
 variable "aws_profile" {
   type        = string
-  default     = "shaktiman"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -42,6 +42,6 @@ data "null_data_source" "resource" {
 
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
-    command = "aws auditmanager delete-assessment --assessment-id {{ output.assessment_id.value }} --profile shaktiman"
+    command = "aws auditmanager delete-assessment --assessment-id {{ output.assessment_id.value }} --profile ${var.aws_profile}"
   }
 }
