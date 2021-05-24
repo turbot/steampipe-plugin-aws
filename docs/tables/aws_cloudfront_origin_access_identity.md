@@ -18,7 +18,7 @@ from
 ```
 
 
-### List origin access identity with no comment
+### List origin access identity with comment
 
 ```sql
 select
@@ -29,5 +29,5 @@ select
 from
   aws_cloudfront_origin_access_identity
 where
-  comment = "";
+  comment <> '';
 ```
