@@ -96,7 +96,7 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -224,6 +224,10 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 	plugin.Logger(ctx).Trace("kinesisAnalyticsV2ApplicationTagListToTurbotTags")
 	tagList := d.Value.([]*kinesisanalyticsv2.Tag)
 
+	if tagList == nil {
+		return nil, nil
+	}
+
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if tagList != nil {
@@ -231,8 +235,6 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 		for _, i := range tagList {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
-	} else {
-		return nil, nil
 	}
 
 	return turbotTagsMap, nil

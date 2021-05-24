@@ -6,7 +6,7 @@
     "application_version_id": 1,
     "partition": "{{ output.aws_partition.value }}",
     "runtime_environment": "SQL-1_0",
-    "service_execution_role": "arn:aws:iam::986325076436:role/{{ resourceName }}",
+    "service_execution_role": "arn:aws:iam::{{ output.account_id.value }}:role/{{ resourceName }}",
     "title": "{{ resourceName }}"
   }
 ]

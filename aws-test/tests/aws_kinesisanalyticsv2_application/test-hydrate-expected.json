@@ -2,7 +2,7 @@
   {
     "application_description": null,
     "cloud_watch_logging_option_descriptions": null,
-    "service_execution_role": "arn:aws:iam::986325076436:role/{{ resourceName }}",
+    "service_execution_role": "arn:aws:iam::{{ output.account_id.value }}:role/{{ resourceName }}",
     "tags_src": [
       {
         "Key": "Name",
