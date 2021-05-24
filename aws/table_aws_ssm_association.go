@@ -151,7 +151,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "compliance_items",
-				Description: "A list of compliance information for the specified resource ID.",
+				Description: "List of compliance information for the associated instances.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getComplianceItems,
 				Transform:   transform.FromValue(),
