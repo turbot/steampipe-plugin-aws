@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/go-kit/types"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -15,15 +17,15 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		Name:        "aws_config_configuration_recorder",
 		Description: "AWS Config Configuration Recorder",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigurationRecorderException"}),
+			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
+			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigurationRecorderException", "UnrecognizedClientException"}),
 			Hydrate:           getConfigConfigurationRecorder,
 		},
 		List: &plugin.ListConfig{
+			ParentHydrate: listAwsRegions,
 			Hydrate: listConfigConfigurationRecorders,
 		},
-		GetMatrixItem: BuildRegionList,
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsS3Columns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the recorder. By default, AWS Config automatically assigns the name default when creating the configuration recorder.",
@@ -63,6 +65,7 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Hydrate:     getConfigConfigurationRecorderStatus,
 				Transform:   transform.FromValue(),
 			},
+
 			// Standard columns
 			{
 				Name:        "akas",
@@ -77,22 +80,34 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
+			{
+				Name:        "region",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_STRING,
+			},
 		}),
 	}
 }
 
+type recorderInfo = struct {
+	configservice.ConfigurationRecorder
+	Region string
+}
+
 //// LIST FUNCTION
 
-func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
+func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := h.Item.(*ec2.Region)
+
+	// If a region is not opted-in, we cannot list the availability zones
+	if types.SafeString(region.OptInStatus) == "not-opted-in" {
+		return nil, nil
 	}
+
 	plugin.Logger(ctx).Trace("listConfigConfigurationRecorders", "AWS_REGION", region)
 
 	// Create session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d, *region.RegionName)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +119,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 	}
 	if op.ConfigurationRecorders != nil {
 		for _, ConfigurationRecorders := range op.ConfigurationRecorders {
-			d.StreamListItem(ctx, ConfigurationRecorders)
+			d.StreamLeafListItem(ctx, recorderInfo{*ConfigurationRecorders, *region.RegionName })
 		}
 	}
 
@@ -118,13 +133,9 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, h 
 	logger.Trace("getConfigConfigurationRecorder")
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
+	region := quals["region"].GetStringValue()
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
+	plugin.Logger(ctx).Trace("AWS_REGION", "Region", region)
 
 	// Create Session
 	svc, err := ConfigService(ctx, d, region)
@@ -135,29 +146,24 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, h 
 	params := &configservice.DescribeConfigurationRecordersInput{
 		ConfigurationRecorderNames: []*string{aws.String(name)},
 	}
-	plugin.Logger(ctx).Trace("paramsparamsparams", "params", params)
 
 	op, err := svc.DescribeConfigurationRecorders(params)
 	if err != nil {
-		logger.Debug("getConfigConfigurationRecorder", "ERROR", err)
 		return nil, err
 	}
 
 	if op != nil {
-		return op.ConfigurationRecorders[0], nil
+		return recorderInfo{*op.ConfigurationRecorders[0], region }, nil
 	}
-
 	return nil, nil
 }
 
 func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigConfigurationRecorderStatus")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
+	region := h.Item.(recorderInfo).Region
+	plugin.Logger(ctx).Trace("AWS_REGION", "Region", region)
+
+	configurationRecorder := h.Item.(recorderInfo).ConfigurationRecorder
 
 	// Create Session
 	svc, err := ConfigService(ctx, d, region)
@@ -181,13 +187,14 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
-	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
+	configurationRecorder := h.Item.(recorderInfo).ConfigurationRecorder
+	regionName := h.Item.(recorderInfo).Region
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":config:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
+	arn := "arn:" + commonColumnData.Partition + ":config:" + regionName + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
 
 	return arn, nil
 }
