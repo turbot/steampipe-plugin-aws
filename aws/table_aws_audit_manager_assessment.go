@@ -34,7 +34,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "id",
-				Description: "The unique identifier for the assessment.",
+				Description: "An unique identifier for the assessment.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Id", "Metadata.Id"),
 			},
@@ -90,11 +90,10 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("LastUpdated", "Metadata.LastUpdated"),
 			},
 			{
-				Name:        "aws_account_id",
+				Name:        "aws_account",
 				Description: "The AWS account associated with the assessment.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsAuditManagerAssessment,
-				Transform:   transform.FromField("AwsAccount.Id"),
 			},
 			{
 				Name:        "delegations",
@@ -109,10 +108,11 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsAuditManagerAssessment,
 			},
 			{
-				Name:        "metadata",
-				Description: "The metadata for the specified assessment.",
+				Name:        "scope",
+				Description: "The wrapper of AWS accounts and services in scope for the assessment.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsAuditManagerAssessment,
+				Transform:   transform.FromField("Metadata.Scope"),
 			},
 			{
 				Name:        "roles",
