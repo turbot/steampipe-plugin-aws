@@ -10,16 +10,18 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 )
 
-func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
+//// TABLE DEFINITION
+
+func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_route53_domains",
-		Description: "AWS Route53 Domains",
+		Name:        "aws_route53_domain",
+		Description: "AWS Route53 Domain",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("domain_name"),
-			Hydrate:    getAwsRoute53Domain,
+			Hydrate:    getRoute53Domain,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsRoute53Domains,
+			Hydrate: listRoute53Domains,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -28,106 +30,89 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the domain.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getRoute53DomainARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "abuse_contact_email",
 				Description: "Email address to contact to report incorrect contact information for a domain,to report that the domain is being used to send spam, to report that someone is cyber squatting on a domain name, or report some other type of abuse.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "abuse_contact_phone",
 				Description: "Phone number for reporting abuse.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "admin_privacy",
 				Description: "Specifies whether contact information is concealed from WHOIS queries.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "auto_renew",
 				Description: "Indicates whether the domain is automatically renewed upon expiration.",
 				Type:        proto.ColumnType_BOOL,
 			},
+			// As of May 25, 2021, API doesn't return the DNSSEC configuration in response.
+			// {
+			// 	Name:        "dns_sec",
+			// 	Description: "Reserved for future use.",
+			// 	Type:        proto.ColumnType_STRING,
+			// 	Hydrate:     getRoute53Domain,
+			// },
 			{
-				Name:        "dns_sec",
-				Description: "Reserved for future use.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Name:        "creation_date",
+				Description: "The date when the domain was created as found in the response to a WHOIS query.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "expiration_date",
 				Description: "The date when the registration for the domain is set to expire. The date and time is in Unix time format and Coordinated Universal time (UTC).",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsRoute53Domain,
-			},
-			{
-				Name:        "expiry",
-				Description: "Expiration date of the domain in Unix time format and Coordinated Universal Time (UTC).",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsRoute53Domain,
-				// Transform:   transform.FromField("ExpirationDate"),
-			},
-			{
-				Name:        "nameservers",
-				Description: "The name of the domain.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53Domain,
-			},
-			{
-				Name:        "registrant_contact",
-				Description: "Provides details about the domain registrant.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "registrant_privacy",
 				Description: "Specifies whether contact information is concealed from WHOIS queries.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "registrar_name",
 				Description: "Name of the registrar of the domain as identified in the registry. Domains with a .com, .net, or .org TLD are registered by Amazon Registrar.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "registrar_url",
 				Description: "Web address of the registrar.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "registry_domain_id",
 				Description: "Reserved for future use.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "reseller",
 				Description: "Reseller of the domain. Domains registered or transferred using Route 53 domains will have Amazon as the reseller.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
-			},
-			{
-				Name:        "status_list",
-				Description: "An array of domain name status codes, also known as Extensible Provisioning Protocol (EPP) status codes.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53Domain,
-			},
-			{
-				Name:        "tech-contact",
-				Description: "Provides details about the domain technical contact.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "tech_privacy",
 				Description: "Specifies whether contact information is concealed from WHOIS queries.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "transfer_lock",
@@ -138,29 +123,53 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 				Name:        "updated_date",
 				Description: "The last updated date of the domain as found in the response to a WHOIS query.The date and time is in Unix time format and Coordinated Universal time (UTC).",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
-				Name:        "Who_is_server",
+				Name:        "who_is_server",
 				Description: "The fully qualified name of the WHOIS server that can answer the WHOIS query for the domain.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "nameservers",
+				Description: "The name of the domain.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "registrant_contact",
+				Description: "Provides details about the domain registrant.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "status_list",
+				Description: "An array of domain name status codes, also known as Extensible Provisioning Protocol (EPP) status codes.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
+			},
+			{
+				Name:        "tech_contact",
+				Description: "Provides details about the domain technical contact.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "admin_contact",
 				Description: "Provides details about the domain administrative contact.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53Domain,
+				Hydrate:     getRoute53Domain,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the resource.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53DomainTags,
+				Hydrate:     getRoute53DomainTags,
 				Transform:   transform.FromField("TagList"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -171,15 +180,15 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53DomainTags,
-				Transform:   transform.FromField("TagList").Transform(route53DomainsTagListToTurbotTags),
+				Hydrate:     getRoute53DomainTags,
+				Transform:   transform.FromField("TagList").Transform(route53DomainTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRoute53DomainAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getRoute53DomainARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -187,8 +196,8 @@ func tableAwsRoute53Domains(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRoute53Domains")
+func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listRoute53Domains")
 
 	// Create session
 	svc, err := Route53DomainsService(ctx, d, "us-east-1")
@@ -209,11 +218,11 @@ func listAwsRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, err
 }
 
-////  HYDRATE FUNCTIONS
+//// HYDRATE FUNCTIONS
 
-func getAwsRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRoute53Domain")
+	logger.Trace("getRoute53Domain")
 
 	var name string
 	if h.Item != nil {
@@ -235,15 +244,15 @@ func getAwsRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Get call
 	data, err := svc.GetDomainDetail(params)
 	if err != nil {
-		logger.Debug("getAwsRoute53Domain", "ERROR", err)
+		logger.Debug("getRoute53Domain", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
 }
 
-func getAwsRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRoute53DomainTags")
+	logger.Trace("getRoute53DomainTags")
 
 	name := domainName(h.Item)
 
@@ -261,14 +270,14 @@ func getAwsRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	op, err := svc.ListTagsForDomain(params)
 	if err != nil {
-		logger.Debug("getAwsRoute53DomainTags", "ERROR", err)
+		logger.Debug("getRoute53DomainTags", "ERROR", err)
 		return nil, err
 	}
 	return op, nil
 }
 
-func getAwsRoute53DomainAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRoute53DomainAkas")
+func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRoute53DomainARN")
 
 	name := domainName(h.Item)
 
@@ -278,14 +287,14 @@ func getAwsRoute53DomainAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":route53domains:" + ":" + commonColumnData.AccountId + ":" + "name" + "/" + name
-	return []string{aka}, nil
+	arn := "arn:" + commonColumnData.Partition + ":route53domains:::domain/" + name
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
-func route53DomainsTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53DomainsTagListToTurbotTags")
+func route53DomainTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("route53DomainTurbotTags")
 
 	tags := d.HydrateItem.(*route53domains.ListTagsForDomainOutput)
 
@@ -302,11 +311,11 @@ func route53DomainsTagListToTurbotTags(ctx context.Context, d *transform.Transfo
 }
 
 func domainName(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *route53domains.DomainSummary:
-		return *item.(*route53domains.DomainSummary).DomainName
+		return *item.DomainName
 	case *route53domains.GetDomainDetailOutput:
-		return *item.(*route53domains.GetDomainDetailOutput).DomainName
+		return *item.DomainName
 	}
 	return ""
 }
