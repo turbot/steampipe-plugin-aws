@@ -95,10 +95,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Description: "The steps to follow to determine if the control has been satisfied.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
-			},
-
-			// JSON Column
-
+			}
 			{
 				Name:        "control_mapping_sources",
 				Description: "The data mapping sources for the specified control.",
@@ -176,7 +173,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 	return nil, err
 }
 
-//// GET FUNCTION
+//// HYDRATE FUNCTION
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerControl")
