@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,8 +17,9 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		Name:        "aws_audit_manager_control",
 		Description: "AWS Audit Manager Control",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
-			Hydrate:    getAuditManagerControl,
+			KeyColumns:        plugin.SingleColumn("id"),
+			Hydrate:           getAuditManagerControl,
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
@@ -30,26 +32,20 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "id",
-				Description: "The unique identifier for the specified control.",
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the specified control.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "description",
-				Description: "The description of the specified control.",
+				Name:        "id",
+				Description: "An unique identifier for the specified control.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAuditManagerControl,
 			},
 			{
 				Name:        "type",
 				Description: "The type of control, such as custom or standard.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
-			},
-			{
-				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the specified control.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "created_at",
@@ -59,6 +55,29 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_by",
 				Description: "The IAM user or role that created the control.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAuditManagerControl,
+			},
+			{
+				Name:        "action_plan_title",
+				Description: "The title of the action plan for remediating the control.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAuditManagerControl,
+			},
+			{
+				Name:        "action_plan_instructions",
+				Description: "The recommended actions to carry out if the control is not fulfilled.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAuditManagerControl,
+			},
+			{
+				Name:        "control_sources",
+				Description: "The data source that determines from where AWS Audit Manager collects evidence for the control.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "description",
+				Description: "The description of the specified control.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
 			},
@@ -74,28 +93,11 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Hydrate:     getAuditManagerControl,
 			},
 			{
-				Name:        "control_sources",
-				Description: "The data source that determines from where AWS Audit Manager collects evidence for the control.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "action_plan_instructions",
-				Description: "The recommended actions to carry out if the control is not fulfilled.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAuditManagerControl,
-			},
-			{
-				Name:        "action_plan_title",
-				Description: "The title of the action plan for remediating the control.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAuditManagerControl,
-			},
-			{
 				Name:        "testing_information",
 				Description: "The steps to follow to determine if the control has been satisfied.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
-			}
+			},
 			{
 				Name:        "control_mapping_sources",
 				Description: "The data mapping sources for the specified control.",
@@ -142,11 +144,10 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	standardControltype := "Standard"
-
+	// List all standard controls
 	err = svc.ListControlsPages(
 		&auditmanager.ListControlsInput{
-			ControlType: &standardControltype,
+			ControlType: aws.String("Standard"),
 		},
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
@@ -156,11 +157,10 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 		},
 	)
 
-	customControltype := "Custom"
-
+	// List all custom controls
 	err = svc.ListControlsPages(
 		&auditmanager.ListControlsInput{
-			ControlType: &customControltype,
+			ControlType: aws.String("Custom"),
 		},
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
@@ -173,7 +173,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 	return nil, err
 }
 
-//// HYDRATE FUNCTION
+//// HYDRATE FUNCTIONS
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerControl")
@@ -189,6 +189,7 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		return nil, err
 	}
+
 	var id string
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.ControlMetadata).Id
@@ -197,7 +198,7 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &auditmanager.GetControlInput{
-		ControlId: &id,
+		ControlId: aws.String(id),
 	}
 
 	op, err := svc.GetControl(params)
