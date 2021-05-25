@@ -26,7 +26,7 @@ select
   region,
   account_id
 from
-  aws_config_rule;
+  aws_config_rule
 ```
 
 ### List rules which are in active state
