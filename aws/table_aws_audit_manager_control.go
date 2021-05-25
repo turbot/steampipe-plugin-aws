@@ -103,7 +103,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Name:        "control_mapping_sources",
 				Description: "The data mapping sources for the specified control.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ControlMappingSources"),
+				Hydrate:     getAuditManagerControl,
 			},
 
 			// Steampipe standard columns
@@ -117,7 +117,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getAuditManagerControl,
 			},
 			{
 				Name:        "akas",

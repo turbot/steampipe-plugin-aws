@@ -49,9 +49,14 @@ data "null_data_source" "resource" {
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT
-      aws auditmanager create-control --name ${var.resource_name} --control-mapping-sources "sourceName"=${var.resource_name},"sourceType"="AWS_Cloudtrail","sourceSetUpOption"="System_Controls_Mapping",sourceKeyword="{keywordInputType="SELECT_FROM_LIST",keywordValue="a4b_ApproveSkill"}" --tags name=${var.resource_name};
+      aws auditmanager create-control --name ${var.resource_name} --control-mapping-sources "sourceName"=${var.resource_name},"sourceType"="AWS_Cloudtrail","sourceSetUpOption"="System_Controls_Mapping",sourceKeyword="{keywordInputType="SELECT_FROM_LIST",keywordValue="a4b_ApproveSkill"}" --tags name=${var.resource_name} > ${path.cwd}/control.json;
     EOT
   }
+}
+
+data "local_file" "control" {
+  depends_on = [null_resource.named_test_resource]
+  filename   = "${path.cwd}/control.json"
 }
 
 output "account_id" {
@@ -66,8 +71,12 @@ output "aws_partition" {
   value = data.aws_partition.current.partition
 }
 
-output "resource_id" {
-  value = null_resource.named_test_resource.id
+output "control_id" {
+  value = jsondecode(data.local_file.control.content).control.id
+}
+
+output "resource_aka" {
+  value = jsondecode(data.local_file.control.content).control.arn
 }
 
 output "resource_name" {
