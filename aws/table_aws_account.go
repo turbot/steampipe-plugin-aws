@@ -29,6 +29,12 @@ func tableAwsAccount(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Aliases"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the account.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(accountARN),
+			},
+			{
 				Name:        "organization_id",
 				Description: "The unique identifier (ID) of an organization, if applicable.",
 				Type:        proto.ColumnType_STRING,
@@ -87,7 +93,7 @@ func tableAwsAccount(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(accountDataToAkas),
+				Transform:   transform.From(accountARN).Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -172,11 +178,11 @@ func accountDataToTitle(ctx context.Context, d *transform.TransformData) (interf
 	return accountInfo.commonColumnData.AccountId, nil
 }
 
-func accountDataToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("accountDataToTitle")
+func accountARN(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("accountARN")
 	accountInfo := d.HydrateItem.(*accountData)
 
-	akas := []string{"arn:" + accountInfo.commonColumnData.Partition + ":::" + accountInfo.commonColumnData.AccountId}
+	arn := "arn:" + accountInfo.commonColumnData.Partition + ":::" + accountInfo.commonColumnData.AccountId
 
-	return akas, nil
+	return arn, nil
 }
