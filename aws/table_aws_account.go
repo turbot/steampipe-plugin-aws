@@ -30,7 +30,7 @@ func tableAwsAccount(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) of the Account.",
+				Description: "The Amazon Resource Name (ARN) specifying the account.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(accountARN),
 			},
