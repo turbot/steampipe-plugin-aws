@@ -19,7 +19,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 		Description: "AWS EFS Mount Target",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("mount_target_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"MountTargetNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
 			Hydrate:           getAwsEfsMountTarget,
 		},
 		List: &plugin.ListConfig{
@@ -39,6 +39,11 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "life_cycle_state",
+				Description: "Lifecycle state of the mount target.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "availability_zone_id",
 				Description: "The unique and consistent identifier of the Availability Zone that the mount target resides in.",
 				Type:        proto.ColumnType_STRING,
@@ -51,12 +56,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 			{
 				Name:        "ip_address",
 				Description: "Address at which the file system can be mounted by using the mount target.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "life_cycle_state",
-				Description: "Lifecycle state of the mount target.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "network_interface_id",
@@ -69,12 +69,6 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "security_groups",
-				Description: "Specifies the  security  groups  currently in effect for a mount target.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEfsMountTargetSecurityGroup,
-			},
-			{
 				Name:        "subnet_id",
 				Description: "The ID of the mount target's subnet.",
 				Type:        proto.ColumnType_STRING,
@@ -83,6 +77,12 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				Name:        "vpc_id",
 				Description: "The virtual private cloud (VPC) ID that the mount target is configured in.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "security_groups",
+				Description: "Specifies the  security  groups  currently in effect for a mount target.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEfsMountTargetSecurityGroup,
 			},
 
 			// Steampipe standard columns
@@ -130,7 +130,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for _, mounttarget := range op.MountTargets {
-		d.StreamListItem(ctx, mounttarget)
+		d.StreamLeafListItem(ctx, mounttarget)
 	}
 
 	return nil, nil
@@ -139,7 +139,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
+	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -152,8 +152,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	quals := d.KeyColumnQuals
-	mountTargetID := quals["mount_target_id"].GetStringValue()
+	mountTargetID := d.KeyColumnQuals["mount_target_id"].GetStringValue()
 
 	params := &efs.DescribeMountTargetsInput{
 		MountTargetId: aws.String(mountTargetID),
@@ -172,7 +171,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
+	plugin.Logger(ctx).Trace("getAwsEfsMountTargetSecurityGroup")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
