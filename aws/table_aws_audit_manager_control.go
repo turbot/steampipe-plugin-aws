@@ -95,15 +95,12 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Description: "The steps to follow to determine if the control has been satisfied.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAuditManagerControl,
-			},
-
-			// JSON Column
-
+			}
 			{
 				Name:        "control_mapping_sources",
 				Description: "The data mapping sources for the specified control.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ControlMappingSources"),
+				Hydrate:     getAuditManagerControl,
 			},
 
 			// Steampipe standard columns
@@ -117,7 +114,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getAuditManagerControl,
 			},
 			{
 				Name:        "akas",
@@ -176,7 +173,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 	return nil, err
 }
 
-//// GET FUNCTION
+//// HYDRATE FUNCTION
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerControl")

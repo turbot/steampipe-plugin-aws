@@ -4,7 +4,7 @@ AWS Audit Manager helps to continuously audit AWS usage to simplify how you asse
 
 ## Examples
 
-### Basic info
+### Basic info of
 
 ```sql
 select
@@ -27,5 +27,5 @@ select
 from
   aws_audit_manager_control
 where
-  type = 'custom';
+  type = 'Custom';
 ```
