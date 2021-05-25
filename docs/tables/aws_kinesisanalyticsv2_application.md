@@ -20,7 +20,7 @@ from
 ```
 
 
-### List updated application
+### List applications with multiple versions
 
 ```sql
 select
@@ -35,7 +35,7 @@ where
 ```
 
 
-### List application runtime environment as SQL
+### List applications with a SQL runtime environment
 
 ```sql
 select
