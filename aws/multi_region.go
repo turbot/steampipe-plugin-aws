@@ -5,20 +5,10 @@ import (
 	"strings"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/connection"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
 const matrixKeyRegion = "region"
-const matrixKeyAudit = "auditType"
-
-var pluginQueryData *plugin.QueryData
-
-func init() {
-	pluginQueryData = &plugin.QueryData{
-		ConnectionManager: connection.NewManager(),
-	}
-}
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config
 func BuildRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
@@ -82,54 +72,4 @@ func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[
 	return []map[string]interface{}{
 		{matrixKeyRegion: GetDefaultRegion()},
 	}
-}
-
-// BuildAuditRegionList :: return a list of matrix items for AWS audit resources, one per region specified in the connection config
-func BuildAuditRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
-	// cache audit region matrix
-	cacheKey := "AuditRegionList"
-
-	if cachedData, ok := pluginQueryData.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]map[string]interface{})
-	}
-
-	// retrieve regions from connection config
-	awsConfig := GetConfig(connection)
-
-	// retrieve information for both the audit types
-	auditTypes := []string{"Standard", "Custom"}
-
-	if &awsConfig != nil && awsConfig.Regions != nil {
-		regions := GetConfig(connection).Regions
-
-		if len(getInvalidRegions(regions)) > 0 {
-			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(regions), ","))
-		}
-
-		// validate regions list
-		matrix := make([]map[string]interface{}, len(regions)*len(auditTypes))
-		for i, region := range regions {
-			for j, auditType := range auditTypes {
-				matrix[len(auditTypes)*i+j] = map[string]interface{}{
-					matrixKeyRegion: region,
-					matrixKeyAudit:  auditType,
-				}
-			}
-		}
-		// set AuditRegionList cache
-		pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
-		return matrix
-	}
-
-	defaultMatrix := make([]map[string]interface{}, len(auditTypes))
-	for j, auditType := range auditTypes {
-		defaultMatrix[j] = map[string]interface{}{
-			matrixKeyRegion: GetDefaultRegion(),
-			matrixKeyAudit:  auditType,
-		}
-	}
-
-	// set AuditRegionList cache
-	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, defaultMatrix)
-	return defaultMatrix
 }

@@ -18,14 +18,14 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_audit_manager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "type", "region"}),
+			KeyColumns:        plugin.SingleColumn("id"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			Hydrate:           getAuditManagerFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
 		},
-		GetMatrixItem: BuildAuditRegionList,
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -134,16 +134,29 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
-	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "AuditType", auditType, "REGION", region)
+	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "REGION", region)
 
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	// list standard audit manager frameworks
+	auditTypeStandard := "Standard"
 	err = svc.ListAssessmentFrameworksPages(
-		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: &auditType},
+		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: &auditTypeStandard},
+		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
+			for _, framework := range page.FrameworkMetadataList {
+				d.StreamListItem(ctx, framework)
+			}
+			return !lastPage
+		},
+	)
+
+	// list custom audit manager frameworks
+	auditTypeCustom := "Custom"
+	err = svc.ListAssessmentFrameworksPages(
+		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: &auditTypeCustom},
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
 				d.StreamListItem(ctx, framework)
@@ -159,8 +172,7 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	auditType := plugin.GetMatrixItem(ctx)[matrixKeyAudit].(string)
-	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "AuditType", auditType, "REGION", region)
+	plugin.Logger(ctx).Debug("getAuditManagerFramework", "REGION", region)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
@@ -172,12 +184,6 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.AssessmentFrameworkMetadata).Id
 	} else {
-		// Restrict the api call to only specific type and region as provided
-		auditManagerType := d.KeyColumnQuals["type"].GetStringValue()
-		auditManagerRegion := d.KeyColumnQuals["region"].GetStringValue()
-		if auditManagerType != auditType || auditManagerRegion != region {
-			return nil, nil
-		}
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
