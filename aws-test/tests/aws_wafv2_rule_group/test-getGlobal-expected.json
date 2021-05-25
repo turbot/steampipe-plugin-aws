@@ -1,0 +1,56 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "arn": "{{ output.resource_aka_global.value }}",
+    "capacity": 2,
+    "description": "A global rule group for testing.",
+    "id": "{{ output.resource_id_global.value }}",
+    "name": "{{ output.resource_name_global.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "global",
+    "rules": [
+      {
+        "Action": {
+          "Allow": {},
+          "Block": null,
+          "Count": null
+        },
+        "Name": "rule-1",
+        "OverrideAction": null,
+        "Priority": 1,
+        "Statement": {
+          "AndStatement": null,
+          "ByteMatchStatement": null,
+          "GeoMatchStatement": {
+            "CountryCodes": [
+              "US",
+              "IN"
+            ],
+            "ForwardedIPConfig": null
+          },
+          "IPSetReferenceStatement": null,
+          "ManagedRuleGroupStatement": null,
+          "NotStatement": null,
+          "OrStatement": null,
+          "RateBasedStatement": null,
+          "RegexPatternSetReferenceStatement": null,
+          "RuleGroupReferenceStatement": null,
+          "SizeConstraintStatement": null,
+          "SqliMatchStatement": null,
+          "XssMatchStatement": null
+        },
+        "VisibilityConfig": {
+          "CloudWatchMetricsEnabled": false,
+          "MetricName": "{{ output.resource_name_global.value }}",
+          "SampledRequestsEnabled": false
+        }
+      }
+    ],
+    "scope": "CLOUDFRONT",
+    "visibility_config": {
+      "CloudWatchMetricsEnabled": false,
+      "MetricName": "{{ output.resource_name_global.value }}",
+      "SampledRequestsEnabled": false
+    }
+  }
+]

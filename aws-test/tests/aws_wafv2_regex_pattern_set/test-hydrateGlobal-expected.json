@@ -1,0 +1,16 @@
+[
+  {
+    "description": "A global Regex Pattern set for testing.",
+    "name": "{{ output.resource_name_global.value }}",
+    "tags_src": [
+      {
+        "Key": "scope",
+        "Value": "global"
+      },
+      {
+        "Key": "foo1",
+        "Value": "bar1"
+      }
+    ]
+  }
+]

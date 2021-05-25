@@ -9,6 +9,7 @@ An EBS snapshot is a point-in-time copy of Amazon EBS volume, which is copied to
 ```sql
 select
   snapshot_id,
+  arn,
   encrypted
 from
   aws_ebs_snapshot
@@ -16,12 +17,12 @@ where
   not encrypted;
 ```
 
-
 ### List of EBS snapshots which are publicly accessible
 
 ```sql
 select
   snapshot_id,
+  arn,
   volume_id,
   perm ->> 'UserId' as userid,
   perm ->> 'Group' as group
@@ -31,7 +32,6 @@ from
 where
   perm ->> 'Group' = 'all';
 ```
-
 
 ### Find the Account IDs with which the snapshots are shared
 
@@ -44,7 +44,6 @@ from
   aws_ebs_snapshot
   cross join jsonb_array_elements(create_volume_permissions) as perm;
 ```
-
 
 ### Find the snapshot count per volume
 

@@ -37,6 +37,13 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DetectorID"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the detector.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getGuardDutyDetectorARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "status",
 				Description: "The detector status.",
 				Type:        proto.ColumnType_STRING,
@@ -90,8 +97,8 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsGuardDutyDetectorAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getGuardDutyDetectorARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -168,8 +175,8 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return detectorInfo{*op, id}, nil
 }
 
-func getAwsGuardDutyDetectorAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGuardDutyDetectorAkas")
+func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGuardDutyDetectorARN")
 	data := h.Item.(detectorInfo)
 
 	c, err := getCommonColumns(ctx, d, h)
@@ -177,7 +184,7 @@ func getAwsGuardDutyDetectorAkas(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID}
+	arn := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
 
-	return aka, nil
+	return arn, nil
 }

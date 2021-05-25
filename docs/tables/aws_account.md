@@ -9,6 +9,7 @@ An AWS account is a container for your AWS resources. You create and manage your
 ```sql
 select
   alias,
+  arn,
   organization_id,
   organization_master_account_email,
   organization_master_account_id

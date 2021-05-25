@@ -1,0 +1,28 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"default_action": {
+			"Allow": {},
+			"Block": null
+		},
+		"description": "Example of a managed rule.",
+		"name": "{{ resourceName }}",
+		"scope": "REGIONAL",
+		"tags_src": [
+			{
+				"Key": "Tag1",
+				"Value": "Value1"
+			},
+			{
+				"Key": "Tag2",
+				"Value": "Value2"
+			}
+		],
+		"title": "{{ resourceName }}",
+		"visibility_config": {
+			"CloudWatchMetricsEnabled": false,
+			"MetricName": "friendly-metric-name",
+			"SampledRequestsEnabled": false
+		}
+	}
+]
