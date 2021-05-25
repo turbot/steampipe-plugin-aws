@@ -8,8 +8,8 @@ An Origin Request Policy controls the values that are include in requests that C
 
 ```sql
 select
-  id,
   name,
+  id,
   comment,
   e_tag,
   last_modified_time,
