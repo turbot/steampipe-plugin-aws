@@ -57,7 +57,6 @@ resource "aws_config_config_rule" "named_test_resource" {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
   }
-
 }
 
 output "account_id" {
@@ -83,4 +82,3 @@ output "resource_aka" {
 output "rule_id" {
   value      = aws_config_config_rule.named_test_resource.rule_id
 }
-

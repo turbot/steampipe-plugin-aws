@@ -49,13 +49,13 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ConfigRuleState"),
 			},
 			{
-				Name:        "description",
-				Description: "The description that you provide for the AWS Config rule.",
+				Name:        "created_by",
+				Description: "Service principal name of the service that created the rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "created_by",
-				Description: "Service principal name of the service that created the rule.",
+				Name:        "description",
+				Description: "The description that you provide for the AWS Config rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -144,17 +144,14 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getConfigRule")
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
+	plugin.Logger(ctx).Trace("getConfigRule")
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
 
 	// Create Session
 	svc, err := ConfigService(ctx, d, region)
@@ -169,7 +166,6 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	op, err := svc.DescribeConfigRules(params)
 
 	if err != nil {
-		logger.Debug("getConfigRule", "ERROR", err)
 		return nil, err
 	}
 	if op != nil {
@@ -180,8 +176,7 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getConfigRuleTags")
+	plugin.Logger(ctx).Trace("getConfigRuleTags")
 	ruleArn := h.Item.(*configservice.ConfigRule).ConfigRuleArn
 
 	var region string
