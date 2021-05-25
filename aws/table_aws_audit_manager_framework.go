@@ -18,7 +18,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_audit_manager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
+			KeyColumns:        plugin.AllColumns([]string{"id", "region"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			Hydrate:           getAuditManagerFramework,
 		},
@@ -184,6 +184,10 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.AssessmentFrameworkMetadata).Id
 	} else {
+		location := d.KeyColumnQuals["region"].GetStringValue()
+		if location != region {
+			return nil, nil
+		}
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
