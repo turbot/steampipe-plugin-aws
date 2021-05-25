@@ -16,7 +16,6 @@ from
   aws_redshift_cluster;
 ```
 
-
 ### List clusters that are publicly accessible
 
 ```sql
@@ -30,7 +29,6 @@ from
 where
   publicly_accessible;
 ```
-
 
 ### List clusters that are not in a VPC
 
@@ -46,7 +44,6 @@ where
   vpc_id is null;
 ```
 
-
 ### List clusters whose storage is not encrypted
 
 ```sql
@@ -59,4 +56,14 @@ from
   aws_redshift_cluster
 where
   not encrypted;
+```
+
+### Get logging status for each cluster
+
+```sql
+select
+  cluster_identifier,
+  logging_status -> 'LoggingEnabled' as LoggingEnabled
+from
+  aws_redshift_cluster
 ```
