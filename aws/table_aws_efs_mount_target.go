@@ -80,7 +80,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "security_groups",
-				Description: "Specifies the  security  groups  currently in effect for a mount target.",
+				Description: "Specifies the security groups currently in effect for a mount target.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEfsMountTargetSecurityGroup,
 			},
@@ -97,7 +97,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEfsMountTargetAkas,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -209,7 +209,7 @@ func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	aka := []string{"arn:" + commonColumnData.Partition + ":elasticfilesystem:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":file-system/" + *data.FileSystemId + "/mount-target/" + *data.MountTargetId}
+	aka := "arn:" + commonColumnData.Partition + ":elasticfilesystem:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":file-system/" + *data.FileSystemId + "/mount-target/" + *data.MountTargetId
 
 	return aka, nil
 }
