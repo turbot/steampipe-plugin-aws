@@ -38,7 +38,7 @@ select
   rule_arn,
   rule_state 
 from 
-  aws_config_rule;
+  aws_config_rule
 where
   rule_state='ACTIVE'
 ```
