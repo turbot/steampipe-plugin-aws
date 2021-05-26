@@ -1,0 +1,227 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_audit_manager_evidence_folder",
+		Description: "AWS Audit Manager Evidence Folder",
+		Get: &plugin.GetConfig{
+			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
+			Hydrate:           getAwsAuditManagerEvidenceFolder,
+		},
+		List: &plugin.ListConfig{
+			ParentHydrate: listAwsAuditManagerAssessments,
+			Hydrate:       listAwsAuditManagerEvidenceFolders,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The name of the specified evidence folder.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "id",
+				Description: "The identifier for the folder in which evidence is stored.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the evidence folder.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAuditManagerEvidenceFolderARN,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "assessment_id",
+				Description: "The identifier for the specified assessment.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "control_set_id",
+				Description: "The identifier for the control set.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "assessment_report_selection_count",
+				Description: "The total count of evidence included in the assessment report.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "author",
+				Description: "The name of the user who created the evidence folder.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "control_id",
+				Description: "The unique identifier for the specified control.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "control_name",
+				Description: "The name of the control.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "data_source",
+				Description: "The AWS service from which the evidence was collected.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "date",
+				Description: "The date when the first evidence was added to the evidence folder.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "evidence_aws_service_source_count",
+				Description: "The total number of AWS resources assessed to generate the evidence.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_by_type_compliance_check_count",
+				Description: "The number of evidence that falls under the compliance check category.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_by_type_compliance_check_issues_count",
+				Description: "The total number of issues that were reported directly from AWS Security Hub, AWS Config, or both.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_by_type_configuration_data_count",
+				Description: "The number of evidence that falls under the configuration data category.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_by_type_manual_count",
+				Description: "The number of evidence that falls under the manual category.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_by_type_user_activity_count",
+				Description: "The number of evidence that falls under the user activity category.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "evidence_resources_included_count",
+				Description: "The amount of evidence included in the evidence folder.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "total_evidence",
+				Description: "The total amount of evidence in the evidence folder.",
+				Type:        proto.ColumnType_INT,
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAuditManagerEvidenceFolderARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listAwsAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsAuditManagerEvidenceFolders", "AWS_REGION", region)
+	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
+
+	// Create session
+	svc, err := AuditManagerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// List call
+	err = svc.GetEvidenceFoldersByAssessmentPages(
+		&auditmanager.GetEvidenceFoldersByAssessmentInput{AssessmentId: &assessmentID},
+		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
+			for _, folder := range page.EvidenceFolders {
+				d.StreamListItem(ctx, folder)
+			}
+			return !isLast
+		},
+	)
+	return nil, err
+}
+
+//// HYDRATE FUNCTIONS
+
+func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsAuditManagerEvidenceFolder")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
+	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
+	evidenceFolderID := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Create Session
+	svc, err := AuditManagerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &auditmanager.GetEvidenceFolderInput{
+		AssessmentId:     aws.String(assessmentID),
+		ControlSetId:     aws.String(controlSetID),
+		EvidenceFolderId: aws.String(evidenceFolderID),
+	}
+
+	// Get call
+	data, err := svc.GetEvidenceFolder(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("getAwsAuditManagerEvidenceFolder", "ERROR", err)
+		return nil, err
+	}
+
+	return data.EvidenceFolder, nil
+}
+
+func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolderARN")
+	evidenceFolderID := *h.Item.(*auditmanager.AssessmentEvidenceFolder).Id
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidencefolder/" + evidenceFolderID
+
+	return arn, nil
+}
