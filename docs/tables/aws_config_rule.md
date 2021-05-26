@@ -18,18 +18,13 @@ select
   maximum_execution_frequency,
   scope,
   source,
-  tags_src,
   title,
-  tags, 
-  akas,
-  partition,
-  region,
-  account_id
+  tags
 from
-  aws_config_rule
+  aws_config_rule;
 ```
 
-### List rules which are in active state
+### List active rules
 
 ```sql
 select
@@ -40,7 +35,7 @@ select
 from 
   aws_config_rule
 where
-  rule_state='ACTIVE'
+  rule_state='ACTIVE';
 ```
 
 ### List rules which have Lambda tag key
@@ -53,5 +48,5 @@ select
 from
   aws_config_rule
 where
-  tags -> 'Lambda' not null
+  tags -> 'Lambda' not null;
 ```

@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+//// TABLE DEFINITION
+
 func tableAwsConfigRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_config_rule",
