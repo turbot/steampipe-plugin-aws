@@ -48,7 +48,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 			{
 				Name:        "rate_limit",
 				Description: "The maximum number of requests, which have an identical value in the field specified by the RateKey, allowed in a five-minute period.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getAwsWafRateBasedRule,
 			},
 			{
@@ -66,7 +66,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -92,6 +92,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWafRateBasedRules")
 	// Create session
@@ -99,6 +100,7 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		return nil, err
 	}
+
 	// List call
 	params := &waf.ListRateBasedRulesInput{}
 	pagesLeft := true
@@ -121,9 +123,10 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 }
 
 ////  HYDRATE FUNCTIONS
+
 func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsWafRateBasedRules")
+	logger.Trace("getAwsWafRateBasedRule")
 	var id string
 	if h.Item != nil {
 		id = rateBasedRuleData(h.Item)
@@ -142,7 +145,7 @@ func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Get call
 	data, err := svc.GetRateBasedRule(params)
 	if err != nil {
-		logger.Debug("getAwsWafRateBasedRules", "ERROR", err)
+		logger.Debug("getAwsWafRateBasedRule", "ERROR", err)
 		return nil, err
 	}
 	return data.Rule, nil
@@ -191,12 +194,12 @@ func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":ratebasedrule" + "/" + id
+	aka := "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":ratebasedrule/" + id
 	return []string{aka}, nil
 }
 
 func wafRateBasedRuletagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tagListToTurbotTags")
+	plugin.Logger(ctx).Trace("wafRateBasedRuletagListToTurbotTags")
 	tagList := d.HydrateItem.(*waf.ListTagsForResourceOutput)
 	if tagList.TagInfoForResource.TagList == nil {
 		return nil, nil
