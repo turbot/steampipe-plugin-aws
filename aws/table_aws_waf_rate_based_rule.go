@@ -151,8 +151,6 @@ func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.
 	return data.Rule, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
 func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWafRateBasedRuleTags")
 
@@ -197,6 +195,8 @@ func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	aka := "arn:" + commonColumnData.Partition + ":waf::" + commonColumnData.AccountId + ":ratebasedrule/" + id
 	return []string{aka}, nil
 }
+
+//// TRANSFORM FUNCTIONS
 
 func wafRateBasedRuletagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("wafRateBasedRuletagListToTurbotTags")
