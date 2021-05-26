@@ -40,6 +40,13 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the association.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getSSMAssociationARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "document_name",
 				Description: "The name of the Systems Manager document.",
 				Type:        proto.ColumnType_STRING,
@@ -180,8 +187,8 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSSMAssociationAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getSSMAssociationARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -347,17 +354,17 @@ func getComplianceDetails(instanceId *string, svc *ssm.SSM) (*ssm.ListCompliance
 	return data, nil
 }
 
-func getAwsSSMAssociationAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMAssociationAkas")
+func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getSSMAssociationARN")
 	associationData := associationID(h.Item)
 	c, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData}
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData
 
-	return aka, nil
+	return arn, nil
 }
 
 func associationID(item interface{}) string {
