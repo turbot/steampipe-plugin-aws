@@ -16,7 +16,7 @@ from
 ```
 
 
-### List ratebasedrules whose predicates are based on negation
+### List rate-based rules that allows or blocks a request based on the negation of the settings in predicates
 
 ```sql
 select
