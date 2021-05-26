@@ -53,5 +53,5 @@ select
 from
   aws_config_rule
 where
-  tags -> 'Lambda' not null;
+  tags -> 'Lambda' not null
 ```
