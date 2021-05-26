@@ -49,7 +49,7 @@ data "null_data_source" "resource" {
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT
-      aws auditmanager create-control --name ${var.resource_name} --control-mapping-sources "sourceName"=${var.resource_name},"sourceType"="AWS_Cloudtrail","sourceSetUpOption"="System_Controls_Mapping",sourceKeyword="{keywordInputType="SELECT_FROM_LIST",keywordValue="a4b_ApproveSkill"}" --tags name=${var.resource_name} > ${path.cwd}/control.json;
+      aws auditmanager create-control --name ${var.resource_name} --control-mapping-sources "sourceName"=${var.resource_name},"sourceType"="AWS_Cloudtrail","sourceSetUpOption"="System_Controls_Mapping",sourceKeyword="{keywordInputType="SELECT_FROM_LIST",keywordValue="a4b_ApproveSkill"}" --tags name=${var.resource_name} --profile ${var.aws_profile} > ${path.cwd}/control.json;
     EOT
   }
 }
