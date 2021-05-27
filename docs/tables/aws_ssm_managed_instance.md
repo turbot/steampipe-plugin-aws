@@ -18,7 +18,7 @@ from
   aws_ssm_managed_instance;
 ```
 
-### List managed instances with no association
+### List managed instances with no associations
 
 ```sql
 select
