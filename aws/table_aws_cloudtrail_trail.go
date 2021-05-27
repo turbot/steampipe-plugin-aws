@@ -9,6 +9,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 )
 
@@ -244,9 +245,7 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{
-		IncludeShadowTrails: aws.Bool(false),
-	})
+	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{})
 	if err != nil {
 		return nil, err
 	}
@@ -284,8 +283,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &cloudtrail.DescribeTrailsInput{
-		TrailNameList:       []*string{aws.String(name)},
-		IncludeShadowTrails: aws.Bool(false),
+		TrailNameList: []*string{aws.String(name)},
 	}
 
 	// execute list call
@@ -411,6 +409,11 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	resp, err := svc.ListTags(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "CloudTrailARNInvalidException" || a.Code() == "InvalidTrailNameException" || a.Code() == "TrailNotFoundException" {
+				return []*cloudtrail.Tag{}, nil
+			}
+		}
 		return nil, err
 	}
 
