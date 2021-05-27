@@ -9,6 +9,6 @@ select
   aws_account,
   scope
 from
-  aws.aws_audit_manager_assessment
+  aws.aws_auditmanager_assessment
 where
   id = '{{ output.assessment_id.value }}';
