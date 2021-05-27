@@ -2,6 +2,8 @@
 
 An Amazon Machine Image is a special type of virtual appliance that is used to create a virtual machine within the Amazon Elastic Compute Cloud.
 
+The `aws_ec2_ami` lists only private images.  To list public images, or images that are shared with your account, use `aws_ec2_ami_shared`.
+
 ## Examples
 
 ### Basic AMI info

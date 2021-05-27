@@ -77,6 +77,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ebs_volume_metric_write_ops_daily":             tableAwsEbsVolumeMetricWriteOpsDaily(ctx),
 			"aws_ebs_volume_metric_write_ops_hourly":            tableAwsEbsVolumeMetricWriteOpsHourly(ctx),
 			"aws_ec2_ami":                                       tableAwsEc2Ami(ctx),
+			"aws_ec2_ami_shared":                                tableAwsEc2AmiShared(ctx),
 			"aws_ec2_application_load_balancer":                 tableAwsEc2ApplicationLoadBalancer(ctx),
 			"aws_ec2_autoscaling_group":                         tableAwsEc2ASG(ctx),
 			"aws_ec2_classic_load_balancer":                     tableAwsEc2ClassicLoadBalancer(ctx),
