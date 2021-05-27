@@ -18,7 +18,7 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 		Description: "AWS Audit Manager Evidence Folder",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
 			Hydrate:           getAwsAuditManagerEvidenceFolder,
 		},
 		List: &plugin.ListConfig{
@@ -175,7 +175,7 @@ func listAwsAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAuditManagerEvidenceFolder")
 
 	var region string
@@ -221,7 +221,7 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidencefolder/" + evidenceFolderID
+	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
 
 	return arn, nil
 }
