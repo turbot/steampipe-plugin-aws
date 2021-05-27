@@ -12,7 +12,7 @@ select
   arn,
   comment,
   s3_canonical_user_id,
-  e_tag
+  etag
 from
   aws_cloudfront_origin_access_identity;
 ```

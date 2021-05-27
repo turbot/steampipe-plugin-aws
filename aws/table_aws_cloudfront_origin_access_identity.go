@@ -24,7 +24,7 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "id",
 				Description: "The ID for the origin access identity.",
@@ -58,10 +58,11 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Comment", "CloudFrontOriginAccessIdentity.CloudFrontOriginAccessIdentityConfig.Comment"),
 			},
 			{
-				Name:        "e_tag",
+				Name:        "etag",
 				Description: "The current version of the origin access identity's information.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudFrontOriginAccessIdentity,
+				Transform:   transform.FromField("ETag"),
 			},
 
 			//  Steampipe standard columns
