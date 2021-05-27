@@ -2,6 +2,7 @@
 
 Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_service_daily` table provides a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by day, for the last year.  
 
+Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
 
 ## Examples
 

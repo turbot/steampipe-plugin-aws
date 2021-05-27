@@ -4,6 +4,7 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 
 This tables requires an '=' qualifier for all of the following columns: granularity,dimension_type_1,dimension_type_2
 
+Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
 
 ## Examples
 

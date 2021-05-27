@@ -2,7 +2,7 @@
 
 Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_forecast_monthly` table retrieves a forecast for how much Amazon Web Services predicts that you will spend each month over the next 12 months, based on your past costs.
 
-
+Note that [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request will incur a cost of $0.01.
 
 ## Examples
 
