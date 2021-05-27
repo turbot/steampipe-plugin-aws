@@ -47,42 +47,10 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_vpc" "main" {
-  cidr_block                     = "172.31.0.0/16"
-  enable_dns_hostnames           = true
-  enable_dns_support             = true
-  enable_classiclink_dns_support = false
-  instance_tenancy               = "default"
-}
+resource "aws_default_vpc" "default" {}
 
-resource "aws_security_group" "security_group" {
-  description = "Allow TLS inbound traffic"
-  vpc_id      = aws_vpc.main.id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = false
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_subnet" "named_test_resource" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "172.31.16.0/20"
-  map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}c"
-  depends_on              = [aws_internet_gateway.igw]
+resource "aws_default_subnet" "default_subnet" {
+  availability_zone = "${var.aws_region}c"
 }
 
 data "aws_ami" "linux" {
@@ -123,7 +91,7 @@ resource "aws_iam_instance_profile" "named_test_resource" {
 resource "aws_instance" "named_test_resource" {
   ami                         = data.aws_ami.linux.id
   instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.named_test_resource.id
+  subnet_id                   = aws_default_subnet.default_subnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.named_test_resource.name
   tags = {
