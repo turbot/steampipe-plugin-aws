@@ -109,7 +109,7 @@ where
   not vol.encrypted;
 ```
 
-### List instances having secrets in user data
+### List instances with secrets in user data
 
 ```sql
 select
