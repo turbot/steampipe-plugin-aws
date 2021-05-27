@@ -10,6 +10,7 @@ An association is a configuration that is assigned to your managed instances. Th
 select
   association_id,
   association_name,
+  arn,
   association_version,
   last_execution_date,
   document_name,

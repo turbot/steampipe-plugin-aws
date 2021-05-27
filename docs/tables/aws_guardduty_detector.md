@@ -9,6 +9,7 @@ Amazon GuardDuty is a threat detection service that continuously monitors for ma
 ```sql
 select
   detector_id,
+  arn,
   created_at,
   status,
   service_role

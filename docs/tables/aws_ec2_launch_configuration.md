@@ -4,7 +4,7 @@ A launch configuration is a template that an EC2 Auto Scaling group uses to laun
 
 ## Examples
 
-### Basic AMI info
+### Basic launch configuration info
 
 ```sql
 select
@@ -20,8 +20,7 @@ from
   aws_ec2_launch_configuration;
 ```
 
-
-### IAM role attached to each Launch Configurations
+### Get IAM role attached to each launch configuration
 
 ```sql
 select
@@ -31,8 +30,7 @@ from
   aws_ec2_launch_configuration;
 ```
 
-
-### List Launch Configurations with public IPs
+### List launch configurations with public IPs
 
 ```sql
 select
@@ -44,8 +42,7 @@ where
   associate_public_ip_address;
 ```
 
-
-### Security groups attached to each Launch Configuration
+### Security groups attached to each launch configuration
 
 ```sql
 select
@@ -53,4 +50,17 @@ select
   jsonb_array_elements_text(security_groups) as security_groups
 from
   aws_ec2_launch_configuration;
+```
+
+### List launch configurations with secrets in user data
+
+```sql
+select
+  name,
+  user_data
+from
+  aws_ec2_launch_configuration
+where
+  user_data like any (array ['%pass%', '%secret%','%token%','%key%'])
+  or user_data ~ '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]';
 ```
