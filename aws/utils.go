@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"math"
 	"net/url"
@@ -145,4 +146,12 @@ func getLastPathElement(path string) string {
 
 func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	return getLastPathElement(types.SafeString(d.Value)), nil
+}
+
+func base64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data, err := base64.StdEncoding.DecodeString(types.SafeString(d.Value))
+	if err != nil {
+		return nil, nil
+	}
+	return data, nil
 }
