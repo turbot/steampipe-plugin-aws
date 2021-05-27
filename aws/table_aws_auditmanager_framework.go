@@ -15,7 +15,7 @@ import (
 
 func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_audit_manager_framework",
+		Name:        "aws_auditmanager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "region"}),

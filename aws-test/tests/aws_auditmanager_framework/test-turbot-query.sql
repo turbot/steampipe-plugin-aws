@@ -1,3 +1,3 @@
 select title, akas
-from aws.aws_audit_manager_framework
+from aws.aws_auditmanager_framework
 where id = '{{ output.id.value }}';
