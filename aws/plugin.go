@@ -38,6 +38,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gateway_usage_plan":             tableAwsAPIGatewayUsagePlan(ctx),
 			"aws_api_gatewayv2_api":                  tableAwsAPIGatewayV2Api(ctx),
 			"aws_api_gatewayv2_domain_name":          tableAwsAPIGatewayV2DomainName(ctx),
+			"aws_api_gatewayv2_integration":          tableAwsAPIGatewayV2Integration(ctx),
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
 			"aws_appautoscaling_target":              tableAwsAppAutoScalingTarget(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
