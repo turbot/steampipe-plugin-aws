@@ -94,6 +94,7 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 				Name:        "user_data",
 				Description: "The Base64-encoded user data to make available to the launched EC2 instances.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("UserData").Transform(base64DecodedData),
 			},
 			{
 				Name:        "placement_tenancy",
@@ -146,6 +147,8 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 				Description: "A list that contains the security groups to assign to the instances in the Auto Scaling group.",
 				Type:        proto.ColumnType_JSON,
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
