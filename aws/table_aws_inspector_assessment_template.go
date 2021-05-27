@@ -86,7 +86,13 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsInspectorAssessmentTemplateTags,
 				Transform:   transform.FromField("Tags"),
 			},
-
+			{
+				Name:        "event_subscriptions",
+				Description: "A list of event subscriptions associated with the Assessment Template.",
+				Type:        pb.ColumnType_JSON,
+				Hydrate:     getAwsInspectorAssessmentEventSubscriptions,
+				Transform:   transform.FromField("Subscriptions"),
+			},
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -214,6 +220,40 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
 		logger.Debug("getAwsInspectorAssessmentTemplateTags", "ERROR", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+// API call for fetching event subscriptions
+func getAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsInspectorAssessmentTemplateEventSubscriptions")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
+
+	// Create Session
+	svc, err := InspectorService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &inspector.ListEventSubscriptionsInput{
+		ResourceArn: &assessmentTemplateArn,
+	}
+
+	// Get call
+	op, err := svc.ListEventSubscriptions(params)
+	if err != nil {
+		logger.Debug("getAwsInspectorAssessmentEventSubscriptions", "ERROR", err)
 		return nil, err
 	}
 
