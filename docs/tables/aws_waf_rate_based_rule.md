@@ -1,6 +1,6 @@
 # Table: aws_waf_rate_based_rule
 
-AWS WAF RateBasedRule counts the number of requests that arrive from a specified IP address every five minutes.
+AWS WAF rate-based rules count the number of requests that arrive from a specified IP address every five minutes.
 
 ## Examples
 
@@ -16,7 +16,7 @@ from
 ```
 
 
-### List rate-based rules that allows or blocks a request based on the negation of the settings in predicates
+### List rate-based rules that allow a request based on the negation of the settings in predicates
 
 ```sql
 select
