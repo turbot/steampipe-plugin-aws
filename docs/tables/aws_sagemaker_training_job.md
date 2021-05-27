@@ -1,6 +1,6 @@
 # Table: aws_sagemaker_training_job
 
-A Training job helps to train a model in Amazon SageMaker.
+A training job helps to train a model in Amazon SageMaker.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_sagemaker_training_job;
 ```
 
-### Get details of ML compute instances and ML storage volumes associated with training job
+### Get details of associated ML compute instances and storage volumes for each training job
 
 ```sql
 select
@@ -31,7 +31,7 @@ from
   aws_sagemaker_training_job;
 ```
 
-### List of failed training jobs
+### List failed training jobs
 
 ```sql
 select
