@@ -1,0 +1,12 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
+    "application_name": "{{ resourceName }}",
+    "application_version_id": 1,
+    "partition": "{{ output.aws_partition.value }}",
+    "runtime_environment": "SQL-1_0",
+    "service_execution_role": "arn:aws:iam::{{ output.account_id.value }}:role/{{ resourceName }}",
+    "title": "{{ resourceName }}"
+  }
+]
