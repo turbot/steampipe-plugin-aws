@@ -174,6 +174,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_security_group_rule":            tableAwsVpcSecurityGroupRule(ctx),
 			"aws_vpc_subnet":                         tableAwsVpcSubnet(ctx),
 			"aws_vpc_vpn_gateway":                    tableAwsVpcVpnGateway(ctx),
+			"aws_waf_rate_based_rule":                tableAwsWafRateBasedRule(ctx),
 			"aws_waf_rule":                           tableAwsWAFRule(ctx),
 			"aws_wafv2_ip_set":                       tableAwsWafv2IpSet(ctx),
 			"aws_wafv2_regex_pattern_set":            tableAwsWafv2RegexPatternSet(ctx),
