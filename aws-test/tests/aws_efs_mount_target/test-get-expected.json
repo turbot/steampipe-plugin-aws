@@ -1,0 +1,8 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "file_system_id": "{{ output.file_system_id.value }}",
+    "mount_target_id": "{{ output.mount_target_id.value }}",
+    "title": "{{ output.mount_target_id.value }}"
+  }
+]
