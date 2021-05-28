@@ -1,0 +1,5 @@
+[
+  {
+    "integration_id": "{{output.resource_id.value}}"
+  }
+]
