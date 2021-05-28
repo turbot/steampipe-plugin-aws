@@ -14,7 +14,7 @@ import (
 
 func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_audit_manager_control",
+		Name:        "aws_auditmanager_control",
 		Description: "AWS Audit Manager Control",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),

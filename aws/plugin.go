@@ -41,7 +41,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_api_gatewayv2_stage":                tableAwsAPIGatewayV2Stage(ctx),
 			"aws_appautoscaling_target":              tableAwsAppAutoScalingTarget(ctx),
 			"aws_availability_zone":                  tableAwsAvailabilityZone(ctx),
-			"aws_audit_manager_control":              tableAwsAuditManagerControl(ctx),
+			"aws_auditmanager_control":               tableAwsAuditManagerControl(ctx),
 			"aws_backup_plan":                        tableAwsBackupPlan(ctx),
 			"aws_backup_vault":                       tableAwsBackupVault(ctx),
 			"aws_cloudformation_stack":               tableAwsCloudFormationStack(ctx),
