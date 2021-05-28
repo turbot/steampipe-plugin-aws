@@ -75,7 +75,7 @@ resource "aws_cloudfront_cache_policy" "named_test_resource" {
 }
 
 output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:cloudfront::${data.aws_caller_identity.current.account_id}:cachepolicy/${aws_cloudfront_cache_policy.named_test_resource.id}"
+  value = "arn:${data.aws_partition.current.partition}:cloudfront::${data.aws_caller_identity.current.account_id}:cache-policy/${aws_cloudfront_cache_policy.named_test_resource.id}"
 }
 
 output "resource_id" {

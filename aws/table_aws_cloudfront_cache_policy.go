@@ -159,7 +159,7 @@ func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":cloudfront::" + commonColumnData.AccountId + ":cachepolicy/" + *id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":cloudfront::" + commonColumnData.AccountId + ":cache-policy/" + *id}
 
 	return akas, nil
 }
