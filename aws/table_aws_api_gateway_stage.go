@@ -34,6 +34,13 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Stage.StageName"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the  stage.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAPIGatewayStageArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "rest_api_id",
 				Description: "The id of the rest api which contains this stage.",
 				Type:        proto.ColumnType_STRING,
@@ -147,8 +154,8 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAPIGatewayStageAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getAPIGatewayStageArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -228,8 +235,8 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	return &stageRowData{stageData, aws.String(restAPIID)}, nil
 }
 
-func getAPIGatewayStageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGAtewayStageAkas")
+func getAPIGatewayStageArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayStageArn")
 	apiStage := h.Item.(*stageRowData)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -237,6 +244,6 @@ func getAPIGatewayStageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/restapis/" + *apiStage.RestAPIId + "/stages/" + *apiStage.Stage.StageName}
-	return akas, nil
+	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/restapis/" + *apiStage.RestAPIId + "/stages/" + *apiStage.Stage.StageName
+	return arn, nil
 }
