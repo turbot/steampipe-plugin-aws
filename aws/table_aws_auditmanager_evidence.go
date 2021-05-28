@@ -1,0 +1,311 @@
+package aws
+
+import (
+	"context"
+	"sync"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+type evidenceInfo struct {
+	Evidence     *auditmanager.Evidence
+	AssessmentID *string
+	ControlSetID *string
+}
+
+//// TABLE DEFINITION
+
+func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_auditmanager_evidence",
+		Description: "AWS Audit Manager Evidence",
+		Get: &plugin.GetConfig{
+			KeyColumns:        plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
+			Hydrate:           getAwsAuditManagerEvidence,
+		},
+		List: &plugin.ListConfig{
+			ParentHydrate: listAwsAuditManagerAssessments,
+			Hydrate:       listAwsAuditManagerEvidences,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.Id"),
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAuditManagerEvidenceARN,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "assessment_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AssessmentID"),
+			},
+			{
+				Name:        "control_set_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ControlSetID"),
+			},
+			{
+				Name:        "evidence_folder_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.EvidenceFolderId"),
+			},
+			{
+				Name:        "assessment_report_selection",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.AssessmentReportSelection"),
+			},
+			{
+				Name:        "attributes",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.Attributes"),
+			},
+			{
+				Name:        "aws_account_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.AwsAccountId"),
+			},
+			{
+				Name:        "aws_organization",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.AwsOrganization"),
+			},
+			{
+				Name:        "compliance_check",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.ComplianceCheck"),
+			},
+			{
+				Name:        "data_source",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.DataSource"),
+			},
+			{
+				Name:        "event_name",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.EventName"),
+			},
+			{
+				Name:        "event_source",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.EventSource"),
+			},
+			{
+				Name:        "evidence_aws_account_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.EvidenceAwsAccountId"),
+			},
+			{
+				Name:        "evidence_by_type",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.EvidenceByType"),
+			},
+			{
+				Name:        "iam_id",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.IamId"),
+			},
+			{
+				Name:        "time",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("Evidence.Time"),
+			},
+			{
+				Name:        "resources_included",
+				Description: "The identifier for the evidence.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Evidence.ResourcesIncluded"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Evidence.Id"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAuditManagerEvidenceARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listAwsAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listAwsAuditManagerEvidences", "AWS_REGION", region)
+	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
+
+	// Create session
+	svc, err := AuditManagerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
+
+	evidenceFolderList, err := svc.GetEvidenceFoldersByAssessment(&auditmanager.GetEvidenceFoldersByAssessmentInput{
+		AssessmentId: aws.String(assessmentID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, evidenceFolder := range evidenceFolderList.EvidenceFolders {
+		evidenceFolders = append(evidenceFolders, *evidenceFolder)
+	}
+
+	var wg sync.WaitGroup
+	evidenceCh := make(chan []evidenceInfo, len(evidenceFolders))
+	errorCh := make(chan error, len(evidenceFolders))
+
+	// Iterating all the available evidence folder
+	for _, item := range evidenceFolders {
+		wg.Add(1)
+		go getRowDataForEvidenceAsync(ctx, d, item, &wg, evidenceCh, errorCh, region)
+	}
+
+	// wait for all evidence folder to be processed
+	wg.Wait()
+	close(evidenceCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		return nil, err
+	}
+
+	for item := range evidenceCh {
+		for _, data := range item {
+			d.StreamLeafListItem(ctx, evidenceInfo{data.Evidence, data.AssessmentID, data.ControlSetID})
+		}
+	}
+
+	return nil, err
+}
+
+func getRowDataForEvidenceAsync(ctx context.Context, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, wg *sync.WaitGroup, subnetCh chan []evidenceInfo, errorCh chan error, region string) {
+	defer wg.Done()
+
+	rowData, err := getRowDataForEvidence(ctx, d, item, region)
+	if err != nil {
+		errorCh <- err
+	} else if rowData != nil {
+		subnetCh <- rowData
+	}
+}
+
+func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, region string) ([]evidenceInfo, error) {
+	svc, err := AuditManagerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &auditmanager.GetEvidenceByEvidenceFolderInput{
+		AssessmentId:     item.AssessmentId,
+		ControlSetId:     item.ControlSetId,
+		EvidenceFolderId: item.Id,
+	}
+
+	var items []evidenceInfo
+
+	listEvidence, err := svc.GetEvidenceByEvidenceFolder(params)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, evidence := range listEvidence.Evidence {
+		items = append(items, evidenceInfo{evidence, item.AssessmentId, item.ControlSetId})
+	}
+	return items, err
+}
+
+//// HYDRATE FUNCTIONS
+
+func getAwsAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsAuditManagerEvidence")
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	// Create Session
+	svc, err := AuditManagerService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	AssessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
+	ControlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
+	EvidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
+	EvidenceID := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Build the params
+	params := &auditmanager.GetEvidenceInput{
+		AssessmentId:     aws.String(AssessmentID),
+		ControlSetId:     aws.String(ControlSetID),
+		EvidenceFolderId: aws.String(EvidenceFolderID),
+		EvidenceId:       aws.String(EvidenceID),
+	}
+
+	// Get call
+	data, err := svc.GetEvidence(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("getAwsAuditManagerEvidence", "ERROR", err)
+		return nil, err
+	}
+
+	return evidenceInfo{data.Evidence, &AssessmentID, &ControlSetID}, nil
+}
+
+func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAuditManagerEvidenceARN")
+	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidence/" + evidenceID
+
+	return arn, nil
+}
