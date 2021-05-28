@@ -1,6 +1,7 @@
 [
   {
     "allocation_id": "{{ output.resource_id.value }}",
+    "arn": "{{ output.resource_aka.value }}",
     "domain": "vpc",
     "public_ip": "{{ output.public_ip.value }}",
     "public_ipv4_pool": "amazon",
