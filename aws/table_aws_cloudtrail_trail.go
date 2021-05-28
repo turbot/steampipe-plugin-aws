@@ -323,6 +323,11 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	// List resource tags
 	item, err := svc.GetTrailStatus(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "TrailNotFoundException" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 	return item, nil
@@ -352,6 +357,11 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	// List resource tags
 	item, err := svc.GetEventSelectors(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "TrailNotFoundException" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 	return item, nil
@@ -381,6 +391,11 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	// List resource tags
 	item, err := svc.GetInsightSelectors(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "TrailNotFoundException" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 	return item, nil
