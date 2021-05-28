@@ -166,7 +166,6 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 			{
 				Name:        "targets",
 				Description: "The instances targeted by the request to create an association.",
-				Hydrate:     getAwsSSMAssociation,
 				Type:        proto.ColumnType_JSON,
 			},
 			{
