@@ -24,7 +24,7 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontCachePolicies,
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "A unique name to identify the cache policy.",
@@ -50,10 +50,11 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CachePolicy.CachePolicyConfig.DefaultTTL"),
 			},
 			{
-				Name:        "e_tag",
+				Name:        "etag",
 				Description: "The current version of the cache policy.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudFrontCachePolicy,
+				Transform:   transform.FromField("ETag"),
 			},
 			{
 				Name:        "max_ttl",

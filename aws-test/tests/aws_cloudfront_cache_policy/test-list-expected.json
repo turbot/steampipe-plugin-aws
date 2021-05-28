@@ -1,7 +1,7 @@
 [
   {
     "comment": "{{ resourceName }}",
-    "e_tag": "{{ output.etag.value }}",
+    "etag": "{{ output.etag.value }}",
     "id": "{{ output.resource_id.value }}",
     "name": "{{ resourceName }}"
   }

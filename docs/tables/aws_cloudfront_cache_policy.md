@@ -12,7 +12,7 @@ select
   name,
   comment,
   min_ttl,
-  e_tag,
+  etag,
   last_modified_time
 from
   aws_cloudfront_cache_policy;
