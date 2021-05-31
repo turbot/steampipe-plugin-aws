@@ -86,3 +86,18 @@ from
   aws_elasticache_cluster,
   jsonb_array_elements(security_groups) as sg;
 ```
+
+
+### Check Minimum snapshot retention period for Redis cluster is 15 days
+
+```sql
+select
+  cache_cluster_id,
+  cache_node_type,
+  at_rest_encryption_enabled,
+  snapshot_retention_limit
+from
+  aws_elasticache_cluster
+where
+  snapshot_retention_limit > 15;
+```
