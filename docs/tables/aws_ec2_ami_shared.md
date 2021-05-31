@@ -39,5 +39,5 @@ from
   aws_ec2_instance as i
  join aws_ec2_ami_shared as ami on i.image_id = ami.image_id
 where
-  ami.owner_id = '137112412989'
+  ami.owner_id = '137112412989';
 ```

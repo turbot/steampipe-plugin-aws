@@ -298,12 +298,9 @@ func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interf
 	data := d.HydrateItem.(*ec2.Image)
 
 	title := data.ImageId
-	if data.Tags != nil {
-		for _, i := range data.Tags {
-			if *i.Key == "Name" {
-				title = i.Value
-			}
-		}
+	if data.Name != nil {
+		title = data.Name
 	}
+
 	return title, nil
 }
