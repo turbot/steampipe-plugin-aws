@@ -149,13 +149,6 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Description: "Any product codes associated with the AMI.",
 				Type:        proto.ColumnType_JSON,
 			},
-			// {
-			// 	Name:        "launch_permissions",
-			// 	Description: "The users and groups that have the permissions for creating instances from the AMI.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getAwsEc2AmiLaunchPermissionData,
-			// 	Transform:   transform.FromField("LaunchPermissions"),
-			// },
 			{
 				Name:        "tags_src",
 				Description: "A list of tags attached to the AMI.",
@@ -163,7 +156,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),

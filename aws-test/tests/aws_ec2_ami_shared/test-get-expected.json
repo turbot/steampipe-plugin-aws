@@ -1,0 +1,44 @@
+[
+  {
+    "architecture": "x86_64",
+    "block_device_mappings": [
+      {
+        "DeviceName":"/dev/sda1",
+        "Ebs": {
+          "DeleteOnTermination":true,
+          "Encrypted":false,
+          "Iops":null,
+          "KmsKeyId":null,
+          "OutpostArn": null,
+          "SnapshotId":"{{ output.snapshot_id.value }}",
+          "Throughput": null,
+          "VolumeSize":8,
+          "VolumeType":"standard"
+        },
+        "NoDevice":null,
+        "VirtualName":null
+      }
+    ],
+    "description": "This is a test image.",
+    "ena_support": false,
+    "hypervisor": "xen",
+    "image_id": "{{ output.resource_id.value }}",
+    "image_location": "{{ output.account_id.value }}/{{ resourceName }}",
+    "image_type": "machine",
+    "name": "{{ resourceName }}",
+    "owner_id": "{{ output.account_id.value }}",
+    "platform_details": "Linux/UNIX",
+    "public": false,
+    "root_device_name": "/dev/sda1",
+    "root_device_type": "ebs",
+    "sriov_net_support": "simple",
+    "tags_src": [
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "usage_operation": "RunInstances",
+    "virtualization_type": "hvm"
+  }
+]
