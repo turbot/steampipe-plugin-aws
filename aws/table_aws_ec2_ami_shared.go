@@ -158,16 +158,16 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 
 			// Steampipe standard columns
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEc2AmiTurbotTags),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(getEc2AmiTurbotTitle),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getEc2AmiTurbotTags),
 			},
 			{
 				Name:        "akas",

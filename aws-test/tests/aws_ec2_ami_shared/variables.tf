@@ -57,35 +57,26 @@ data "null_data_source" "resource" {
 }
 
 # Create AWS > EBS > Volume
-resource "aws_ebs_volume" "my_volume" {
+resource "aws_ebs_volume" "named_test_resource" {
   availability_zone = "us-east-1a"
   size              = 8
-  tags = {
-    Name = "turbot-volume-test"
-  }
 }
 
 # Create AWS > EBS > Snapshot
-resource "aws_ebs_snapshot" "my_snapshot" {
-  volume_id = aws_ebs_volume.my_volume.id
-  tags = {
-    Name = "turbot-snapshot-test"
-  }
+resource "aws_ebs_snapshot" "named_test_resource" {
+  volume_id = aws_ebs_volume.named_test_resource.id
 }
 
 # Create AWS > EC2 > AMI
 resource "aws_ami" "named_test_resource" {
   name                = var.resource_name
-  description         = "This is a test image."
+  description         = var.resource_name
   virtualization_type = "hvm"
   root_device_name    = "/dev/sda1"
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = aws_ebs_snapshot.my_snapshot.id
+    snapshot_id = aws_ebs_snapshot.named_test_resource.id
     volume_size = 8
-  }
-  tags = {
-    Name = var.resource_name
   }
 }
 
@@ -134,5 +125,5 @@ output "resource_id" {
 }
 
 output "snapshot_id" {
-  value = aws_ebs_snapshot.my_snapshot.id
+  value = aws_ebs_snapshot.named_test_resource.id
 }

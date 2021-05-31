@@ -19,7 +19,7 @@
         "VirtualName":null
       }
     ],
-    "description": "This is a test image.",
+    "description": "{{ resourceName }}",
     "ena_support": false,
     "hypervisor": "xen",
     "image_id": "{{ output.resource_id.value }}",
@@ -32,12 +32,6 @@
     "root_device_name": "/dev/sda1",
     "root_device_type": "ebs",
     "sriov_net_support": "simple",
-    "tags_src": [
-      {
-        "Key": "Name",
-        "Value": "{{ resourceName }}"
-      }
-    ],
     "usage_operation": "RunInstances",
     "virtualization_type": "hvm"
   }
