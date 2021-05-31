@@ -18,7 +18,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_dms_replication_instance",
 		Description: "AWS DMS Replication Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("replication_instance_arn"),
+			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
 			Hydrate:           getDmsReplicationInstance,
 		},
@@ -33,9 +33,10 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "replication_instance_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the replication instance.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ReplicationInstanceArn"),
 			},
 			{
 				Name:        "replication_instance_class",
@@ -91,7 +92,6 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Name:        "multi_az",
 				Description: "Specifies whether the replication instance is a Multi-AZ deployment.",
 				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromField("MultiAZ"),
 			},
 			{
 				Name:        "preferred_maintenance_window",
@@ -223,7 +223,7 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	arn := d.KeyColumnQuals["replication_instance_arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	params := &databasemigrationservice.DescribeReplicationInstancesInput{
 		Filters: []*databasemigrationservice.Filter{
