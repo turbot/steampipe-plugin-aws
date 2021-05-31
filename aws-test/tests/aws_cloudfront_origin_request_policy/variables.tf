@@ -89,6 +89,6 @@ output "resource_id" {
   value = aws_cloudfront_origin_request_policy.named_test_resource.id
 }
 
-output "e_tag" {
+output "etag" {
   value = aws_cloudfront_origin_request_policy.named_test_resource.etag
 }

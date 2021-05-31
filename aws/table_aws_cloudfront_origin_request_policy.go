@@ -44,22 +44,17 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Comment", "OriginRequestPolicy.OriginRequestPolicyConfig.Comment"),
 			},
 			{
-				Name:        "e_tag",
+				Name:        "etag",
 				Description: "The current version of the origin request policy.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudFrontOriginRequestPolicy,
+				Transform:   transform.FromField("ETag"),
 			},
 			{
 				Name:        "last_modified_time",
 				Description: "The date and time when the origin request policy was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LastModifiedTime", "OriginRequestPolicy.LastModifiedTime"),
-			},
-			// We are getting  type property only in list call response
-			{
-				Name:        "type",
-				Description: "The type of origin request policy, either managed (created by AWS) or custom (created in this AWS account).",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cookies_config",

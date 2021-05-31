@@ -2,7 +2,7 @@
   {
     "account_id": "{{ output.account_id.value }}",
     "comment": "{{ resourceName }}",
-    "e_tag": "{{ output.e_tag.value }}",
+    "etag": "{{ output.etag.value }}",
     "id": "{{ output.resource_id.value }}",
     "title": "{{ resourceName }}"
   }
