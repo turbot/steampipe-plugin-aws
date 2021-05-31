@@ -51,7 +51,7 @@ resource "aws_cloudfront_origin_access_identity" "named_test_resource" {
 }
 
 output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:cloudfront:${data.aws_caller_identity.current.account_id}:originaccessidentity/${aws_cloudfront_origin_access_identity.named_test_resource.id}"
+  value = "arn:${data.aws_partition.current.partition}:cloudfront:${data.aws_caller_identity.current.account_id}:origin-access-identity/${aws_cloudfront_origin_access_identity.named_test_resource.id}"
 }
 
 output "resource_id" {

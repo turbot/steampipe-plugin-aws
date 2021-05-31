@@ -148,7 +148,7 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":cloudfront:" + commonColumnData.AccountId + ":originaccessidentity/" + originAccessIdentityData
+	arn := "arn:" + commonColumnData.Partition + ":cloudfront:" + commonColumnData.AccountId + ":origin-access-identity/" + originAccessIdentityData
 
 	return arn, nil
 }
