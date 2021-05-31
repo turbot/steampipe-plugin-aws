@@ -14,7 +14,7 @@ import (
 
 func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_audit_manager_evidence_folder",
+		Name:        "aws_auditmanager_evidence_folder",
 		Description: "AWS Audit Manager Evidence Folder",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
