@@ -2,7 +2,7 @@
 
 An Amazon Machine Image is a special type of virtual appliance that is used to create a virtual machine within the Amazon Elastic Compute Cloud.
 
-The `aws_ec2_ami` lists only private images.  To list public images, or images that are shared with your account, use `aws_ec2_ami_shared`.
+The `aws_ec2_ami` lists only private images. To list public images, or images that are shared with your account, use `aws_ec2_ami_shared`.
 
 ## Examples
 
@@ -21,7 +21,6 @@ from
   aws_ec2_ami;
 ```
 
-
 ### List of public AMIs
 
 ```sql
@@ -34,7 +33,6 @@ from
 where
   public;
 ```
-
 
 ### AWS AMI Volume info
 
@@ -49,7 +47,6 @@ from
   cross join jsonb_array_elements(block_device_mappings) as mapping;
 ```
 
-
 ### AWS AMI Block Device Encryption status
 
 ```sql
@@ -62,7 +59,6 @@ from
   aws_ec2_ami
   cross join jsonb_array_elements(block_device_mappings) as mapping;
 ```
-
 
 ### AWS AMI Block Device Deletion Protection info
 

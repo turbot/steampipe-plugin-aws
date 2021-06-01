@@ -191,6 +191,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	plugin.Logger(ctx).Trace("listAmisByOwner", "AWS_REGION", region)
 
 	owner_id := d.KeyColumnQuals["owner_id"].GetStringValue()
+
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
