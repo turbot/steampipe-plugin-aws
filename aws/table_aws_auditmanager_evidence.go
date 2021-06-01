@@ -25,12 +25,12 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Description: "AWS Audit Manager Evidence",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsAuditManagerEvidence,
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			Hydrate:           getAuditManagerEvidence,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
-			Hydrate:       listAwsAuditManagerEvidences,
+			Hydrate:       listAuditManagerEvidences,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -70,12 +70,6 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 				Description: "Specifies whether the evidence is inclded in the assessment report.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Evidence.AssessmentReportSelection"),
-			},
-			{
-				Name:        "attributes",
-				Description: "The names and values used by the evidence event",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Evidence.Attributes"),
 			},
 			{
 				Name:        "aws_account_id",
@@ -138,6 +132,12 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Evidence.Time"),
 			},
 			{
+				Name:        "attributes",
+				Description: "The names and values used by the evidence event",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Evidence.Attributes"),
+			},
+			{
 				Name:        "resources_included",
 				Description: "The list of resources assessed to generate the evidence.",
 				Type:        proto.ColumnType_JSON,
@@ -164,13 +164,13 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsAuditManagerEvidences", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAuditManagerEvidences", "AWS_REGION", region)
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
 	// Create session
@@ -258,8 +258,8 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAuditManagerEvidence")
+func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -272,27 +272,27 @@ func getAwsAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
-	AssessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
-	ControlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
-	EvidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
-	EvidenceID := d.KeyColumnQuals["id"].GetStringValue()
+	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
+	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
+	evidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
+	evidenceID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Build the params
 	params := &auditmanager.GetEvidenceInput{
-		AssessmentId:     aws.String(AssessmentID),
-		ControlSetId:     aws.String(ControlSetID),
-		EvidenceFolderId: aws.String(EvidenceFolderID),
-		EvidenceId:       aws.String(EvidenceID),
+		AssessmentId:     aws.String(assessmentID),
+		ControlSetId:     aws.String(controlSetID),
+		EvidenceFolderId: aws.String(evidenceFolderID),
+		EvidenceId:       aws.String(evidenceID),
 	}
 
 	// Get call
 	data, err := svc.GetEvidence(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsAuditManagerEvidence", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAuditManagerEvidence", "ERROR", err)
 		return nil, err
 	}
 
-	return evidenceInfo{data.Evidence, &AssessmentID, &ControlSetID}, nil
+	return evidenceInfo{data.Evidence, &assessmentID, &controlSetID}, nil
 }
 
 func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
