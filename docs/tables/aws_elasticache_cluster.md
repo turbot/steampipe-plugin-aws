@@ -17,7 +17,6 @@ where
   not at_rest_encryption_enabled;
 ```
 
-
 ### List clusters whose availability zone count is less than 2
 
 ```sql
@@ -29,7 +28,6 @@ from
 where
   preferred_availability_zone <> 'Multiple';
 ```
-
 
 ### List clusters that do not enforce encryption in transit
 
@@ -43,7 +41,6 @@ from
 where
   not transit_encryption_enabled;
 ```
-
 
 ### List clusters provisioned with undesired (for example, cache.m5.large and cache.m4.4xlarge are desired) node types
 
@@ -59,7 +56,6 @@ group by
   cache_node_type;
 ```
 
-
 ### List clusters with inactive notification configuration topics
 
 ```sql
@@ -74,7 +70,6 @@ where
   notification_configuration ->> 'TopicStatus' = 'inactive';
 ```
 
-
 ### Get security group details for each cluster
 
 ```sql
@@ -87,17 +82,16 @@ from
   jsonb_array_elements(security_groups) as sg;
 ```
 
-
-### Check Minimum snapshot retention period for Redis cluster is 15 days
+### List clusters with automatic backup disabled
 
 ```sql
 select
   cache_cluster_id,
   cache_node_type,
-  at_rest_encryption_enabled,
+  cache_cluster_status,
   snapshot_retention_limit
 from
   aws_elasticache_cluster
 where
-  snapshot_retention_limit > 15;
+  snapshot_retention_limit is null;
 ```

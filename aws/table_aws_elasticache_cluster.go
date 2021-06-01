@@ -117,7 +117,6 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Name:        "snapshot_retention_limit",
 				Description: "The number of days for which ElastiCache retains automatic cluster snapshots before deleting them.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getElastiCacheCluster,
 			},
 			{
 				Name:        "cache_parameter_group",
