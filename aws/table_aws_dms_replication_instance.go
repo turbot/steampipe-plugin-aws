@@ -92,6 +92,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				Name:        "multi_az",
 				Description: "Specifies whether the replication instance is a Multi-AZ deployment.",
 				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("MultiAZ"),
 			},
 			{
 				Name:        "preferred_maintenance_window",
