@@ -218,6 +218,26 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, reg
 	return svc, nil
 }
 
+// AuditManagerService returns the service connection for AWS Audit Manager service
+func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string) (*auditmanager.AuditManager, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AuditManagerService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("auditmanager-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*auditmanager.AuditManager), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := auditmanager.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // BackupService returns the service connection for AWS Backup service
 func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*backup.Backup, error) {
 	if region == "" {
