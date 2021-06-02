@@ -9,7 +9,7 @@ A cluster is a fully managed data warehouse that consists of a set of compute no
 ```sql
 select
   cluster_identifier,
-  akas,
+  arn,
   node_type,
   region
 from

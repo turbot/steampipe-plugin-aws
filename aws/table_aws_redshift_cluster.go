@@ -34,6 +34,13 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the cluster.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getRedshiftClusterARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "cluster_namespace_arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -277,13 +284,8 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
-			// Standard columns
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRedshiftClusterTurbotTags),
-			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -291,11 +293,17 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ClusterIdentifier"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getRedshiftClusterTurbotTags),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRedshiftClusterAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getRedshiftClusterARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -408,8 +416,8 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	return op, nil
 }
 
-func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftClusterAkas")
+func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
 	cluster := h.Item.(*redshift.Cluster)
 
 	c, err := getCommonColumns(ctx, d, h)
@@ -418,9 +426,9 @@ func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier}
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
 
-	return aka, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS ////
