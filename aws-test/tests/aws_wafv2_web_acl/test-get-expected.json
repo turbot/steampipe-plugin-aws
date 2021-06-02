@@ -23,7 +23,7 @@
 		"title": "{{ resourceName }}",
 		"visibility_config": {
 			"CloudWatchMetricsEnabled": false,
-			"MetricName": "friendly-metric-name",
+			"MetricName": "friendly-metric-{{ resourceName }}",
 			"SampledRequestsEnabled": false
 		}
 	}

@@ -80,7 +80,7 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "friendly-rule-metric-name"
+      metric_name                = "friendly-rule-metric-${var.resource_name}"
       sampled_requests_enabled   = false
     }
   }
@@ -92,7 +92,7 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
 
   visibility_config {
     cloudwatch_metrics_enabled = false
-    metric_name                = "friendly-metric-name"
+    metric_name                = "friendly-metric-${var.resource_name}"
     sampled_requests_enabled   = false
   }
 }
@@ -103,7 +103,7 @@ resource "aws_s3_bucket" "firehose_bucket" {
 }
 
 resource "aws_iam_role" "firehose_role" {
-  name = "firehose_test_role"
+  name = var.resource_name
 
   assume_role_policy = <<EOF
 {
@@ -123,7 +123,7 @@ EOF
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "named_test_resource" {
-  name        = "aws-waf-logs-test"
+  name        = "aws-waf-logs-${var.resource_name}"
   destination = "s3"
 
   s3_configuration {
