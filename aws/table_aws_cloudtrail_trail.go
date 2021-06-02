@@ -310,7 +310,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
-	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	homeRegion := *trail.HomeRegion
 	if region != homeRegion {
 		return nil, nil
 	}
@@ -345,7 +345,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
-	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	homeRegion := *trail.HomeRegion
 	if region != homeRegion {
 		return nil, nil
 	}
@@ -380,7 +380,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
-	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	homeRegion := *trail.HomeRegion
 	if region != homeRegion {
 		return nil, nil
 	}
@@ -415,7 +415,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
-	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	homeRegion := *trail.HomeRegion
 	if region != homeRegion {
 		return []*cloudtrail.Tag{}, nil
 	}
