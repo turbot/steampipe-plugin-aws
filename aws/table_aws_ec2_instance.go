@@ -215,7 +215,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("State.Code"),
 			},
 			{
-				Name:        "state_change_time",
+				Name:        "state_transition_time",
 				Description: "The date and time, the instance state was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.From(ec2InstanceStateChangeTime),
@@ -274,7 +274,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "instance_status",
-				Description: "The status of an instance. Instance status includes schedulted events, status checks and instance state information.",
+				Description: "The status of an instance. Instance status includes scheduled events, status checks and instance state information.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getInstanceStatus,
 				Transform:   transform.FromField("InstanceStatuses[0]"),
@@ -628,5 +628,5 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 		stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
 		return stateTransitionTimeInUTC, nil
 	}
-	return nil, nil
+	return data.LaunchTime, nil
 }
