@@ -1,6 +1,6 @@
 # Table: aws_cloudfront_origin_access_identity
 
-The CloudFront Origin Access Identities page lists of all Origin Access Identities that were created by the RightScale account. An Origin Access Identity (OAI) is used for sharing private content via CloudFront. The OAI is a virtual user identity that will be used to give your CloudFront distribution permission to fetch a private object from your origin server.
+An origin access identity is a special CloudFront user that is associated with a distribution. You associate the origin access identity with origins, so that you can secure all or just some of your Amazon S3 content. You can also create an origin access identity and add it to your distribution when you create the distribution.
 
 ## Examples
 
@@ -18,7 +18,7 @@ from
 ```
 
 
-### List origin access identity with comment
+### List origin access identity with comments
 
 ```sql
 select
