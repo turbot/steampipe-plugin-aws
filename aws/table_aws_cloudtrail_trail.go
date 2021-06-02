@@ -9,7 +9,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 )
 
@@ -310,6 +309,12 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -323,11 +328,6 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	// List resource tags
 	item, err := svc.GetTrailStatus(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "TrailNotFoundException" {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 	return item, nil
@@ -344,6 +344,12 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -357,11 +363,6 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	// List resource tags
 	item, err := svc.GetEventSelectors(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "TrailNotFoundException" {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 	return item, nil
@@ -378,6 +379,12 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -391,11 +398,6 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	// List resource tags
 	item, err := svc.GetInsightSelectors(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "TrailNotFoundException" {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 	return item, nil
@@ -412,6 +414,12 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *h.Item.(*cloudtrail.Trail).HomeRegion
+	if region != homeRegion {
+		return []*cloudtrail.Tag{}, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -424,11 +432,6 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	resp, err := svc.ListTags(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "CloudTrailARNInvalidException" || a.Code() == "InvalidTrailNameException" || a.Code() == "TrailNotFoundException" {
-				return []*cloudtrail.Tag{}, nil
-			}
-		}
 		return nil, err
 	}
 
