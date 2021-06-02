@@ -1,6 +1,6 @@
 # Table: aws_cloudfront_origin_request_policy
 
-An Origin Request Policy controls the values that are include in requests that CloudFront sends to your origin.
+An origin request policy controls the values that are include in requests that CloudFront sends to your origin.
 
 ## Examples
 
@@ -18,7 +18,7 @@ from
   aws_cloudfront_origin_request_policy;
 ```
 
-### Get details of http headers associated with origin request policy
+### Get details of HTTP headers associated with each origin request policy
 
 ```sql
 select
