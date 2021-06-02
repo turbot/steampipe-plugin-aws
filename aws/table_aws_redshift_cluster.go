@@ -35,7 +35,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) specifying the redshift cluster.",
+				Description: "The Amazon Resource Name (ARN) specifying the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getRedshiftClusterARN,
 				Transform:   transform.FromValue(),
