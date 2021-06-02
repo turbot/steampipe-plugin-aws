@@ -98,7 +98,7 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
 }
 
 resource "aws_s3_bucket" "firehose_bucket" {
-  bucket = "tf-firehose-bucket"
+  bucket = var.resource_name
   acl    = "private"
 }
 

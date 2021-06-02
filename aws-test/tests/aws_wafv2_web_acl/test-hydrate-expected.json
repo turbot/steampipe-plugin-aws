@@ -1,7 +1,7 @@
 [
 	{
 		"akas": ["{{ output.resource_aka.value }}"],
-		"logging_configuration": {
+    "logging_configuration": {
       "LogDestinationConfigs": ["{{ output.log_destination_configs.value }}"],
       "LoggingFilter": null,
       "ManagedByFirewallManager": false,

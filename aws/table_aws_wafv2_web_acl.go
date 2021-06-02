@@ -80,7 +80,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "logging_configuration",
-				Description: "The LoggingConfiguration for the specified web ACL.",
+				Description: "The logging configuration for the specified web ACL.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getLoggingConfiguration,
 			},
