@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -197,7 +198,7 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, reg
 	return svc, nil
 }
 
-// AuditManagerService returns the service connection for AWS Application Audit Manager service
+// AuditManagerService returns the service connection for AWS Audit Manager service
 func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string) (*auditmanager.AuditManager, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed AuditManagerService")
@@ -214,7 +215,6 @@ func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string
 	}
 	svc := auditmanager.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
 	return svc, nil
 }
 
@@ -354,6 +354,24 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 		return nil, err
 	}
 	svc := cloudtrail.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CostExplorerService returns the service connection for AWS Cost Explorer service
+func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "ce"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*costexplorer.CostExplorer), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := costexplorer.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
