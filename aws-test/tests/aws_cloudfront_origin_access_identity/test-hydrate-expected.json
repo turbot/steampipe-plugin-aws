@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "caller_reference": "{{ output.caller_reference.value }}",
+    "id": "{{ output.resource_id.value }}"
+  }
+]
