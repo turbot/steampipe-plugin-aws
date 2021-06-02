@@ -156,27 +156,6 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string
 	return svc, nil
 }
 
-// AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AutoScalingService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*autoscaling.AutoScaling), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := autoscaling.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
-}
-
 // ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	if region == "" {
@@ -215,6 +194,27 @@ func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string
 	}
 	svc := auditmanager.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// AutoScalingService returns the service connection for AWS AutoScaling service
+func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AutoScalingService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*autoscaling.AutoScaling), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := autoscaling.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
