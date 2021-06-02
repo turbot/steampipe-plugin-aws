@@ -89,6 +89,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Description: "The status of DNSSEC.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneDNSSEC,
+				Transform:   transform.FromField("Status"),
 			},
 			{
 				Name:        "tags_src",
