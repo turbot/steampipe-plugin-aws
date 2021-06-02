@@ -166,7 +166,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "object_lock_configuration",
-				Description: "The specified bucket's Object Lock Configuration.",
+				Description: "The specified bucket's object lock configuration.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getObjectLockConfiguration,
 			},
