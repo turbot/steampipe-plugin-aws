@@ -1,5 +1,6 @@
 [
   {
+    "arn": "{{ output.resource_aka.value }}",
     "entries": [
       {
         "CidrBlock": "10.3.0.0/18",
