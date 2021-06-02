@@ -85,7 +85,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
 			},
 			{
-				Name:        "status",
+				Name:        "dnssec_status",
 				Description: "The status of DNSSEC.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneDNSSEC,
