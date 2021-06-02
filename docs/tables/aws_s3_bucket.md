@@ -169,7 +169,7 @@ where
   );
 ```
 
-### List buckets with enable object lock configuration
+### List buckets with object lock enabled
 
 ```sql
 select
