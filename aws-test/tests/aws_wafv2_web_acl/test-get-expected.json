@@ -2,7 +2,9 @@
 	{
 		"akas": ["{{ output.resource_aka.value }}"],
 		"default_action": {
-			"Allow": {},
+			"Allow": {
+				"CustomRequestHandling": null
+			},
 			"Block": null
 		},
 		"description": "Example of a managed rule.",

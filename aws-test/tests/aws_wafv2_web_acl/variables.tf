@@ -97,6 +97,52 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
   }
 }
 
+resource "aws_s3_bucket" "firehose_bucket" {
+  bucket = "tf-firehose-bucket"
+  acl    = "private"
+}
+
+resource "aws_iam_role" "firehose_role" {
+  name = "firehose_test_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "firehose.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_kinesis_firehose_delivery_stream" "named_test_resource" {
+  name        = "aws-waf-logs-test"
+  destination = "s3"
+
+  s3_configuration {
+    role_arn   = aws_iam_role.firehose_role.arn
+    bucket_arn = aws_s3_bucket.firehose_bucket.arn
+  }
+
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "example" {
+  log_destination_configs = [aws_kinesis_firehose_delivery_stream.named_test_resource.arn]
+  resource_arn            = aws_wafv2_web_acl.named_test_resource.arn
+  redacted_fields {
+    single_header {
+      name = "user-agent"
+    }
+  }
+}
+
 output "resource_aka" {
   value = aws_wafv2_web_acl.named_test_resource.arn
 }
@@ -107,4 +153,8 @@ output "resource_name" {
 
 output "resource_id" {
   value = aws_wafv2_web_acl.named_test_resource.id
+}
+
+output "log_destination_configs" {
+  value = aws_kinesis_firehose_delivery_stream.named_test_resource.arn
 }
