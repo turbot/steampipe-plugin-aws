@@ -51,6 +51,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudfront_cache_policy":                       tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                       tableAwsCloudFrontDistribution(ctx),
 			"aws_cloudfront_origin_access_identity":             tableAwsCloudFrontOriginAccessIdentity(ctx),
+			"aws_cloudfront_origin_request_policy":              tableAwsCloudFrontOriginRequestPolicy(ctx),
 			"aws_cloudtrail_trail":                              tableAwsCloudtrailTrail(ctx),
 			"aws_cloudwatch_alarm":                              tableAwsCloudWatchAlarm(ctx),
 			"aws_cloudwatch_log_group":                          tableAwsCloudwatchLogGroup(ctx),
