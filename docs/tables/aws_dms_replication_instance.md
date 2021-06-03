@@ -9,11 +9,11 @@ AWS Database Migration Service (DMS) replication instance is used to connect to 
 ```sql
 select
   replication_instance_identifier,
+  arn,
   engine_version,
   instance_create_time,
   kms_key_id,
   publicly_accessible,
-  replication_instance_arn,
   region
 from
   aws_dms_replication_instance;
@@ -25,7 +25,7 @@ from
 ```sql
 select
   replication_instance_identifier,
-  replication_instance_arn,
+  arn,
   engine_version,
   instance_create_time,
   auto_minor_version_upgrade,
@@ -42,7 +42,7 @@ where
 ```sql
 select
   replication_instance_identifier,
-  replication_instance_arn,
+  arn,
   engine_version,
   instance_create_time,
   replication_instance_class,
@@ -59,7 +59,7 @@ where
 ```sql
 select
   replication_instance_identifier,
-  replication_instance_arn,
+  arn,
   publicly_accessible,
   region
 from
@@ -74,7 +74,7 @@ where
 ```sql
 select
   replication_instance_identifier,
-  replication_instance_arn,
+  arn,
   publicly_accessible,
   multi_az,
   region
