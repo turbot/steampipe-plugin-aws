@@ -1,3 +1,29 @@
+## v0.20.0 [2021-06-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_auditmanager_assessment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_assessment) ([#430](https://github.com/turbot/steampipe-plugin-aws/pull/430))
+  - [aws_auditmanager_control](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_control) ([#425](https://github.com/turbot/steampipe-plugin-aws/pull/425))
+  - [aws_auditmanager_framework](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_framework) ([#415](https://github.com/turbot/steampipe-plugin-aws/pull/415))
+  - [aws_cloudfront_cache_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_cache_policy) ([#431](https://github.com/turbot/steampipe-plugin-aws/pull/431))
+  - [aws_cloudfront_origin_access_identity](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_origin_access_identity) ([#427](https://github.com/turbot/steampipe-plugin-aws/pull/427))
+  - [aws_cloudfront_origin_request_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_origin_request_policy) ([#432](https://github.com/turbot/steampipe-plugin-aws/pull/432))
+
+_Enhancements_
+
+- Updated: Add column `arn` to `aws_redshift_cluster` table ([#462](https://github.com/turbot/steampipe-plugin-aws/pull/462))
+- Updated: Add column `arn` to `aws_vpc_network_acl` table ([#457](https://github.com/turbot/steampipe-plugin-aws/pull/457))
+- Updated: Add column `object_lock_configuration` to `aws_s3_bucket` table ([#464](https://github.com/turbot/steampipe-plugin-aws/pull/464))
+- Updated: Add column `state_transition_time` to `aws_ec2_instance` table ([#344](https://github.com/turbot/steampipe-plugin-aws/pull/344))
+- Updated: Bump urllib3 in /scripts/generate_parliament_iam_permissions ([#471](https://github.com/turbot/steampipe-plugin-aws/pull/471))
+- Updated: Getting tags for clusters in 'creating' state should not error in `aws_elasticache_cluster` table ([#454](https://github.com/turbot/steampipe-plugin-aws/pull/454))
+- Updated: Rename column `replication_instance_arn` to `arn` in `aws_dms_replication_instance` table ([#455](https://github.com/turbot/steampipe-plugin-aws/pull/455))
+
+_Bug fixes_
+
+- Fixed: Rename `table_ aws_elasticsearch_domain.go` to `table_aws_elasticsearch_domain.go`
+
 ## v0.19.0 [2021-05-27]
 
 _What's new?_
