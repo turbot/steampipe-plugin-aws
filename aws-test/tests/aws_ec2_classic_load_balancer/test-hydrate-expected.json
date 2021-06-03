@@ -1,15 +1,16 @@
 [
   {
-    "access_log_emit_interval": "<null>",
+    "access_log_emit_interval": null,
     "access_log_enabled": false,
-    "access_log_s3_bucket_name": "<null>",
-    "access_log_s3_bucket_prefix": "<null>",
+    "access_log_s3_bucket_name": null,
+    "access_log_s3_bucket_prefix": null,
     "additional_attributes": [
       {
         "Key":"elb.http.desyncmitigationmode",
         "Value":"defensive"
       }
     ],
+    "arn": "{{ output.resource_aka.value }}",
     "connection_draining_enabled": false,
     "connection_draining_timeout": 300,
     "connection_settings_idle_timeout": 60,

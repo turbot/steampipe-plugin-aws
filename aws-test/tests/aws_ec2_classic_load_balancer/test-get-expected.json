@@ -1,5 +1,6 @@
 [
   {
+    "arn": "{{ output.resource_aka.value }}",
     "name": "{{ resourceName }}",
     "scheme": "internet-facing",
     "subnets": [
