@@ -39,7 +39,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ConfigRuleId"),
 			},
 			{
-				Name:        "rule_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the AWS Config rule.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ConfigRuleArn"),

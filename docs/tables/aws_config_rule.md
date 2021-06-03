@@ -10,7 +10,7 @@ An AWS Config rule represents an AWS Lambda function that you create for a custo
 select
   name,
   rule_id,
-  rule_arn,
+  arn,
   rule_state,
   description,
   created_by,
@@ -30,7 +30,7 @@ from
 select
   name,
   rule_id,
-  rule_arn,
+  arn,
   rule_state 
 from 
   aws_config_rule

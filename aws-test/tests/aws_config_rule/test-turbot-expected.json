@@ -3,7 +3,7 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "rule_arn": "{{ output.resource_aka.value }}",
+    "arn": "{{ output.resource_aka.value }}",
     "tags": {
       "name": "{{ resourceName }}"
     },
