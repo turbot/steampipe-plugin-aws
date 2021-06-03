@@ -48,6 +48,7 @@
       ],
       "Version": "2012-10-17"
     },
+    "reserved_concurrent_executions": 2,
     "tags": {
       "name": "{{resourceName}}"
     }

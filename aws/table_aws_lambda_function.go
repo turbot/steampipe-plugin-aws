@@ -127,10 +127,22 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "reserved_concurrent_executions",
+				Description: "The number of concurrent executions that are reserved for this function.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getConcurrencyLimit,
+				Transform:   transform.FromField("Concurrency.ReservedConcurrentExecutions"),
+			},
+			{
 				Name:        "vpc_id",
 				Description: "The VPC ID that is attached to Lambda function.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VpcConfig.VpcId"),
+			},
+			{
+				Name:        "dead_letter_config",
+				Description: "The function's dead letter queue.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "vpc_security_group_ids",
@@ -284,6 +296,33 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getFunctionTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getFunctionTagging")
+	// TODO put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	function := h.Item.(*lambda.FunctionConfiguration)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.GetFunctionInput{
+		FunctionName: function.FunctionName,
+	}
+
+	op, err := svc.GetFunction(input)
+	if err != nil {
+		return nil, err
+	}
+	return op, nil
+}
+
+func getConcurrencyLimit(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getConcurrencyLimit")
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
