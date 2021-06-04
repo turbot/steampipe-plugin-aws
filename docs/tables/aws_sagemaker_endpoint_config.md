@@ -12,6 +12,7 @@ select
   arn,
   kms_key_id,
   creation_time,
+  production_variants,
   tags
 from
   aws_sagemaker_endpoint_config;
