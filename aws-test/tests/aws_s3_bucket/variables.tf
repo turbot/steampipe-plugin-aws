@@ -125,6 +125,10 @@ resource "aws_s3_bucket" "named_test_resource" {
   tags = {
     name = var.resource_name
   }
+
+  object_lock_configuration {
+    object_lock_enabled = "Enabled"
+  }
 }
 
 resource "aws_s3_bucket_policy" "b" {

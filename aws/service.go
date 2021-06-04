@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -156,27 +157,6 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string
 	return svc, nil
 }
 
-// AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AutoScalingService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*autoscaling.AutoScaling), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := autoscaling.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
-}
-
 // ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	if region == "" {
@@ -193,6 +173,47 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, reg
 		return nil, err
 	}
 	svc := applicationautoscaling.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// AuditManagerService returns the service connection for AWS Audit Manager service
+func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string) (*auditmanager.AuditManager, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AuditManagerService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("auditmanager-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*auditmanager.AuditManager), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := auditmanager.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// AutoScalingService returns the service connection for AWS AutoScaling service
+func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AutoScalingService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*autoscaling.AutoScaling), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := autoscaling.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
