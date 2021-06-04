@@ -12,7 +12,7 @@ select
   arn,
   name,
   job_status,
-  region,
+  region
 from
   aws_macie2_classification_job;
 ```
@@ -23,11 +23,11 @@ from
 ```sql
 select
   job_id,
-  detail -> 'BucketDefinitions' ->> 'AccountId' as account_id,
-  detail -> 'BucketDefinitions' ->> 'Buckets' as buckets
+  detail -> 'AccountId' as account_id,
+  detail -> 'Buckets' as buckets
 from
   aws_macie2_classification_job,
-  jsonb_array_elements(s3_job_definition) as s3_details,
+  jsonb_array_elements(s3_job_definition -> 'BucketDefinitions') as s3_details,
   jsonb(s3_details) as detail;
 ```
 
