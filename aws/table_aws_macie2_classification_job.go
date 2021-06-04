@@ -17,8 +17,9 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Name:        "aws_macie2_classification_job",
 		Description: "AWS Macie2 Classification Job",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"Job_id"}),
-			Hydrate:    getAwsMacie2ClassificationJob,
+			KeyColumns:        plugin.AllColumns([]string{"Job_id"}),
+			ShouldIgnoreError: isNotFoundError([]string{"AccessDeniedException"}),
+			Hydrate:           getAwsMacie2ClassificationJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsMacie2ClassificationJobs,
@@ -26,24 +27,9 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "bucket_definitions",
-				Description: "The namespace of the AWS service that provides the resource, or a custom-resource.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "created_at",
-				Description: "The date and time, in UTC and extended ISO 8601 format, when the job was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
 				Name:        "job_id",
 				Description: "The unique identifier for the job.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "last_run_error_status",
-				Description: "Specifies whether any account- or bucket-level access errors occurred when a classification job ran.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "name",
@@ -51,23 +37,16 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "client_token",
-				Description: "The token that was provided to ensure the idempotency of the request to create the job.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsMacie2ClassificationJob,
-			},
-			{
-				Name:        "custom_data_identifier_ids",
-				Description: "The custom data identifiers that the job uses to analyze data.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
-			},
-			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the job.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsMacie2ClassificationJob,
 				Transform:   transform.FromField("JobArn"),
+			},
+			{
+				Name:        "created_at",
+				Description: "The date and time, in UTC and extended ISO 8601 format, when the job was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "job_status",
@@ -80,21 +59,43 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "bucket_definitions",
+				Description: "The namespace of the AWS service that provides the resource, or a custom-resource.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "client_token",
+				Description: "The token that was provided to ensure the idempotency of the request to create the job.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsMacie2ClassificationJob,
+			},
+			{
 				Name:        "last_run_time",
 				Description: "This value indicates when the most recent run started.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsMacie2ClassificationJob,
 			},
 			{
-				Name:        "s3_job_definition",
-				Description: "Specifies which S3 buckets contain the objects that a classification job analyzes, and the scope of that analysis.",
+				Name:        "sampling_percentage",
+				Description: "The sampling depth, as a percentage, that determines the percentage of eligible objects that the job analyzes.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getAwsMacie2ClassificationJob,
+			},
+			{
+				Name:        "custom_data_identifier_ids",
+				Description: "The custom data identifiers that the job uses to analyze data.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsMacie2ClassificationJob,
 			},
 			{
-				Name:        "sampling_percentage",
-				Description: "The sampling depth, as a percentage, that determines the percentage of eligible objects that the job analyzes.",
-				Type:        proto.ColumnType_INT,
+				Name:        "last_run_error_status",
+				Description: "Specifies whether any account- or bucket-level access errors occurred when a classification job ran.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "s3_job_definition",
+				Description: "Specifies which S3 buckets contain the objects that a classification job analyzes, and the scope of that analysis.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsMacie2ClassificationJob,
 			},
 			{
@@ -109,11 +110,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsMacie2ClassificationJob,
 			},
-			// {
-			// 	Name:        "Tags",
-			// 	Description: "Specifies whether the scaling activities for a scalable target are in a suspended state.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
+
 			{
 				Name:        "user_paused_details",
 				Description: "Provides information about when a classification job was paused.",

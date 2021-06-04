@@ -18,32 +18,44 @@ from
 ```
 
 
-### List jobs with bucket versioning disabled
+### Get S3 bucket details where job is running
 
 ```sql
 select
   job_id,
-  arn,
-  name,
-  region,
-  versioning_enabled
+  detail -> 'BucketDefinitions' ->> 'AccountId' as account_id,
+  detail -> 'BucketDefinitions' ->> 'Buckets' as buckets
 from
-  aws_s3_bucket
-where
-  not versioning_enabled;
+  aws_macie2_classification_job,
+  jsonb_array_elements(s3_job_definition) as s3_details,
+  jsonb(s3_details) as detail;
 ```
 
 
-### List buckets with default encryption disabled
+### List jobs which are Paused/Cancelled
 
 ```sql
 select
   job_id,
   arn,
   name,
-  server_side_encryption_configuration
+  job_status as status
 from
   aws_macie2_classification_job
 where
-  server_side_encryption_configuration is null;
+  job_status = 'CANCELLED'
+  or job_status = 'PAUSED';
+```
+
+
+### Check number of times that job has run
+
+```sql
+select
+  job_id,
+  arn,
+  statistics ->> 'ApproximateNumberOfObjectsToProcess' as approximate_number_of_objects_to_process,
+  statistics ->> 'NumberOfRuns' as number_of_runs
+from
+  aws_macie2_classification_job;
 ```

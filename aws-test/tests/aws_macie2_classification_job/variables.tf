@@ -47,13 +47,13 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = var.resource_name
-}
+# resource "aws_s3_bucket" "test" {
+#   bucket = var.resource_name
+# }
 
 resource "aws_macie2_account" "test" {
   finding_publishing_frequency = "FIFTEEN_MINUTES"
-  # status                       = "ENABLED"
+  status                       = "ENABLED"
 }
 
 resource "aws_macie2_classification_job" "named_test_resource" {
@@ -63,7 +63,7 @@ resource "aws_macie2_classification_job" "named_test_resource" {
   s3_job_definition {
     bucket_definitions {
       account_id = "986325076436"
-      buckets = aws_s3_bucket.bucket.bucket
+      buckets = ["appstream-app-settings-us-east-1-986325076436-vz8cc0a5"]
     }
   }
   tags = {
@@ -85,6 +85,10 @@ output "aws_partition" {
 
 output "resource_id" {
   value = aws_macie2_classification_job.named_test_resource.id
+}
+
+output "resource_aka" {
+  value = "arn:${data.aws_partition.current.partition}:macie2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:classification-job/${aws_macie2_classification_job.named_test_resource.id}"
 }
 
 output "resource_name" {
