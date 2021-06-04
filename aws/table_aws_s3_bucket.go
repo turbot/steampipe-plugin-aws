@@ -63,6 +63,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getBucketTagging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getObjectLockConfiguration,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsS3Columns([]*plugin.Column{
 			{
@@ -159,6 +163,12 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketLogging,
 				Transform:   transform.FromField("LoggingEnabled"),
+			},
+			{
+				Name:        "object_lock_configuration",
+				Description: "The specified bucket's object lock configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getObjectLockConfiguration,
 			},
 			{
 				Name:        "policy",
@@ -588,6 +598,34 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucket.Name
 
 	return arn, nil
+}
+
+func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getObjectLockConfiguration")
+	bucket := h.Item.(*s3.Bucket)
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create Session
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &s3.GetObjectLockConfigurationInput{
+		Bucket: bucket.Name,
+	}
+
+	data, err := svc.GetObjectLockConfiguration(params)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ObjectLockConfigurationNotFoundError" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+
+	return data, nil
 }
 
 //// TRANSFORM FUNCTIONS

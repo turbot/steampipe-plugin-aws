@@ -1,0 +1,37 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+//// TABLE DEFINITION
+func tableAwsEbsVolumeMetricReadOpsDaily(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_ebs_volume_metric_read_ops_daily",
+		Description: "AWS EBS Volume Cloudwatch Metrics - Read Ops (Daily)",
+		List: &plugin.ListConfig{
+			ParentHydrate: listEBSVolume,
+			Hydrate:       listEbsVolumeMetricReadOpsDaily,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns(cwMetricColumns(
+			[]*plugin.Column{
+				{
+					Name:        "volume_id",
+					Description: "The EBS Volume ID.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("DimensionValue"),
+				},
+			})),
+	}
+}
+
+func listEbsVolumeMetricReadOpsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	volume := h.Item.(*ec2.Volume)
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/EBS", "VolumeReadOps", "VolumeId", *volume.VolumeId)
+}
