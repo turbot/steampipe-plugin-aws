@@ -108,26 +108,56 @@ resource "aws_vpc" "named_test_resource" {
 }
 
 resource "aws_subnet" "named_test_resource1" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.0.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.0.0/20"
   availability_zone = "${var.aws_region}b"
 }
 
 resource "aws_subnet" "named_test_resource2" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.32.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.32.0/20"
   availability_zone = "${var.aws_region}d"
 }
 
+locals {
+  path = "${path.cwd}/output.json"
+}
+
+resource "null_resource" "named_test_resource" {
+  depends_on = [aws_eks_addon.named_test_resource]
+  provisioner "local-exec" {
+    command = "aws eks describe-addon-versions --addon-name vpc-cni > ${local.path}"
+  }
+}
+
+data "local_file" "input" {
+  depends_on = [null_resource.named_test_resource]
+  filename   = local.path
+}
+
+data "template_file" "resource_aka" {
+  depends_on = [null_resource.named_test_resource]
+  template   = "arn:$${partition}:eks:$${region}:$${account_id}:addon/$${addon_name}/addon-version/$${version_name}"
+  vars = {
+    version_name     = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
+    addon_name       = jsondecode(data.local_file.input.content).addons[0].addonName
+    partition        = data.aws_partition.current.partition
+    account_id       = data.aws_caller_identity.current.account_id
+    region           = data.aws_region.primary.name
+    alternate_region = data.aws_region.alternate.name
+  }
+}
+
 output "resource_aka" {
-  value = aws_eks_addon.named_test_resource.arn
+  depends_on = [null_resource.named_test_resource]
+  value      = data.template_file.resource_aka.rendered
 }
 
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
 
-output "resource_name" {
-  value = var.resource_name
+output "addon_version" {
+  value = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
 }
 

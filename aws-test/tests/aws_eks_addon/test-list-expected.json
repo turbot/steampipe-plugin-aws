@@ -1,8 +1,0 @@
-[
-  {
-    "addon_arn": "{{ output.resource_aka.value }}",
-    "addon_name": "vpc-cni",
-    "cluster_name": "{{ resourceName }}",
-    "service_account_role_arn": null
-  }
-]
