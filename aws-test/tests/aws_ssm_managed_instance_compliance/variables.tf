@@ -103,14 +103,9 @@ resource "null_resource" "delay" {
     aws_instance.named_test_resource
   ]
   provisioner "local-exec" {
-    command = "sleep 60"
+    command = "sleep 300"
   }
 }
-
-locals {
-  path = "${path.cwd}/output.json"
-}
-
 
 resource "null_resource" "put_compliance" {
   depends_on = [null_resource.delay]
@@ -119,10 +114,14 @@ resource "null_resource" "put_compliance" {
   }
 }
 
+locals {
+  path = "${path.cwd}/compliance.json"
+}
+
 resource "null_resource" "list_compliance" {
   depends_on = [null_resource.put_compliance]
   provisioner "local-exec" {
-    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json > ${local.path}"
+    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${local.path}"
   }
 }
 
