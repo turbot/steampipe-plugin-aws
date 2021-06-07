@@ -2,6 +2,6 @@
   {
     "id": "{{ output.compliance_id.value }}",
     "resource_id": "{{ output.resource_id.value }}",
-    "Status": "{{ output.status.value }}"
+    "status": "{{ output.status.value }}"
   }
 ]

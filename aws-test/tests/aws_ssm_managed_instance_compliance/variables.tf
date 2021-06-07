@@ -107,21 +107,14 @@ resource "null_resource" "delay" {
   }
 }
 
-resource "null_resource" "put_compliance" {
-  depends_on = [null_resource.delay]
-  provisioner "local-exec" {
-    command = "aws ssm put-compliance-items --resource-id ${aws_instance.named_test_resource.id} --resource-type ManagedInstance --compliance-type Patch --execution-summary ExecutionTime=2021-02-18T16:00:00Z --items Id=Version2.0,Title=ScanHost,Severity=CRITICAL,Status=COMPLIANT"
-  }
-}
-
 locals {
   path = "${path.cwd}/compliance.json"
 }
 
 resource "null_resource" "list_compliance" {
-  depends_on = [null_resource.put_compliance]
+  depends_on = [null_resource.delay]
   provisioner "local-exec" {
-    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${local.path}"
+    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json > ${local.path}"
   }
 }
 
