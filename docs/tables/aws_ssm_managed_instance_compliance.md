@@ -26,7 +26,7 @@ from
 select
   id,
   name,
-  resource_id,
+  resource_id as instance_id,
   status,
   compliance_type,
   severity
@@ -43,7 +43,7 @@ where
 select
   id,
   name,
-  resource_id,
+  resource_id as instance_id,
   status,
   compliance_type,
   severity
