@@ -1,7 +1,7 @@
 [
   {
-    "id": "{{ output.resource_id.value }}",
-    "name": "{{ output.instance_private_dns.value }}",
-    "resource_type": "EC2Instance"
+    "id": "{{ output.compliance_id.value }}",
+    "resource_id": "{{ output.resource_id.value }}",
+    "Status": "{{ output.status.value }}"
   }
 ]

@@ -1,6 +1,6 @@
 [
   {
     "akas": ["{{ output.arn.value }}"],
-    "title": "{{ output.resource_id.value }}"
+    "title": "{{ output.compliance_id.value }}"
   }
 ]

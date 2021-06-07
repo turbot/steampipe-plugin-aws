@@ -1,4 +1,3 @@
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -104,34 +103,49 @@ resource "null_resource" "delay" {
     aws_instance.named_test_resource
   ]
   provisioner "local-exec" {
-    command = "sleep 300"
+    command = "sleep 60"
   }
 }
 
+locals {
+  path = "${path.cwd}/output.json"
+}
+
+
+resource "null_resource" "put_compliance" {
+  depends_on = [null_resource.delay]
+  provisioner "local-exec" {
+    command = "aws ssm put-compliance-items --resource-id ${aws_instance.named_test_resource.id} --resource-type ManagedInstance --compliance-type Patch --execution-summary ExecutionTime=2021-02-18T16:00:00Z --items Id=Version2.0,Title=ScanHost,Severity=CRITICAL,Status=COMPLIANT"
+  }
+}
+
+resource "null_resource" "list_compliance" {
+  depends_on = [null_resource.put_compliance]
+  provisioner "local-exec" {
+    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json > ${local.path}"
+  }
+}
+
+data "local_file" "input" {
+  depends_on = [null_resource.list_compliance]
+  filename   = local.path
+}
+
 output "arn" {
-  value = "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:managed-instance/${aws_instance.named_test_resource.id}"
+  depends_on = [null_resource.list_compliance]
+  value      = "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:managed-instance-compliance/${jsondecode(data.local_file.input.content).ComplianceItems[0].Id}"
 }
 
 output "resource_id" {
   value = aws_instance.named_test_resource.id
 }
 
-output "resource_name" {
-  value = var.resource_name
+output "compliance_id" {
+  depends_on = [null_resource.list_compliance]
+  value      = jsondecode(data.local_file.input.content).ComplianceItems[0].Id
 }
 
-output "instance_private_dns" {
-  value = aws_instance.named_test_resource.private_dns
-}
-
-output "account_id" {
-  value = data.aws_caller_identity.current.account_id
-}
-
-output "aws_partition" {
-  value = data.aws_partition.current.partition
-}
-
-output "region_name" {
-  value = data.aws_region.primary.name
+output "status" {
+  depends_on = [null_resource.list_compliance]
+  value      = jsondecode(data.local_file.input.content).ComplianceItems[0].Status
 }

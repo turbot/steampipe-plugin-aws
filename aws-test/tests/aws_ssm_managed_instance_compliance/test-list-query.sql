@@ -1,8 +1,8 @@
 select
   id,
-  resource_type,
-  name
+  resource_id,
+  status
 from
   aws.aws_ssm_managed_instance_compliance
 where
-  id = '{{ output.resource_id.value }}';
+  id = '{{ output.compliance_id.value }}';
