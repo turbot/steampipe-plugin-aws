@@ -79,3 +79,13 @@ from
 where
   not log_file_validation_enabled;
 ```
+
+### List trails with DISTINCT 
+```sql
+select DISTINCT
+  name,
+  arn,
+  home_region
+from
+  aws_cloudtrail_trail;
+```
