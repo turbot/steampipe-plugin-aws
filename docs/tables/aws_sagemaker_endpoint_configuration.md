@@ -1,4 +1,4 @@
-# Table: aws_sagemaker_endpoint_config
+# Table: aws_sagemaker_endpoint_configuration
 
 The AWS Sagemaker Endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the CreateModel API, to deploy and the resources that you want Amazon SageMaker to provision.
 
@@ -15,10 +15,10 @@ select
   production_variants,
   tags
 from
-  aws_sagemaker_endpoint_config;
+  aws_sagemaker_endpoint_configuration;
 ```
 
-### List endpoint config which do not have KMS Key ID configuration
+### List endpoint configuration which do not have KMS Key ID configuration
 
 ```sql
 select
@@ -26,7 +26,7 @@ select
   arn,
   kms_key_id
 from
-  aws_sagemaker_endpoint_config
+  aws_sagemaker_endpoint_configuration
 where
   kms_key_id is null;
 ```
