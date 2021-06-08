@@ -80,7 +80,7 @@ where
   not log_file_validation_enabled;
 ```
 
-### List trails with DISTINCT 
+### List distinct trails 
 ```sql
 select DISTINCT
   name,
