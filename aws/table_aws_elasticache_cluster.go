@@ -110,6 +110,21 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "replication_group_id",
+				Description: "The replication group to which this cluster belongs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "snapshot_retention_limit",
+				Description: "The number of days for which ElastiCache retains automatic cluster snapshots before deleting them.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "snapshot_window",
+				Description: "The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "transit_encryption_enabled",
 				Description: "A flag that enables in-transit encryption when set to true.",
 				Type:        proto.ColumnType_BOOL,
