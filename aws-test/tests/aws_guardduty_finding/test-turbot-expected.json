@@ -1,9 +1,7 @@
 [
   {
     "account_id": "{{ output.account_id.value }}",
-    "akas": [
-      "{{ output.resource_aka.value }}"
-     ],
+    "akas": ["{{ output.resource_aka.value }}"],
     "title": "{{ output.resource_name.value }}"
   }
 ]
