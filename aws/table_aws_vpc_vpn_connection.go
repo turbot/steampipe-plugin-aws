@@ -124,7 +124,6 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
