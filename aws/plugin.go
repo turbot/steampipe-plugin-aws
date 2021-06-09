@@ -123,6 +123,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_glacier_vault":                                 tableAwsGlacierVault(ctx),
 			"aws_glue_catalog_database":                         tableAwsGlueCatalogDatabase(ctx),
 			"aws_guardduty_detector":                            tableAwsGuardDutyDetector(ctx),
+			"aws_guardduty_finding":                             tableAwsGuardDutyFinding(ctx),
 			"aws_guardduty_ipset":                               tableAwsGuardDutyIPSet(ctx),
 			"aws_guardduty_threat_intel_set":                    tableAwsGuardDutyThreatIntelSet(ctx),
 			"aws_iam_access_advisor":                            tableAwsIamAccessAdvisor(ctx),
