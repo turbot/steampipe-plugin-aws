@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -66,6 +66,9 @@ resource "aws_vpn_connection" "named_test_resource" {
   customer_gateway_id = aws_customer_gateway.named_test_resource.id
   type                = "ipsec.1"
   static_routes_only  = true
+  tags = {
+    name = var.resource_name
+  }
 }
 
 output "resource_aka" {
