@@ -9,13 +9,12 @@ A cluster is a fully managed data warehouse that consists of a set of compute no
 ```sql
 select
   cluster_identifier,
-  akas,
+  arn,
   node_type,
   region
 from
   aws_redshift_cluster;
 ```
-
 
 ### List clusters that are publicly accessible
 
@@ -31,7 +30,6 @@ where
   publicly_accessible;
 ```
 
-
 ### List clusters that are not in a VPC
 
 ```sql
@@ -46,7 +44,6 @@ where
   vpc_id is null;
 ```
 
-
 ### List clusters whose storage is not encrypted
 
 ```sql
@@ -59,4 +56,14 @@ from
   aws_redshift_cluster
 where
   not encrypted;
+```
+
+### Get logging status for each cluster
+
+```sql
+select
+  cluster_identifier,
+  logging_status -> 'LoggingEnabled' as LoggingEnabled
+from
+  aws_redshift_cluster
 ```

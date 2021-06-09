@@ -1,3 +1,121 @@
+## v0.20.0 [2021-06-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_auditmanager_assessment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_assessment) ([#430](https://github.com/turbot/steampipe-plugin-aws/pull/430))
+  - [aws_auditmanager_control](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_control) ([#425](https://github.com/turbot/steampipe-plugin-aws/pull/425))
+  - [aws_auditmanager_framework](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_framework) ([#415](https://github.com/turbot/steampipe-plugin-aws/pull/415))
+  - [aws_cloudfront_cache_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_cache_policy) ([#431](https://github.com/turbot/steampipe-plugin-aws/pull/431))
+  - [aws_cloudfront_origin_access_identity](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_origin_access_identity) ([#427](https://github.com/turbot/steampipe-plugin-aws/pull/427))
+  - [aws_cloudfront_origin_request_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_origin_request_policy) ([#432](https://github.com/turbot/steampipe-plugin-aws/pull/432))
+
+_Enhancements_
+
+- Updated: Add column `arn` to `aws_redshift_cluster` table ([#462](https://github.com/turbot/steampipe-plugin-aws/pull/462))
+- Updated: Add column `arn` to `aws_vpc_network_acl` table ([#457](https://github.com/turbot/steampipe-plugin-aws/pull/457))
+- Updated: Add column `object_lock_configuration` to `aws_s3_bucket` table ([#464](https://github.com/turbot/steampipe-plugin-aws/pull/464))
+- Updated: Add column `state_transition_time` to `aws_ec2_instance` table ([#344](https://github.com/turbot/steampipe-plugin-aws/pull/344))
+- Updated: Bump urllib3 in /scripts/generate_parliament_iam_permissions ([#471](https://github.com/turbot/steampipe-plugin-aws/pull/471))
+- Updated: Getting tags for clusters in 'creating' state should not error in `aws_elasticache_cluster` table ([#454](https://github.com/turbot/steampipe-plugin-aws/pull/454))
+- Updated: Rename column `replication_instance_arn` to `arn` in `aws_dms_replication_instance` table ([#455](https://github.com/turbot/steampipe-plugin-aws/pull/455))
+
+_Bug fixes_
+
+- Fixed: Rename `table_ aws_elasticsearch_domain.go` to `table_aws_elasticsearch_domain.go`
+
+## v0.19.0 [2021-05-27]
+
+_What's new?_
+
+- Updated plugin license to Apache 2.0 per [turbot/steampipe#488](https://github.com/turbot/steampipe/issues/488)
+- New tables added
+  - [aws_api_gatewayv2_integration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_api_gatewayv2_integration) ([#346](https://github.com/turbot/steampipe-plugin-aws/pull/346))
+  - [aws_cloudfront_distribution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_distribution) ([#388](https://github.com/turbot/steampipe-plugin-aws/pull/388))
+  - [aws_cost_by_account_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_account_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_by_account_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_account_monthly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_by_service_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_service_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_by_service_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_service_monthly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_by_service_usage_type_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_service_usage_type_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_by_service_usage_type_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_service_usage_type_monthly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_forecast_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_forecast_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_forecast_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_forecast_monthly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_cost_usage](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_usage) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_read_ops](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_read_ops) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_read_ops_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_read_ops_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_read_ops_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_read_ops_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_write_ops](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_write_ops) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_write_ops_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_write_ops_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ebs_volume_metric_write_ops_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ebs_volume_metric_write_ops_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ec2_instance_metric_cpu_utilization](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_instance_metric_cpu_utilization) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ec2_instance_metric_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_instance_metric_cpu_utilization_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_ec2_instance_metric_cpu_utilization_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_instance_metric_cpu_utilization_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_efs_mount_target](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_efs_mount_target) ([#426](https://github.com/turbot/steampipe-plugin-aws/pull/426))
+  - [aws_kinesisanalyticsv2_application](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_kinesisanalyticsv2_application) ([#358](https://github.com/turbot/steampipe-plugin-aws/pull/358))
+  - [aws_rds_db_instance_metric_connections](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_connections) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_connections_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_connections_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_connections_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_connections_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_cpu_utilization](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_cpu_utilization) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_cpu_utilization_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_cpu_utilization_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_cpu_utilization_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_read_iops](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_read_iops) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_read_iops_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_read_iops_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_read_iops_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_read_iops_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_write_iops](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_write_iops) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_write_iops_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_write_iops_daily) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_rds_db_instance_metric_write_iops_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_instance_metric_write_iops_hourly) ([#437](https://github.com/turbot/steampipe-plugin-aws/pull/437))
+  - [aws_sagemaker_training_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_training_job) ([#384](https://github.com/turbot/steampipe-plugin-aws/pull/384))
+  - [aws_ssm_managed_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_managed_instance) ([#436](https://github.com/turbot/steampipe-plugin-aws/pull/436))
+  - [aws_waf_rate_based_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_waf_rate_based_rule) ([#289](https://github.com/turbot/steampipe-plugin-aws/pull/289))
+  - [aws_wafv2_rule_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafv2_rule_group) ([#281](https://github.com/turbot/steampipe-plugin-aws/pull/281))
+
+_Enhancements_
+
+- Updated: Base64 data in the `user_data` column is now decoded in the `aws_ec2_instance` and `aws_ec2_launch_configuration` tables ([#363](https://github.com/turbot/steampipe-plugin-aws/pull/363))
+- Updated: Add `arn` column to `aws_account` table ([#418](https://github.com/turbot/steampipe-plugin-aws/pull/418))
+- Updated: Add `arn` column to `aws_guardduty_detector` table ([#408](https://github.com/turbot/steampipe-plugin-aws/pull/408))
+- Updated: Add `arn` column to `aws_ssm_association` table ([#404](https://github.com/turbot/steampipe-plugin-aws/pull/404))
+
+## v0.18.0 [2021-05-20]
+
+_What's new?_
+
+- New tables added
+  - [aws_glue_catalog_database](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_catalog_database) ([#337](https://github.com/turbot/steampipe-plugin-aws/pull/337))
+
+_Enhancements_
+
+- Updated: Add `arn` column to `aws_ebs_snapshot` table ([#405](https://github.com/turbot/steampipe-plugin-aws/pull/405))
+- Updated: Add `arn` column to `aws_vpc_eip` table ([#407](https://github.com/turbot/steampipe-plugin-aws/pull/407))
+- Updated: Improve availability zone count example in `aws_lambda_function` table doc ([#413](https://github.com/turbot/steampipe-plugin-aws/pull/413))
+
+_Bug fixes_
+
+- Fixed: Getting key rotation status for external keys should not error in `aws_kms_key` table ([#398](https://github.com/turbot/steampipe-plugin-aws/pull/398))
+
+## v0.17.0 [2021-05-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_dms_replication_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dms_replication_instance) ([#357](https://github.com/turbot/steampipe-plugin-aws/pull/357))
+  - [aws_ecs_container_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_container_instance) ([#340](https://github.com/turbot/steampipe-plugin-aws/pull/340))
+  - [aws_sagemaker_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_model) ([#371](https://github.com/turbot/steampipe-plugin-aws/pull/371))
+  - [aws_waf_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_waf_rule) ([#287](https://github.com/turbot/steampipe-plugin-aws/pull/287))
+  - [aws_wafv2_ip_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafv2_ip_set) ([#255](https://github.com/turbot/steampipe-plugin-aws/pull/255))
+  - [aws_wafv2_regex_pattern_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafv2_regex_pattern_set) ([#276](https://github.com/turbot/steampipe-plugin-aws/pull/276))
+
+_Enhancements_
+
+- Updated: README.md and docs/index.md now contain links to our Slack community ([#411](https://github.com/turbot/steampipe-plugin-aws/pull/411))
+- Updated: Add `logging_status` column to `aws_redshift_cluster` table ([#350](https://github.com/turbot/steampipe-plugin-aws/pull/350))
+- Updated: Add missing columns available in the hydrate data to `aws_ssm_association` table ([#356](https://github.com/turbot/steampipe-plugin-aws/pull/356))
+- Updated: Bump lodash from 4.17.20 to 4.17.21 in /aws-test ([#389](https://github.com/turbot/steampipe-plugin-aws/pull/389))
+
+_Bug fixes_
+
+- Fixed: Querying the aws_iam_account_password_policy table should not error if no password policy exists ([#382](https://github.com/turbot/steampipe-plugin-aws/pull/382))
+
 ## v0.16.0 [2021-05-06]
 
 _What's new?_

@@ -1,0 +1,10 @@
+[
+  {
+    "metric_name": "{{ resourceName }}",
+    "name": "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

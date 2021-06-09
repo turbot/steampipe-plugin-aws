@@ -34,6 +34,13 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the cluster.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getRedshiftClusterARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "cluster_namespace_arn",
 				Description: "The namespace Amazon Resource Name (ARN) of the cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -255,12 +262,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "The list of tags for the cluster.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
-			{
 				Name:        "vpc_id",
 				Description: "The identifier of the VPC the cluster is in, if the cluster is in a VPC.",
 				Type:        proto.ColumnType_STRING,
@@ -270,13 +271,21 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Description: "A list of Amazon Virtual Private Cloud (Amazon VPC) security groups that are associated with the cluster. This parameter is returned only if the cluster is in a VPC.",
 				Type:        proto.ColumnType_JSON,
 			},
-			// Standard columns
 			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
+				Name:        "logging_status",
+				Description: "Describes the status of logging for a cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getRedshiftClusterTurbotTags),
+				Hydrate:     getRedshiftLoggingDetails,
+				Transform:   transform.FromValue(),
 			},
+			{
+				Name:        "tags_src",
+				Description: "The list of tags for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
+			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -284,11 +293,17 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ClusterIdentifier"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getRedshiftClusterTurbotTags),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRedshiftClusterAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getRedshiftClusterARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -373,8 +388,36 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	return nil, nil
 }
 
-func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRedshiftClusterAkas")
+func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// TODO Put me in helper function
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	name := h.Item.(*redshift.Cluster).ClusterIdentifier
+
+	// Create service
+	svc, err := RedshiftService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &redshift.DescribeLoggingStatusInput{
+		ClusterIdentifier: name,
+	}
+
+	op, err := svc.DescribeLoggingStatus(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return op, nil
+}
+
+func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
 	cluster := h.Item.(*redshift.Cluster)
 
 	c, err := getCommonColumns(ctx, d, h)
@@ -383,9 +426,9 @@ func getRedshiftClusterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := []string{"arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier}
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
 
-	return aka, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS ////

@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{output.resource_aka.value}}"
+    ],
+    "integration_id": "{{output.resource_id.value}}",
+    "integration_type": "AWS_PROXY"
+  }
+]

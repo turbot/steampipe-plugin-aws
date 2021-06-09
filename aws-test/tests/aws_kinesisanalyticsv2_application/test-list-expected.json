@@ -1,0 +1,8 @@
+[
+  {
+    "application_arn": "{{ output.resource_aka.value }}",
+    "application_name": "{{ resourceName }}",
+    "application_status": "READY",
+    "application_version_id": 1
+  }
+]

@@ -13,14 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
+	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -39,10 +42,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -60,6 +65,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 
@@ -150,27 +156,6 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string
 	return svc, nil
 }
 
-// AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed AutoScalingService")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*autoscaling.AutoScaling), nil
-	}
-	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	svc := autoscaling.New(sess)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
-}
-
 // ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	if region == "" {
@@ -187,6 +172,47 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, reg
 		return nil, err
 	}
 	svc := applicationautoscaling.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// AuditManagerService returns the service connection for AWS Audit Manager service
+func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string) (*auditmanager.AuditManager, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AuditManagerService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("auditmanager-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*auditmanager.AuditManager), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := auditmanager.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// AutoScalingService returns the service connection for AWS AutoScaling service
+func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AutoScalingService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("autoscaling-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*autoscaling.AutoScaling), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := autoscaling.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -228,6 +254,23 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (
 		return nil, err
 	}
 	svc := codebuild.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// CloudFrontService returns the service connection for AWS CloudFront service
+func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudfront")
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudfront.CloudFront), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudfront.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
@@ -311,6 +354,24 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 		return nil, err
 	}
 	svc := cloudtrail.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CostExplorerService returns the service connection for AWS Cost Explorer service
+func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "ce"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*costexplorer.CostExplorer), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := costexplorer.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -706,6 +767,29 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*g
 	return svc, nil
 }
 
+// GlueService returns the service connection for AWS Glue service
+func GlueService(ctx context.Context, d *plugin.QueryData, region string) (*glue.Glue, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed GlueService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("glue-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*glue.Glue), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := glue.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // GuardDutyService returns the service connection for AWS GuardDuty service
 func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
 	if region == "" {
@@ -785,6 +869,27 @@ func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*k
 		return nil, err
 	}
 	svc := kinesis.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// KinesisAnalyticsV2Service returns the service connection for AWS Kinesis AnalyticsV2 service
+func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData, region string) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed KinesisAnalyticsV2Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("kinesisanalyticsv2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*kinesisanalyticsv2.KinesisAnalyticsV2), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := kinesisanalyticsv2.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1150,6 +1255,26 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return nil, err
 	}
 	svc := sts.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// WAFService returns the service connection for AWS WAF service
+func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "waf"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*waf.WAF), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := waf.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil

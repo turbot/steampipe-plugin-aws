@@ -16,7 +16,6 @@ from
   aws_s3_bucket;
 ```
 
-
 ### List buckets with versioning disabled
 
 ```sql
@@ -31,7 +30,6 @@ where
   not versioning_enabled;
 ```
 
-
 ### List buckets with default encryption disabled
 
 ```sql
@@ -43,7 +41,6 @@ from
 where
   server_side_encryption_configuration is null;
 ```
-
 
 ### List buckets that do not block public access
 
@@ -63,7 +60,6 @@ where
   or not restrict_public_buckets;
 ```
 
-
 ### List buckets that block public access through bucket policies
 
 ```sql
@@ -76,7 +72,6 @@ where
   bucket_policy_is_public;
 ```
 
-
 ### List buckets where the server access logging destination is the same as the source bucket
 
 ```sql
@@ -88,7 +83,6 @@ from
 where
   logging ->> 'TargetBucket' = name;
 ```
-
 
 ### List buckets without the 'application' tags key
 
@@ -126,7 +120,6 @@ where
   and ssl :: bool = false;
 ```
 
-
 ### List buckets that do not enforce encryption in transit
 
 ```sql
@@ -153,8 +146,8 @@ where
   );
 ```
 
-
 ### List bucket policy statements that grant external access for each bucket
+
 ```sql
 select
   title,
@@ -174,4 +167,16 @@ where
     pa[5] != account_id
     or p = '*'
   );
+```
+
+### List buckets with object lock enabled
+
+```sql
+select
+  name,
+  object_lock_configuration ->> 'ObjectLockEnabled' as object_lock_enabled
+from
+  aws_s3_bucket
+where
+  object_lock_configuration ->> 'ObjectLockEnabled' = 'Enabled';
 ```
