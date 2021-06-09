@@ -15,3 +15,17 @@ select
 from
   aws_guardduty_finding;
 ```
+
+### List findings which are non archived
+
+```sql
+select
+  id,
+  detector_id,
+  arn,
+  created_at
+from
+  aws_guardduty_finding
+where
+  service ->> 'Archived' = 'false';
+```

@@ -80,7 +80,7 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "updated_at",
-				Description: "The last-updated timestamp for the finding.",
+				Description: "The time and date when the finding was last updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
