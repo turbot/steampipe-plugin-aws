@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -13,14 +13,15 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEc2Settings(_ context.Context) *plugin.Table {
+func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ec2_settings",
-		Description: "AWS EC2 Settings",
+		Name:        "aws_ec2_regional_settings",
+		Description: "AWS EC2 Regional Settings",
 		List: &plugin.ListConfig{
-			Hydrate: listAllAwsRegions,
+			Hydrate: listEc2RegionalSettings,
 		},
-		Columns: []*plugin.Column{
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "default_ebs_encryption_enabled",
 				Description: "Indicates whether encryption by default is enabled.",
@@ -35,81 +36,58 @@ func tableAwsEc2Settings(_ context.Context) *plugin.Table {
 				Hydrate:     getDefaultEBSVolumeEncryptionKey,
 				Transform:   transform.FromValue(),
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromConstant("EC2 Settings"),
+				Transform:   transform.From(getEc2SettingTitle),
 			},
-			{
-				Name:        "partition",
-				Description: "The AWS partition in which the resource is located (aws, aws-cn, or aws-us-gov).",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-			},
-			{
-				Name:        "region",
-				Description: "The AWS Region in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RegionName"),
-			},
-			{
-				Name:        "account_id",
-				Description: "The AWS Account ID in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getCommonColumns,
-				Transform:   transform.FromCamel(),
-			},
-		},
+		}),
 	}
 }
 
 //// LIST FUNCTION
 
-func listAllAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	defaultRegion := GetDefaultAwsRegion(d)
-
-	// Create Session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
-	if err != nil {
-		return nil, err
+func listEc2RegionalSettings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
 	}
+	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
-	params := &ec2.DescribeRegionsInput{
-		AllRegions: aws.Bool(true),
-	}
-
-	// execute list call
-	resp, err := svc.DescribeRegions(params)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, region := range resp.Regions {
-		d.StreamListItem(ctx, region)
-	}
-
-	return nil, err
+	d.StreamListItem(ctx, region)
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryption")
-	data := h.Item.(*ec2.Region)
 
-	// Returning false for disabled regions to avoid permission denied error AuthFailure
-	if *data.OptInStatus == "not-opted-in" {
-		return false, nil
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
 	}
+	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
+
 	// Create session
-	svc, err := Ec2Service(ctx, d, *data.RegionName)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	params := &ec2.GetEbsEncryptionByDefaultInput{}
 	defaultEncryption, err := svc.GetEbsEncryptionByDefault(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			// Returning false for disabled regions
+			if a.Code() == "AuthFailure" {
+				return false, nil
+			}
+		}
 		return nil, err
 	}
 	return defaultEncryption.EbsEncryptionByDefault, nil
@@ -117,21 +95,42 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *
 
 func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryptionKey")
-	data := h.Item.(*ec2.Region)
 
-	// Returning default ebs key alias for disabled regions to avoid permission denied error AuthFailure
-	if *data.OptInStatus == "not-opted-in" {
-		return "alias/aws/ebs", nil
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
 	}
+	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
+
 	// Create session
-	svc, err := Ec2Service(ctx, d, *data.RegionName)
+	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 	params := &ec2.GetEbsDefaultKmsKeyIdInput{}
 	defaultEncryptionKey, err := svc.GetEbsDefaultKmsKeyId(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			// Returning default ebs key alias for disabled regions
+			if a.Code() == "AuthFailure" {
+				return "alias/aws/ebs", nil
+			}
+		}
 		return nil, err
 	}
 	return defaultEncryptionKey.KmsKeyId, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getEc2SettingTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	title := region + " EC2 Settings"
+	return title, nil
 }
