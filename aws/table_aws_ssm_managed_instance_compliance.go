@@ -75,8 +75,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Default:     transform.FromField("Id"),
-				Transform:   transform.FromField("Title"),
+				Transform:   transform.From(ssmManagedInstanceComplianceTitle),
 			},
 			{
 				Name:        "akas",
@@ -143,4 +142,17 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":managed-instance-compliance/" + *data.Id}
 
 	return akas, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func ssmManagedInstanceComplianceTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*ssm.ComplianceItem)
+
+	title := *data.Id
+	if len(*data.Title) > 0 {
+		title = *data.Title
+	}
+
+	return title, nil
 }
