@@ -90,8 +90,7 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 				Name:        "event_subscriptions",
 				Description: "A list of event subscriptions associated with the Assessment Template.",
 				Type:        pb.ColumnType_JSON,
-				Hydrate:     getAwsInspectorAssessmentEventSubscriptions,
-				Transform:   transform.FromField("Subscriptions"),
+				Hydrate:     listAwsInspectorAssessmentEventSubscriptions,
 			},
 			// Standard columns for all tables
 			{
@@ -227,9 +226,9 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 }
 
 // API call for fetching event subscriptions
-func getAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsInspectorAssessmentTemplateEventSubscriptions")
+	logger.Trace("ListAwsInspectorAssessmentTemplateEventSubscriptions")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -249,15 +248,25 @@ func getAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin.
 	params := &inspector.ListEventSubscriptionsInput{
 		ResourceArn: &assessmentTemplateArn,
 	}
-
-	// Get call
-	op, err := svc.ListEventSubscriptions(params)
-	if err != nil {
-		logger.Debug("getAwsInspectorAssessmentEventSubscriptions", "ERROR", err)
-		return nil, err
+	// Create a Struct name EventSubscriptions as the framework will use the field name to create
+	// a key from which it extracts the contents of the field
+	type AssociatedEventSubscriptions struct {
+		EventSubscriptions []*inspector.Subscription
 	}
 
-	return op, nil
+	associatedEventSubscriptions := new(AssociatedEventSubscriptions)
+
+	err = svc.ListEventSubscriptionsPages(
+		params,
+		func(page *inspector.ListEventSubscriptionsOutput, lastPage bool) bool {
+			for _, Subscription := range page.Subscriptions {
+				associatedEventSubscriptions.EventSubscriptions = append(associatedEventSubscriptions.EventSubscriptions, Subscription)
+			}
+			return !lastPage
+		},
+	)
+
+	return associatedEventSubscriptions, err
 }
 
 //// TRANSFORM FUNCTIONS
