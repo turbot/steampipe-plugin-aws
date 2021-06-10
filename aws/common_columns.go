@@ -112,7 +112,6 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	var commonColumnData *awsCommonColumnData
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
-		plugin.Logger(ctx).Warn("getCommonColumns", "From Cache", commonColumnData)
 	} else {
 		callerIdentity, err := getCallerIdentity(ctx, d, h)
 		if err != nil {
@@ -128,7 +127,6 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 		// save to extension cache
 		d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
-		plugin.Logger(ctx).Warn("getCommonColumns", "NOT From Cache", commonColumnData)
 	}
 
 	plugin.Logger(ctx).Trace("getCommonColumns: ", "commonColumnData", commonColumnData)
@@ -158,7 +156,5 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// save to extension cache
 	d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
-	plugin.Logger(ctx).Warn("getCallerIdentity", "Not From Cache", getCallerIdentity)
-
 	return callerIdentity, nil
 }
