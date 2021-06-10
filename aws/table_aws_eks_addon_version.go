@@ -47,7 +47,7 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 
-			// Steampipe Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -66,20 +66,11 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 }
 
 type addonVersion struct {
-	// The name of the add-on.
-	AddonName *string
-
-	// The version of the add-on.
-	AddonVersion *string
-
-	// The architectures that the version supports.
-	Architecture []*string
-
-	// An object that represents the compatibilities of a version.
+	AddonName       *string
+	AddonVersion    *string
+	Architecture    []*string
 	Compatibilities []*eks.Compatibility
-
-	// The type of the add-on.
-	Type *string
+	Type            *string
 }
 
 //// LIST FUNCTION

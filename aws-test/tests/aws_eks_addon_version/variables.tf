@@ -71,7 +71,6 @@ resource "aws_eks_cluster" "named_test_resource" {
   }
 }
 
-
 resource "aws_iam_role" "named_test_resource" {
   name = var.resource_name
 
@@ -160,4 +159,3 @@ output "account_id" {
 output "addon_version" {
   value = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
 }
-

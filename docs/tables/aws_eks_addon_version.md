@@ -22,7 +22,7 @@ from
 ```sql
 select
   addon_name,
-  count(addon_version) as addon_verion_count
+  count(addon_version) as addon_version_count
 from
   aws_eks_addon_version
 group by
