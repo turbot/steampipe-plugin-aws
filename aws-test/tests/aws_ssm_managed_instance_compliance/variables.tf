@@ -114,7 +114,7 @@ locals {
 resource "null_resource" "list_compliance" {
   depends_on = [null_resource.delay]
   provisioner "local-exec" {
-    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json > ${local.path}"
+    command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${local.path}"
   }
 }
 

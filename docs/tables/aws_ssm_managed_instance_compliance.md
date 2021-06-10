@@ -20,7 +20,7 @@ from
   aws_ssm_managed_instance_compliance;
 ```
 
-### List non compliant associations of managed instances
+### List non-compliant associations of managed instances
 
 ```sql
 select
@@ -37,7 +37,7 @@ where
   and status <> 'COMPLIANT';
 ```
 
-### List non compliant patches of managed instances
+### List non-compliant patches of managed instances
 
 ```sql
 select

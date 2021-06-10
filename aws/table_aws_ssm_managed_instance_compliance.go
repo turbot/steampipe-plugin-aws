@@ -41,7 +41,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "status",
-				Description: "The date when the association was made.",
+				Description: "The status of the compliance item.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -61,7 +61,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "details",
-				Description: "A Key:Value combination details for the compliance item.",
+				Description: "A key-value combination details for the compliance item.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -70,12 +70,13 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 
-			// Steampipe Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getSSMManagedInstanceComplianceTitle),
+				Default:     transform.FromField("Id"),
+				Transform:   transform.FromField("Title"),
 			},
 			{
 				Name:        "akas",
@@ -142,15 +143,4 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":managed-instance-compliance/" + *data.Id}
 
 	return akas, nil
-}
-
-func getSSMManagedInstanceComplianceTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ssm.ComplianceItem)
-
-	title := *data.Id
-	if len(*data.Title) > 0 {
-		title = *data.Title
-	}
-
-	return title, nil
 }
