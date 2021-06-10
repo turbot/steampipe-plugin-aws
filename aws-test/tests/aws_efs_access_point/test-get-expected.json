@@ -6,7 +6,7 @@
     "life_cycle_state": "available",
     "name": "{{ resourceName }}",
     "owner_id": "{{ output.account_id.value }}",
-    "posix_user": "<null>",
+    "posix_user": null,
     "root_directory": {
       "CreationInfo": null,
       "Path": "/"

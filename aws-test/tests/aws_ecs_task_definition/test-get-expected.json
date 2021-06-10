@@ -1,9 +1,9 @@
 [
   {
     "account_id": "{{ output.account_id.value }}",
-    "cpu": "<null>",
+    "cpu": null,
     "family": "{{resourceName}}",
-    "memory": "<null>",
+    "memory": null,
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.region_name.value }}",
     "status": "ACTIVE",
