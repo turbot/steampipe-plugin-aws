@@ -18,7 +18,7 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 		Description: "AWS EKS Addon",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"addon_name", "cluster_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			Hydrate:           getEksAddon,
 		},
 		List: &plugin.ListConfig{
@@ -33,10 +33,11 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "addon_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the add-on.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksAddon,
+				Transform:   transform.FromField("AddonArn"),
 			},
 			{
 				Name:        "cluster_name",
@@ -46,6 +47,12 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 			{
 				Name:        "addon_version",
 				Description: "The version of the add-on.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksAddon,
+			},
+			{
+				Name:        "status",
+				Description: "The status of the add-on.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksAddon,
 			},
@@ -68,16 +75,19 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				Hydrate:     getEksAddon,
 			},
 			{
-				Name:        "status",
-				Description: "The status of the add-on.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksAddon,
-			},
-			{
-				Name:        "health",
-				Description: "An object that represents the health of the add-on.",
+				Name:        "health_issues",
+				Description: "An object that represents the add-on's health issues.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksAddon,
+				Transform:   transform.FromField("Health.Issues"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AddonName"),
 			},
 			{
 				Name:        "tags",
@@ -85,21 +95,12 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksAddon,
 			},
-
-			// Standard columns for all tables
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AddonName"),
-				Hydrate:     getEksAddon,
-			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AddonArn").Transform(arnToAkas),
 				Hydrate:     getEksAddon,
+				Transform:   transform.FromField("AddonArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -114,6 +115,8 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		region = matrixRegion.(string)
 	}
 	plugin.Logger(ctx).Trace("listEksAddons", "AWS_REGION", region)
+
+	// Get cluster details
 	clusterName := *h.Item.(*eks.Cluster).Name
 
 	// Create service
@@ -141,14 +144,14 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEksAddon")
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
 
-	var clusterName string
-	var addonName string
+	var clusterName, addonName string
 	if h.Item != nil {
 		clusterName = *h.Item.(*eks.Addon).ClusterName
 		addonName = *h.Item.(*eks.Addon).AddonName

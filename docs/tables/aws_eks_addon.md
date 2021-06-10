@@ -9,7 +9,7 @@ Amazon EKS add-ons help to automate the provisioning and lifecycle management of
 ```sql
 select
   addon_name,
-  addon_arn,
+  arn,
   addon_version,
   cluster_name,
   status,
@@ -24,7 +24,7 @@ from
 ```sql
 select
   addon_name,
-  addon_arn,
+  arn,
   cluster_name,
   status
 from

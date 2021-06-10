@@ -71,7 +71,6 @@ resource "aws_eks_cluster" "named_test_resource" {
   }
 }
 
-
 resource "aws_iam_role" "named_test_resource" {
   name = var.resource_name
 
@@ -130,4 +129,3 @@ output "account_id" {
 output "resource_name" {
   value = var.resource_name
 }
-
