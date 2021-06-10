@@ -82,10 +82,10 @@ resource "aws_sagemaker_model" "m" {
 resource "aws_sagemaker_endpoint_configuration" "named_test_resource" {
   name = var.resource_name
   production_variants {
-    variant_name = "variant-1"
-    model_name = "${aws_sagemaker_model.m.name}"
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.m.name
     initial_instance_count = 1
-    instance_type = "ml.t2.medium"
+    instance_type          = "ml.t2.medium"
   }
   tags = {
     name = var.resource_name
