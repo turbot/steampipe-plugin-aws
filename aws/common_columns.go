@@ -110,16 +110,12 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	cacheKey := "commonColumnData" + region
 	var commonColumnData *awsCommonColumnData
-	// if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-	// try to get the data from the cache - call GetP to wait for any pending fetches of the same data
-	if cachedData, ok := d.ConnectionManager.Cache.GetP(cacheKey); ok {
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
 		plugin.Logger(ctx).Warn("getCommonColumns", "From Cache", commonColumnData)
 	} else {
 		callerIdentity, err := getCallerIdentity(ctx, d, h)
 		if err != nil {
-			// let the cache know that we have failed to fetch this item
-			d.ConnectionManager.Cache.ClearPendingItem(cacheKey)
 			return nil, err
 		}
 
@@ -131,10 +127,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		}
 
 		// save to extension cache
-		// d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
-		// save to the cache
-		// SetP also clears any pending fetches
-		d.ConnectionManager.Cache.SetP(cacheKey, commonColumnData)
+		d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
 		plugin.Logger(ctx).Warn("getCommonColumns", "NOT From Cache", commonColumnData)
 	}
 
@@ -147,33 +140,24 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	cacheKey := "GetCallerIdentity"
 
 	// if found in cache, return the result
-	// if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-	// try to get the data from the cache - call GetP to wait for any pending fetches of the same data
-	if cachedData, ok := d.ConnectionManager.Cache.GetP(cacheKey); ok {
-		plugin.Logger(ctx).Warn("getCallerIdentity", "From Cache", getCallerIdentity)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.(*sts.GetCallerIdentityOutput), nil
 	}
 
 	// get the service connection for the service
 	stsSvc, err := StsService(ctx, d)
 	if err != nil {
-		// let the cache know that we have failed to fetch this item
-		d.ConnectionManager.Cache.ClearPendingItem(cacheKey)
 		return nil, err
 	}
 
 	callerIdentity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		// let the cache know that we have failed to fetch this item
-		d.ConnectionManager.Cache.ClearPendingItem(cacheKey)
 		return nil, err
 	}
 
 	// save to extension cache
-	// d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
-	// save to the cache
-	// SetP also clears any pending fetches
-	d.ConnectionManager.Cache.SetP(cacheKey, callerIdentity)
+	d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
 	plugin.Logger(ctx).Warn("getCallerIdentity", "Not From Cache", getCallerIdentity)
 
 	return callerIdentity, nil
