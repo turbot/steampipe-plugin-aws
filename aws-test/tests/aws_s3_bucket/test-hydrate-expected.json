@@ -32,12 +32,12 @@
             "Prefix": "log/",
             "Tags": [
               {
-                "Key": "autoclean",
-                "Value": "true"
-              },
-              {
                 "Key": "rule",
                 "Value": "log"
+              },
+              {
+                "Key": "autoclean",
+                "Value": "true"
               }
             ]
           },
@@ -82,8 +82,12 @@
         "Transitions": null
       }
     ],
-    "logging": "<null>",
+    "logging": null,
     "name": "{{ resourceName }}",
+    "object_lock_configuration": {
+      "ObjectLockEnabled": "Enabled",
+      "Rule": null
+    },
     "policy": {
       "Id": "MYBUCKETPOLICY",
       "Statement": [
@@ -130,7 +134,7 @@
       ],
       "Version": "2012-10-17"
     },
-    "replication": "<null>",
+    "replication": null,
     "server_side_encryption_configuration": {
       "Rules": [
         {

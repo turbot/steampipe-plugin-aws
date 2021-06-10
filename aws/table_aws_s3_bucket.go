@@ -63,12 +63,23 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getBucketTagging,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getObjectLockConfiguration,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsS3Columns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The user friendly name of the bucket.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The ARN of the AWS S3 Bucket.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "creation_date",
@@ -154,6 +165,12 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("LoggingEnabled"),
 			},
 			{
+				Name:        "object_lock_configuration",
+				Description: "The specified bucket's object lock configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getObjectLockConfiguration,
+			},
+			{
 				Name:        "policy",
 				Description: "The resource IAM access document for the bucket.",
 				Type:        proto.ColumnType_JSON,
@@ -198,7 +215,8 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(s3NameToAkas),
+				Hydrate:     getBucketARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "region",
@@ -567,13 +585,50 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return bucketTags, nil
 }
 
-//// TRANSFORM FUNCTIONS
+func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsS3BucketArn")
+	bucket := h.Item.(*s3.Bucket)
 
-func s3NameToAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("s3NameToAkas")
-	bucket := d.HydrateItem.(*s3.Bucket)
-	return []string{"arn:aws:s3:::" + *bucket.Name}, nil
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := c.(*awsCommonColumnData)
+	arn := "arn:" + commonColumnData.Partition + ":s3:::" + *bucket.Name
+
+	return arn, nil
 }
+
+func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getObjectLockConfiguration")
+	bucket := h.Item.(*s3.Bucket)
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create Session
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &s3.GetObjectLockConfigurationInput{
+		Bucket: bucket.Name,
+	}
+
+	data, err := svc.GetObjectLockConfiguration(params)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ObjectLockConfigurationNotFoundError" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+
+	return data, nil
+}
+
+//// TRANSFORM FUNCTIONS
 
 func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")

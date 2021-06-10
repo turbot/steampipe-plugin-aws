@@ -1,0 +1,31 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
+    "allocated_storage": 5,
+    "arn": "{{ output.resource_aka.value }}",
+    "auto_minor_version_upgrade": true,
+    "availability_zone": "{{ output.aws_region.value }}a",
+    "dns_name_servers": null,
+    "free_until": null,
+    "multi_az": false,
+    "partition": "{{ output.aws_partition.value }}",
+    "preferred_maintenance_window": "sun:10:30-sun:14:30",
+    "publicly_accessible": false,
+    "region": "{{ output.aws_region.value }}",
+    "replication_instance_class": "dms.t2.micro",
+    "replication_instance_identifier": "{{ resourceName }}",
+    "replication_instance_status": "available",
+    "secondary_availability_zone": null,
+    "tags": {
+      "foo": "bar"
+    },
+    "tags_src": [
+      {
+        "Key": "foo",
+        "Value": "bar"
+      }
+    ],
+    "title": "{{ resourceName }}"
+  }
+]

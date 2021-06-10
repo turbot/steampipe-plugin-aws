@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "detector_id": "{{ output.resource_id.value }}",
+    "finding_publishing_frequency": "SIX_HOURS",
+    "status": "ENABLED"
+  }
+]
