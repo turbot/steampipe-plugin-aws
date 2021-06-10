@@ -25,7 +25,7 @@ from
 ```sql
 select
   name,
-  alarm_arn,
+  arn,
   state_value,
   state_reason
 from
@@ -39,7 +39,7 @@ where
 
 ```sql
 select
-  alarm_arn,
+  arn,
   actions_enabled,
   alarm_actions
 from
