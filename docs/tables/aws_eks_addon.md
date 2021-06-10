@@ -19,7 +19,7 @@ from
 ```
 
 
-### List addons that are not active
+### List add-ons that are not active
 
 ```sql
 select
@@ -34,7 +34,7 @@ where
 ```
 
 
-### Get addon count by cluster name
+### Get count of add-ons by cluster
 
 ```sql
 select
