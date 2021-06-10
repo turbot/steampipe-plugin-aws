@@ -19,10 +19,10 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
-			Hydrate:           getAwsSagemakerEndpointConfiguration,
+			Hydrate:           getSagemakerEndpointConfiguration,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsSagemakerEndpointConfiguration,
+			Hydrate: listSagemakerEndpointConfigurations,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -42,29 +42,28 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Name:        "kms_key_id",
 				Description: "AWS KMS key ID Amazon SageMaker uses to encrypt data when storing it on the ML storage volume attached to the instance.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSagemakerEndpointConfiguration,
+				Hydrate:     getSagemakerEndpointConfiguration,
 			},
 			{
 				Name:        "creation_time",
-				Description: "The Amazon Resource Name (ARN) of the endpoint configuration.",
+				Description: "A timestamp that shows when the endpoint configuration was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "data_capture_config",
-				Description: "The Amazon Resource Name (ARN) of the endpoint configuration.",
-				Type:        proto.ColumnType_JSON,
+				Name: "data_capture_config",
+				Type: proto.ColumnType_JSON,
 			},
 			{
 				Name:        "production_variants",
 				Description: "An array of ProductionVariant objects, one for each model that you want to host at this endpoint.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSagemakerEndpointConfiguration,
+				Hydrate:     getSagemakerEndpointConfiguration,
 			},
 			{
 				Name:        "tags_src",
 				Description: "The list of tags for the endpoint configuration.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsSageMakerEndpointConfigurationTags,
+				Hydrate:     listSageMakerEndpointConfigurationTags,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -79,14 +78,14 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsSageMakerEndpointConfigurationTags,
+				Hydrate:     listSageMakerEndpointConfigurationTags,
 				Transform:   transform.FromField("Tags").Transform(sageMakerEndpointConfigurationTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("EndpointConfigArn").Transform(arnToAkas),
+				Transform:   transform.FromField("EndpointConfigArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -94,13 +93,13 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsSagemakerEndpointConfiguration", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSagemakerEndpointConfigurations", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := SageMakerService(ctx, d, region)
@@ -123,7 +122,7 @@ func listAwsSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryD
 
 //// HYDRATE FUNCTIONS
 
-func getAwsSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -133,7 +132,7 @@ func getAwsSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryDa
 	// Get config name
 	var configName string
 	if h.Item != nil {
-		configName = getConfigName(h.Item)
+		configName = *h.Item.(*sagemaker.EndpointConfigSummary).EndpointConfigName
 	} else {
 		configName = d.KeyColumnQuals["name"].GetStringValue()
 	}
@@ -152,16 +151,16 @@ func getAwsSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryDa
 	// Get call
 	data, err := svc.DescribeEndpointConfig(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsSagemakerEndpointConfiguration", "ERROR", err)
+		plugin.Logger(ctx).Debug("getSagemakerEndpointConfiguration", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
 
 }
 
-func listAwsSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsSageMakerEndpointConfigurationTags")
+	logger.Trace("listSageMakerEndpointConfigurationTags")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -169,13 +168,7 @@ func listAwsSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Qu
 		region = matrixRegion.(string)
 	}
 
-	var configArn string
-	switch h.Item.(type) {
-	case *sagemaker.EndpointConfigSummary:
-		configArn = *h.Item.(*sagemaker.EndpointConfigSummary).EndpointConfigArn
-	case *sagemaker.DescribeEndpointConfigOutput:
-		configArn = *h.Item.(*sagemaker.DescribeEndpointConfigOutput).EndpointConfigArn
-	}
+	configArn := getConfigArn(h.Item)
 
 	// Create Session
 	svc, err := SageMakerService(ctx, d, region)
@@ -191,7 +184,7 @@ func listAwsSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Qu
 	// Get call
 	op, err := svc.ListTags(params)
 	if err != nil {
-		logger.Debug("listAwsSageMakerEndpointConfigurationTags", "ERROR", err)
+		logger.Debug("listSageMakerEndpointConfigurationTags", "ERROR", err)
 		return nil, err
 	}
 
@@ -218,12 +211,12 @@ func sageMakerEndpointConfigurationTurbotTags(ctx context.Context, d *transform.
 	return nil, nil
 }
 
-func getConfigName(item interface{}) string {
+func getConfigArn(item interface{}) string {
 	switch item.(type) {
 	case *sagemaker.EndpointConfigSummary:
-		return *item.(*sagemaker.EndpointConfigSummary).EndpointConfigName
+		return *item.(*sagemaker.EndpointConfigSummary).EndpointConfigArn
 	case *sagemaker.DescribeEndpointConfigOutput:
-		return *item.(*sagemaker.DescribeEndpointConfigOutput).EndpointConfigName
+		return *item.(*sagemaker.DescribeEndpointConfigOutput).EndpointConfigArn
 	}
 	return ""
 }

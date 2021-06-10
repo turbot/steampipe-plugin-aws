@@ -18,7 +18,7 @@ from
   aws_sagemaker_endpoint_configuration;
 ```
 
-### List endpoint configuration which do not have KMS Key ID configuration
+### List unencrypted endpoint configuration
 
 ```sql
 select
