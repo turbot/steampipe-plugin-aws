@@ -1,6 +1,6 @@
 # Table: aws_sagemaker_endpoint_configuration
 
-The AWS Sagemaker Endpoint configuration that Amazon SageMaker hosting services uses to deploy models. In the configuration, you identify one or more models, created using the CreateModel API, to deploy and the resources that you want Amazon SageMaker to provision.
+An endpoint configuration resource is used by Amazon SageMaker hosting services to deploy models. Each configuration defines one or more models, along with other resources, that Sagemaker will provision.
 
 ## Examples
 
@@ -18,7 +18,7 @@ from
   aws_sagemaker_endpoint_configuration;
 ```
 
-### List unencrypted endpoint configuration
+### List unencrypted endpoint configurations
 
 ```sql
 select
