@@ -64,12 +64,12 @@
         "SplunkDestinationDescription": null
       }
     ],
-    "failure_description": "<null>",
+    "failure_description": null,
     "has_more_destinations": false,
-    "last_update_timestamp": "<null>",
+    "last_update_timestamp": null,
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",
-    "source": "<null>",
+    "source": null,
     "tags_src": [
       {
         "Key": "Foo",
