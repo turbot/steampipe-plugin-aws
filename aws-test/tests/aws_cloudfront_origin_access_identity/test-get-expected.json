@@ -1,0 +1,8 @@
+[
+  {
+    "comment": "{{ resourceName }}",
+    "etag": "{{ output.etag.value }}",
+    "id": "{{ output.resource_id.value }}",
+    "s3_canonical_user_id": "{{ output.s3_canonical_user_id.value }}"
+  }
+]
