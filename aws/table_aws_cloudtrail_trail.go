@@ -244,9 +244,7 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{
-		IncludeShadowTrails: aws.Bool(false),
-	})
+	resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{})
 	if err != nil {
 		return nil, err
 	}
@@ -284,8 +282,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &cloudtrail.DescribeTrailsInput{
-		TrailNameList:       []*string{aws.String(name)},
-		IncludeShadowTrails: aws.Bool(false),
+		TrailNameList: []*string{aws.String(name)},
 	}
 
 	// execute list call
@@ -311,6 +308,12 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 		region = matrixRegion.(string)
 	}
 	trail := h.Item.(*cloudtrail.Trail)
+
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *trail.HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
 
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
@@ -341,6 +344,12 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *trail.HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -370,6 +379,12 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	}
 	trail := h.Item.(*cloudtrail.Trail)
 
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *trail.HomeRegion
+	if region != homeRegion {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
 	if err != nil {
@@ -398,6 +413,12 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 		region = matrixRegion.(string)
 	}
 	trail := h.Item.(*cloudtrail.Trail)
+
+	// Avoid api call if home_region is not equal to current region
+	homeRegion := *trail.HomeRegion
+	if region != homeRegion {
+		return []*cloudtrail.Tag{}, nil
+	}
 
 	// Create session
 	svc, err := CloudTrailService(ctx, d, region)
