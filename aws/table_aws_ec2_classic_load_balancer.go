@@ -236,17 +236,17 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 
 			// Steampipe standard columns
 			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LoadBalancerName"),
+			},
+			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2ClassicLoadBalancerTags,
 				Transform:   transform.From(getEc2ClassicLoadBalancerTurbotTags),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("LoadBalancerName"),
 			},
 			{
 				Name:        "akas",
@@ -383,6 +383,7 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 
 func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
+
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -390,13 +391,13 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get resource arn
+	// Build ARN
 	arn := "arn:" + commonColumnData.Partition + ":elasticloadbalancing:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":loadbalancer/" + *classicLoadBalancer.LoadBalancerName
 
 	return arn, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getEc2ClassicLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	classicLoadBalancerTags := d.HydrateItem.([]*elb.Tag)
