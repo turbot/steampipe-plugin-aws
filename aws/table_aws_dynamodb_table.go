@@ -34,7 +34,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("TableName"),
 			},
 			{
-				Name:        "table_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) that uniquely identifies the table.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDynamboDbTable,
