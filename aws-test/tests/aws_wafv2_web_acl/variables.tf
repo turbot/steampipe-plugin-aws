@@ -86,8 +86,7 @@ resource "aws_wafv2_web_acl" "named_test_resource" {
   }
 
   tags = {
-    Tag1 = "Value1"
-    Tag2 = "Value2"
+    name = var.resource_name
   }
 
   visibility_config {

@@ -134,7 +134,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+				Transform:   transform.FromField("ARN").Transform(transform.EnsureStringArray),
 			},
 
 			// AWS standard columns
@@ -319,7 +319,6 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getLoggingConfiguration")
 
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
