@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
@@ -18,8 +19,9 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_managed_instance_compliance",
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
-			ParentHydrate: listSsmManagedInstances,
-			Hydrate:       listSsmManagedInstanceCompliances,
+			KeyColumns:        plugin.SingleColumn("resource_id"),
+			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
+			Hydrate:           listSsmManagedInstanceCompliances,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -103,11 +105,12 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
-	instanceId := h.Item.(*ssm.InstanceInformation).InstanceId
+
+	instanceId := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// Build the params
 	params := &ssm.ListComplianceItemsInput{
-		ResourceIds: []*string{instanceId},
+		ResourceIds: []*string{aws.String(instanceId)},
 	}
 
 	// List call
@@ -139,7 +142,7 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":managed-instance-compliance/" + *data.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.ResourceId + "/compliance-item/" + *data.Id + ":" + *data.ComplianceType}
 
 	return akas, nil
 }
