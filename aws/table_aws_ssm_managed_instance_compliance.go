@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -20,7 +19,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
 			KeyColumns:        plugin.SingleColumn("resource_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
 			Hydrate:           listSsmManagedInstanceCompliances,
 		},
 		GetMatrixItem: BuildRegionList,
@@ -116,12 +115,7 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	// List call
 	data, err := svc.ListComplianceItems(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidResourceId" || a.Code() == "ValidationException" {
-				return nil, nil
-			}
-			return nil, err
-		}
+		return nil, err
 	}
 	for _, item := range data.ComplianceItems {
 		d.StreamListItem(ctx, item)
