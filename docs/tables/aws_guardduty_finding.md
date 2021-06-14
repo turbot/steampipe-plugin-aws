@@ -16,7 +16,7 @@ from
   aws_guardduty_finding;
 ```
 
-### List findings which are non archived
+### List findings that are not archived
 
 ```sql
 select
