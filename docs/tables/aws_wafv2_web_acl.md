@@ -84,3 +84,18 @@ from
 where
   scope = 'REGIONAL';
 ```
+
+
+### List web ACLs with logging disabled
+
+```sql
+select
+  name,
+  id,
+  scope,
+  region
+from
+  aws_wafv2_web_acl
+where
+  logging_configuration is null;
+```
