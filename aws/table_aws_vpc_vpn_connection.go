@@ -33,7 +33,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "ARN of the connection.",
+				Description: "The Amazon Resource Name (ARN) specifying the VPN connection.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getVpcVpnConnectionARN,
 				Transform:   transform.FromValue(),
@@ -100,13 +100,13 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromP(getVpcVpnConnectionTurbotData, "Title"),
+				Transform:   transform.FromP(vpnConnectionTurbotData, "Title"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(getVpcVpnConnectionTurbotData, "Tags"),
+				Transform:   transform.FromP(vpnConnectionTurbotData, "Tags"),
 			},
 			{
 				Name:        "akas",
@@ -147,8 +147,7 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcVpnGateway")
+	plugin.Logger(ctx).Trace("getVpcVpnConnection")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -157,7 +156,7 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 	vpnConnectionID := d.KeyColumnQuals["vpn_connection_id"].GetStringValue()
 
-	// get service
+	// Create session
 	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
@@ -171,7 +170,7 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Get call
 	op, err := svc.DescribeVpnConnections(params)
 	if err != nil {
-		logger.Debug("getVpcVpnConnection", "ERROR", err)
+		plugin.Logger(ctx).Debug("getVpcVpnConnection", "ERROR", err)
 		return nil, err
 	}
 
@@ -190,7 +189,7 @@ func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
+	// Build ARN
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpn-connection/" + *vpnConnection.VpnConnectionId
 
 	return arn, nil
@@ -198,7 +197,7 @@ func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// TRANSFORM FUNCTIONS
 
-func getVpcVpnConnectionTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func vpnConnectionTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	vpnConnection := d.HydrateItem.(*ec2.VpnConnection)
 	param := d.Param.(string)
 
@@ -218,6 +217,9 @@ func getVpcVpnConnectionTurbotData(_ context.Context, d *transform.TransformData
 	}
 
 	if param == "Tags" {
+		if vpnConnection.Tags == nil {
+			return nil, nil
+		}
 		return turbotTagsMap, nil
 	}
 
