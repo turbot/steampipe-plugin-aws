@@ -29,120 +29,158 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FunctionName"),
+				Transform:   transform.FromField("Configuration.FunctionName", "FunctionName"),
+			},
+			{
+				Name:        "arn",
+				Description: "The function's Amazon Resource Name (ARN).",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.FunctionArn", "FunctionArn"),
 			},
 			{
 				Name:        "code_sha_256",
 				Description: "The SHA256 hash of the function's deployment package.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.CodeSha256", "CodeSha256"),
 			},
 			{
 				Name:        "code_size",
 				Description: "The size of the function's deployment package, in bytes.",
 				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Configuration.CodeSize", "CodeSize"),
+			},
+			{
+				Name:        "dead_letter_config_target_arn",
+				Description: "The Amazon Resource Name (ARN) of an Amazon SQS queue or Amazon SNS topic.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.DeadLetterConfig.TargetArn", "DeadLetterConfig.TargetArn"),
 			},
 			{
 				Name:        "description",
 				Description: "The function's description.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Description", "Description"),
 			},
 			{
 				Name:        "handler",
 				Description: "The function that Lambda calls to begin executing your function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Handler", "Handler"),
 			},
 			{
 				Name:        "kms_key_arn",
 				Description: "The KMS key that's used to encrypt the function's environment variables. This key is only returned if you've configured a customer managed CMK.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.KMSKeyArn", "KMSKeyArn"),
 			},
 			{
 				Name:        "last_modified",
 				Description: "The date and time that the function was last updated.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.LastModified", "LastModified"),
 			},
 			{
 				Name:        "timeout",
 				Description: "The amount of time in seconds that Lambda allows a function to run before stopping it.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Timeout", "Timeout"),
 			},
 			{
 				Name:        "version",
 				Description: "The version of the Lambda function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Version", "Version"),
 			},
 			{
 				Name:        "master_arn",
 				Description: "For Lambda@Edge functions, the ARN of the master function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.MasterArn", "MasterArn"),
 			},
 			{
 				Name:        "memory_size",
 				Description: "The memory that's allocated to the function.",
 				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Configuration.MemorySize", "MemorySize"),
 			},
 			{
 				Name:        "revision_id",
 				Description: "The latest updated revision of the function or alias.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.RevisionId", "RevisionId"),
 			},
 			{
 				Name:        "role",
 				Description: "The function's execution role.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Role", "Role"),
 			},
 			{
 				Name:        "runtime",
 				Description: "The runtime environment for the Lambda function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.Runtime", "Runtime"),
 			},
 			{
 				Name:        "state",
 				Description: "The current state of the function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.State", "State"),
 			},
 			{
 				Name:        "state_reason",
 				Description: "The reason for the function's current state.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.StateReason", "StateReason"),
 			},
 			{
 				Name:        "state_reason_code",
 				Description: "The reason code for the function's current state.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.StateReasonCode", "StateReasonCode"),
 			},
 			{
 				Name:        "last_update_status",
 				Description: "The status of the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.LastUpdateStatus", "LastUpdateStatus"),
 			},
 			{
 				Name:        "last_update_status_reason",
 				Description: "The reason for the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.LastUpdateStatusReason", "LastUpdateStatusReason"),
 			},
 			{
 				Name:        "last_update_status_reason_code",
 				Description: "The reason code for the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.LastUpdateStatusReasonCode", "LastUpdateStatusReasonCode"),
+			},
+			{
+				Name:        "reserved_concurrent_executions",
+				Description: "The number of concurrent executions that are reserved for this function.",
+				Type:        proto.ColumnType_INT,
+				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Concurrency.ReservedConcurrentExecutions"),
 			},
 			{
 				Name:        "vpc_id",
 				Description: "The VPC ID that is attached to Lambda function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("VpcConfig.VpcId"),
+				Transform:   transform.FromField("Configuration.VpcConfig.VpcId", "VpcConfig.VpcId"),
 			},
 			{
 				Name:        "vpc_security_group_ids",
 				Description: "A list of VPC security groups IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("VpcConfig.SecurityGroupIds"),
+				Transform:   transform.FromField("Configuration.VpcConfig.SecurityGroupIds", "VpcConfig.SecurityGroupIds"),
 			},
 			{
 				Name:        "vpc_subnet_ids",
 				Description: "A list of VPC subnet IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("VpcConfig.SubnetIds"),
+				Transform:   transform.FromField("Configuration.VpcConfig.SubnetIds", "VpcConfig.SubnetIds"),
 			},
 			{
 				Name:        "policy",
@@ -158,30 +196,26 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
+
+			// Steampipe standard columns
 			{
-				Name:        "arn",
-				Description: "The function's Amazon Resource Name (ARN).",
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FunctionArn"),
+				Transform:   transform.FromField("Configuration.FunctionName", "FunctionName"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getFunctionTagging,
+				Hydrate:     getAwsLambdaFunction,
 				Transform:   transform.FromField("Tags"),
-			},
-			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FunctionName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("FunctionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("Configuration.FunctionArn", "FunctionArn").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -219,7 +253,7 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsLambdaFunction")
 
 	// TODO put me in helper function
@@ -228,7 +262,13 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	name := d.KeyColumnQuals["name"].GetStringValue()
+
+	var name string
+	if h.Item != nil {
+		name = *h.Item.(*lambda.FunctionConfiguration).FunctionName
+	} else {
+		name = d.KeyColumnQuals["name"].GetStringValue()
+	}
 
 	// Create Session
 	svc, err := LambdaService(ctx, d, region)
@@ -247,7 +287,7 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	return rowData.Configuration, nil
+	return rowData, nil
 }
 
 func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -258,7 +298,7 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	function := h.Item.(*lambda.FunctionConfiguration)
+	functionName := functionName(h.Item)
 
 	// Create Session
 	svc, err := LambdaService(ctx, d, region)
@@ -267,7 +307,7 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	input := &lambda.GetPolicyInput{
-		FunctionName: function.FunctionName,
+		FunctionName: aws.String(functionName),
 	}
 
 	op, err := svc.GetPolicy(input)
@@ -282,29 +322,12 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return op, nil
 }
 
-func getFunctionTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getFunctionTagging")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
+func functionName(item interface{}) string {
+	switch item := item.(type) {
+	case *lambda.FunctionConfiguration:
+		return *item.FunctionName
+	case *lambda.GetFunctionOutput:
+		return *item.Configuration.FunctionName
 	}
-	function := h.Item.(*lambda.FunctionConfiguration)
-
-	// Create Session
-	svc, err := LambdaService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &lambda.GetFunctionInput{
-		FunctionName: function.FunctionName,
-	}
-
-	op, err := svc.GetFunction(input)
-	if err != nil {
-		return nil, err
-	}
-	return op, nil
+	return ""
 }
