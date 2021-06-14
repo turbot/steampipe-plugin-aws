@@ -5,7 +5,7 @@
     "assessment_run_count": 0,
     "assessment_target_arn": "{{ output.assessment_target_aka.value }}",
     "duration_in_seconds": 3600,
-    "last_assessment_run_arn": "<null>",
+    "last_assessment_run_arn": null,
     "name": "{{ resourceName }}",
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",

@@ -161,18 +161,18 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEc2AmiTurbotTags),
-			},
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(getEc2AmiTurbotTitle),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getEc2AmiTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -188,7 +188,6 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -214,7 +213,6 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -245,7 +243,6 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2AmiLaunchPermissionData")
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -282,7 +279,7 @@ func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":image/" + *image.ImageId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + *image.OwnerId + ":image/" + *image.ImageId}
 
 	return akas, nil
 }
@@ -298,12 +295,9 @@ func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interf
 	data := d.HydrateItem.(*ec2.Image)
 
 	title := data.ImageId
-	if data.Tags != nil {
-		for _, i := range data.Tags {
-			if *i.Key == "Name" {
-				title = i.Value
-			}
-		}
+	if data.Name != nil {
+		title = data.Name
 	}
+
 	return title, nil
 }
