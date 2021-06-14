@@ -2,7 +2,7 @@
 
 Amazon EKS add-ons help to automate the provisioning and lifecycle management of common operational software for Amazon EKS clusters.
 
-Amazon EKS add-ons version describes the Kubernetes versions that the add-on can be used with.
+Amazon EKS add-on versions describe the Kubernetes versions that the add-on can be used with.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_eks_addon_version;
 ```
 
-### Get addon version count by addon name
+### Count the number of add-on versions by add-on
 
 ```sql
 select
