@@ -1,6 +1,6 @@
 # Table: aws_vpc_vpn_connection
 
-AWS Client VPN is a managed client-based VPN service that enables securely access AWS resources or on-premises network.
+A VPN connection can be used to configure secure access to your AWS resources with remote and on-premisis networks.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
 ```
 
 
-### List VPN connection options info
+### Get option configurations for each VPN connection
 
 ```sql
 select
@@ -37,7 +37,7 @@ from
 ```
 
 
-### List VPN connections for which VPN tunnel is up
+### List VPN connections with tunnel status UP
 
 ```sql
 select
