@@ -116,7 +116,7 @@ func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":eks:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":addon-version/" + *version.AddonVersion}
+	akas := []string{"arn:" + commonColumnData.Partition + ":eks:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":addonversion/" + *version.AddonName + "/" + *version.AddonVersion}
 
 	return akas, nil
 }
