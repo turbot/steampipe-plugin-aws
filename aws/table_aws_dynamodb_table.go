@@ -187,7 +187,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDynamboDbTable,
-				Transform:   transform.From(getDdbTurbotAkas),
+				Transform:   transform.FromField("TableArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -365,7 +365,7 @@ func getTableTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 }
 
 // getDdbTurbotAkas returns akas for this item
-func getDdbTurbotAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	table := d.HydrateItem.(*dynamodb.TableDescription)
-	return []string{*table.TableArn}, nil
-}
+// func getDdbTurbotAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
+// 	table := d.HydrateItem.(*dynamodb.TableDescription)
+// 	return []string{*table.TableArn}, nil
+// }
