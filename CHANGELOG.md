@@ -1,3 +1,25 @@
+## v0.21.0 [2021-06-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_ami_shared](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_ami_shared) ([#456](https://github.com/turbot/steampipe-plugin-aws/pull/456))
+  - [aws_ec2_regional_settings](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_regional_settings) ([#403](https://github.com/turbot/steampipe-plugin-aws/pull/403))
+  - [aws_eks_addon](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_addon) ([#478](https://github.com/turbot/steampipe-plugin-aws/pull/478))
+  - [aws_sagemaker_endpoint_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_endpoint_configuration) ([#477](https://github.com/turbot/steampipe-plugin-aws/pull/477))
+
+_Enhancements_
+
+- Updated: Shadow trails are now included in `aws_cloudtrail_trail` table query results ([#441](https://github.com/turbot/steampipe-plugin-aws/pull/441))
+- Updated: Add columns `replication_group_id`, `snapshot_retention_limit`, and `snapshot_window` to `aws_elasticache_cluster` table ([#458](https://github.com/turbot/steampipe-plugin-aws/pull/458))
+- Updated: Add columns `dead_letter_config_target_arn` and `reserved_concurrent_executions` to `aws_lambda_function` table ([#474](https://github.com/turbot/steampipe-plugin-aws/pull/474))
+- Updated: Rename column `alarm_arn` to `arn` in `aws_cloudwatch_alarm` table ([#489](https://github.com/turbot/steampipe-plugin-aws/pull/489))
+- Recompiled plugin with [steampipe-plugin-sdk v0.2.10](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v0210-2021-06-09)
+
+_Bug fixes_
+
+- Fixed: GetCommonColumns function should only get STS caller identity once per account instead of per region ([#490](https://github.com/turbot/steampipe-plugin-aws/pull/490))
+
 ## v0.20.0 [2021-06-03]
 
 _What's new?_
