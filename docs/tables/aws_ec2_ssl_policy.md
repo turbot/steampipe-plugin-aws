@@ -1,6 +1,6 @@
 # Table: aws_ec2_ssl_policy
 
-A SSL security policy is a combination of protocols and ciphers. Elastic Load Balancing uses a Secure Socket Layer (SSL) negotiation configuration, known as a security policy, to negotiate SSL connections between a client and the load balancer.
+An SSL security policy is a combination of protocols and ciphers. Elastic Load Balancing uses a Secure Socket Layer (SSL) negotiation configuration, known as a security policy, to negotiate SSL connections between a client and the load balancer.
 
 ## Examples
 
@@ -15,7 +15,7 @@ from
 ```
 
 
-### List load balancer listeners contains ssl policy with weak cipher
+### List load balancer listeners that use an SSL policy with weak ciphers
 
 ```sql
 select
