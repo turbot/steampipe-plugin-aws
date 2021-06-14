@@ -91,6 +91,7 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 				Description: "A list of event subscriptions associated with the Assessment Template.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     listAwsInspectorAssessmentEventSubscriptions,
+				Transform:   transform.FromValue(),
 			},
 			// Standard columns for all tables
 			{
@@ -248,19 +249,14 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 	params := &inspector.ListEventSubscriptionsInput{
 		ResourceArn: &assessmentTemplateArn,
 	}
-	// Create a Struct name EventSubscriptions as the framework will use the field name to create
-	// a key from which it extracts the contents of the field
-	type AssociatedEventSubscriptions struct {
-		EventSubscriptions []*inspector.Subscription
-	}
 
-	associatedEventSubscriptions := new(AssociatedEventSubscriptions)
+	var associatedEventSubscriptions []*inspector.Subscription
 
 	err = svc.ListEventSubscriptionsPages(
 		params,
 		func(page *inspector.ListEventSubscriptionsOutput, lastPage bool) bool {
 			for _, Subscription := range page.Subscriptions {
-				associatedEventSubscriptions.EventSubscriptions = append(associatedEventSubscriptions.EventSubscriptions, Subscription)
+				associatedEventSubscriptions = append(associatedEventSubscriptions, Subscription)
 			}
 			return !lastPage
 		},
