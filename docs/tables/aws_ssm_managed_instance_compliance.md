@@ -4,6 +4,8 @@ A managed instance is any machine configured for AWS Systems Manager. You can co
 
 AWS SSM Managed Instance Compliance provide list of compliance statuses for different resource types for a specified resource ID.
 
+**You must specify an Managed Instance ID** in a `where` clause (`where resource_id='`).
+
 ## Examples
 
 ### Basic info
@@ -17,10 +19,12 @@ select
   compliance_type,
   severity
 from
-  aws_ssm_managed_instance_compliance;
+  aws_ssm_managed_instance_compliance
+where
+  resource_id = '2a49c5a11ed9d37f';
 ```
 
-### List non-compliant associations of managed instances
+### List non-compliant associations of managed instance
 
 ```sql
 select
@@ -33,11 +37,12 @@ select
 from
   aws_ssm_managed_instance_compliance
 where
-  compliance_type = 'Association'
+  resource_id = '2a49c5a11ed9d37f'
+  and compliance_type = 'Association'
   and status <> 'COMPLIANT';
 ```
 
-### List non-compliant patches of managed instances
+### List non-compliant patches of managed instance
 
 ```sql
 select
@@ -50,6 +55,7 @@ select
 from
   aws_ssm_managed_instance_compliance
 where
-  compliance_type = 'Patch'
+  resource_id = '2a49c5a11ed9d37f'
+  and compliance_type = 'Patch'
   and status <> 'COMPLIANT';
 ```
