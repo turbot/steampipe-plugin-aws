@@ -1,8 +1,7 @@
 [
   {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
+    "akas": ["{{ output.resource_aka.value }}"],
+    "arn": "{{ output.resource_aka.value }}",
     "name": "{{ resourceName }}",
     "rest_api_id": "{{ output.rest_api_id.value }}",
     "tags": {
