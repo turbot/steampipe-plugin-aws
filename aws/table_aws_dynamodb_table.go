@@ -363,9 +363,3 @@ func getTableTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 
 	return turbotTagsMap, nil
 }
-
-// getDdbTurbotAkas returns akas for this item
-// func getDdbTurbotAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	table := d.HydrateItem.(*dynamodb.TableDescription)
-// 	return []string{*table.TableArn}, nil
-// }
