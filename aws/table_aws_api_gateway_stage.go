@@ -37,7 +37,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the  stage.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAPIGatewayStageArn,
+				Hydrate:     getAPIGatewayStageARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -154,7 +154,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAPIGatewayStageArn,
+				Hydrate:     getAPIGatewayStageARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -235,15 +235,16 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	return &stageRowData{stageData, aws.String(restAPIID)}, nil
 }
 
-func getAPIGatewayStageArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayStageArn")
+func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAPIGatewayStageARN")
+
 	apiStage := h.Item.(*stageRowData)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
 	commonColumnData := commonData.(*awsCommonColumnData)
+
 	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/restapis/" + *apiStage.RestAPIId + "/stages/" + *apiStage.Stage.StageName
 	return arn, nil
 }
