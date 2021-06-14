@@ -52,3 +52,21 @@ from
   aws_vpc_vpn_connection,
   jsonb_array_elements(vgw_telemetry) as t;
 ```
+
+
+### List VPN connections for which VPN tunnel is up
+
+```sql
+select
+  vpn_connection_id,
+  t -> 'AcceptedRouteCount' as accepted_route_count,
+  t ->> 'CertificateArn' as certificate_arn,
+  t ->> 'LastStatusChange' as last_status_change,
+  t ->> 'OutsideIpAddress' as outside_ip_address,
+  t ->> 'Status' as status,
+  t ->> 'StatusMessage' as status_message
+from
+  aws_vpc_vpn_connection,
+  jsonb_array_elements(vgw_telemetry) as t
+where  t ->> 'Status' = 'UP';
+```

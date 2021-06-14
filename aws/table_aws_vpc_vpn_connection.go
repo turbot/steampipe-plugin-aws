@@ -35,7 +35,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "ARN of the connection.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getVpcVpnConnectionTurbotARN,
+				Hydrate:     getVpcVpnConnectionARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -73,8 +73,6 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				Description: "The ID of the transit gateway associated with the VPN connection.",
 				Type:        proto.ColumnType_STRING,
 			},
-
-			// JSON columns
 			{
 				Name:        "options",
 				Description: "The VPN connection options.",
@@ -97,13 +95,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			//standard columns
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromP(getVpcVpnConnectionTurbotData, "Tags"),
-			},
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -111,10 +103,16 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 				Transform:   transform.FromP(getVpcVpnConnectionTurbotData, "Title"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromP(getVpcVpnConnectionTurbotData, "Tags"),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getVpcVpnConnectionTurbotARN,
+				Hydrate:     getVpcVpnConnectionARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -183,8 +181,8 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	return nil, nil
 }
 
-func getVpcVpnConnectionTurbotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcVpnConnectionTurbotARN")
+func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcVpnConnectionARN")
 	vpnConnection := h.Item.(*ec2.VpnConnection)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
