@@ -1,7 +1,7 @@
 [
   {
+    "arn": "{{ output.resource_aka.value }}",
     "region": "{{ output.aws_region.value }}",
-    "replication_instance_arn": "{{ output.resource_aka.value }}",
     "replication_instance_identifier": "{{ resourceName }}",
     "tags": {
       "foo": "bar"
