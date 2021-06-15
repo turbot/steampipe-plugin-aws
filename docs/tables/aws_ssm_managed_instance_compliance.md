@@ -64,16 +64,12 @@ where
 
 ```sql
 select
-  resource_id as instance_id,
+  c.resource_id as instance_id,
   id,
   status
 from
-  aws_ssm_managed_instance_compliance
+  aws_ssm_managed_instance i,
+  aws_ssm_managed_instance_compliance c
 where
-  resource_id in (
-    select
-      instance_id
-    from
-      aws.aws_ssm_managed_instance
-  );
+  i.instance_id = c.resource_id;
 ```
