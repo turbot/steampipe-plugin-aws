@@ -21,7 +21,7 @@ select
 from
   aws_ssm_managed_instance_compliance
 where
-  resource_id = '2a49c5a11ed9d37f';
+  resource_id = 'i-2a49c5a11ed9d37f';
 ```
 
 ### List non-compliant associations of managed instance
@@ -37,7 +37,7 @@ select
 from
   aws_ssm_managed_instance_compliance
 where
-  resource_id = '2a49c5a11ed9d37f'
+  resource_id = 'i-2a49c5a11ed9d37f'
   and compliance_type = 'Association'
   and status <> 'COMPLIANT';
 ```
@@ -55,7 +55,25 @@ select
 from
   aws_ssm_managed_instance_compliance
 where
-  resource_id = '2a49c5a11ed9d37f'
+  resource_id = 'i-2a49c5a11ed9d37f'
   and compliance_type = 'Patch'
   and status <> 'COMPLIANT';
+```
+
+### List compliance status for all managed instances
+
+```sql
+select
+  id,
+  resource_id,
+  status
+from
+  aws_ssm_managed_instance_compliance
+where
+  resource_id in (
+    select
+      instance_id
+    from
+      aws.aws_ssm_managed_instance
+  );
 ```
