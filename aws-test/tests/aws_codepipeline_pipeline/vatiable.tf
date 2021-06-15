@@ -131,7 +131,7 @@ resource "aws_s3_bucket" "codepipeline_bucket" {
 }
 
 resource "aws_iam_role" "codepipeline_role" {
-  name = "test-role"
+  name = var.resource_name
 
   assume_role_policy = <<EOF
 {
@@ -150,7 +150,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
+  name = var.resource_name
   role = aws_iam_role.codepipeline_role.id
 
   policy = <<EOF
@@ -192,7 +192,7 @@ EOF
 }
 
 resource "aws_kms_key" "named_test_resource" {
-  description             = "var.resource_name"
+  description             = var.resource_name
   deletion_window_in_days = 7
 }
 

@@ -17,7 +17,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([] string{"name", "region"}),
+			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
 			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
 			Hydrate:           getCodepipelinePipeline,
 		},
@@ -39,9 +39,10 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Metadata.PipelineArn"),
 			},
 			{
-				Name:        "created",
+				Name:        "created_at",
 				Description: "The date and time the pipeline was created, in timestamp format.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("Created"),
 			},
 			{
 				Name:        "encryption_key",
@@ -71,11 +72,11 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Pipeline.Stages"),
 			},
-
 			{
-				Name:        "updated",
+				Name:        "updated_at",
 				Description: "The date and time of the last update to the pipeline, in timestamp format.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("Updated"),
 			},
 			{
 				Name:        "version",
@@ -84,13 +85,13 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "A list of tag key and value pairs associated with this build project.",
+				Description: "A list of tag key and value pairs associated with this pipeline.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPipelineTags,
-				Transform: transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -102,7 +103,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPipelineTags,
-				Transform: transform.From(codepipelineTurbotTags),
+				Transform:   transform.From(codepipelineTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -154,8 +155,8 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
-	} 
-	
+	}
+
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*codepipeline.PipelineSummary).Name
@@ -195,7 +196,7 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		region = matrixRegion.(string)
 	}
 
-	pipelineArn := getPipelineArn(ctx, d, h)
+	pipelineArn := pipelineARN(ctx, d, h)
 
 	// Get service connection
 	svc, err := CodePipelineService(ctx, d, region)
@@ -218,8 +219,8 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// TRANSFORM FUNCTIONS
 
-func getPipelineArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
-	plugin.Logger(ctx).Trace("getPipelineArn")
+func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
+	plugin.Logger(ctx).Trace("pipelineARN")
 
 	// Get region, partition, account id
 	c, err := getCommonColumns(ctx, d, h)
@@ -247,12 +248,10 @@ func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (in
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if data.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
 	}
+
 	return turbotTagsMap, nil
 }
