@@ -64,8 +64,8 @@ where
 
 ```sql
 select
+  resource_id as instance_id,
   id,
-  resource_id,
   status
 from
   aws_ssm_managed_instance_compliance
