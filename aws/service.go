@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
@@ -254,6 +255,26 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (
 		return nil, err
 	}
 	svc := codebuild.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// CodePipelineService returns the service connection for AWS Codepipeline service
+func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string) (*codepipeline.CodePipeline, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodePipelineService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codepipeline-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codepipeline.CodePipeline), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codepipeline.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }

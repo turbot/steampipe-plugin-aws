@@ -1,0 +1,13 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "encryption_key": {
+      "Id": "{{ output.encryption_key.value }}",
+      "Type": "KMS"
+    },
+    "name": "{{ resourceName }}",
+    "role_arn": "{{ output.role_arn.value }}",
+    "tags_src": [],
+    "title": "{{ resourceName }}"
+  }
+]
