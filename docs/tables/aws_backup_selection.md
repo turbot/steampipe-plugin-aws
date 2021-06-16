@@ -26,8 +26,8 @@ with filtered_data as (
   select
     backup_plan_id,
     jsonb_agg(r) as assigned_resource
-  FROM
-    test_aab.aws_backup_selection,
+  from
+    aws_backup_selection,
     jsonb_array_elements(resources) as r
   group by backup_plan_id
 )
@@ -35,7 +35,7 @@ select
   v.volume_id,
   v.region,
   v.account_id
-FROM
-  test_aab.aws_ebs_volume as v
-  join filtered_data t on t.assigned_resource ?| array[v.arn]
+from
+  aws_ebs_volume as v
+  join filtered_data t on t.assigned_resource ?| array[v.arn];
 ```
