@@ -46,6 +46,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_auditmanager_framework":                        tableAwsAuditManagerFramework(ctx),
 			"aws_availability_zone":                             tableAwsAvailabilityZone(ctx),
 			"aws_backup_plan":                                   tableAwsBackupPlan(ctx),
+			"aws_backup_selection":                              tableAwsBackupSelection(ctx),
 			"aws_backup_vault":                                  tableAwsBackupVault(ctx),
 			"aws_cloudformation_stack":                          tableAwsCloudFormationStack(ctx),
 			"aws_cloudfront_cache_policy":                       tableAwsCloudFrontCachePolicy(ctx),
