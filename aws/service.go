@@ -617,7 +617,7 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData, region strin
 		return nil, fmt.Errorf("region must be passed ElasticsearchService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
+	serviceCacheKey := fmt.Sprintf("elasticsearch-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*elasticsearchservice.ElasticsearchService), nil
 	}
