@@ -362,7 +362,7 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 // CostExplorerService returns the service connection for AWS Cost Explorer service
 func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := "ce"
+	serviceCacheKey := "costexplorer"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*costexplorer.CostExplorer), nil
 	}
@@ -982,7 +982,7 @@ func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*co
 		return nil, fmt.Errorf("region must be passed ConfigService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("configservice-%s", region)
+	serviceCacheKey := fmt.Sprintf("config-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*configservice.ConfigService), nil
 	}
@@ -1082,7 +1082,7 @@ func SecretsManagerService(ctx context.Context, d *plugin.QueryData, region stri
 		return nil, fmt.Errorf("region must be passed SecretsManagerService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("secretsManager-%s", region)
+	serviceCacheKey := fmt.Sprintf("secretsmanager-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*secretsmanager.SecretsManager), nil
 	}
@@ -1102,7 +1102,7 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, fmt.Errorf("region must be passed SecurityHubService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("securityHub-%s", region)
+	serviceCacheKey := fmt.Sprintf("securityhub-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*securityhub.SecurityHub), nil
 	}
