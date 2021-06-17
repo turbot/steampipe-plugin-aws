@@ -1,3 +1,27 @@
+## v0.22.0 [2021-06-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_ssl_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_ssl_policy) ([#362](https://github.com/turbot/steampipe-plugin-aws/pull/362))
+  - [aws_eks_addon_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_addon_version) ([#482](https://github.com/turbot/steampipe-plugin-aws/pull/482))
+  - [aws_guardduty_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_guardduty_finding) ([#488](https://github.com/turbot/steampipe-plugin-aws/pull/488))
+  - [aws_ssm_managed_instance_compliance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_managed_instance_compliance) ([#484](https://github.com/turbot/steampipe-plugin-aws/pull/484))
+  - [aws_vpc_vpn_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_vpn_connection) ([#486](https://github.com/turbot/steampipe-plugin-aws/pull/486))
+
+_Enhancements_
+
+- Updated: Add column `arn` to `aws_api_gateway_stage` table ([#447](https://github.com/turbot/steampipe-plugin-aws/pull/447))
+- Updated: Add column `arn` to `aws_ec2_classic_load_balancer` table ([#475](https://github.com/turbot/steampipe-plugin-aws/pull/475))
+- Updated: Add column `event_subscriptions` to `aws_inspector_assessment_template` table ([#467](https://github.com/turbot/steampipe-plugin-aws/pull/467))
+- Updated: Add column `logging_configuration` to `aws_wafv2_web_acl` table ([#470](https://github.com/turbot/steampipe-plugin-aws/pull/470))
+- Updated: Add columns `dnssec_key_signing_keys` and `dnssec_status` to `aws_route53_zone` table ([#439](https://github.com/turbot/steampipe-plugin-aws/pull/439))
+
+_Bug fixes_
+
+- Fixed: Cache key in `ElasticsearchService` function and update various cache keys to be more consistent ([#500](https://github.com/turbot/steampipe-plugin-aws/pull/500))
+- Fixed: Tags hydrate call should not fail in `aws_sagemaker_notebook_instance` table ([#372](https://github.com/turbot/steampipe-plugin-aws/pull/372))
+
 ## v0.21.0 [2021-06-10]
 
 _What's new?_
