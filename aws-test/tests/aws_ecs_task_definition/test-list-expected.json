@@ -1,8 +1,8 @@
 [
   {
-    "cpu": "<null>",
+    "cpu": null,
     "family": "{{resourceName}}",
-    "memory": "<null>",
+    "memory": null,
     "status": "ACTIVE",
     "task_definition_arn": "{{ output.resource_aka.value }}"
   }

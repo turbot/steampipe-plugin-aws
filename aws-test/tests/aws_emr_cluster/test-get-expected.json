@@ -2,7 +2,7 @@
   {
     "auto_terminate": false,
     "cluster_arn": "{{ output.resource_aka.value }}",
-    "ebs_root_volume_size": "<null>",
+    "ebs_root_volume_size": null,
     "id": "{{ output.resource_id.value }}",
     "name": "{{resourceName}}",
     "tags": {

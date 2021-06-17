@@ -1,0 +1,8 @@
+[
+  {
+    "customer_gateway_id": "{{ output.customer_gateway_id.value }}",
+    "type": "{{ output.type.value }}",
+    "vpn_connection_id": "{{ output.resource_id.value }}",
+    "vpn_gateway_id": "{{ output.vpn_gateway_id.value }}"
+  }
+]

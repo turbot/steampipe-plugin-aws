@@ -1,3 +1,4 @@
+
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125-create-update"
@@ -54,7 +55,6 @@ resource "aws_iam_role" "my_role" {
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
-        Sid    = ""
         Principal = {
           Service = "sagemaker.amazonaws.com"
         }

@@ -2,7 +2,10 @@ package aws
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -212,6 +215,12 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("State.Code"),
 			},
 			{
+				Name:        "state_transition_time",
+				Description: "The date and time, the instance state was last modified.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.From(ec2InstanceStateChangeTime),
+			},
+			{
 				Name:        "subnet_id",
 				Description: "The ID of the subnet in which the instance is running.",
 				Type:        proto.ColumnType_STRING,
@@ -221,7 +230,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The user data of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInstanceUserData,
-				Transform:   transform.FromField("UserData.Value"),
+				Transform:   transform.FromField("UserData.Value").Transform(base64DecodedData),
 			},
 			{
 				Name:        "virtualization_type",
@@ -265,7 +274,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "instance_status",
-				Description: "The status of an instance. Instance status includes schedulted events, status checks and instance state information.",
+				Description: "The status of an instance. Instance status includes scheduled events, status checks and instance state information.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getInstanceStatus,
 				Transform:   transform.FromField("InstanceStatuses[0]"),
@@ -277,18 +286,18 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 
-			/// Standard columns
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEc2InstanceTurbotTags),
-			},
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.From(getEc2InstanceTurbotTitle),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getEc2InstanceTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -608,4 +617,16 @@ func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (i
 		}
 	}
 	return title, nil
+}
+
+func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*ec2.Instance)
+	if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
+		// User initiated (2019-09-12 16:38:34 GMT)
+		regexExp := regexp.MustCompile(`\((.*?) *\)`)
+		stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)[1]
+		stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
+		return stateTransitionTimeInUTC, nil
+	}
+	return data.LaunchTime, nil
 }

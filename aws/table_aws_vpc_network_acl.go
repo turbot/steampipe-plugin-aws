@@ -30,6 +30,13 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the network ACL.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getVpcNetworkACLARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "is_default",
 				Description: "Indicates whether this is the default network ACL for the VPC.",
 				Type:        proto.ColumnType_BOOL,
@@ -76,8 +83,8 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getVpcNetworkACLTurbotAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getVpcNetworkACLARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -152,8 +159,8 @@ func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	return nil, nil
 }
 
-func getVpcNetworkACLTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcNetworkACLTurbotAkas")
+func getVpcNetworkACLARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcNetworkACLARN")
 	networkACL := h.Item.(*ec2.NetworkAcl)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -162,9 +169,9 @@ func getVpcNetworkACLTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":network-acl/" + *networkACL.NetworkAclId}
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":network-acl/" + *networkACL.NetworkAclId
 
-	return akas, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS
