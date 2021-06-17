@@ -73,16 +73,17 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "key_signing_keys",
-				Description: "The key-signing keys (KSKs) in AWS account.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getHostedZoneDNSSEC,
-			},
-			{
 				Name:        "query_logging_configs",
 				Description: "A list of configuration for DNS query logging that is associated with the current AWS account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
+			},
+			{
+				Name:        "dnssec_key_signing_keys",
+				Description: "The key-signing keys (KSKs) in AWS account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneDNSSEC,
+				Transform:   transform.FromField("KeySigningKeys"),
 			},
 			{
 				Name:        "dnssec_status",

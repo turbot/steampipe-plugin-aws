@@ -1,21 +1,21 @@
 [
-	{
-		"digest_algorithm_mnemonic": "{{ output.digest_algorithm_mnemonic.value }}",
-		"kms_arn": "{{ output.kms_arn.value}}",
-		"name": "{{ resourceName}}.com.",
-		"query_logging_configs": [
-			{
-				"CloudWatchLogsLogGroupArn": "{{ output.cloudwatch_log_group_arn.value }}",
-				"HostedZoneId": "{{ output.zone_id.value }}",
-				"Id": "{{ output.logging_configuration_id.value }}"
-			}
-		],
-		"signing_algorithm_mnemonic": "{{ output.signing_algorithm_mnemonic.value }}",
-		"tags_src": [
-			{
-				"Key": "name",
-				"Value": "{{ resourceName }}"
-			}
-		]
-	}
+  {
+    "digest_algorithm_mnemonic": "{{ output.digest_algorithm_mnemonic.value }}",
+    "kms_arn": "{{ output.kms_arn.value}}",
+    "name": "{{ resourceName}}.com.",
+    "query_logging_configs": [
+      {
+        "CloudWatchLogsLogGroupArn": "{{ output.cloudwatch_log_group_arn.value }}",
+        "HostedZoneId": "{{ output.zone_id.value }}",
+        "Id": "{{ output.logging_configuration_id.value }}"
+      }
+    ],
+    "signing_algorithm_mnemonic": "{{ output.signing_algorithm_mnemonic.value }}",
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{ resourceName }}"
+      }
+    ]
+  }
 ]
