@@ -3,7 +3,7 @@
     "arn": "{{ output.resource_aka.value }}:*",
     "metric_filter_count": 0,
     "name": "{{ resourceName }}",
-    "retention_in_days": "<null>",
+    "retention_in_days": null,
     "stored_bytes": 0
   }
 ]

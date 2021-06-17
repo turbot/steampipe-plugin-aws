@@ -68,6 +68,7 @@ order by
 
 
 ### List all the actions allowed by managed policies for a Lambda execution role
+
 ```sql
 select
   f.name,
@@ -89,4 +90,17 @@ where
   and pol_arn = p.arn
   and stmt ->> 'Effect' = 'Allow'
   and f.name = 'hellopython';
+```
+
+
+### List functions not configured with a dead-letter queue
+
+```sql
+select
+  arn,
+  dead_letter_config_target_arn
+from
+  aws_lambda_function
+where
+  dead_letter_config_target_arn is null;
 ```

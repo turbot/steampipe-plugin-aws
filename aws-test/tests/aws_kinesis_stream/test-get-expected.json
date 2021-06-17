@@ -2,7 +2,7 @@
   {
     "account_id": "{{ output.account_id.value }}",
     "encryption_type": "NONE",
-    "key_id": "<null>",
+    "key_id": null,
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",
     "retention_period_hours": 24,

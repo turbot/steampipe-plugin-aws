@@ -79,3 +79,18 @@ from
 where
   not log_file_validation_enabled;
 ```
+
+### List shadow trails
+
+```sql
+select
+  name,
+  arn,
+  region,
+  home_region
+from
+  aws_cloudtrail_trail
+where
+  is_multi_region_trail
+  and home_region <> region;
+```
