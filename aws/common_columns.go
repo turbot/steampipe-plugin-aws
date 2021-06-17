@@ -113,15 +113,11 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		commonColumnData = cachedData.(*awsCommonColumnData)
 	} else {
-		stsSvc, err := StsService(ctx, d)
+		callerIdentity, err := getCallerIdentity(ctx, d, h)
 		if err != nil {
 			return nil, err
 		}
 
-		callerIdentity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
-		if err != nil {
-			return nil, err
-		}
 		commonColumnData = &awsCommonColumnData{
 			// extract partition from arn
 			Partition: strings.Split(*callerIdentity.Arn, ":")[1],
@@ -136,4 +132,29 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	plugin.Logger(ctx).Trace("getCommonColumns: ", "commonColumnData", commonColumnData)
 
 	return commonColumnData, nil
+}
+
+func getCallerIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*sts.GetCallerIdentityOutput, error) {
+	cacheKey := "GetCallerIdentity"
+
+	// if found in cache, return the result
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.(*sts.GetCallerIdentityOutput), nil
+	}
+
+	// get the service connection for the service
+	stsSvc, err := StsService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	callerIdentity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	if err != nil {
+		// let the cache know that we have failed to fetch this item
+		return nil, err
+	}
+
+	// save to extension cache
+	d.ConnectionManager.Cache.Set(cacheKey, callerIdentity)
+	return callerIdentity, nil
 }

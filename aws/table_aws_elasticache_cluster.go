@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -109,6 +110,21 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "replication_group_id",
+				Description: "The replication group to which this cluster belongs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "snapshot_retention_limit",
+				Description: "The number of days for which ElastiCache retains automatic cluster snapshots before deleting them.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "snapshot_window",
+				Description: "The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of your cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "transit_encryption_enabled",
 				Description: "A flag that enables in-transit encryption when set to true.",
 				Type:        proto.ColumnType_BOOL,
@@ -153,7 +169,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForElastiCacheCluster,
-				Transform:   transform.FromField("TagList").Transform(clusterTagListToTurbotTags),
+				Transform:   transform.From(clusterTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -257,6 +273,11 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	clusterTags, err := svc.ListTagsForResource(param)
 
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "CacheClusterNotFound" {
+				return &elasticache.TagListMessage{}, nil
+			}
+		}
 		return nil, err
 	}
 	return clusterTags, nil

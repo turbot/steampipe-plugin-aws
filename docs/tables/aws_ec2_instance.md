@@ -18,7 +18,6 @@ group by
   instance_type;
 ```
 
-
 ### List instances whose detailed monitoring is not enabled
 
 ```sql
@@ -30,7 +29,6 @@ from
 where
   monitoring_state = 'disabled';
 ```
-
 
 ### Count the number of instances by instance type
 
@@ -44,6 +42,20 @@ group by
   instance_type;
 ```
 
+### List instances stopped for more than 30 days
+
+```sql
+select
+  instance_id,
+  instance_state,
+  launch_time,
+  state_transition_time
+from
+  aws_ec2_instance
+where
+  instance_state = 'stopped'
+  and state_transition_time <= (current_date - interval '30' day);
+```
 
 ### List of instances without application tag key
 
@@ -56,7 +68,6 @@ from
 where
   not tags :: JSONB ? 'application';
 ```
-
 
 ### List of EC2 instances provisioned with undesired(for example t2.large and m3.medium is desired) instance type(s).
 
@@ -72,7 +83,6 @@ group by
   instance_type;
 ```
 
-
 ### List EC2 instances having termination protection safety feature enabled
 
 ```sql
@@ -84,7 +94,6 @@ from
 where
   not disable_api_termination;
 ```
-
 
 ### Find instances which have default security group attached
 
@@ -100,7 +109,6 @@ where
   sg ->> 'GroupName' = 'default';
 ```
 
-
 ### List the unencrypted volumes attached to the instances
 
 ```sql
@@ -114,4 +122,17 @@ from
   join aws_ebs_volume as vol on vol.volume_id = vols -> 'Ebs' ->> 'VolumeId'
 where
   not vol.encrypted;
+```
+
+### List instances with secrets in user data
+
+```sql
+select
+  instance_id,
+  user_data
+from
+  aws_ec2_instance
+where
+  user_data like any (array ['%pass%', '%secret%','%token%','%key%'])
+  or user_data ~ '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]';
 ```
