@@ -12,19 +12,13 @@ select
   rule_id,
   arn,
   rule_state,
-  description,
   created_by,
-  input_parameters,
-  maximum_execution_frequency,
-  scope,
-  source,
-  title,
-  tags
+  scope
 from
   aws_config_rule;
 ```
 
-### List active rules
+### List inactive rules
 
 ```sql
 select
@@ -35,7 +29,7 @@ select
 from 
   aws_config_rule
 where
-  rule_state='ACTIVE';
+  rule_state <> 'ACTIVE';
 ```
 
 ### List rules which have Lambda tag key
