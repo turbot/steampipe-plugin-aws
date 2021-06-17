@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -78,6 +79,12 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsWafv2WebAcl,
 			},
 			{
+				Name:        "logging_configuration",
+				Description: "The logging configuration for the specified web ACL.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getLoggingConfiguration,
+			},
+			{
 				Name:        "pre_process_firewall_manager_rule_groups",
 				Description: "The first set of rules for AWS WAF to process in the web ACL.",
 				Type:        proto.ColumnType_JSON,
@@ -127,7 +134,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+				Transform:   transform.FromField("ARN").Transform(transform.EnsureStringArray),
 			},
 
 			// AWS standard columns
@@ -307,6 +314,49 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	return webAclTags, nil
+}
+
+func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLoggingConfiguration")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+	data := webAclData(h.Item)
+	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+
+	// To work with CloudFront, you must specify the Region US East (N. Virginia)
+	if locationType == "global" && region != "us-east-1" {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := WAFv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build param
+	param := &wafv2.GetLoggingConfigurationInput{
+		ResourceArn: aws.String(data["Arn"]),
+	}
+
+	op, err := svc.GetLoggingConfiguration(param)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "WAFNonexistentItemException" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS
