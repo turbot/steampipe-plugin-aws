@@ -19,11 +19,11 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAwsAuditManagerEvidenceFolder,
+			Hydrate:           getAuditManagerEvidenceFolder,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
-			Hydrate:       listAwsAuditManagerEvidenceFolders,
+			Hydrate:       listAuditManagerEvidenceFolders,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -145,20 +145,22 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsAuditManagerEvidenceFolders", "AWS_REGION", region)
-	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
+	plugin.Logger(ctx).Trace("listAuditManagerEvidenceFolders", "AWS_REGION", region)
 
 	// Create session
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get assessment details
+	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
 	// List call
 	err = svc.GetEvidenceFoldersByAssessmentPages(
@@ -175,8 +177,8 @@ func listAwsAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData
 
 //// HYDRATE FUNCTIONS
 
-func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAuditManagerEvidenceFolder")
+func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolder")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -184,17 +186,17 @@ func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, 
 		region = matrixRegion.(string)
 	}
 
-	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
-	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
-	evidenceFolderID := d.KeyColumnQuals["id"].GetStringValue()
-
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the params
+	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
+	controlSetID := d.KeyColumnQuals["control_set_id"].GetStringValue()
+	evidenceFolderID := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Build params
 	params := &auditmanager.GetEvidenceFolderInput{
 		AssessmentId:     aws.String(assessmentID),
 		ControlSetId:     aws.String(controlSetID),
@@ -204,7 +206,7 @@ func getAwsAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, 
 	// Get call
 	data, err := svc.GetEvidenceFolder(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsAuditManagerEvidenceFolder", "ERROR", err)
+		plugin.Logger(ctx).Debug("getAuditManagerEvidenceFolder", "ERROR", err)
 		return nil, err
 	}
 
@@ -219,8 +221,8 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
-
 	commonColumnData := c.(*awsCommonColumnData)
+
 	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
 
 	return arn, nil
