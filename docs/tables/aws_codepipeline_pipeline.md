@@ -1,6 +1,6 @@
 # Table: aws_codepipeline_pipeline
 
-AWS CodePipeline is a fully managed continuous delivery service that helps you automate your release pipelines for fast and reliable application and infrastructure updates. ... You can easily integrate AWS CodePipeline with third-party services such as GitHub or with your own custom plugin.
+AWS CodePipeline is a fully managed continuous delivery service that helps you automate your release pipelines for fast and reliable application and infrastructure updates. You can easily integrate AWS CodePipeline with third-party services such as GitHub or with your own custom plugin.
 
 ## Examples
 

@@ -17,7 +17,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
+			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
 			Hydrate:           getCodepipelinePipeline,
 		},
@@ -45,20 +45,6 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Created"),
 			},
 			{
-				Name:        "encryption_key",
-				Description: "The encryption key used to encrypt the data in the artifact store, such as an AWS Key Management Service (AWS KMS) key. If this is undefined, the default key for Amazon S3 is used.",
-				Hydrate:     getCodepipelinePipeline,
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.ArtifactStore.EncryptionKey"),
-			},
-			{
-				Name:        "artifact_stores",
-				Description: "A mapping of artifactStore objects and their corresponding AWS Regions. There must be an artifact store for the pipeline Region and for each cross-region action in the pipeline.",
-				Hydrate:     getCodepipelinePipeline,
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.ArtifactStores"),
-			},
-			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) for AWS CodePipeline to use to either perform actions with no actionRoleArn, or to use to assume roles for actions with an actionRoleArn.",
 				Hydrate:     getCodepipelinePipeline,
@@ -82,6 +68,20 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Name:        "version",
 				Description: "The version number of the pipeline.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "encryption_key",
+				Description: "The encryption key used to encrypt the data in the artifact store, such as an AWS Key Management Service (AWS KMS) key. If this is undefined, the default key for Amazon S3 is used.",
+				Hydrate:     getCodepipelinePipeline,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Pipeline.ArtifactStore.EncryptionKey"),
+			},
+			{
+				Name:        "artifact_stores",
+				Description: "A mapping of artifactStore objects and their corresponding AWS Regions. There must be an artifact store for the pipeline Region and for each cross-region action in the pipeline.",
+				Hydrate:     getCodepipelinePipeline,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Pipeline.ArtifactStores"),
 			},
 			{
 				Name:        "tags_src",
