@@ -1,6 +1,6 @@
 # Table: aws_macie2_classification_job
 
-An Amazon S3 bucket is a public cloud storage resource available in Amazon Web Services' (AWS) Simple Storage Service (S3), an object storage offering.
+The Classification Job Creation resource represents the collection of settings that define the scope and schedule for a classification job. A classification job, also referred to as a sensitive data discovery job, is a job that analyzes objects in Amazon Simple Storage Service (Amazon S3) buckets to determine whether the objects contain sensitive data. Each job uses managed data identifiers that Amazon Macie provides and, optionally, custom data identifiers that you create.
 
 ## Examples
 
