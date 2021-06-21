@@ -17,7 +17,6 @@ from
   aws_macie2_classification_job;
 ```
 
-
 ### Get S3 bucket details where job is running
 
 ```sql
@@ -27,12 +26,10 @@ select
   detail -> 'Buckets' as buckets
 from
   aws_macie2_classification_job,
-  jsonb_array_elements(s3_job_definition -> 'BucketDefinitions') as s3_details,
-  jsonb(s3_details) as detail;
+  jsonb_array_elements(s3_job_definition -> 'BucketDefinitions') as detail;
 ```
 
-
-### List jobs which are Paused/Cancelled
+### List paused or cancelled jobs
 
 ```sql
 select
@@ -47,8 +44,7 @@ where
   or job_status = 'PAUSED';
 ```
 
-
-### Check number of times that job has run
+### Check number of times job has run
 
 ```sql
 select

@@ -17,12 +17,11 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Name:        "aws_macie2_classification_job",
 		Description: "AWS Macie2 Classification Job",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"Job_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"AccessDeniedException"}),
-			Hydrate:           getAwsMacie2ClassificationJob,
+			KeyColumns: plugin.SingleColumn("job_id"),
+			Hydrate:    getMacie2ClassificationJob,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsMacie2ClassificationJobs,
+			Hydrate: listMacie2ClassificationJobs,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -40,7 +39,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the job.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 				Transform:   transform.FromField("JobArn"),
 			},
 			{
@@ -67,25 +66,25 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "client_token",
 				Description: "The token that was provided to ensure the idempotency of the request to create the job.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "last_run_time",
 				Description: "This value indicates when the most recent run started.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "sampling_percentage",
 				Description: "The sampling depth, as a percentage, that determines the percentage of eligible objects that the job analyzes.",
 				Type:        proto.ColumnType_INT,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "custom_data_identifier_ids",
 				Description: "The custom data identifiers that the job uses to analyze data.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "last_run_error_status",
@@ -96,21 +95,20 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "s3_job_definition",
 				Description: "Specifies which S3 buckets contain the objects that a classification job analyzes, and the scope of that analysis.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "schedule_frequency",
 				Description: "Specifies the recurrence pattern for running a classification job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "statistics",
 				Description: "Provides processing statistics for a classification job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 			},
-
 			{
 				Name:        "user_paused_details",
 				Description: "Provides information about when a classification job was paused.",
@@ -120,11 +118,11 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The list of tags for the classification job.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
+				Hydrate:     getMacie2ClassificationJob,
 				Transform:   transform.FromField("Tags"),
 			},
 
-			// Standard columns for all tables
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -135,15 +133,14 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getMacie2ClassificationJob,
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsMacie2ClassificationJob,
-				Transform:   transform.FromField("JobArn").Transform(arnToAkas),
+				Hydrate:     getMacie2ClassificationJob,
+				Transform:   transform.FromField("JobArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -151,16 +148,14 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listAwsMacie2ClassificationJob", "AWS_REGION", region)
-
-	// id := d.KeyColumnQuals["job_id"].GetStringValue()
+	plugin.Logger(ctx).Trace("listMacie2ClassificationJobs", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := Macie2Service(ctx, d, region)
@@ -174,7 +169,6 @@ func listAwsMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _
 		func(page *macie2.ListClassificationJobsOutput, isLast bool) bool {
 			for _, job := range page.Items {
 				d.StreamListItem(ctx, job)
-
 			}
 			return !isLast
 		},
@@ -185,8 +179,8 @@ func listAwsMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getAwsMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsMacie2ClassificationJob")
+func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getMacie2ClassificationJob")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {

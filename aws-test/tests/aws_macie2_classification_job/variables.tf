@@ -1,4 +1,3 @@
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200155-create-update"
@@ -47,9 +46,10 @@ data "null_data_source" "resource" {
   }
 }
 
-# resource "aws_s3_bucket" "test" {
-#   bucket = var.resource_name
-# }
+resource "aws_s3_bucket" "test" {
+  bucket = var.resource_name
+  acl    = "private"
+}
 
 resource "aws_macie2_account" "test" {
   finding_publishing_frequency = "FIFTEEN_MINUTES"
@@ -62,8 +62,8 @@ resource "aws_macie2_classification_job" "named_test_resource" {
   name     = var.resource_name
   s3_job_definition {
     bucket_definitions {
-      account_id = "986325076436"
-      buckets = ["appstream-app-settings-us-east-1-986325076436-vz8cc0a5"]
+      account_id = data.aws_caller_identity.current.account_id
+      buckets = [aws_s3_bucket.test.bucket]
     }
   }
   tags = {
@@ -94,4 +94,3 @@ output "resource_aka" {
 output "resource_name" {
   value = var.resource_name
 }
-
