@@ -17,8 +17,9 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Name:        "aws_macie2_classification_job",
 		Description: "AWS Macie2 Classification Job",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("job_id"),
-			Hydrate:    getMacie2ClassificationJob,
+			KeyColumns:        plugin.SingleColumn("job_id"),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
+			Hydrate:           getMacie2ClassificationJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listMacie2ClassificationJobs,
@@ -113,13 +114,6 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Name:        "user_paused_details",
 				Description: "Provides information about when a classification job was paused.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "tags_src",
-				Description: "The list of tags for the classification job.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getMacie2ClassificationJob,
-				Transform:   transform.FromField("Tags"),
 			},
 
 			// Steampipe standard columns

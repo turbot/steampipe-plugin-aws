@@ -87,10 +87,6 @@ output "resource_id" {
   value = aws_macie2_classification_job.named_test_resource.id
 }
 
-output "resource_aka" {
-  value = "arn:${data.aws_partition.current.partition}:macie2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:classification-job/${aws_macie2_classification_job.named_test_resource.id}"
-}
-
 output "resource_name" {
   value = var.resource_name
 }
