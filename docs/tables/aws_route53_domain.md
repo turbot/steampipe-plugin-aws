@@ -16,7 +16,7 @@ from
 ```
 
 
-### List Route53 domains with auto-renewal enabled
+### List domains with auto-renewal enabled
 
 ```sql
 select
