@@ -27,13 +27,13 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "job_id",
-				Description: "The unique identifier for the job.",
+				Name:        "name",
+				Description: "The custom name of the job.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "name",
-				Description: "The custom name of the job.",
+				Name:        "job_id",
+				Description: "The unique identifier for the job.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -42,11 +42,6 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getMacie2ClassificationJob,
 				Transform:   transform.FromField("JobArn"),
-			},
-			{
-				Name:        "created_at",
-				Description: "The date and time, in UTC and extended ISO 8601 format, when the job was created.",
-				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "job_status",
@@ -59,15 +54,15 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "bucket_definitions",
-				Description: "The namespace of the AWS service that provides the resource, or a custom-resource.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "client_token",
 				Description: "The token that was provided to ensure the idempotency of the request to create the job.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "created_at",
+				Description: "The date and time, in UTC and extended ISO 8601 format, when the job was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "last_run_time",
@@ -80,6 +75,11 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 				Description: "The sampling depth, as a percentage, that determines the percentage of eligible objects that the job analyzes.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getMacie2ClassificationJob,
+			},
+			{
+				Name:        "bucket_definitions",
+				Description: "The namespace of the AWS service that provides the resource, or a custom-resource.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "custom_data_identifier_ids",
@@ -143,7 +143,6 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -175,6 +174,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 
 func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getMacie2ClassificationJob")
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -183,18 +183,18 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 
 	var id string
 	if h.Item != nil {
-		id = jobId(h.Item)
+		id = *h.Item.(*macie2.JobSummary).JobId
 	} else {
 		id = d.KeyColumnQuals["job_id"].GetStringValue()
 	}
 
-	// create service
+	// Create service
 	svc, err := Macie2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the params
+	// Build params
 	params := &macie2.DescribeClassificationJobInput{
 		JobId: &id,
 	}
@@ -206,16 +206,4 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return op, nil
-}
-
-//// TRANSFORM FUNCTION
-
-func jobId(item interface{}) string {
-	switch item.(type) {
-	case *macie2.JobSummary:
-		return *item.(*macie2.JobSummary).JobId
-	case *macie2.DescribeClassificationJobOutput:
-		return *item.(*macie2.DescribeClassificationJobOutput).JobId
-	}
-	return ""
 }
