@@ -1,10 +1,8 @@
 [
   {
-    "akas": [
-      "{{ output.resource_aka.value }}"
-    ],
-    "alarm_arn": "{{ output.resource_aka.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
     "alarm_description": "{{ resourceName }}",
+    "arn": "{{ output.resource_aka.value }}",
     "comparison_operator": "GreaterThanOrEqualToThreshold",
     "metric_name": "CPUUtilization",
     "name": "{{ resourceName }}",

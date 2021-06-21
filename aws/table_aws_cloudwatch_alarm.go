@@ -17,8 +17,8 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudwatch_alarm",
 		Description: "AWS CloudWatch Alarm",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			Hydrate:           getCloudWatchAlarm,
+			KeyColumns: plugin.SingleColumn("name"),
+			Hydrate:    getCloudWatchAlarm,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchAlarms,
@@ -32,9 +32,10 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("AlarmName"),
 			},
 			{
-				Name:        "alarm_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the alarm.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AlarmArn"),
 			},
 			{
 				Name:        "state_value",

@@ -1,9 +1,9 @@
 [
-	{
-		"akas": ["{{ output.resource_aka.value }}"],
-		"description": "Example of a managed rule.",
-		"name": "{{ output.resource_name.value }}",
-		"scope": "REGIONAL",
-		"title": "{{ resourceName }}"
-	}
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "description": "Example of a managed rule.",
+    "name": "{{ output.resource_name.value }}",
+    "scope": "REGIONAL",
+    "title": "{{ resourceName }}"
+  }
 ]
