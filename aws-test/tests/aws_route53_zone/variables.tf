@@ -93,6 +93,48 @@ resource "aws_route53_query_log" "example_com" {
   zone_id                  = aws_route53_zone.named_test_resource.zone_id
 }
 
+resource "aws_kms_key" "example" {
+  customer_master_key_spec = "ECC_NIST_P256"
+  deletion_window_in_days  = 7
+  key_usage                = "SIGN_VERIFY"
+  policy = jsonencode({
+    Statement = [
+      {
+        Action = [
+          "kms:DescribeKey",
+          "kms:GetPublicKey",
+          "kms:Sign",
+        ],
+        Effect = "Allow"
+        Principal = {
+          Service = "api-service.dnssec.route53.aws.internal"
+        }
+        Sid = "Route 53 DNSSEC Permissions"
+      },
+      {
+        Action = "kms:*"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+        Resource = "*"
+        Sid      = "IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
+}
+
+resource "aws_route53_key_signing_key" "example" {
+  hosted_zone_id             = aws_route53_zone.named_test_resource.id
+  key_management_service_arn = aws_kms_key.example.arn
+  name                       = var.resource_name
+}
+
+resource "aws_route53_hosted_zone_dnssec" "example" {
+  hosted_zone_id = aws_route53_key_signing_key.example.hosted_zone_id
+}
+
 output "resource_aka" {
   value = "arn:aws:route53:::hostedzone/${aws_route53_zone.named_test_resource.zone_id}"
 }
@@ -119,4 +161,16 @@ output "aws_region" {
 
 output "resource_name" {
   value = var.resource_name
+}
+
+output "kms_arn" {
+  value = aws_kms_key.example.arn
+}
+
+output "digest_algorithm_mnemonic" {
+  value = aws_route53_key_signing_key.example.digest_algorithm_mnemonic
+}
+
+output "signing_algorithm_mnemonic" {
+  value = aws_route53_key_signing_key.example.signing_algorithm_mnemonic
 }

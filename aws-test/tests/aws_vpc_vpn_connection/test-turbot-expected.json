@@ -1,0 +1,10 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": ["{{ output.resource_aka.value }}"],
+    "tags": {
+      "name": "{{resourceName}}"
+    },
+    "title": "{{ output.resource_id.value }}"
+  }
+]

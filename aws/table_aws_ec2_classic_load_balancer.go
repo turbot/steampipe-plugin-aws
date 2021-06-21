@@ -34,6 +34,13 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("LoadBalancerName"),
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the classic load balancer.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEc2ClassicLoadBalancerARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "scheme",
 				Description: "The load balancing scheme of load balancer.",
 				Type:        proto.ColumnType_STRING,
@@ -227,7 +234,13 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LoadBalancerName"),
+			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
@@ -236,17 +249,11 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Transform:   transform.From(getEc2ClassicLoadBalancerTurbotTags),
 			},
 			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("LoadBalancerName"),
-			},
-			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEc2ClassicLoadBalancerTurbotAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getEc2ClassicLoadBalancerARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -374,8 +381,9 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	return nil, nil
 }
 
-func getEc2ClassicLoadBalancerTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerTurbotAkas")
+func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
+
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
@@ -383,13 +391,13 @@ func getEc2ClassicLoadBalancerTurbotAkas(ctx context.Context, d *plugin.QueryDat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":elasticloadbalancing:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":loadbalancer/" + *classicLoadBalancer.LoadBalancerName}
+	// Build ARN
+	arn := "arn:" + commonColumnData.Partition + ":elasticloadbalancing:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":loadbalancer/" + *classicLoadBalancer.LoadBalancerName
 
-	return akas, nil
+	return arn, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getEc2ClassicLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	classicLoadBalancerTags := d.HydrateItem.([]*elb.Tag)

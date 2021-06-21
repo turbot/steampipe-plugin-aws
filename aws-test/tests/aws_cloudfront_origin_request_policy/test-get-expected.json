@@ -1,0 +1,9 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "comment": "{{ resourceName }}",
+    "etag": "{{ output.etag.value }}",
+    "id": "{{ output.resource_id.value }}",
+    "title": "{{ resourceName }}"
+  }
+]

@@ -213,7 +213,7 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 
 	var name string
 	if h.Item != nil {
-		name = instanceName(h.Item)
+		name = *h.Item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
@@ -249,7 +249,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 		region = matrixRegion.(string)
 	}
 
-	resourceArn := h.Item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceArn
+	resourceArn := notebookInstanceARN(h.Item)
 
 	// Create Session
 	svc, err := SageMakerService(ctx, d, region)
@@ -259,7 +259,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 
 	// Build the params
 	params := &sagemaker.ListTagsInput{
-		ResourceArn: resourceArn,
+		ResourceArn: aws.String(resourceArn),
 	}
 
 	// Get call
@@ -276,11 +276,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 
 func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
 	error) {
-		data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags == nil {
-		return nil, nil
-	}
+	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 
 	if data.Tags != nil {
 		turbotTagsMap := map[string]string{}
@@ -292,12 +288,12 @@ func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform
 	return nil, nil
 }
 
-func instanceName(item interface{}) string {
+func notebookInstanceARN(item interface{}) string {
 	switch item.(type) {
 	case *sagemaker.NotebookInstanceSummary:
-		return *item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceName
+		return *item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceArn
 	case *sagemaker.DescribeNotebookInstanceOutput:
-		return *item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceName
+		return *item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceArn
 	}
 	return ""
 }

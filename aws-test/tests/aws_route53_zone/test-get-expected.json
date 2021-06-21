@@ -1,9 +1,9 @@
 [
-	{
-		"comment": "Test zone",
-		"id": "{{ output.zone_id.value }}",
-		"name": "{{ resourceName }}.com.",
-		"private_zone": false,
-		"resource_record_set_count": 2
-	}
+  {
+    "comment": "Test zone",
+    "id": "{{ output.zone_id.value }}",
+    "name": "{{ resourceName }}.com.",
+    "private_zone": false,
+    "resource_record_set_count": 2
+  }
 ]

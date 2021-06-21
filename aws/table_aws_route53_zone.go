@@ -79,6 +79,20 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
 			},
 			{
+				Name:        "dnssec_key_signing_keys",
+				Description: "The key-signing keys (KSKs) in AWS account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneDNSSEC,
+				Transform:   transform.FromField("KeySigningKeys"),
+			},
+			{
+				Name:        "dnssec_status",
+				Description: "The status of DNSSEC.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZoneDNSSEC,
+				Transform:   transform.FromField("Status"),
+			},
+			{
 				Name:        "tags_src",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
@@ -211,6 +225,29 @@ func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, 
 			}
 			return nil, err
 		}
+	}
+
+	return resp, nil
+}
+
+func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getHostedZoneDNSSEC")
+	hostedZone := h.Item.(*route53.HostedZone)
+
+	// Create session
+	svc, err := Route53Service(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &route53.GetDNSSECInput{
+		HostedZoneId: hostedZone.Id,
+	}
+
+	// execute list call
+	resp, err := svc.GetDNSSEC(params)
+	if err != nil {
+		return nil, err
 	}
 
 	return resp, nil
