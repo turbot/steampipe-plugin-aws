@@ -1,6 +1,6 @@
 # Table: aws_auditmanager_evidence_folder
 
-The evidence folder that contains the evidence. User activity evidence is collected from AWS CloudTrail logs. Configuration data evidence is collected from snapshots of other AWS services such as Amazon EC2, Amazon S3, or IAM.
+Evidence folders contain user activity evidence that is collected from CloudTrail logs. Configuration data evidence is collected from snapshots of other AWS services such as Amazon EC2, Amazon S3, or IAM.
 
 ## Examples
 
@@ -19,7 +19,7 @@ from
   aws_auditmanager_evidence_folder;
 ```
 
-### Get evidence folder count by assessment id
+### Count the number of evidence folders by assessment ID
 
 ```sql
 select
