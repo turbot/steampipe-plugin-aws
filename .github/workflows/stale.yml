@@ -1,4 +1,4 @@
-name: "Close stale issues and PRs"
+name: "Close Stale Issues and PRs"
 on:
   schedule:
     - cron: "30 23 * * *"
@@ -7,7 +7,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - name: Set environment variable for stale action
+      - name: Set environment variables
         id: set-stale-action-env
         run: |
           echo "STALE_ISSUE_MESSAGE=This issue is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 30 days." >> $GITHUB_ENV
@@ -20,7 +20,7 @@ jobs:
           echo "STALE_ISSUE_LABEL=stale" >> $GITHUB_ENV
           echo "STALE_PR_LABEL=stale" $GITHUB_ENV
 
-      - name: Stale issues or PRs
+      - name: Stale issues and PRs
         id: stale-issues-or-prs
         uses: actions/stale@v3
         with:
@@ -33,4 +33,3 @@ jobs:
           days-before-close: ${{ env.DAYS_BEFORE_CLOSE }}
           stale-issue-label: ${{ env.STALE_ISSUE_LABEL }}
           stale-pr-label: ${{ env.STALE_PR_LABEL }}
-
