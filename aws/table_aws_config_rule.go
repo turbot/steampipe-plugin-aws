@@ -18,7 +18,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		Description: "AWS Config Rule",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
 			Hydrate:           getConfigRule,
 		},
 		List: &plugin.ListConfig{
@@ -61,14 +61,14 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "input_parameters",
-				Description: "A string, in JSON format, that is passed to the AWS Config rule Lambda function.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "maximum_execution_frequency",
 				Description: "The maximum frequency with which AWS Config runs evaluations for a rule.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "input_parameters",
+				Description: "A string, in JSON format, that is passed to the AWS Config rule Lambda function.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "scope",
@@ -100,13 +100,13 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getConfigRuleTags,
-				Transform:   transform.From(getConfigRuleTurbotTags),
+				Transform:   transform.From(configRuleTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ConfigRuleArn").Transform(arnToAkas),
+				Transform:   transform.FromField("ConfigRuleArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -120,7 +120,7 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-	plugin.Logger(ctx).Trace("listConfigRule", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listConfigRules", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := ConfigService(ctx, d, region)
@@ -129,15 +129,12 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	op, err := svc.DescribeConfigRules(&configservice.DescribeConfigRulesInput{})
-
 	if err != nil {
 		return nil, err
 	}
 
-	if op.ConfigRules != nil {
-		for _, ConfigRules := range op.ConfigRules {
-			d.StreamListItem(ctx, ConfigRules)
-		}
+	for _, rule := range op.ConfigRules {
+		d.StreamListItem(ctx, rule)
 	}
 
 	return nil, err
@@ -147,7 +144,6 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigRule")
-	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -160,16 +156,18 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if err != nil {
 		return nil, err
 	}
+	name := d.KeyColumnQuals["name"].GetStringValue()
 
+	// Build params
 	params := &configservice.DescribeConfigRulesInput{
 		ConfigRuleNames: []*string{aws.String(name)},
 	}
 
 	op, err := svc.DescribeConfigRules(params)
-
 	if err != nil {
 		return nil, err
 	}
+
 	if op != nil {
 		return op.ConfigRules[0], nil
 	}
@@ -179,7 +177,6 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigRuleTags")
-	ruleArn := h.Item.(*configservice.ConfigRule).ConfigRuleArn
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -192,29 +189,35 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	ruleArn := h.Item.(*configservice.ConfigRule).ConfigRuleArn
 
+	// Build params
 	params := &configservice.ListTagsForResourceInput{
 		ResourceArn: ruleArn,
 	}
 
 	op, err := svc.ListTagsForResource(params)
+	if err != nil {
+		return nil, err
+	}
 
 	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
-func getConfigRuleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func configRuleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*configservice.ListTagsForResourceOutput)
+
 	if data.Tags == nil {
 		return nil, nil
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range data.Tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
+
 	return turbotTagsMap, nil
 }

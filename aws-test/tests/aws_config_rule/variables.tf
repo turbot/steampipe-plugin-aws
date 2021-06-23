@@ -75,9 +75,9 @@ output "resource_name" {
 }
 
 output "resource_aka" {
-  value      = aws_config_config_rule.named_test_resource.arn
+  value = aws_config_config_rule.named_test_resource.arn
 }
 
 output "rule_id" {
-  value      = aws_config_config_rule.named_test_resource.rule_id
+  value = aws_config_config_rule.named_test_resource.rule_id
 }
