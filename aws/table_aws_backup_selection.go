@@ -152,6 +152,11 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		selectionID = d.KeyColumnQuals["selection_id"].GetStringValue()
 	}
 
+	// Return nil, if no input provided
+	if len(backupPlanID) < 1 || len(selectionID) < 1 {
+		return nil, nil
+	}
+
 	params := &backup.GetBackupSelectionInput{
 		BackupPlanId: aws.String(backupPlanID),
 		SelectionId:  aws.String(selectionID),
