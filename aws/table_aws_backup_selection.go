@@ -153,7 +153,7 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Return nil, if no input provided
-	if len(backupPlanID) < 1 || len(selectionID) < 1 {
+	if backupPlanID == "" || selectionID == "" {
 		return nil, nil
 	}
 
