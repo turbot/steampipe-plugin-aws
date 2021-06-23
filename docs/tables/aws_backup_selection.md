@@ -1,8 +1,6 @@
-# Table: aws_backup_plan
+# Table: aws_backup_selection
 
-AWS Backup selection manages selection conditions for AWS Backup plan resources. Backup plan is a policy expression that defines when and how you want to back up your AWS resources, such as Amazon DynamoDB tables or Amazon Elastic File System (Amazon EFS) file systems.
-
-You can assign resources to backup plans, and AWS Backup automatically backs up and retains backups for those resources according to the backup plan. You can create multiple backup plans if you have workloads with different backup requirements.
+AWS Backup selections manage selection conditions for AWS Backup plan resources. A backup plan is a policy expression that defines when and how you want to back up your AWS resources, such as Amazon DynamoDB tables or Amazon Elastic File System (Amazon EFS) file systems.
 
 ## Examples
 
@@ -19,7 +17,7 @@ from
   aws_backup_selection;
 ```
 
-### List EBS volumes that are in backup plan
+### List EBS volumes that are in a backup plan
 
 ```sql
 with filtered_data as (
