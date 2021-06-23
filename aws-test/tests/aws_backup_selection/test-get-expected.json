@@ -1,0 +1,10 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "backup_plan_id": "{{ output.plan_id.value }}",
+    "iam_role_arn": "{{ output.iam_role_arn.value }}",
+    "resources": ["{{ output.volume_arn.value }}"],
+    "selection_id": "{{ output.selection_id.value }}",
+    "selection_name": "{{ resourceName }}"
+  }
+]
