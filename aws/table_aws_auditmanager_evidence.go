@@ -67,7 +67,7 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "assessment_report_selection",
-				Description: "Specifies whether the evidence is inclded in the assessment report.",
+				Description: "Specifies whether the evidence is included in the assessment report.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Evidence.AssessmentReportSelection"),
 			},
@@ -180,7 +180,6 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
-
 	evidenceFolderList, err := svc.GetEvidenceFoldersByAssessment(&auditmanager.GetEvidenceFoldersByAssessmentInput{
 		AssessmentId: aws.String(assessmentID),
 	})
@@ -277,7 +276,7 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin
 	evidenceFolderID := d.KeyColumnQuals["evidence_folder_id"].GetStringValue()
 	evidenceID := d.KeyColumnQuals["id"].GetStringValue()
 
-	// Build the params
+	// Build params
 	params := &auditmanager.GetEvidenceInput{
 		AssessmentId:     aws.String(assessmentID),
 		ControlSetId:     aws.String(controlSetID),

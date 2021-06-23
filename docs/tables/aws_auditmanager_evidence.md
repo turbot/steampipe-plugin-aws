@@ -18,7 +18,7 @@ from
   aws_auditmanager_evidence;
 ```
 
-### Get evidence count by evidence folder id
+### Get evidence count by evidence folder
 
 ```sql
 select
@@ -28,16 +28,4 @@ from
   aws_auditmanager_evidence
 group by
   evidence_folder_id;
-```
-
-### Get evidence count by assessment id
-
-```sql
-select
-  assessment_id,
-  count(id) as evidence_folder_count
-from
-  aws_auditmanager_evidence
-group by
-  assessment_id;
 ```
