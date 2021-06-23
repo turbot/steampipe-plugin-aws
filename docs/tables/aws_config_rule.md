@@ -50,3 +50,16 @@ from
 where
   tags -> 'Lambda' not null;
 ```
+
+### List active rules for s3-bucket
+
+```sql
+select
+  name,
+  rule_id,
+  tags
+from
+  aws_config_rule
+where
+  name Like '%s3-bucket%';
+```
