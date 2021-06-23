@@ -52,13 +52,6 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Pipeline.RoleArn"),
 			},
 			{
-				Name:        "stages",
-				Description: "The stage in which to perform the action.",
-				Hydrate:     getCodepipelinePipeline,
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.Stages"),
-			},
-			{
 				Name:        "updated_at",
 				Description: "The date and time of the last update to the pipeline, in timestamp format.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -82,6 +75,13 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Pipeline.ArtifactStores"),
+			},
+			{
+				Name:        "stages",
+				Description: "The stage in which to perform the action.",
+				Hydrate:     getCodepipelinePipeline,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Pipeline.Stages"),
 			},
 			{
 				Name:        "tags_src",
@@ -149,7 +149,7 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCodepipelinepipeline")
+	plugin.Logger(ctx).Trace("getCodepipelinePipeline")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -161,17 +161,16 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	if h.Item != nil {
 		name = *h.Item.(*codepipeline.PipelineSummary).Name
 	} else {
-		quals := d.KeyColumnQuals
-		name = quals["name"].GetStringValue()
+		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
-	// Get service connection
+	// Create session
 	svc, err := CodePipelineService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the params
+	// Build params
 	params := &codepipeline.GetPipelineInput{
 		Name: aws.String(name),
 	}
@@ -190,21 +189,22 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getPipelineTags")
+
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
 	}
-
 	pipelineArn := pipelineARN(ctx, d, h)
 
-	// Get service connection
+	// Create session
 	svc, err := CodePipelineService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build param
+	// Build params
 	params := &codepipeline.ListTagsForResourceInput{
 		ResourceArn: aws.String(pipelineArn),
 	}
