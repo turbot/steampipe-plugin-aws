@@ -65,7 +65,7 @@ func commonCwMetricColumns() []*plugin.Column {
 		},
 		{
 			Name:        "timestamp",
-			Description: "TThe time stamp used for the data point.",
+			Description: "The time stamp used for the data point.",
 			Type:        proto.ColumnType_TIMESTAMP,
 		},
 	}
