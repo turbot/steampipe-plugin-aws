@@ -1,0 +1,7 @@
+[
+  {
+    "description": "This is the Sample App Repository",
+    "id": "{{ output.resource_id.value }}",
+    "name": "{{ resourceName }}"
+  }
+]
