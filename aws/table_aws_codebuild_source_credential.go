@@ -1,0 +1,95 @@
+package aws
+
+import (
+	"context"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_codebuild_source_credential",
+		Description: "AWS CodeBuild Source Credential",
+		List: &plugin.ListConfig{
+			Hydrate: listCodeBuildSourceCredentials,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the token.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "auth_type",
+				Description: "The type of authentication used by the credentials. Possible values are: OAUTH, BASIC_AUTH, or PERSONAL_ACCESS_TOKEN.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "server_type",
+				Description: "The type of source provider. Possible values are: GITHUB, GITHUB_ENTERPRISE, or BITBUCKET.",
+				Type:        proto.ColumnType_STRING,
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(codebuildSourceCredentialTitle),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	plugin.Logger(ctx).Trace("listCodeBuildSourceCredentials", "AWS_REGION", region)
+
+	// Create session
+	svc, err := CodeBuildService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// List call
+	resp, err := svc.ListSourceCredentials(&codebuild.ListSourceCredentialsInput{})
+	if err != nil {
+		return nil, err
+	}
+	for _, cred := range resp.SourceCredentialsInfos {
+		d.StreamListItem(ctx, cred)
+	}
+
+	return nil, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func codebuildSourceCredentialTitle(ctx context.Context, d *transform.TransformData) (interface{},
+	error) {
+	data := d.HydrateItem.(*codebuild.SourceCredentialsInfo)
+
+	splitPart := strings.Split(*data.Arn, ":")
+	title := *data.ServerType + " - " + splitPart[3]
+
+	return title, nil
+}
