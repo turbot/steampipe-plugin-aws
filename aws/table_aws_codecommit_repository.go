@@ -97,7 +97,6 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -171,7 +170,6 @@ func getCodeCommitRepositoryTag(ctx context.Context, d *plugin.QueryData, h *plu
 		ResourceArn: arn,
 	}
 
-	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("getCodeCommitRepositoryTag_", "ERROR", err)
