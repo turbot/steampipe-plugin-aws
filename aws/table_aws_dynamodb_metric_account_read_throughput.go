@@ -7,6 +7,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsDynamoDBMetricAccountReadThroughput(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_dynamodb_metric_account_read_throughput",
@@ -18,6 +19,8 @@ func tableAwsDynamoDBMetricAccountReadThroughput(_ context.Context) *plugin.Tabl
 		Columns:       awsRegionalColumns(cwMetricColumns([]*plugin.Column{})),
 	}
 }
+
+//// LIST FUNCTION
 
 func listDynamboDbMetricAccountReadThroughput(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/DynamoDB", "AccountProvisionedReadCapacityUtilization", "", "")
