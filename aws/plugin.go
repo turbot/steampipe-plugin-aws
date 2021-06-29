@@ -77,6 +77,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dynamodb_backup":                               tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":                         tableAwsDynamoDBGlobalTable(ctx),
 			"aws_dynamodb_metric_account_read_throughput":       tableAwsDynamoDBMetricAccountReadThroughput(ctx),
+			"aws_dynamodb_metric_account_write_throughput":      tableAwsDynamoDBMetricAccountWriteThroughput(ctx),
 			"aws_dynamodb_table":                                tableAwsDynamoDBTable(ctx),
 			"aws_ebs_snapshot":                                  tableAwsEBSSnapshot(ctx),
 			"aws_ebs_volume":                                    tableAwsEBSVolume(ctx),
