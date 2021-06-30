@@ -1,6 +1,6 @@
 # Table: aws_codebuild_source_credential
 
-Information about the source repository credentials for an AWS CodeBuild project that has its source code stored in GitHub, GitHub Enterprise, or Bitbucket repository.
+Source repository credentials contain credential information for an AWS CodeBuild project that has its source code stored in GitHub, GitHub Enterprise, or Bitbucket repository.
 
 ## Examples
 
