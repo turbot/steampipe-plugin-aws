@@ -1,6 +1,6 @@
 # Table: aws_dynamodb_metric_account_read_throughput
 
-Amazon CloudWatch Metrics provide data about the performance of your systems. The `aws_dynamodb_metric_account_read_throughput` table provides metric statistics at 5 minute intervals for the most recent 5 days.
+Amazon CloudWatch metrics provide data about the performance of your systems. The `aws_dynamodb_metric_account_read_throughput` table provides metric statistics at 5 minute intervals for the most recent 5 days.
 
 ## Examples
 
