@@ -31,7 +31,7 @@ where
 ```
 
 
-### List standards where standard status is not ready
+### List standards whose status is not ready
 
 ```sql
 select
