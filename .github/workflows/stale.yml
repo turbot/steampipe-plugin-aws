@@ -1,0 +1,42 @@
+name: "Stale Issues and PRs"
+on:
+  schedule:
+    - cron: "30 23 * * *"
+  workflow_dispatch:
+    inputs:
+      debugOnly:
+        description: "Set to true for a dry run"
+        required: false
+        default: "false"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variables
+        id: set-stale-action-env
+        run: |
+          echo "STALE_ISSUE_MESSAGE=This issue is stale because it has been open 60 days with no activity. Remove stale label or comment or this will be closed in 30 days." >> $GITHUB_ENV
+          echo "STALE_PR_MESSAGE=This PR is stale because it has been open 60 days with no activity. Remove stale label or comment or this will be closed in 30 days." >> $GITHUB_ENV
+          echo "CLOSE_ISSUE_MESSAGE=This issue was closed because it has been stalled for 90 days with no activity." >> $GITHUB_ENV
+          echo "CLOSE_PR_MESSAGE=This PR was closed because it has been stalled for 90 days with no activity." >> $GITHUB_ENV
+          echo "DAYS_BEFORE_STALE=60" >> $GITHUB_ENV
+          # DAYS_BEFORE_CLOSE is set to 30 because the we want to close the issue/PR after 90 days total (DAYS_BEFORE_STALE value is 60)
+          echo "DAYS_BEFORE_CLOSE=30" >> $GITHUB_ENV
+          echo "STALE_ISSUE_LABEL=stale" >> $GITHUB_ENV
+          echo "STALE_PR_LABEL=stale" >> $GITHUB_ENV
+
+      - name: Stale issues and PRs
+        id: stale-issues-or-prs
+        uses: actions/stale@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          debug-only: ${{ github.event.inputs.debugOnly }}
+          stale-issue-message: ${{ env.STALE_ISSUE_MESSAGE }}
+          stale-pr-message: ${{ env.STALE_PR_MESSAGE }}
+          close-issue-message: ${{ env.CLOSE_ISSUE_MESSAGE }}
+          close-pr-message: ${{ env.CLOSE_PR_MESSAGE }}
+          days-before-stale: ${{ env.DAYS_BEFORE_STALE }}
+          days-before-close: ${{ env.DAYS_BEFORE_CLOSE }}
+          stale-issue-label: ${{ env.STALE_ISSUE_LABEL }}
+          stale-pr-label: ${{ env.STALE_PR_LABEL }}

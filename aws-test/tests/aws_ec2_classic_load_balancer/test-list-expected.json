@@ -2,9 +2,7 @@
   {
     "name": "{{ resourceName }}",
     "scheme": "internet-facing",
-    "subnets": [
-      "{{ output.subnet_id.value }}"
-    ],
+    "subnets": ["{{ output.subnet_id.value }}"],
     "vpc_id": "{{ output.vpc_id.value }}"
   }
 ]

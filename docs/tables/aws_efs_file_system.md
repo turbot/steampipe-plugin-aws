@@ -104,7 +104,7 @@ where
 select
   name,
   automatic_backups,
-  file_system_arn,
+  arn,
   file_system_id
 from
   aws_efs_file_system

@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
@@ -51,10 +52,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3control"
@@ -258,6 +261,26 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (
 	return svc, nil
 }
 
+// CodePipelineService returns the service connection for AWS Codepipeline service
+func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string) (*codepipeline.CodePipeline, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodePipelineService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codepipeline-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codepipeline.CodePipeline), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codepipeline.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // CloudFrontService returns the service connection for AWS CloudFront service
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	// have we already created and cached the service?
@@ -362,7 +385,7 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 // CostExplorerService returns the service connection for AWS Cost Explorer service
 func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplorer.CostExplorer, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := "ce"
+	serviceCacheKey := "costexplorer"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*costexplorer.CostExplorer), nil
 	}
@@ -617,7 +640,7 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData, region strin
 		return nil, fmt.Errorf("region must be passed ElasticsearchService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elasticache-%s", region)
+	serviceCacheKey := fmt.Sprintf("elasticsearch-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*elasticsearchservice.ElasticsearchService), nil
 	}
@@ -958,6 +981,27 @@ func LambdaService(ctx context.Context, d *plugin.QueryData, region string) (*la
 	return svc, nil
 }
 
+// Macie2Service returns the service connection for AWS Macie2 service
+func Macie2Service(ctx context.Context, d *plugin.QueryData, region string) (*macie2.Macie2, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Macie2Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("macie2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*macie2.Macie2), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := macie2.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // OrganizationService returns the service connection for AWS Organization service
 func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
 	// have we already created and cached the service?
@@ -982,7 +1026,7 @@ func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*co
 		return nil, fmt.Errorf("region must be passed ConfigService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("configservice-%s", region)
+	serviceCacheKey := fmt.Sprintf("config-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*configservice.ConfigService), nil
 	}
@@ -1039,6 +1083,27 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 	return svc, nil
 }
 
+// Route53DomainsService returns the service connection for AWS route53 domains service
+func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region string) (*route53domains.Route53Domains, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Route53Domains")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("route53domain-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*route53domains.Route53Domains), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := route53domains.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // Route53ResolverService returns the service connection for AWS route53resolver service
 func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region string) (*route53resolver.Route53Resolver, error) {
 	if region == "" {
@@ -1082,7 +1147,7 @@ func SecretsManagerService(ctx context.Context, d *plugin.QueryData, region stri
 		return nil, fmt.Errorf("region must be passed SecretsManagerService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("secretsManager-%s", region)
+	serviceCacheKey := fmt.Sprintf("secretsmanager-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*secretsmanager.SecretsManager), nil
 	}
@@ -1102,7 +1167,7 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string)
 		return nil, fmt.Errorf("region must be passed SecurityHubService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("securityHub-%s", region)
+	serviceCacheKey := fmt.Sprintf("securityhub-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*securityhub.SecurityHub), nil
 	}

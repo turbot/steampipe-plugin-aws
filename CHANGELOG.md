@@ -1,3 +1,63 @@
+## v0.23.0 [2021-06-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_auditmanager_evidence_folder](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_evidence_folder) ([#435](https://github.com/turbot/steampipe-plugin-aws/pull/435))
+  - [aws_backup_selection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_selection) ([#501](https://github.com/turbot/steampipe-plugin-aws/pull/501))
+  - [aws_codepipeline_pipeline](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codepipeline_pipeline) ([#498](https://github.com/turbot/steampipe-plugin-aws/pull/498))
+  - [aws_route53_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_domain) ([#360](https://github.com/turbot/steampipe-plugin-aws/pull/360))
+
+_Bug fixes_
+
+- Fixed: Typo in description for common cloudwatch_metric `timestamp` column ([#505](https://github.com/turbot/steampipe-plugin-aws/pull/505))
+
+## v0.22.0 [2021-06-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_ssl_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_ssl_policy) ([#362](https://github.com/turbot/steampipe-plugin-aws/pull/362))
+  - [aws_eks_addon_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_addon_version) ([#482](https://github.com/turbot/steampipe-plugin-aws/pull/482))
+  - [aws_guardduty_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_guardduty_finding) ([#488](https://github.com/turbot/steampipe-plugin-aws/pull/488))
+  - [aws_ssm_managed_instance_compliance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_managed_instance_compliance) ([#484](https://github.com/turbot/steampipe-plugin-aws/pull/484))
+  - [aws_vpc_vpn_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_vpn_connection) ([#486](https://github.com/turbot/steampipe-plugin-aws/pull/486))
+
+_Enhancements_
+
+- Updated: Add column `arn` to `aws_api_gateway_stage` table ([#447](https://github.com/turbot/steampipe-plugin-aws/pull/447))
+- Updated: Add column `arn` to `aws_ec2_classic_load_balancer` table ([#475](https://github.com/turbot/steampipe-plugin-aws/pull/475))
+- Updated: Add column `event_subscriptions` to `aws_inspector_assessment_template` table ([#467](https://github.com/turbot/steampipe-plugin-aws/pull/467))
+- Updated: Add column `logging_configuration` to `aws_wafv2_web_acl` table ([#470](https://github.com/turbot/steampipe-plugin-aws/pull/470))
+- Updated: Add columns `dnssec_key_signing_keys` and `dnssec_status` to `aws_route53_zone` table ([#439](https://github.com/turbot/steampipe-plugin-aws/pull/439))
+
+_Bug fixes_
+
+- Fixed: Cache key in `ElasticsearchService` function and update various cache keys to be more consistent ([#500](https://github.com/turbot/steampipe-plugin-aws/pull/500))
+- Fixed: Tags hydrate call should not fail in `aws_sagemaker_notebook_instance` table ([#372](https://github.com/turbot/steampipe-plugin-aws/pull/372))
+
+## v0.21.0 [2021-06-10]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_ami_shared](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_ami_shared) ([#456](https://github.com/turbot/steampipe-plugin-aws/pull/456))
+  - [aws_ec2_regional_settings](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_regional_settings) ([#403](https://github.com/turbot/steampipe-plugin-aws/pull/403))
+  - [aws_eks_addon](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_addon) ([#478](https://github.com/turbot/steampipe-plugin-aws/pull/478))
+  - [aws_sagemaker_endpoint_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_endpoint_configuration) ([#477](https://github.com/turbot/steampipe-plugin-aws/pull/477))
+
+_Enhancements_
+
+- Updated: Shadow trails are now included in `aws_cloudtrail_trail` table query results ([#441](https://github.com/turbot/steampipe-plugin-aws/pull/441))
+- Updated: Add columns `replication_group_id`, `snapshot_retention_limit`, and `snapshot_window` to `aws_elasticache_cluster` table ([#458](https://github.com/turbot/steampipe-plugin-aws/pull/458))
+- Updated: Add columns `dead_letter_config_target_arn` and `reserved_concurrent_executions` to `aws_lambda_function` table ([#474](https://github.com/turbot/steampipe-plugin-aws/pull/474))
+- Updated: Rename column `alarm_arn` to `arn` in `aws_cloudwatch_alarm` table ([#489](https://github.com/turbot/steampipe-plugin-aws/pull/489))
+- Recompiled plugin with [steampipe-plugin-sdk v0.2.10](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v0210-2021-06-09)
+
+_Bug fixes_
+
+- Fixed: GetCommonColumns function should only get STS caller identity once per account instead of per region ([#490](https://github.com/turbot/steampipe-plugin-aws/pull/490))
+
 ## v0.20.0 [2021-06-03]
 
 _What's new?_

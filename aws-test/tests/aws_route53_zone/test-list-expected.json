@@ -1,7 +1,7 @@
 [
-	{
-		"comment": "Test zone",
-		"id": "{{ output.zone_id.value }}",
-		"name": "{{ resourceName }}.com."
-	}
+  {
+    "comment": "Test zone",
+    "id": "{{ output.zone_id.value }}",
+    "name": "{{ resourceName }}.com."
+  }
 ]

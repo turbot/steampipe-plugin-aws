@@ -39,9 +39,10 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "file_system_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) for the EFS file system.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("FileSystemArn"),
 			},
 			{
 				Name:        "owner_id",
@@ -142,7 +143,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("FileSystemArn").Transform(arnToAkas),
+				Transform:   transform.FromField("FileSystemArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
