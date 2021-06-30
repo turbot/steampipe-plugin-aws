@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
