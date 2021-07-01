@@ -279,7 +279,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "scheduled_actions",
-				Description: "A list of instance tags to which this route applies.",
+				Description: "A list of scheduled actions for specified cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getClusterScheduledActions,
 				Transform:   transform.FromValue(),
