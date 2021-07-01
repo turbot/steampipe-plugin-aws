@@ -278,6 +278,13 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "scheduled_actions",
+				Description: "A list of instance tags to which this route applies.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getClusterScheduledActions,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -403,6 +410,43 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	return op, nil
 }
 
+func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+	name := h.Item.(*redshift.Cluster).ClusterIdentifier
+
+	// Create service
+	svc, err := RedshiftService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// List call
+	var scheduledActions []*redshift.ScheduledAction
+	err = svc.DescribeScheduledActionsPages(
+		&redshift.DescribeScheduledActionsInput{
+			Filters: []*redshift.ScheduledActionFilter{
+				{
+					Name:   aws.String("cluster-identifier"),
+					Values: []*string{name},
+				},
+			},
+		},
+		func(page *redshift.DescribeScheduledActionsOutput, isLast bool) bool {
+			scheduledActions = append(scheduledActions, page.ScheduledActions...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return scheduledActions, nil
+}
+
 func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
 	cluster := h.Item.(*redshift.Cluster)
@@ -418,7 +462,7 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	return arn, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	cluster := d.HydrateItem.(*redshift.Cluster)
