@@ -232,8 +232,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	var rowData *kms.KeyListEntry
-	rowData = &kms.KeyListEntry{
+	rowData := &kms.KeyListEntry{
 		KeyArn: keyData.KeyMetadata.Arn,
 		KeyId:  keyData.KeyMetadata.KeyId,
 	}

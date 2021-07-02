@@ -1127,7 +1127,7 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region str
 // Route53Service returns the service connection for AWS route53 service
 func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53")
+	serviceCacheKey := "route53"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*route53.Route53), nil
 	}
@@ -1468,8 +1468,8 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	var regions []string
 	var region string
 
-	if &awsConfig != nil && awsConfig.Regions != nil {
-		regions = GetConfig(d.Connection).Regions
+	if awsConfig.Regions != nil {
+		regions = awsConfig.Regions
 	}
 
 	if len(getInvalidRegions(regions)) < 1 {
