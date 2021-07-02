@@ -192,7 +192,7 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 
 //// TRANSFORM FUNCTIONS
 
-func sageMakerEndpointConfigurationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func sageMakerEndpointConfigurationTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 
 	if data.Tags == nil {

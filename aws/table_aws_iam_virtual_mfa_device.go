@@ -102,7 +102,7 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	err = svc.ListVirtualMFADevicesPages(
 		&iam.ListVirtualMFADevicesInput{},
-		func(page *iam.ListVirtualMFADevicesOutput, lastPage bool) bool {
+		func(page *iam.ListVirtualMFADevicesOutput, _ bool) bool {
 			for _, mfaDevice := range page.VirtualMFADevices {
 				d.StreamListItem(ctx, mfaDevice)
 			}

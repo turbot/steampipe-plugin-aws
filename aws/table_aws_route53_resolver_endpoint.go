@@ -156,7 +156,7 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 

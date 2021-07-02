@@ -241,11 +241,11 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 }
 
 func applicationArn(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *kinesisanalyticsv2.ApplicationDetail:
-		return item.(*kinesisanalyticsv2.ApplicationDetail).ApplicationARN
+		return item.ApplicationARN
 	case *kinesisanalyticsv2.ApplicationSummary:
-		return item.(*kinesisanalyticsv2.ApplicationSummary).ApplicationARN
+		return item.ApplicationARN
 	}
 	return nil
 }

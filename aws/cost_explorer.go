@@ -138,8 +138,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	}
 
 	// List call
-	morePages := true
-	for morePages {
+	for {
 		output, err := svc.GetCostAndUsage(params)
 		if err != nil {
 			logger.Error("streamCostAndUsage", "err", err)
@@ -153,7 +152,6 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 
 		// get more pages if there are any...
 		if output.NextPageToken == nil {
-			morePages = false
 			break
 		}
 		params.SetNextPageToken(*output.NextPageToken)
@@ -162,7 +160,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	return nil, nil
 }
 
-func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostAndUsageOutput, keyQuals map[string]*proto.QualValue) []CEMetricRow {
+func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostAndUsageOutput, _ map[string]*proto.QualValue) []CEMetricRow {
 	logger := plugin.Logger(ctx)
 	logger.Trace("buildCEMetricRows")
 	var rows []CEMetricRow
@@ -283,7 +281,7 @@ type CEQuals struct {
 	DimensionType2  string
 }
 
-func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func hydrateCostAndUsageQuals(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("hydrateKeyQuals")
 	//plugin.Logger(ctx).Warn("hydrateKeyQuals", "d.KeyColumnQuals", d.KeyColumnQuals)
 

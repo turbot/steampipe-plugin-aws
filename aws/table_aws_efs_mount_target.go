@@ -138,7 +138,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

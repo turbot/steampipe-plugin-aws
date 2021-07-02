@@ -162,7 +162,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {

@@ -183,7 +183,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 		hashCode = hashCode + "_" + *sgRule.IPRange.CidrIp
 	} else if sgRule.Ipv6Range != nil && sgRule.Ipv6Range.CidrIpv6 != nil {
 		hashCode = hashCode + "_" + *sgRule.Ipv6Range.CidrIpv6
-	} else if sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
+	} else if sgRule.Group != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
 		hashCode = hashCode + "_" + *sgRule.Group.GroupId
 	} else if sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
 		hashCode = hashCode + "_" + *sgRule.UserIDGroupPair.GroupId

@@ -268,11 +268,11 @@ func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func associationID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.Association:
-		return *item.(*ssm.Association).AssociationId
+		return *item.AssociationId
 	case *ssm.AssociationDescription:
-		return *item.(*ssm.AssociationDescription).AssociationId
+		return *item.AssociationId
 	}
 	return ""
 }

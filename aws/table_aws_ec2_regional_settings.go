@@ -64,7 +64,7 @@ func listEc2RegionalSettings(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryption")
 
 	var region string
@@ -93,7 +93,7 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *
 	return defaultEncryption.EbsEncryptionByDefault, nil
 }
 
-func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryptionKey")
 
 	var region string
@@ -124,7 +124,7 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 
 //// TRANSFORM FUNCTIONS
 
-func getEc2SettingTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getEc2SettingTitle(ctx context.Context, _ *transform.TransformData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {

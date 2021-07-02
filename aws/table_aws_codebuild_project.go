@@ -280,7 +280,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// TRANSFORM FUNCTIONS
 
-func codeBuildProjectTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*codebuild.Project)
 

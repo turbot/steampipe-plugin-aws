@@ -136,7 +136,7 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -152,7 +152,7 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	err = svc.ListClustersPages(
 		&eks.ListClustersInput{},
-		func(page *eks.ListClustersOutput, b bool) bool {
+		func(page *eks.ListClustersOutput, _ bool) bool {
 			for _, cluster := range page.Clusters {
 				d.StreamListItem(ctx, &eks.Cluster{
 					Name: cluster,

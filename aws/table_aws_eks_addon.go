@@ -127,7 +127,7 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	err = svc.ListAddonsPages(
 		&eks.ListAddonsInput{ClusterName: &clusterName},
-		func(page *eks.ListAddonsOutput, b bool) bool {
+		func(page *eks.ListAddonsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				d.StreamListItem(ctx, &eks.Addon{
 					AddonName:   addon,
