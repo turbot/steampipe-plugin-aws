@@ -416,8 +416,7 @@ func getCloudtrailTrailTurbotTags(_ context.Context, d *transform.TransformData)
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}

@@ -247,8 +247,7 @@ func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (inte
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range data.Tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}

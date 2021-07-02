@@ -105,8 +105,8 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	plugin.Logger(ctx).Trace("listAwsGuardDutyIPSets", "AWS_REGION", region)
 
-	var id string
-	id = h.Item.(detectorInfo).DetectorID
+	id := h.Item.(detectorInfo).DetectorID
+
 	// Create session
 	svc, err := GuardDutyService(ctx, d, region)
 	if err != nil {

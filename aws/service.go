@@ -284,7 +284,7 @@ func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string
 // CloudFrontService returns the service connection for AWS CloudFront service
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudfront")
+	serviceCacheKey := "cloudfront"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudfront.CloudFront), nil
 	}
@@ -1394,24 +1394,22 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		SharedConfigState: session.SharedConfigEnable,
 	}
 
-	if &awsConfig != nil {
-		if awsConfig.Profile != nil {
-			sessionOptions.Profile = *awsConfig.Profile
-		}
-		if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-			)
+	if awsConfig.Profile != nil {
+		sessionOptions.Profile = *awsConfig.Profile
+	}
+	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
+		sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+		)
 
-			if awsConfig.SessionToken != nil {
-				sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-					*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-				)
-			}
+		if awsConfig.SessionToken != nil {
+			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+			)
 		}
 	}
 
