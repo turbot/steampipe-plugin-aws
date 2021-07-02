@@ -222,7 +222,7 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		},
 	)
 
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS

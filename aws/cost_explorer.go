@@ -138,8 +138,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	}
 
 	// List call
-	morePages := true
-	for morePages {
+	for {
 		output, err := svc.GetCostAndUsage(params)
 		if err != nil {
 			logger.Error("streamCostAndUsage", "err", err)
@@ -153,7 +152,6 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 
 		// get more pages if there are any...
 		if output.NextPageToken == nil {
-			morePages = false
 			break
 		}
 		params.SetNextPageToken(*output.NextPageToken)
