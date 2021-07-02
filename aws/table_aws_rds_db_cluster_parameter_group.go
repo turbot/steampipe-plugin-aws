@@ -178,6 +178,10 @@ func getAwsRDSClusterParameterGroupParameters(ctx context.Context, d *plugin.Que
 		},
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return items, nil
 }
 

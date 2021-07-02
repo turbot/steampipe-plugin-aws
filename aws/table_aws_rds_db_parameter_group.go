@@ -178,6 +178,10 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 		},
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return items, nil
 }
 
