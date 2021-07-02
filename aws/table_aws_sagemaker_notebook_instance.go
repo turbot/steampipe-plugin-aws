@@ -289,11 +289,11 @@ func getAwsSageMakerNotebookInstanceTurbotTags(_ context.Context, d *transform.T
 }
 
 func notebookInstanceARN(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *sagemaker.NotebookInstanceSummary:
-		return *item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceArn
+		return *item.NotebookInstanceArn
 	case *sagemaker.DescribeNotebookInstanceOutput:
-		return *item.(*sagemaker.DescribeNotebookInstanceOutput).NotebookInstanceArn
+		return *item.NotebookInstanceArn
 	}
 	return ""
 }

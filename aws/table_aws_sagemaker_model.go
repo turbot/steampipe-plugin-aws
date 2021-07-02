@@ -236,11 +236,11 @@ func sageMakerModelTurbotTags(_ context.Context, d *transform.TransformData) (in
 }
 
 func modelName(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *sagemaker.ModelSummary:
-		return *item.(*sagemaker.ModelSummary).ModelName
+		return *item.ModelName
 	case *sagemaker.DescribeModelOutput:
-		return *item.(*sagemaker.DescribeModelOutput).ModelName
+		return *item.ModelName
 	}
 	return ""
 }

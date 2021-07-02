@@ -154,11 +154,11 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 }
 
 func originAccessIdentityID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetCloudFrontOriginAccessIdentityOutput:
-		return item.(*cloudfront.GetCloudFrontOriginAccessIdentityOutput).CloudFrontOriginAccessIdentity.Id
+		return item.CloudFrontOriginAccessIdentity.Id
 	case *cloudfront.OriginAccessIdentitySummary:
-		return item.(*cloudfront.OriginAccessIdentitySummary).Id
+		return item.Id
 	}
 	return nil
 }

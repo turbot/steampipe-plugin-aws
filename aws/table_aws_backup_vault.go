@@ -206,11 +206,11 @@ func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func vaultID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *backup.VaultListMember:
-		return *item.(*backup.VaultListMember).BackupVaultName
+		return *item.BackupVaultName
 	case *backup.DescribeBackupVaultOutput:
-		return *item.(*backup.DescribeBackupVaultOutput).BackupVaultName
+		return *item.BackupVaultName
 	}
 	return ""
 }

@@ -244,11 +244,11 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func workloadID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *wellarchitected.WorkloadSummary:
-		return *item.(*wellarchitected.WorkloadSummary).WorkloadId
+		return *item.WorkloadId
 	case *wellarchitected.Workload:
-		return *item.(*wellarchitected.Workload).WorkloadId
+		return *item.WorkloadId
 	}
 	return ""
 }

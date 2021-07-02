@@ -358,11 +358,11 @@ func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.T
 }
 
 func maintenanceWindowID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.GetMaintenanceWindowOutput:
-		return item.(*ssm.GetMaintenanceWindowOutput).WindowId
+		return item.WindowId
 	case *ssm.MaintenanceWindowIdentity:
-		return item.(*ssm.MaintenanceWindowIdentity).WindowId
+		return item.WindowId
 	}
 	return nil
 }
