@@ -117,7 +117,7 @@ func (statement *Statement) UnmarshalJSON(b []byte) error {
 
 	c, err := canonicalCondition(newStatement.Condition)
 	if err != nil {
-		return fmt.Errorf("Error unmarshalling / converting condition: %s", err)
+		return fmt.Errorf("error unmarshalling / converting condition: %s", err)
 	}
 	statement.Condition = c
 
@@ -282,20 +282,6 @@ func canonicalPolicy(src string) (interface{}, error) {
 }
 
 //// UTILITY FUNCTIONS
-
-// toSliceOfThings converts a string or array value to an array of values
-func toSliceOfThings(scalarOrSlice interface{}) []interface{} {
-
-	if reflect.TypeOf(scalarOrSlice).Kind() == reflect.Slice {
-		return scalarOrSlice.([]interface{})
-	}
-
-	newSlice := make([]interface{}, 0)
-	newSlice = append(newSlice, scalarOrSlice)
-
-	return newSlice
-
-}
 
 // toSliceOfStrings converts a string or array value to an array of strings
 func toSliceOfStrings(scalarOrSlice interface{}) ([]string, error) {

@@ -403,13 +403,3 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	return keyPolicy, nil
 }
-
-//// TRANSFORM FUNCTIONS//
-
-func getAwsKmsKeyTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	hydrateData := d.HydrateItem.(*kms.ListAliasesOutput)
-	if hydrateData.Aliases != nil && len(hydrateData.Aliases) > 0 {
-		return hydrateData.Aliases[0].AliasName, nil
-	}
-	return nil, nil
-}

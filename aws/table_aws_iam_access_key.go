@@ -14,12 +14,6 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_access_key",
 		Description: "AWS IAM User Access Key",
-		// TODO -- get call returning a list of items
-
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns:  plugin.SingleColumn("user_name"),
-		// 	Hydrate:     getIamAccessKey,
-		// },
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listUserAccessKeys,
@@ -92,31 +86,6 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 //// HYDRATE FUNCTIONS
-
-func getIamAccessKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamAccessKey")
-	key := h.Item.(*iam.AccessKeyMetadata)
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	params := &iam.ListAccessKeysInput{
-		UserName: key.UserName,
-	}
-
-	item, err := svc.ListAccessKeys(params)
-
-	// return results as interface
-	var accessKeyRowData []interface{}
-	for _, item := range item.AccessKeyMetadata {
-		accessKeyRowData = append(accessKeyRowData, item)
-	}
-
-	return accessKeyRowData, nil
-}
 
 func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessKey := h.Item.(*iam.AccessKeyMetadata)
