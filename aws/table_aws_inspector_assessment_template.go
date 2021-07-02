@@ -255,9 +255,7 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 	err = svc.ListEventSubscriptionsPages(
 		params,
 		func(page *inspector.ListEventSubscriptionsOutput, lastPage bool) bool {
-			for _, Subscription := range page.Subscriptions {
-				associatedEventSubscriptions = append(associatedEventSubscriptions, Subscription)
-			}
+			associatedEventSubscriptions = append(associatedEventSubscriptions, page.Subscriptions...)
 			return !lastPage
 		},
 	)

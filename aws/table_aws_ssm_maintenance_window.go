@@ -124,7 +124,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			{
 				Name:        "next_execution_time",
 				Description: "The next time the maintenance window will actually run, taking into account any specified times for the Maintenance Window to become active or inactive.",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 
 			/// Standard columns for all tables

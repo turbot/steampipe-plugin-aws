@@ -62,7 +62,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "last_evaluated_at",
 				Description: "The time stamp of the last time that the lifecycle policy was run.",
 				Hydrate:     getAwsEcrRepositoryLifecyclePolicy,
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "max_results",

@@ -304,7 +304,7 @@ func uniqueStrings(arr []string) []string {
 	result := []string{}
 	for e := range arr {
 		// check if already the mapped (if true)
-		if occured[arr[e]] != true {
+		if !occured[arr[e]] {
 			occured[arr[e]] = true
 
 			// Append to result slice.
