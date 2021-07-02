@@ -282,7 +282,7 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func getAwsEcsTaskDefinitionTurbotData(ctx context.Context, d *transform.TransformData) (interface{},
+func getAwsEcsTaskDefinitionTurbotData(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	param := d.Param.(string)
 	ecsTaskDefinition := d.HydrateItem.(*ecs.DescribeTaskDefinitionOutput)

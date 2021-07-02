@@ -232,8 +232,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	var rowData *kms.KeyListEntry
-	rowData = &kms.KeyListEntry{
+	rowData := &kms.KeyListEntry{
 		KeyArn: keyData.KeyMetadata.Arn,
 		KeyId:  keyData.KeyMetadata.KeyId,
 	}
@@ -402,14 +401,4 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 	return keyPolicy, nil
-}
-
-//// TRANSFORM FUNCTIONS//
-
-func getAwsKmsKeyTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	hydrateData := d.HydrateItem.(*kms.ListAliasesOutput)
-	if hydrateData.Aliases != nil && len(hydrateData.Aliases) > 0 {
-		return hydrateData.Aliases[0].AliasName, nil
-	}
-	return nil, nil
 }

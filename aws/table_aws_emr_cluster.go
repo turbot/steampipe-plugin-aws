@@ -318,11 +318,11 @@ func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (i
 }
 
 func clusterID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *emr.ClusterSummary:
-		return *item.(*emr.ClusterSummary).Id
+		return *item.Id
 	case *emr.Cluster:
-		return *item.(*emr.Cluster).Id
+		return *item.Id
 	}
 	return ""
 }

@@ -106,17 +106,6 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 	}
 }
 
-//// ITEM FROM KEY
-
-func groupFromKey(_ context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	name := quals["name"].GetStringValue()
-	item := &iam.Group{
-		GroupName: &name,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {

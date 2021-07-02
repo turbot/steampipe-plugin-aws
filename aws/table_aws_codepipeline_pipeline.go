@@ -239,7 +239,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	return ""
 }
 
-func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*codepipeline.ListTagsForResourceOutput)
 
 	if data.Tags == nil {
@@ -247,8 +247,7 @@ func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (in
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range data.Tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}

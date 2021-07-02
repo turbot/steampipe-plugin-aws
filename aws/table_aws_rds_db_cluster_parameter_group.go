@@ -178,7 +178,7 @@ func getAwsRDSClusterParameterGroupParameters(ctx context.Context, d *plugin.Que
 		},
 	)
 
-	return items, nil
+	return items, err
 }
 
 func getAwsRDSClusterParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

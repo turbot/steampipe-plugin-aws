@@ -284,7 +284,7 @@ func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string
 // CloudFrontService returns the service connection for AWS CloudFront service
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudfront")
+	serviceCacheKey := "cloudfront"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudfront.CloudFront), nil
 	}
@@ -1127,7 +1127,7 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region str
 // Route53Service returns the service connection for AWS route53 service
 func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53")
+	serviceCacheKey := "route53"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*route53.Route53), nil
 	}
@@ -1387,31 +1387,29 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region str
 	return svc, nil
 }
 
-func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}
 
-	if &awsConfig != nil {
-		if awsConfig.Profile != nil {
-			sessionOptions.Profile = *awsConfig.Profile
-		}
-		if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-			)
+	if awsConfig.Profile != nil {
+		sessionOptions.Profile = *awsConfig.Profile
+	}
+	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
+		sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+		)
 
-			if awsConfig.SessionToken != nil {
-				sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-					*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-				)
-			}
+		if awsConfig.SessionToken != nil {
+			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+			)
 		}
 	}
 
@@ -1470,8 +1468,8 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	var regions []string
 	var region string
 
-	if &awsConfig != nil && awsConfig.Regions != nil {
-		regions = GetConfig(d.Connection).Regions
+	if awsConfig.Regions != nil {
+		regions = awsConfig.Regions
 	}
 
 	if len(getInvalidRegions(regions)) < 1 {
