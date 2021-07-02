@@ -1387,7 +1387,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region str
 	return svc, nil
 }
 
-func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 	sessionOptions := session.Options{

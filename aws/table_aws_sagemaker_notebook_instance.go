@@ -274,7 +274,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 
 //// TRANSFORM FUNCTION
 
-func getAwsSageMakerNotebookInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func getAwsSageMakerNotebookInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 

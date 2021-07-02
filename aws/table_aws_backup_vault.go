@@ -98,7 +98,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("listAwsBackupVaults", "AWS_BACKUP", region)

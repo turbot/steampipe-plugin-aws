@@ -71,7 +71,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, nil
 }
 
-func buildCostForecastInput(keyQuals map[string]*proto.QualValue, granularity string) *costexplorer.GetCostForecastInput {
+func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *costexplorer.GetCostForecastInput {
 
 	// TO DO - specify metric as qual?   get all cost metrics in parallel?
 	//metric := strings.ToUpper(keyQuals["metric"].GetStringValue())
