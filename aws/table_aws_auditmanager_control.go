@@ -157,10 +157,10 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		},
 	)
 
-	if err != nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	
+
 	// List all custom controls
 	err = svc.ListControlsPages(
 		&auditmanager.ListControlsInput{
