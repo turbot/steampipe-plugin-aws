@@ -75,7 +75,7 @@ type addonVersion struct {
 
 //// LIST FUNCTION
 
-func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
@@ -91,7 +91,7 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	err = svc.DescribeAddonVersionsPages(
 		&eks.DescribeAddonVersionsInput{},
-		func(page *eks.DescribeAddonVersionsOutput, b bool) bool {
+		func(page *eks.DescribeAddonVersionsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				for _, version := range addon.AddonVersions {
 					d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})

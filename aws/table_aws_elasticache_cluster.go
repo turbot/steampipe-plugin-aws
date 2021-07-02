@@ -213,7 +213,7 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
 	var region string

@@ -239,7 +239,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	return ""
 }
 
-func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*codepipeline.ListTagsForResourceOutput)
 
 	if data.Tags == nil {

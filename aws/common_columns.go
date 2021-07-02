@@ -134,7 +134,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return commonColumnData, nil
 }
 
-func getCallerIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*sts.GetCallerIdentityOutput, error) {
+func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (*sts.GetCallerIdentityOutput, error) {
 	cacheKey := "GetCallerIdentity"
 
 	// if found in cache, return the result

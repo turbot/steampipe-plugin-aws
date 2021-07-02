@@ -117,7 +117,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 //// HYDRATE FUNCTIONS
 
-func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getConfigConformancePack")
 	quals := d.KeyColumnQuals

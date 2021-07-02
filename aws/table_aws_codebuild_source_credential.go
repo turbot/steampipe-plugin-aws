@@ -84,7 +84,7 @@ func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ 
 
 //// TRANSFORM FUNCTIONS
 
-func codebuildSourceCredentialTitle(ctx context.Context, d *transform.TransformData) (interface{},
+func codebuildSourceCredentialTitle(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*codebuild.SourceCredentialsInfo)
 

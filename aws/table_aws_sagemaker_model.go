@@ -217,7 +217,7 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 //// TRANSFORM FUNCTION
 
-func sageMakerModelTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func sageMakerModelTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 

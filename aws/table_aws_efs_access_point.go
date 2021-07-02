@@ -133,7 +133,7 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// TODO put me in helper function
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

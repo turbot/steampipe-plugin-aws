@@ -166,7 +166,7 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRule")
 

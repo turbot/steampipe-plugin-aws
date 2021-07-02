@@ -121,7 +121,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 		&cloudwatchlogs.DescribeLogStreamsInput{
 			LogGroupName: logGroup.LogGroupName,
 		},
-		func(page *cloudwatchlogs.DescribeLogStreamsOutput, isLast bool) bool {
+		func(page *cloudwatchlogs.DescribeLogStreamsOutput, _ bool) bool {
 			for _, logStream := range page.LogStreams {
 				d.StreamLeafListItem(ctx, logStreamInfo{logStream, logGroup.LogGroupName})
 			}
@@ -134,7 +134,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogStream")
 
 	// TODO put me in helper function
