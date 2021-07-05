@@ -18,7 +18,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_transit_gateway",
 		Description: "AWS EC2 Transit Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("network_interface_id"),
+			KeyColumns:        plugin.SingleColumn("transit_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed"}),
 			Hydrate:           getEc2TransitGateway,
 		},
