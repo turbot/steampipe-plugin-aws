@@ -18,7 +18,7 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 		Name:        "aws_glue_catalog_database",
 		Description: "AWS Glue Catalog Database",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("Name"),
+			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
 			Hydrate:           getGlueCatalogDatabase,
 		},

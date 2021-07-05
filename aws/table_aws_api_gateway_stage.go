@@ -17,7 +17,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_stage",
 		Description: "AWS API Gateway Stage",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "stage_name"}),
+			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
 			Hydrate:           getAPIGatewayStage,
 		},
@@ -218,7 +218,7 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
+	stageName := d.KeyColumnQuals["name"].GetStringValue()
 	restAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
 
 	params := &apigateway.GetStageInput{
