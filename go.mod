@@ -10,3 +10,5 @@ require (
 	github.com/turbot/go-kit v0.1.1
 	github.com/turbot/steampipe-plugin-sdk v0.2.10
 )
+
+replace github.com/turbot/steampipe-plugin-sdk => /home/ec2-user/steampipe-test/steampipe-plugin-sdk
