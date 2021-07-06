@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -59,7 +59,7 @@ resource "aws_efs_access_point" "named_test_resource" {
   file_system_id = aws_efs_file_system.file_system.id
   tags = {
     Name = var.resource_name
-    foo = "bar"
+    foo  = "bar"
   }
 }
 
@@ -68,7 +68,7 @@ output "resource_name" {
 }
 
 output "resource_aka" {
-  value      = aws_efs_access_point.named_test_resource.arn
+  value = aws_efs_access_point.named_test_resource.arn
 }
 
 output "resource_id" {

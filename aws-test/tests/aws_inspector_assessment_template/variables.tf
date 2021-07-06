@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -61,9 +61,9 @@ resource "aws_inspector_assessment_target" "assessment_target" {
 data "aws_inspector_rules_packages" "rules" {}
 
 resource "aws_inspector_assessment_template" "named_test_resource" {
-  name       = var.resource_name
-  target_arn = aws_inspector_assessment_target.assessment_target.arn
-  duration   = 3600
+  name               = var.resource_name
+  target_arn         = aws_inspector_assessment_target.assessment_target.arn
+  duration           = 3600
   rules_package_arns = data.aws_inspector_rules_packages.rules.arns
   tags = {
     foo = "bar"

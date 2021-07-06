@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -79,14 +79,14 @@ resource "aws_redshift_subnet_group" "my_subnet_group" {
 }
 
 resource "aws_redshift_cluster" "named_test_resource" {
-  cluster_identifier = var.resource_name
+  cluster_identifier        = var.resource_name
   cluster_subnet_group_name = aws_redshift_subnet_group.my_subnet_group.name
-  cluster_type = "single-node"
-  database_name = "testdb"
-  master_password = "test123Q"
-  master_username = "turbottest"
-  node_type = "dc2.large"
-  skip_final_snapshot = true
+  cluster_type              = "single-node"
+  database_name             = "testdb"
+  master_password           = "test123Q"
+  master_username           = "turbottest"
+  node_type                 = "dc2.large"
+  skip_final_snapshot       = true
   tags = {
     name = var.resource_name
   }

@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_kms_key" "named_test_resource" {
-  description = "var.resource_name"
+  description             = "var.resource_name"
   deletion_window_in_days = 7
   tags = {
     name = var.resource_name

@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -50,7 +50,7 @@ data "null_data_source" "resource" {
 # Create AWS > GuardDuty > Detector
 resource "aws_guardduty_detector" "named_test_resource" {
   enable = true
-   tags = {
+  tags = {
     name = var.resource_name
   }
 }
@@ -74,17 +74,17 @@ output "resource_name" {
 data "template_file" "resource_aka" {
   template = "arn:$${partition}:guardduty:$${region}:$${account_id}:detector/${aws_guardduty_detector.named_test_resource.id}"
   vars = {
-    resource_name = var.resource_name
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
+    resource_name    = var.resource_name
+    partition        = data.aws_partition.current.partition
+    account_id       = data.aws_caller_identity.current.account_id
+    region           = data.aws_region.primary.name
     alternate_region = data.aws_region.alternate.name
   }
 }
 
 output "resource_aka" {
-  depends_on = [ aws_guardduty_detector.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
+  depends_on = [aws_guardduty_detector.named_test_resource]
+  value      = data.template_file.resource_aka.rendered
 }
 
 output "resource_id" {

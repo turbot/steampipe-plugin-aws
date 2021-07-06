@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -48,8 +48,8 @@ data "null_data_source" "resource" {
 
 resource "aws_route53_resolver_rule" "named_test_resource" {
   domain_name = "turbot.com"
-  rule_type = "SYSTEM"
-  name = var.resource_name
+  rule_type   = "SYSTEM"
+  name        = var.resource_name
   tags = {
     name = var.resource_name
   }

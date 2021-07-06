@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -49,7 +49,7 @@ data "null_data_source" "resource" {
 
 # Create AWS > ECS > Task Definition
 resource "aws_ecs_task_definition" "named_test_resource" {
-  family = var.resource_name
+  family                = var.resource_name
   container_definitions = <<TASK_DEFINITION
   [
     {

@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -104,14 +104,14 @@ resource "aws_vpc" "named_test_resource" {
 }
 
 resource "aws_subnet" "named_test_resource1" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.0.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.0.0/20"
   availability_zone = "${var.aws_region}b"
 }
 
 resource "aws_subnet" "named_test_resource2" {
-  vpc_id     = aws_vpc.named_test_resource.id
-  cidr_block = "172.31.32.0/20"
+  vpc_id            = aws_vpc.named_test_resource.id
+  cidr_block        = "172.31.32.0/20"
   availability_zone = "${var.aws_region}d"
 }
 

@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -58,12 +58,12 @@ resource "aws_macie2_account" "test" {
 
 resource "aws_macie2_classification_job" "named_test_resource" {
   depends_on = [aws_macie2_account.test]
-  job_type = "ONE_TIME"
-  name     = var.resource_name
+  job_type   = "ONE_TIME"
+  name       = var.resource_name
   s3_job_definition {
     bucket_definitions {
       account_id = data.aws_caller_identity.current.account_id
-      buckets = [aws_s3_bucket.test.bucket]
+      buckets    = [aws_s3_bucket.test.bucket]
     }
   }
   tags = {

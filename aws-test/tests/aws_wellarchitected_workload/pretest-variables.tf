@@ -1,13 +1,13 @@
 
 variable "resource_name" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Name of the resource used throughout the test."
 }
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -64,7 +64,7 @@ data "local_file" "input" {
 
 output "resource_id" {
   depends_on = [null_resource.named_test_resource]
-  value = jsondecode(data.local_file.input.content).WorkloadId
+  value      = jsondecode(data.local_file.input.content).WorkloadId
 }
 
 output "resource_name" {
@@ -82,17 +82,17 @@ output "aws_region" {
 data "template_file" "resource_aka" {
   template = "arn:$${partition}:wellarchitected:$${region}:$${account_id}:workload/$${resource_id}"
   vars = {
-    partition = data.aws_partition.current.partition
-    account_id = data.aws_caller_identity.current.account_id
-    region = data.aws_region.primary.name
-    resource_id = jsondecode(data.local_file.input.content).WorkloadId
+    partition        = data.aws_partition.current.partition
+    account_id       = data.aws_caller_identity.current.account_id
+    region           = data.aws_region.primary.name
+    resource_id      = jsondecode(data.local_file.input.content).WorkloadId
     alternate_region = data.aws_region.alternate.name
   }
 }
 
 output "resource_aka" {
-  depends_on = [ null_resource.named_test_resource ]
-  value = data.template_file.resource_aka.rendered
+  depends_on = [null_resource.named_test_resource]
+  value      = data.template_file.resource_aka.rendered
 }
 
 output "aws_partition" {

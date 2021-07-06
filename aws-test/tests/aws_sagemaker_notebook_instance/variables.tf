@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -64,8 +64,8 @@ resource "aws_iam_role" "my_role" {
 }
 
 resource "aws_sagemaker_notebook_instance" "named_test_resource" {
-  name = var.resource_name
-  role_arn = aws_iam_role.my_role.arn
+  name          = var.resource_name
+  role_arn      = aws_iam_role.my_role.arn
   instance_type = "ml.t2.medium"
   tags = {
     name = var.resource_name

@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -46,9 +46,9 @@ resource "aws_iam_role" "named_test_resource" {
 }
 
 resource "aws_kinesisanalyticsv2_application" "named_test_resource" {
-  name                    = var.resource_name
-  runtime_environment     = "SQL-1_0"
-  service_execution_role  = aws_iam_role.named_test_resource.arn
+  name                   = var.resource_name
+  runtime_environment    = "SQL-1_0"
+  service_execution_role = aws_iam_role.named_test_resource.arn
   tags = {
     Name = var.resource_name
   }

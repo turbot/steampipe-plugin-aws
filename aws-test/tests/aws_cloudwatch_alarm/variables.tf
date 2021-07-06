@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -49,15 +49,15 @@ data "null_data_source" "resource" {
 
 # Create AWS > Cloudwatch > Alarm
 resource "aws_cloudwatch_metric_alarm" "named_test_resource" {
-  alarm_name = var.resource_name
+  alarm_name          = var.resource_name
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods = 2
-  metric_name = "CPUUtilization"
-  namespace = "AWS/EC2"
-  period = 120
-  statistic = "Average"
-  threshold = 80
-  alarm_description = var.resource_name
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 80
+  alarm_description   = var.resource_name
   tags = {
     name = var.resource_name
   }

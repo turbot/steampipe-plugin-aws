@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -50,13 +50,13 @@ data "null_data_source" "resource" {
 # Create AWS > Elastic Beanstalk > Application
 
 resource "aws_iam_service_linked_role" "elasticbeanstalk" {
-   aws_service_name = "elasticbeanstalk.amazonaws.com"
-   }
+  aws_service_name = "elasticbeanstalk.amazonaws.com"
+}
 
 resource "aws_elastic_beanstalk_application" "named_test_resource" {
   name = var.resource_name
   appversion_lifecycle {
-    service_role = "${aws_iam_service_linked_role.elasticbeanstalk.arn}"
+    service_role = aws_iam_service_linked_role.elasticbeanstalk.arn
   }
   tags = {
     name = var.resource_name

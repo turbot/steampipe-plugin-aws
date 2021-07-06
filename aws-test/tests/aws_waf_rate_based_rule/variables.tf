@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -48,10 +48,10 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_waf_rate_based_rule" "named_test_resource" {
-  name = var.resource_name
+  name        = var.resource_name
   metric_name = var.resource_name
-  rate_key = "IP"
-  rate_limit = 100
+  rate_key    = "IP"
+  rate_limit  = 100
   tags = {
     name = var.resource_name
   }

@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -63,11 +63,11 @@ resource "aws_s3_bucket_object" "MyIPSet" {
 }
 
 resource "aws_guardduty_ipset" "named_test_resource" {
-  name = var.resource_name
-  format = "TXT"
-  location = "https://s3.amazonaws.com/${aws_s3_bucket_object.MyIPSet.bucket}/${aws_s3_bucket_object.MyIPSet.key}"
+  name        = var.resource_name
+  format      = "TXT"
+  location    = "https://s3.amazonaws.com/${aws_s3_bucket_object.MyIPSet.bucket}/${aws_s3_bucket_object.MyIPSet.key}"
   detector_id = aws_guardduty_detector.primary.id
-  activate = "true"
+  activate    = "true"
 }
 
 output "account_id" {
@@ -91,7 +91,7 @@ output "resource_name" {
 }
 
 output "ipset_id" {
-  value = split(":",aws_guardduty_ipset.named_test_resource.id)[1]
+  value = split(":", aws_guardduty_ipset.named_test_resource.id)[1]
 }
 
 output "detector_id" {
