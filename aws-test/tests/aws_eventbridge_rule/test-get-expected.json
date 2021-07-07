@@ -1,7 +1,11 @@
 [
     {
       "arn": "{{ output.resource_aka.value }}",
-      "event_pattern": "{\"detail-type\":[\"AWS Console Sign In via CloudTrail\"]}",
+      "event_pattern": {
+        "detail-type": [
+          "AWS Console Sign In via CloudTrail"
+        ]
+      },
       "name": "{{ resourceName }}",
       "tags": {
         "name": "{{ resourceName }}"
