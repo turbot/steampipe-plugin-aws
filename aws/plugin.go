@@ -76,7 +76,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dms_replication_instance":                               tableAwsDmsReplicationInstance(ctx),
 			"aws_dynamodb_backup":                                        tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":                                  tableAwsDynamoDBGlobalTable(ctx),
-			"aws_dynamodb_metric_account_provisioned_read_capacity_util": tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtil(ctx),
+			"aws_dynamodb_metric_account_provisioned_read_capacity_util": tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(ctx),
 			"aws_dynamodb_table":                                         tableAwsDynamoDBTable(ctx),
 			"aws_ebs_snapshot":                                           tableAwsEBSSnapshot(ctx),
 			"aws_ebs_volume":                                             tableAwsEBSVolume(ctx),
