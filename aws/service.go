@@ -1483,11 +1483,6 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	} else {
 		// Set the first region in regions list to be default region
 		region = regions[0]
-
-		// // check if it is a valid region
-		// if len(getInvalidRegions([]string{region})) > 0 {
-		// 	panic("\n\nConnection config have invalid region: " + region + ". Edit your connection configuration file and then restart Steampipe")
-		// }
 	}
 
 	if region == "" {
