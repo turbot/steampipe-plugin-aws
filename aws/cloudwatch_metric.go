@@ -18,19 +18,16 @@ func cwMetricColumns(columns []*plugin.Column) []*plugin.Column {
 
 func commonCwMetricColumns() []*plugin.Column {
 	return []*plugin.Column{
-
 		{
 			Name:        "metric_name",
 			Description: "The name of the metric.",
 			Type:        proto.ColumnType_STRING,
 		},
-
 		{
 			Name:        "namespace",
 			Description: "The metric namespace.",
 			Type:        proto.ColumnType_STRING,
 		},
-
 		{
 			Name:        "average",
 			Description: "The average of the metric values that correspond to the data point.",
@@ -46,7 +43,6 @@ func commonCwMetricColumns() []*plugin.Column {
 			Description: "The minimum metric value for the data point.",
 			Type:        proto.ColumnType_DOUBLE,
 		},
-
 		{
 			Name:        "sample_count",
 			Description: "The number of metric values that contributed to the aggregate value of this data point.",
@@ -57,7 +53,6 @@ func commonCwMetricColumns() []*plugin.Column {
 			Description: "The sum of the metric values for the data point.",
 			Type:        proto.ColumnType_DOUBLE,
 		},
-
 		{
 			Name:        "unit",
 			Description: "The standard unit for the data point.",
@@ -162,12 +157,6 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		StartTime:  aws.Time(startTime),
 		EndTime:    aws.Time(endTime),
 		Period:     aws.Int64(period),
-		Dimensions: []*cloudwatch.Dimension{
-			{
-				Name:  aws.String(dimensionName),
-				Value: aws.String(dimensionValue),
-			},
-		},
 		Statistics: []*string{
 			aws.String("Average"),
 			aws.String("SampleCount"),
@@ -175,6 +164,15 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 			aws.String("Minimum"),
 			aws.String("Maximum"),
 		},
+	}
+
+	if dimensionName != "" && dimensionValue != "" {
+		params.Dimensions = []*cloudwatch.Dimension{
+			{
+				Name:  aws.String(dimensionName),
+				Value: aws.String(dimensionValue),
+			},
+		}
 	}
 
 	stats, err := svc.GetMetricStatistics(params)
