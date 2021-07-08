@@ -32,20 +32,7 @@ where
   rule_state <> 'ACTIVE';
 ```
 
-### List rules which have Lambda tag key
-
-```sql
-select
-  name,
-  rule_id,
-  tags
-from
-  aws_config_rule
-where
-  tags -> 'Lambda' not null;
-```
-
-### List active rules for s3-bucket
+### List active rules for S3 buckets
 
 ```sql
 select
