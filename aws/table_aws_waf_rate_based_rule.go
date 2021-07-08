@@ -217,11 +217,11 @@ func wafRateBasedRuletagListToTurbotTags(ctx context.Context, d *transform.Trans
 }
 
 func rateBasedRuleData(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *waf.RuleSummary:
-		return *item.(*waf.RuleSummary).RuleId
+		return *item.RuleId
 	case *waf.RateBasedRule:
-		return *item.(*waf.RateBasedRule).RuleId
+		return *item.RuleId
 	}
 	return ""
 }

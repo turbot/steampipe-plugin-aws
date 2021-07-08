@@ -103,7 +103,7 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getElastiCacheSubnetGroup")
 
 	// TODO put me in helper function

@@ -20,7 +20,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("cluster_identifier"),
 			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFound"}),
-			ItemFromKey:       clusterIdentifierFromKey,
 			Hydrate:           getRedshiftCluster,
 		},
 		List: &plugin.ListConfig{
@@ -309,17 +308,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 	}
 }
 
-//// BUILD HYDRATE INPUT
-
-func clusterIdentifierFromKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	quals := d.KeyColumnQuals
-	clusterIdentifier := quals["cluster_identifier"].GetStringValue()
-	item := &redshift.Cluster{
-		ClusterIdentifier: &clusterIdentifier,
-	}
-	return item, nil
-}
-
 //// LIST FUNCTION
 
 func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -352,19 +340,11 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
+func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {
 		region = matrixRegion.(string)
-	}
-
-	var name string
-	if h.Item != nil {
-		name = *h.Item.(*redshift.Cluster).ClusterIdentifier
-	} else {
-		name = d.KeyColumnQuals["cluster_identifier"].GetStringValue()
 	}
 
 	// Create service
@@ -372,7 +352,14 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	name := d.KeyColumnQuals["cluster_identifier"].GetStringValue()
 
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
+	}
+
+	// Build params
 	params := &redshift.DescribeClustersInput{
 		ClusterIdentifier: aws.String(name),
 	}

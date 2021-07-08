@@ -15,7 +15,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticsearch_domain",
 		Description: "AWS Elasticsearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
+			KeyColumns:        plugin.SingleColumn("domain_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
 			Hydrate:           getAwsElasticsearchDomain,
 		},
@@ -255,7 +255,7 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	if h.Item != nil {
 		domainname = *h.Item.(*elasticsearchservice.ElasticsearchDomainStatus).DomainName
 	} else {
-		domainname = d.KeyColumnQuals["name"].GetStringValue()
+		domainname = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
 
 	// Create Session

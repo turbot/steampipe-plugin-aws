@@ -208,7 +208,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayV2Integration")
 
 	var region string

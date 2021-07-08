@@ -17,7 +17,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_firehose_delivery_stream",
 		Description: "AWS Kinesis Firehose Delivery Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("stream_name"),
+			KeyColumns:        plugin.SingleColumn("delivery_stream_name"),
 			ShouldIgnoreError: isNotFoundError([]string{}),
 			Hydrate:           describeFirehoseDeliveryStream,
 		},
@@ -196,7 +196,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 		streamName = *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
 	} else {
 		quals := d.KeyColumnQuals
-		streamName = quals["stream_name"].GetStringValue()
+		streamName = quals["delivery_stream_name"].GetStringValue()
 	}
 
 	// get service

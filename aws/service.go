@@ -53,6 +53,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
@@ -304,7 +305,7 @@ func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string
 // CloudFrontService returns the service connection for AWS CloudFront service
 func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.CloudFront, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("cloudfront")
+	serviceCacheKey := "cloudfront"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudfront.CloudFront), nil
 	}
@@ -1001,6 +1002,27 @@ func LambdaService(ctx context.Context, d *plugin.QueryData, region string) (*la
 	return svc, nil
 }
 
+// Macie2Service returns the service connection for AWS Macie2 service
+func Macie2Service(ctx context.Context, d *plugin.QueryData, region string) (*macie2.Macie2, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed Macie2Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("macie2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*macie2.Macie2), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := macie2.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // OrganizationService returns the service connection for AWS Organization service
 func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
 	// have we already created and cached the service?
@@ -1126,7 +1148,7 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region str
 // Route53Service returns the service connection for AWS route53 service
 func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("route53")
+	serviceCacheKey := "route53"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*route53.Route53), nil
 	}
@@ -1386,31 +1408,29 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region str
 	return svc, nil
 }
 
-func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}
 
-	if &awsConfig != nil {
-		if awsConfig.Profile != nil {
-			sessionOptions.Profile = *awsConfig.Profile
-		}
-		if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
-		} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
-			return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
-		} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-			)
+	if awsConfig.Profile != nil {
+		sessionOptions.Profile = *awsConfig.Profile
+	}
+	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
+	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
+		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
+	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
+		sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+		)
 
-			if awsConfig.SessionToken != nil {
-				sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-					*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-				)
-			}
+		if awsConfig.SessionToken != nil {
+			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+			)
 		}
 	}
 
@@ -1469,8 +1489,8 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	var regions []string
 	var region string
 
-	if &awsConfig != nil && awsConfig.Regions != nil {
-		regions = GetConfig(d.Connection).Regions
+	if awsConfig.Regions != nil {
+		regions = awsConfig.Regions
 	}
 
 	if len(getInvalidRegions(regions)) < 1 {

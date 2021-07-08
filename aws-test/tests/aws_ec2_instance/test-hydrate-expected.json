@@ -41,6 +41,6 @@
       "Name": "{{ resourceName }}"
     },
     "title": "{{ resourceName }}",
-    "user_data": "dHVyYm90"
+    "user_data": "turbot"
   }
 ]
