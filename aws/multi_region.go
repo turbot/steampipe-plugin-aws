@@ -43,7 +43,6 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 
 	if allRegions != nil {
 		uniqueRegions := unique(allRegions)
-		// regions := GetConfig(connection).Regions
 
 		if len(getInvalidRegions(uniqueRegions)) > 0 {
 			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(uniqueRegions), ","))
