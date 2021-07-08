@@ -43,6 +43,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_appautoscaling_target":                         tableAwsAppAutoScalingTarget(ctx),
 			"aws_auditmanager_assessment":                       tableAwsAuditManagerAssessment(ctx),
 			"aws_auditmanager_control":                          tableAwsAuditManagerControl(ctx),
+			"aws_auditmanager_evidence":                         tableAwsAuditManagerEvidence(ctx),
 			"aws_auditmanager_evidence_folder":                  tableAwsAuditManagerEvidenceFolder(ctx),
 			"aws_auditmanager_framework":                        tableAwsAuditManagerFramework(ctx),
 			"aws_availability_zone":                             tableAwsAvailabilityZone(ctx),
