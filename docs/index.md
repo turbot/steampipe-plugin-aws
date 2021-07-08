@@ -276,7 +276,7 @@ connection "aws_account_123456789012" {
 ```
 
 
-### Key Pair Credentials 
+### IAM Access Key Pair Credentials 
 The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.  
 
 ```hcl
