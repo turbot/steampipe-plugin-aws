@@ -64,6 +64,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codepipeline_pipeline":                         tableAwsCodepipelinePipeline(ctx),
 			"aws_config_configuration_recorder":                 tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                       tableAwsConfigConformancePack(ctx),
+			"aws_config_rule":                                   tableAwsConfigRule(ctx),
 			"aws_cost_by_account_daily":                         tableAwsCostByLinkedAccountDaily(ctx),
 			"aws_cost_by_account_monthly":                       tableAwsCostByLinkedAccountMonthly(ctx),
 			"aws_cost_by_service_daily":                         tableAwsCostByServiceDaily(ctx),
