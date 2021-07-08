@@ -404,11 +404,11 @@ func sageMakerTrainingJobTagListToTurbotTags(ctx context.Context, d *transform.T
 }
 
 func trainingJobArn(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *sagemaker.TrainingJobSummary:
-		return *item.(*sagemaker.TrainingJobSummary).TrainingJobArn
+		return *item.TrainingJobArn
 	case *sagemaker.DescribeTrainingJobOutput:
-		return *item.(*sagemaker.DescribeTrainingJobOutput).TrainingJobArn
+		return *item.TrainingJobArn
 	}
 	return ""
 }

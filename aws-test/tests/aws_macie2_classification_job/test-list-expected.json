@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "job_id": "{{ output.resource_id.value }}",
+    "name": "{{ resourceName }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}"
+  }
+]

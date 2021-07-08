@@ -117,7 +117,7 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 
 //// HYDRATE FUNCTIONS
 
-func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsApplicationAutoScalingTarget")
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]

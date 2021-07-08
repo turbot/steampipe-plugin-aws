@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{ output.arn.value }}",
+    "auth_type": "PERSONAL_ACCESS_TOKEN",
+    "server_type": "GITHUB"
+  }
+]

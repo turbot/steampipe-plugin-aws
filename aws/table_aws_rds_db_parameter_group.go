@@ -178,7 +178,7 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 		},
 	)
 
-	return items, nil
+	return items, err
 }
 
 func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

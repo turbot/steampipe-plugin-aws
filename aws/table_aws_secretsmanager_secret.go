@@ -17,8 +17,8 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Name:        "aws_secretsmanager_secret",
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn, name"),
-			Hydrate:           describeSecretsManagerSecret,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,
