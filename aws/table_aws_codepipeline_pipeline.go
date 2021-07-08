@@ -31,14 +31,14 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: "The name of the pipeline.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodepipelinePipeline,
-				Transform:   transform.FromField("Pipeline.Name"),
+				Transform:   transform.FromField("Name", "Pipeline.Name"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the pipeline.",
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Metadata.PipelineArn"),
+				Transform:   transform.FromField("PipelineArn", "Metadata.PipelineArn"),
 			},
 			{
 				Name:        "created_at",
@@ -51,7 +51,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) for AWS CodePipeline to use to either perform actions with no actionRoleArn, or to use to assume roles for actions with an actionRoleArn.",
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Pipeline.RoleArn"),
+				Transform:   transform.FromField("RoleArn", "Pipeline.RoleArn"),
 			},
 			{
 				Name:        "updated_at",
@@ -69,21 +69,21 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: "The encryption key used to encrypt the data in the artifact store, such as an AWS Key Management Service (AWS KMS) key. If this is undefined, the default key for Amazon S3 is used.",
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.ArtifactStore.EncryptionKey"),
+				Transform:   transform.FromField("EncryptionKey", "Pipeline.ArtifactStore.EncryptionKey"),
 			},
 			{
 				Name:        "artifact_stores",
 				Description: "A mapping of artifactStore objects and their corresponding AWS Regions. There must be an artifact store for the pipeline Region and for each cross-region action in the pipeline.",
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.ArtifactStores"),
+				Transform:   transform.FromField("ArtifactStores", "Pipeline.ArtifactStores"),
 			},
 			{
 				Name:        "stages",
 				Description: "The stage in which to perform the action.",
 				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Pipeline.Stages"),
+				Transform:   transform.FromField("Stages", "Pipeline.Stages"),
 			},
 			{
 				Name:        "tags_src",
@@ -99,7 +99,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCodepipelinePipeline,
-				Transform:   transform.FromField("Pipeline.Name"),
+				Transform:   transform.FromField("Name", "Pipeline.Name"),
 			},
 			{
 				Name:        "tags",
@@ -113,7 +113,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodepipelinePipeline,
-				Transform:   transform.FromField("Metadata.PipelineArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("PipelineArn", "Metadata.PipelineArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
