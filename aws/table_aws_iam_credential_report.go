@@ -2,10 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gocarina/gocsv"
+	"github.com/ttacon/chalk"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -46,7 +50,6 @@ func tableAwsIamCredentialReport(_ context.Context) *plugin.Table {
 			Hydrate: listCredentialReports,
 		},
 		Columns: awsColumns([]*plugin.Column{
-			// "Key" Columns
 			{
 				Name:        "user_name",
 				Description: "The friendly name of the user.",
@@ -209,12 +212,14 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	resp, err := svc.GetCredentialReport(&iam.GetCredentialReportInput{})
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if helpers.StringSliceContains([]string{"ReportNotPresent"}, a.Code()) {
+				return nil, errors.New("No credential report was found. You can generate one with " + chalk.Bold.TextStyle("aws iam generate-credential-report"))
+			}
+		}
 		return nil, err
 	}
 	//if err != nil {
-	//	if err.Error() == "ReportNotPresent" {
-	//		return nil, errors.New("No credential report present. Requested generation of report - please try again shortly")
-	//	}
 	//	if err.Error() == "ReportExpired" {
 	//		return nil, errors.New("Existing credential report expired. Requested generation of report - please try again shortly")
 	//	}

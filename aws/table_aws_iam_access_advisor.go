@@ -110,7 +110,7 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		JobId: generateResp.JobId,
 	}
 	retryNumber := 0
-	for true {
+	for {
 		resp, err := svc.GetServiceLastAccessedDetails(params)
 		if err != nil {
 			return nil, err

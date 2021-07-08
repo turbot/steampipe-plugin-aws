@@ -189,7 +189,7 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDaxCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// TODO put me in helper function
 	var region string

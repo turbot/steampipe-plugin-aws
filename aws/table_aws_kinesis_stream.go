@@ -162,7 +162,7 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	// List call
 	err = svc.ListStreamsPages(
 		&kinesis.ListStreamsInput{},
-		func(page *kinesis.ListStreamsOutput, isLast bool) bool {
+		func(page *kinesis.ListStreamsOutput, _ bool) bool {
 			for _, streams := range page.StreamNames {
 				d.StreamListItem(ctx, &kinesis.DescribeStreamOutput{
 					StreamDescription: &kinesis.StreamDescription{

@@ -258,7 +258,7 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrail")
 
 	// TODO put me in helper function
@@ -368,41 +368,6 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	return item, nil
 }
 
-func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudtrailTrailInsightSelector")
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	trail := h.Item.(*cloudtrail.Trail)
-
-	// Avoid api call if home_region is not equal to current region
-	homeRegion := *trail.HomeRegion
-	if region != homeRegion {
-		return nil, nil
-	}
-
-	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	params := &cloudtrail.GetInsightSelectorsInput{
-		TrailName: trail.Name,
-	}
-
-	// List resource tags
-	item, err := svc.GetInsightSelectors(params)
-	if err != nil {
-		return nil, err
-	}
-	return item, nil
-}
-
 func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrailTags")
 
@@ -451,8 +416,7 @@ func getCloudtrailTrailTurbotTags(_ context.Context, d *transform.TransformData)
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}

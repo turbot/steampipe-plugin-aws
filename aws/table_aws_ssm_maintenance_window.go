@@ -124,7 +124,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			{
 				Name:        "next_execution_time",
 				Description: "The next time the maintenance window will actually run, taking into account any specified times for the Maintenance Window to become active or inactive.",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 
 			/// Standard columns for all tables
@@ -358,11 +358,11 @@ func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.T
 }
 
 func maintenanceWindowID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.GetMaintenanceWindowOutput:
-		return item.(*ssm.GetMaintenanceWindowOutput).WindowId
+		return item.WindowId
 	case *ssm.MaintenanceWindowIdentity:
-		return item.(*ssm.MaintenanceWindowIdentity).WindowId
+		return item.WindowId
 	}
 	return nil
 }

@@ -15,7 +15,7 @@ func BuildRegionList(_ context.Context, connection *plugin.Connection) []map[str
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
 
-	if &awsConfig != nil && awsConfig.Regions != nil {
+	if awsConfig.Regions != nil {
 		regions := GetConfig(connection).Regions
 
 		if len(getInvalidRegions(regions)) > 0 {
@@ -53,7 +53,7 @@ func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
 
-	if &awsConfig != nil && awsConfig.Regions != nil {
+	if awsConfig.Regions != nil {
 		regions := awsConfig.Regions
 
 		if len(getInvalidRegions(regions)) > 0 {

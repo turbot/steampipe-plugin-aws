@@ -142,7 +142,7 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 
 	// List standard audit manager frameworks
-	listErr := svc.ListAssessmentFrameworksPages(
+	err = svc.ListAssessmentFrameworksPages(
 		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Standard")},
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
@@ -152,8 +152,12 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// List custom audit manager frameworks
-	listErr = svc.ListAssessmentFrameworksPages(
+	err = svc.ListAssessmentFrameworksPages(
 		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Custom")},
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
@@ -163,7 +167,7 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
-	return nil, listErr
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS

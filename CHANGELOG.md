@@ -1,3 +1,32 @@
+## v0.24.0 [2021-07-01]
+
+_What's new?_
+
+- New tables added
+  - [aws_codebuild_source_credential](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codebuild_source_credential) ([#511](https://github.com/turbot/steampipe-plugin-aws/pull/511))
+  - [aws_macie2_classification_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_macie2_classification_job) ([#479](https://github.com/turbot/steampipe-plugin-aws/pull/479))
+
+_Enhancements_
+
+- Updated: Rename column `file_system_arn` to `arn` in `aws_efs_file_system` table ([#494](https://github.com/turbot/steampipe-plugin-aws/pull/494))
+- Updated: Rename column `table_arn` to `arn` in `aws_dynamodb_table` table ([#495](https://github.com/turbot/steampipe-plugin-aws/pull/495))
+- Updated: Improve error message in `aws_iam_credential_report` table when no credential report exists ([#510](https://github.com/turbot/steampipe-plugin-aws/pull/510))
+- Updated: Remove use of deprecated function `ItemFromKey` from `aws_redshift_cluster` table ([#514](https://github.com/turbot/steampipe-plugin-aws/pull/514))
+
+## v0.23.0 [2021-06-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_auditmanager_evidence_folder](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_evidence_folder) ([#435](https://github.com/turbot/steampipe-plugin-aws/pull/435))
+  - [aws_backup_selection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_selection) ([#501](https://github.com/turbot/steampipe-plugin-aws/pull/501))
+  - [aws_codepipeline_pipeline](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codepipeline_pipeline) ([#498](https://github.com/turbot/steampipe-plugin-aws/pull/498))
+  - [aws_route53_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_domain) ([#360](https://github.com/turbot/steampipe-plugin-aws/pull/360))
+
+_Bug fixes_
+
+- Fixed: Typo in description for common cloudwatch_metric `timestamp` column ([#505](https://github.com/turbot/steampipe-plugin-aws/pull/505))
+
 ## v0.22.0 [2021-06-17]
 
 _What's new?_

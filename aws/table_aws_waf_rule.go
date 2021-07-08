@@ -216,11 +216,11 @@ func wafRuleTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 }
 
 func ruleData(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *waf.RuleSummary:
-		return *item.(*waf.RuleSummary).RuleId
+		return *item.RuleId
 	case *waf.Rule:
-		return *item.(*waf.Rule).RuleId
+		return *item.RuleId
 	}
 	return ""
 }

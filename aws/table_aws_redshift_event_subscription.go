@@ -140,7 +140,7 @@ func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData,
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRedshiftEventSubscription")
 
