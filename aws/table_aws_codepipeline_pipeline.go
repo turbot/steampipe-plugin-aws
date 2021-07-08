@@ -30,6 +30,8 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the pipeline.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodepipelinePipeline,
+				Transform:   transform.FromField("Pipeline.Name"),
 			},
 			{
 				Name:        "arn",
@@ -96,7 +98,8 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Hydrate:     getCodepipelinePipeline,
+				Transform:   transform.FromField("Pipeline.Name"),
 			},
 			{
 				Name:        "tags",
