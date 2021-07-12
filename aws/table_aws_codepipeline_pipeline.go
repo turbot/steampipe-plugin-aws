@@ -54,7 +54,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "updated_at",
-				Description: "The date and time of the last update to the pipeline, in timestamp format.",
+				Description: "The date and time of the last update to the pipeline.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Updated", "Metadata.Updated"),
 			},

@@ -206,7 +206,7 @@ output "role_arn" {
 }
 
 output "resource_aka" {
-  value =   aws_codepipeline.named_test_resource.arn
+  value = aws_codepipeline.named_test_resource.arn
 }
 
 output "resource_name" {
