@@ -19,7 +19,7 @@ import (
 func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudtrail_trail_event",
-		Description: "CloudTrail evnts from CloudWatch Logs",
+		Description: "CloudTrail events from cloudtrail service.",
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudTrailEvents,
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
