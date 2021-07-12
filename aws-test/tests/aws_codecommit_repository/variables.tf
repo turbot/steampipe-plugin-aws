@@ -49,6 +49,9 @@ data "null_data_source" "resource" {
 resource "aws_codecommit_repository" "named_test_resource" {
   repository_name = var.resource_name
   description     = "This is the Sample App Repository"
+  tags = {
+    name = var.resource_name
+  }
 }
 
 output "resource_aka" {

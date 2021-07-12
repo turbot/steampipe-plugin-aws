@@ -1,3 +1,3 @@
 select akas, title
 from aws.aws_codecommit_repository
-where name = '{{ resourceName }}'
+where repository_name = '{{ resourceName }}';

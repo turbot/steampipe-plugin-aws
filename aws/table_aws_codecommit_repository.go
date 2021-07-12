@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -15,59 +16,68 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_codecommit_repository",
 		Description: "AWS CodeCommit Repository",
+		Get: &plugin.GetConfig{
+			KeyColumns:        plugin.SingleColumn("repository_name"),
+			ShouldIgnoreError: isNotFoundError([]string{"RepositoryDoesNotExistException", "InvalidRepositoryNameException"}),
+			Hydrate:           getCodeCommitRepository,
+		},
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listCodeCommitRepositories,
+			Hydrate: listCodeCommitRepositories,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
+				Name:        "repository_name",
 				Description: "The repository's name.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RepositoryName"),
 			},
 			{
-				Name:        "id",
+				Name:        "repository_id",
 				Description: "The ID of the repository.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RepositoryId"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the repository.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeCommitRepository,
 			},
 			{
 				Name:        "description",
-				Description: "A description that makes the build project easy to identify.",
+				Description: "A comment or description about the repository.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeCommitRepository,
 				Transform:   transform.FromField("RepositoryDescription"),
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and time the repository was created, in timestamp format.",
+				Description: "The date and time the repository was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getCodeCommitRepository,
 			},
 			{
 				Name:        "clone_url_http",
 				Description: "The URL to use for cloning the repository over HTTPS.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeCommitRepository,
 			},
 			{
 				Name:        "clone_url_ssh",
 				Description: "The URL to use for cloning the repository over SSH.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeCommitRepository,
 			},
 			{
 				Name:        "default_branch",
 				Description: "The repository's default branch name.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeCommitRepository,
 			},
 			{
 				Name:        "last_modified_date",
-				Description: "The date and time the repository was last modified, in timestamp format.",
+				Description: "The date and time the repository was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getCodeCommitRepository,
 			},
 
 			// Steampipe standard columns
@@ -81,14 +91,15 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCodeCommitRepositoryTag,
+				Hydrate:     listCodeCommitRepositoryTags,
 				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Hydrate:     getCodeCommitRepository,
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -110,16 +121,12 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	var repoNames []*string
-
 	// List call
 	err = svc.ListRepositoriesPages(
 		&codecommit.ListRepositoriesInput{},
 		func(page *codecommit.ListRepositoriesOutput, isLast bool) bool {
-			if len(page.Repositories) != 0 {
-				for _, repo := range page.Repositories {
-					repoNames = append(repoNames, repo.RepositoryName)
-				}
+			for _, repository := range page.Repositories {
+				d.StreamListItem(ctx, repository)
 			}
 			return !isLast
 		},
@@ -128,28 +135,13 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	// Build the params
-	input := &codecommit.BatchGetRepositoriesInput{
-		RepositoryNames: repoNames,
-	}
-
-	// Get all repository details
-	result, err := svc.BatchGetRepositories(input)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, repository := range result.Repositories {
-		d.StreamListItem(ctx, repository)
-	}
-
 	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getCodeCommitRepositoryTag(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCodeCommitRepositoryTag")
+func getCodeCommitRepository(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getCodeCommitRepository")
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -157,22 +149,74 @@ func getCodeCommitRepositoryTag(ctx context.Context, d *plugin.QueryData, h *plu
 		region = matrixRegion.(string)
 	}
 
-	arn := h.Item.(*codecommit.RepositoryMetadata).Arn
+	var repositoryName string
+	if h.Item != nil {
+		repositoryName = *h.Item.(*codecommit.RepositoryNameIdPair).RepositoryName
+	} else {
+		repositoryName = d.KeyColumnQuals["repository_name"].GetStringValue()
+	}
 
-	// get service
+	// Return nil, if no input provided
+	if repositoryName == "" {
+		return nil, nil
+	}
+
+	// Create service
 	svc, err := CodeCommitService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
+	params := &codecommit.GetRepositoryInput{
+		RepositoryName: aws.String(repositoryName),
+	}
+
+	op, err := svc.GetRepository(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return op.RepositoryMetadata, nil
+}
+
+func listCodeCommitRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listCodeCommitRepositoryTags")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	// Create service
+	svc, err := CodeCommitService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get common columns
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// Get repository ARN
+	var repositoryARN string
+	switch item := h.Item.(type) {
+	case *codecommit.RepositoryNameIdPair:
+		repositoryARN = "arn:" + commonColumnData.Partition + ":codecommit:" + region + ":" + commonColumnData.AccountId + ":" + *item.RepositoryName
+	case *codecommit.RepositoryMetadata:
+		repositoryARN = *item.Arn
+	}
+
 	// Build the params
 	params := &codecommit.ListTagsForResourceInput{
-		ResourceArn: arn,
+		ResourceArn: aws.String(repositoryARN),
 	}
 
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCodeCommitRepositoryTag_", "ERROR", err)
 		return nil, err
 	}
 
