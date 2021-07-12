@@ -115,7 +115,7 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 	plugin.Logger(ctx).Trace("listCodeCommitRepositories", "AWS_REGION", region)
 
-	// Create session
+	// Create service
 	svc, err := CodeCommitService(ctx, d, region)
 	if err != nil {
 		return nil, err
@@ -149,6 +149,7 @@ func getCodeCommitRepository(ctx context.Context, d *plugin.QueryData, h *plugin
 		region = matrixRegion.(string)
 	}
 
+	// Get repository name
 	var repositoryName string
 	if h.Item != nil {
 		repositoryName = *h.Item.(*codecommit.RepositoryNameIdPair).RepositoryName
@@ -167,6 +168,7 @@ func getCodeCommitRepository(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
+	// Build params
 	params := &codecommit.GetRepositoryInput{
 		RepositoryName: aws.String(repositoryName),
 	}
