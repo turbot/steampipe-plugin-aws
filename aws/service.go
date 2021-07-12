@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -1493,7 +1494,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		regions = awsConfig.Regions
 	}
 
-	if len(getInvalidRegions(regions)) < 1 {
+	if len(regions) < 1 {
 		os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
 		session, err := session.NewSession(aws.NewConfig())
 		if err != nil {
@@ -1503,15 +1504,19 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	} else {
 		// Set the first region in regions list to be default region
 		region = regions[0]
-
-		// check if it is a valid region
-		if len(getInvalidRegions([]string{region})) > 0 {
-			panic("\n\nConnection config have invalid region: " + region + ". Edit your connection configuration file and then restart Steampipe")
-		}
 	}
 
 	if region == "" {
 		region = "us-east-1"
+	} else if strings.Contains(region, "*") {
+		if strings.HasPrefix(region, "us-gov") {
+			region = "us-gov-east-1"
+		} else if strings.HasPrefix(region, "cn") {
+			region = "cn-north-1"
+		} else {
+			region = "us-east-1"
+		}
 	}
+
 	return region
 }
