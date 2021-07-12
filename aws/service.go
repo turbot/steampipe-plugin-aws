@@ -65,6 +65,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go/service/shield"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -1241,6 +1242,26 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData, region string) (
 		return nil, err
 	}
 	svc := sagemaker.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// ShieldService returns the service connection for AWS Shield service
+func ShieldService(ctx context.Context, d *plugin.QueryData, region string) (*shield.Shield, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ShieldService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("Shield-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*shield.Shield), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := shield.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
