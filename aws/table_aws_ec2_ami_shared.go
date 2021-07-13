@@ -182,7 +182,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
 	if matrixRegion != nil {

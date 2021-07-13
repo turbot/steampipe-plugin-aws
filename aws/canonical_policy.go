@@ -117,7 +117,7 @@ func (statement *Statement) UnmarshalJSON(b []byte) error {
 
 	c, err := canonicalCondition(newStatement.Condition)
 	if err != nil {
-		return fmt.Errorf("Error unmarshalling / converting condition: %s", err)
+		return fmt.Errorf("error unmarshalling / converting condition: %s", err)
 	}
 	statement.Condition = c
 
@@ -283,20 +283,6 @@ func canonicalPolicy(src string) (interface{}, error) {
 
 //// UTILITY FUNCTIONS
 
-// toSliceOfThings converts a string or array value to an array of values
-func toSliceOfThings(scalarOrSlice interface{}) []interface{} {
-
-	if reflect.TypeOf(scalarOrSlice).Kind() == reflect.Slice {
-		return scalarOrSlice.([]interface{})
-	}
-
-	newSlice := make([]interface{}, 0)
-	newSlice = append(newSlice, scalarOrSlice)
-
-	return newSlice
-
-}
-
 // toSliceOfStrings converts a string or array value to an array of strings
 func toSliceOfStrings(scalarOrSlice interface{}) ([]string, error) {
 	newSlice := make([]string, 0)
@@ -318,7 +304,7 @@ func uniqueStrings(arr []string) []string {
 	result := []string{}
 	for e := range arr {
 		// check if already the mapped (if true)
-		if occured[arr[e]] != true {
+		if !occured[arr[e]] {
 			occured[arr[e]] = true
 
 			// Append to result slice.
@@ -367,7 +353,7 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 	return newPolicy, nil
 }
 
-//Inline policies in canonical form
+// Inline policies in canonical form
 func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
 	inlinePolicies := d.HydrateItem.([]map[string]interface{})
@@ -376,8 +362,8 @@ func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (inter
 	if inlinePolicies == nil {
 		return nil, nil
 	}
+
 	for _, inlinePolicy := range inlinePolicies {
-		inlinePolicyStd := make(map[string]interface{})
 		strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
 		if err != nil {
 			return nil, err
@@ -386,11 +372,12 @@ func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (inter
 		if errStd != nil {
 			return nil, errStd
 		}
-		inlinePolicyStd = map[string]interface{}{
+
+		inlinePoliciesStd = append(inlinePoliciesStd, map[string]interface{}{
 			"PolicyDocument": policyStd,
 			"PolicyName":     inlinePolicy["PolicyName"],
-		}
-		inlinePoliciesStd = append(inlinePoliciesStd, inlinePolicyStd)
+		})
 	}
+
 	return inlinePoliciesStd, nil
 }

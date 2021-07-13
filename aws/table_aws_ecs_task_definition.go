@@ -92,7 +92,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "revision",
-				Description: "The launch type the task requires. If no value is specified, it will default to EC2. Valid values include EC2 and FARGATE.",
+				Description: "The revision of the task in a particular family.",
 				Type:        proto.ColumnType_INT,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.Revision"),
@@ -106,14 +106,14 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "registered_at",
-				Description: "The list of volume definitions for the task.",
+				Description: "The Unix timestamp for when the task definition was registered.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.RegisteredAt"),
 			},
 			{
 				Name:        "registered_by",
-				Description: "The list of volume definitions for the task.",
+				Description: "The principal that registered the task definition.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsTaskDefinition,
 				Transform:   transform.FromField("TaskDefinition.RegisteredBy"),
@@ -282,7 +282,7 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func getAwsEcsTaskDefinitionTurbotData(ctx context.Context, d *transform.TransformData) (interface{},
+func getAwsEcsTaskDefinitionTurbotData(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	param := d.Param.(string)
 	ecsTaskDefinition := d.HydrateItem.(*ecs.DescribeTaskDefinitionOutput)

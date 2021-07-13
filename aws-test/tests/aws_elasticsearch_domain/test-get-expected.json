@@ -16,9 +16,6 @@
     "region": "{{ output.aws_region.value }}",
     "snapshot_options": {
       "AutomatedSnapshotStartHour": 23
-    },
-    "tags": {
-      "name": "{{ resourceName }}"
     }
   }
 ]

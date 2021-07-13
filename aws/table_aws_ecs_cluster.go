@@ -238,7 +238,7 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func getAwsEcsClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func getAwsEcsClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	ecsClusterTags := d.HydrateItem.(*ecs.ListTagsForResourceOutput)
 

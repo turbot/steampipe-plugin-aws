@@ -363,21 +363,21 @@ func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 }
 
 func documentName(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.DocumentDescription:
-		return *item.(*ssm.DocumentDescription).Name
+		return *item.Name
 	case *ssm.DocumentIdentifier:
-		return *item.(*ssm.DocumentIdentifier).Name
+		return *item.Name
 	}
 	return ""
 }
 
 func resourceTags(item interface{}) []*ssm.Tag {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.DocumentDescription:
-		return item.(*ssm.DocumentDescription).Tags
+		return item.Tags
 	case *ssm.DocumentIdentifier:
-		return item.(*ssm.DocumentIdentifier).Tags
+		return item.Tags
 	}
 	return nil
 }

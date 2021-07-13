@@ -167,11 +167,11 @@ func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *p
 //// TRANSFORM FUNCTIONS
 
 func cloudFrontCachePolicyAka(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetCachePolicyOutput:
-		return item.(*cloudfront.GetCachePolicyOutput).CachePolicy.Id
+		return item.CachePolicy.Id
 	case *cloudfront.CachePolicySummary:
-		return item.(*cloudfront.CachePolicySummary).CachePolicy.Id
+		return item.CachePolicy.Id
 	}
 	return nil
 }

@@ -1,3 +1,38 @@
+## v0.25.0 [2021-07-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_auditmanager_evidence](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_auditmanager_evidence) ([#450](https://github.com/turbot/steampipe-plugin-aws/pull/450))
+  - [aws_config_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_rule) ([#417](https://github.com/turbot/steampipe-plugin-aws/pull/417))
+  - [aws_dynamodb_metric_account_provisioned_read_capacity_util](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dynamodb_metric_account_provisioned_read_capacity_util) ([#518](https://github.com/turbot/steampipe-plugin-aws/pull/518))
+  - [aws_dynamodb_metric_account_provisioned_write_capacity_util](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dynamodb_metric_account_provisioned_write_capacity_util) ([#518](https://github.com/turbot/steampipe-plugin-aws/pull/518))
+
+_Enhancements_
+
+- Updated: Add wildcard support when defining regions in plugin connection configuration ([#530](https://github.com/turbot/steampipe-plugin-aws/pull/530))
+- Updated: Improve docs/index.md with expanded credential options and examples ([#535](https://github.com/turbot/steampipe-plugin-aws/pull/535))
+
+_Bug fixes_
+
+- Fixed: Fix various failing integration tests ([#534](https://github.com/turbot/steampipe-plugin-aws/pull/534))
+- Fixed: Removed invalid key column definitions in various tables
+
+## v0.24.0 [2021-07-01]
+
+_What's new?_
+
+- New tables added
+  - [aws_codebuild_source_credential](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codebuild_source_credential) ([#511](https://github.com/turbot/steampipe-plugin-aws/pull/511))
+  - [aws_macie2_classification_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_macie2_classification_job) ([#479](https://github.com/turbot/steampipe-plugin-aws/pull/479))
+
+_Enhancements_
+
+- Updated: Rename column `file_system_arn` to `arn` in `aws_efs_file_system` table ([#494](https://github.com/turbot/steampipe-plugin-aws/pull/494))
+- Updated: Rename column `table_arn` to `arn` in `aws_dynamodb_table` table ([#495](https://github.com/turbot/steampipe-plugin-aws/pull/495))
+- Updated: Improve error message in `aws_iam_credential_report` table when no credential report exists ([#510](https://github.com/turbot/steampipe-plugin-aws/pull/510))
+- Updated: Remove use of deprecated function `ItemFromKey` from `aws_redshift_cluster` table ([#514](https://github.com/turbot/steampipe-plugin-aws/pull/514))
+
 ## v0.23.0 [2021-06-24]
 
 _What's new?_

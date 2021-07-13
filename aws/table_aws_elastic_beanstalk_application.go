@@ -158,11 +158,11 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	// Get call
 	data, err := svc.DescribeApplications(params)
 
-	if data.Applications != nil  && len(data.Applications) > 0 {
+	if data.Applications != nil && len(data.Applications) > 0 {
 		return data.Applications[0], nil
 	}
 
-	return nil, nil
+	return nil, err
 }
 
 func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
