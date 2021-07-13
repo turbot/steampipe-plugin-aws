@@ -1,8 +1,0 @@
-[
-  {
-    "arn": "{{ output.resource_aka.value }}",
-    "description": "This is the Sample App Repository",
-    "repository_id": "{{ output.resource_id.value }}",
-    "repository_name": "{{ resourceName }}"
-  }
-]
