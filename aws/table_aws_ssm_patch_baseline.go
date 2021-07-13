@@ -290,7 +290,8 @@ func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineAkas")
 	parameterData := h.Item.(*ssm.GetPatchBaselineOutput)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

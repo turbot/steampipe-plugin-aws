@@ -193,7 +193,9 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRestAPITurbotData")
 	item := h.Item.(*apigateway.RestApi)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

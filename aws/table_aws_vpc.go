@@ -176,7 +176,8 @@ func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	plugin.Logger(ctx).Trace("getVpcARN")
 	vpc := h.Item.(*ec2.Vpc)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -298,7 +298,8 @@ func getAuditManagerEvidenceARN(ctx context.Context, d *plugin.QueryData, h *plu
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceARN")
 	evidenceID := *h.Item.(evidenceInfo).Evidence.Id
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

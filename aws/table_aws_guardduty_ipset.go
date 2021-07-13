@@ -181,7 +181,8 @@ func getAwsGuardDutyIPSetAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	data := h.Item.(ipsetInfo)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

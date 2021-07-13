@@ -159,7 +159,8 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcRouteTableTurbotAkas")
 	routeTable := h.Item.(*ec2.RouteTable)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

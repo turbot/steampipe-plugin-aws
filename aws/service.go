@@ -98,7 +98,8 @@ func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // ACMService returns the service connection for AWS ACM service
-func ACMService(ctx context.Context, d *plugin.QueryData, region string) (*acm.ACM, error) {
+func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ACMService")
 	}

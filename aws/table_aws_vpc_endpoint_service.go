@@ -175,7 +175,8 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas")
 	endpointService := h.Item.(*ec2.ServiceDetail)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

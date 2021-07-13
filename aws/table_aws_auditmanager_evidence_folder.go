@@ -217,7 +217,8 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolderARN")
 	evidenceFolderID := *h.Item.(*auditmanager.AssessmentEvidenceFolder).Id
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

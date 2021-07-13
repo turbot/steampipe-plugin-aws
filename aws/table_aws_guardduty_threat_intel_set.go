@@ -180,7 +180,8 @@ func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Trace("getAwsGuardDutyThreatIntelSetAkas")
 	data := h.Item.(threatIntelSetInfo)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

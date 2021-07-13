@@ -155,7 +155,8 @@ func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	data := h.Item.(*glue.Database)
 
 	// Get common columns
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

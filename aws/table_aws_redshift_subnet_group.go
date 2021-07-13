@@ -149,7 +149,8 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
 	data := h.Item.(*redshift.ClusterSubnetGroup)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData
 	if data.Tags == nil {
 		return nil, nil
 	}
-	
+
 	// Get the resource tags
 	var turbotTagsMap map[string]string
 	if data.Tags != nil {

@@ -140,7 +140,8 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcInternetGatewayTurbotAkas")
 	internetGateway := h.Item.(*ec2.InternetGateway)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

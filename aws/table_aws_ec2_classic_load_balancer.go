@@ -385,7 +385,8 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
 
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
