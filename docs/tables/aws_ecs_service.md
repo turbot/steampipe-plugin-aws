@@ -17,7 +17,6 @@ from
   aws_ecs_service;
 ```
 
-
 ### List services not using the latest version of AWS Fargate platform
 
 ```sql
