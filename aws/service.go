@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
@@ -1426,6 +1428,7 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 
 	sessionOptions.Config.Region = &region
 	sessionOptions.Config.MaxRetries = aws.Int(10)
+	sessionOptions.Config.Retryer = NewConnectionErrRetryer(10)
 
 	// so it was not in cache - create a session
 	sess, err := session.NewSessionWithOptions(sessionOptions)
@@ -1498,4 +1501,33 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	}
 
 	return region
+}
+
+// Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
+func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+	return &ConnectionErrRetryer{
+		DefaultRetryer: client.DefaultRetryer{
+			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
+		},
+	}
+}
+
+// ConnectionErrRetryer wraps the SDK's built in DefaultRetryer adding customization
+// to retry `connection reset by peer` errors.
+// Note: This retryer should be used for either idempotent operations or for operations
+// where performing duplicate requests to AWS is acceptable.
+// See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
+type ConnectionErrRetryer struct {
+	client.DefaultRetryer
+}
+
+func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
+	if req.Error != nil {
+		if strings.Contains(req.Error.Error(), "connection reset by peer") {
+			return true
+		}
+	}
+
+	// Fallback to SDK's built in retry rules
+	return r.DefaultRetryer.ShouldRetry(req)
 }
