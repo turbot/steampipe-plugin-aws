@@ -1503,7 +1503,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	return region
 }
 
-// lifted from  https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
+// Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
 func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 	return &ConnectionErrRetryer{
 		DefaultRetryer: client.DefaultRetryer{
@@ -1514,7 +1514,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 
 // ConnectionErrRetryer wraps the SDK's built in DefaultRetryer adding customization
 // to retry `connection reset by peer` errors.
-// Not that this retryer should be used for either idempotent operations, or for operations
+// Note: This retryer should be used for either idempotent operations or for operations
 // where performing duplicate requests to AWS is acceptable.
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
