@@ -24,16 +24,24 @@ func init() {
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config
 func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
-	// retrieve regions from connection config
-	awsConfig := GetConfig(connection)
 	pluginQueryData.Connection = connection
 
-	validRegions, _ := listRegions(ctx, pluginQueryData)
+	// cache matrix
+	cacheKey := "RegionListMatrix"
+	if cachedData, ok := pluginQueryData.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]map[string]interface{})
+	}
+
+	defaultAwsRegion := GetDefaultAwsRegion(pluginQueryData)
+	regionData, _ := listRegions(ctx, pluginQueryData)
 	var allRegions []string
 
+	// retrieve regions from connection config
+	awsConfig := GetConfig(connection)
+	// Get only the regions as required by config file
 	if awsConfig.Regions != nil {
 		for _, pattern := range awsConfig.Regions {
-			for _, validRegion := range validRegions {
+			for _, validRegion := range regionData["AllRegions"] {
 				if ok, _ := path.Match(pattern, validRegion); ok {
 					allRegions = append(allRegions, validRegion)
 				}
@@ -41,24 +49,33 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 		}
 	}
 
-	if allRegions != nil {
+	if len(allRegions) > 1 {
 		uniqueRegions := unique(allRegions)
 
 		if len(getInvalidRegions(uniqueRegions)) > 0 {
-			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(uniqueRegions), ","))
+			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(uniqueRegions), ", "))
 		}
 
-		// validate regions list
-		matrix := make([]map[string]interface{}, len(uniqueRegions))
-		for i, region := range uniqueRegions {
+		// Remove inactive regions from the list
+		finalRegions := helpers.StringSliceDiff(uniqueRegions, regionData["NotOptedRegions"])
+
+		matrix := make([]map[string]interface{}, len(finalRegions))
+		for i, region := range finalRegions {
 			matrix[i] = map[string]interface{}{matrixKeyRegion: region}
 		}
+
+		// set cache
+		pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
 		return matrix
 	}
 
-	return []map[string]interface{}{
-		{matrixKeyRegion: GetDefaultRegion()},
+	matrix := []map[string]interface{}{
+		{matrixKeyRegion: defaultAwsRegion},
 	}
+
+	// set cache
+	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
+	return matrix
 }
 
 func getInvalidRegions(regions []string) []string {
@@ -75,54 +92,46 @@ func getInvalidRegions(regions []string) []string {
 }
 
 // BuildWafRegionList :: return a list of matrix items for AWS WAF resources, one per region specified in the connection config
-func BuildWafRegionList(_ context.Context, connection *plugin.Connection) []map[string]interface{} {
-	// retrieve regions from connection config
-	awsConfig := GetConfig(connection)
-
-	if awsConfig.Regions != nil {
-		regions := awsConfig.Regions
-
-		if len(getInvalidRegions(regions)) > 0 {
-			panic("\n\nConnection config have invalid regions: " + strings.Join(getInvalidRegions(regions), ","))
-		}
-		regions = append(regions, "global")
-
-		// validate regions list
-		matrix := make([]map[string]interface{}, len(regions))
-		for i, region := range regions {
-			matrix[i] = map[string]interface{}{matrixKeyRegion: region}
-		}
-		return matrix
+func BuildWafRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
+	var regionMatrix []map[string]interface{}
+	if cachedData, ok := pluginQueryData.ConnectionManager.Cache.Get("RegionListMatrix"); ok {
+		regionMatrix = cachedData.([]map[string]interface{})
+	} else {
+		regionMatrix = BuildRegionList(ctx, connection)
 	}
 
-	return []map[string]interface{}{
-		{matrixKeyRegion: GetDefaultRegion()},
-	}
+	// validate regions list
+	matrix := make([]map[string]interface{}, len(regionMatrix)+1)
+
+	// add global region to the matrix to list global waf
+	matrix[len(matrix)-1] = map[string]interface{}{matrixKeyRegion: "global"}
+	return matrix
 }
 
-func listRegions(ctx context.Context, d *plugin.QueryData) ([]string, error) {
+func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string, error) {
 	cacheKey := "listRegions"
 
 	// if found in cache, return the result
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string), nil
+		return cachedData.(map[string][]string), nil
 	}
 
 	awsCommercialRegions := []string{
 		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
-
 	awsUsGovRegions := []string{"us-gov-east-1", "us-gov-west-1"}
-
 	awsChinaGovRegions := []string{"cn-north-1", "cn-northwest-1"}
-
-	defaultRegion := GetDefaultAwsRegion(d)
-
 	defaultRegions := awsCommercialRegions
 
+	defaultRegion := GetDefaultAwsRegion(pluginQueryData)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
 		defaultRegions = awsUsGovRegions
 	} else if strings.HasPrefix(defaultRegion, "cn") {
 		defaultRegions = awsChinaGovRegions
+	}
+
+	data := map[string][]string{
+		"AllRegions":    defaultRegions,
+		"ActiveRegions": defaultRegions,
 	}
 
 	// Create Session
@@ -130,8 +139,8 @@ func listRegions(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
-		d.ConnectionManager.Cache.Set(cacheKey, defaultRegions)
-		return defaultRegions, nil
+		d.ConnectionManager.Cache.Set(cacheKey, data)
+		return data, nil
 	}
 
 	params := &ec2.DescribeRegionsInput{
@@ -142,20 +151,28 @@ func listRegions(ctx context.Context, d *plugin.QueryData) ([]string, error) {
 	resp, err := svc.DescribeRegions(params)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
-		d.ConnectionManager.Cache.Set(cacheKey, defaultRegions)
-		return defaultRegions, nil
+		d.ConnectionManager.Cache.Set(cacheKey, data)
+		return data, nil
 	}
 
 	var activeRegions []string
+	var notOptedRegions []string
+	data["AllRegions"] = activeRegions
 	for _, region := range resp.Regions {
+		data["AllRegions"] = append(data["AllRegions"], *region.RegionName)
 		if *region.OptInStatus != "not-opted-in" {
 			activeRegions = append(activeRegions, *region.RegionName)
+		} else {
+			notOptedRegions = append(notOptedRegions, *region.RegionName)
 		}
 	}
 
+	data["ActiveRegions"] = activeRegions
+	data["NotOptedRegions"] = notOptedRegions
+
 	// save to extension cache
-	d.ConnectionManager.Cache.Set(cacheKey, activeRegions)
-	return activeRegions, err
+	d.ConnectionManager.Cache.Set(cacheKey, data)
+	return data, err
 }
 
 func unique(stringSlice []string) []string {
