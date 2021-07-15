@@ -106,18 +106,11 @@ type authorizerRowData = struct {
 //// LIST FUNCTION
 
 func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRestAPIAuthorizers", "AWS_REGION", region)
-
+	// Get Rest API details
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -142,14 +135,8 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRestAPIAuthorizer")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

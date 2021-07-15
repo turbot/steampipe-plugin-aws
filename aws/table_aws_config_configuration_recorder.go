@@ -84,15 +84,8 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listConfigConfigurationRecorders", "AWS_REGION", region)
-
 	// Create session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -119,15 +112,8 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
-
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -152,15 +138,11 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 
 func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigConfigurationRecorderStatus")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
 
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

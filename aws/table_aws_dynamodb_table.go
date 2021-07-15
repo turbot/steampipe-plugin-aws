@@ -196,16 +196,8 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listDynamboDbTables", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -230,13 +222,6 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDynamboDbTable")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		data := h.Item.(*dynamodb.TableDescription)
@@ -246,7 +231,7 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -271,15 +256,9 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDescribeContinuousBackups")
 	table := h.Item.(*dynamodb.TableDescription)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +270,7 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 	op, err := svc.DescribeContinuousBackups(params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
-			// If a table is archieved then continuous backups can't be queried for it
+			// If a table is archived then continuous backups can't be queried for it
 			if a.Code() == "TableNotFoundException" {
 				return dynamodb.DescribeContinuousBackupsOutput{}, nil
 			}
@@ -305,26 +284,21 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getTableTagging")
 	table := h.Item.(*dynamodb.TableDescription)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
-	commonAwsColumns, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	awsCommonData := commonAwsColumns.(*awsCommonColumnData)
+	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	tableArn := "arn:" + awsCommonData.Partition + ":dynamodb:" + awsCommonData.Region + ":" + awsCommonData.AccountId + ":table/" + *table.TableName
+	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
 
 	params := &dynamodb.ListTagsOfResourceInput{
 		ResourceArn: &tableArn,

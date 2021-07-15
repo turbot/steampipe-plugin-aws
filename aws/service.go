@@ -77,7 +77,8 @@ import (
 )
 
 // AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData, region string) (*accessanalyzer.AccessAnalyzer, error) {
+func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed AccessAnalyzerService")
 	}
@@ -120,7 +121,8 @@ func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 }
 
 // APIGatewayService returns the service connection for AWS API Gateway service
-func APIGatewayService(ctx context.Context, d *plugin.QueryData, region string) (*apigateway.APIGateway, error) {
+func APIGatewayService(ctx context.Context, d *plugin.QueryData) (*apigateway.APIGateway, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed APIGateway")
 	}
@@ -141,7 +143,8 @@ func APIGatewayService(ctx context.Context, d *plugin.QueryData, region string) 
 }
 
 // APIGatewayV2Service returns the service connection for AWS API Gateway V2 service
-func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string) (*apigatewayv2.ApiGatewayV2, error) {
+func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.ApiGatewayV2, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed APIGatewayV2Service")
 	}
@@ -162,7 +165,8 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData, region string
 }
 
 // ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
-func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*applicationautoscaling.ApplicationAutoScaling, error) {
+func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ApplicationAutoScalingService")
 	}
@@ -224,7 +228,8 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // BackupService returns the service connection for AWS Backup service
-func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*backup.Backup, error) {
+func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed BackupService")
 	}
@@ -244,7 +249,8 @@ func BackupService(ctx context.Context, d *plugin.QueryData, region string) (*ba
 }
 
 // CodeBuildService returns the service connection for AWS CodeBuild service
-func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (*codebuild.CodeBuild, error) {
+func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CodeBuildService")
 	}
@@ -264,7 +270,8 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 // CodePipelineService returns the service connection for AWS Codepipeline service
-func CodePipelineService(ctx context.Context, d *plugin.QueryData, region string) (*codepipeline.CodePipeline, error) {
+func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CodePipelineService")
 	}
@@ -301,7 +308,8 @@ func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cl
 }
 
 // CloudFormationService returns the service connection for AWS CloudFormation service
-func CloudFormationService(ctx context.Context, d *plugin.QueryData, region string) (*cloudformation.CloudFormation, error) {
+func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudformation.CloudFormation, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudFormationService")
 	}
@@ -322,7 +330,8 @@ func CloudFormationService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // CloudWatchService returns the service connection for AWS Cloud Watch service
-func CloudWatchService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatch.CloudWatch, error) {
+func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.CloudWatch, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudWatchService")
 	}
@@ -343,7 +352,8 @@ func CloudWatchService(ctx context.Context, d *plugin.QueryData, region string) 
 }
 
 // CloudWatchLogsService returns the service connection for AWS Cloud Watch Logs service
-func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region string) (*cloudwatchlogs.CloudWatchLogs, error) {
+func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.CloudWatchLogs, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudWatchLogsService")
 	}
@@ -364,7 +374,8 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
+func CloudTrailService(ctx context.Context, d *plugin.QueryData) (*cloudtrail.CloudTrail, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -403,7 +414,8 @@ func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplore
 }
 
 // DaxService returns the service connection for AWS DAX service
-func DaxService(ctx context.Context, d *plugin.QueryData, region string) (*dax.DAX, error) {
+func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed DaxService")
 	}
@@ -424,7 +436,8 @@ func DaxService(ctx context.Context, d *plugin.QueryData, region string) (*dax.D
 }
 
 // DatabaseMigrationService returns the service connection for AWS Database Migration service
-func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData, region string) (*databasemigrationservice.DatabaseMigrationService, error) {
+func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.DatabaseMigrationService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed DatabaseMigrationService")
 	}
@@ -445,7 +458,8 @@ func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData, region s
 }
 
 // DynamoDbService returns the service connection for AWS DynamoDb service
-func DynamoDbService(ctx context.Context, d *plugin.QueryData, region string) (*dynamodb.DynamoDB, error) {
+func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed DynamoDbService")
 	}
@@ -1023,7 +1037,8 @@ func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizatio
 }
 
 // ConfigService returns the service connection for AWS Config  service
-func ConfigService(ctx context.Context, d *plugin.QueryData, region string) (*configservice.ConfigService, error) {
+func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ConfigService")
 	}

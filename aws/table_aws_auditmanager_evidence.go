@@ -165,12 +165,10 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAuditManagerEvidences", "AWS_REGION", region)
+
+	// Get assessment details
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
 	// Create session
@@ -259,11 +257,7 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 
 func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)

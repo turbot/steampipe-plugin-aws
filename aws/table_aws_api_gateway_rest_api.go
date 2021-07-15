@@ -133,16 +133,8 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRestAPI", "AWS_REGION", region)
-
 	// Create service
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -165,14 +157,8 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRestAPI")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

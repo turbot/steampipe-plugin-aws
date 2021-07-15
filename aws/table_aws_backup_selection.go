@@ -105,11 +105,8 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listBackupSelections")
 
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("listBackupSelections", "AWS_REGION", region)
-
 	// Create session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +131,8 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBackupSelection")
 
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getBackupSelection", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

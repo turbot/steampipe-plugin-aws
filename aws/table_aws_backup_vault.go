@@ -99,11 +99,8 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("listAwsBackupVaults", "AWS_BACKUP", region)
-
-	svc, err := BackupService(ctx, d, region)
+	// Create session
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -123,10 +120,8 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getAwsBackupVault", "AWS_BACKUP", region)
 	// Create Session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -153,11 +148,8 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getAwsBackupVaultNotification")
-
 	// Create Session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -180,11 +172,8 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getAwsBackupVaultAccessPolicy")
-
 	// Create Session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
