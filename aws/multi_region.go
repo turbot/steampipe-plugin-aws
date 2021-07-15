@@ -100,12 +100,10 @@ func BuildWafRegionList(ctx context.Context, connection *plugin.Connection) []ma
 		regionMatrix = BuildRegionList(ctx, connection)
 	}
 
-	matrix := make([]map[string]interface{}, len(regionMatrix)+1)
-	for i, region := range regionMatrix {
-		matrix[i] = region
-	}
+	matrix := make([]map[string]interface{}, 1, len(regionMatrix)+1)
+	matrix[0] = map[string]interface{}{matrixKeyRegion: "global"}
+	matrix = append(matrix, regionMatrix...)
 
-	matrix[len(matrix)-1] = map[string]interface{}{matrixKeyRegion: "global"}
 	return matrix
 }
 
