@@ -209,7 +209,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	 * For the Regional IP Set, region value should not be 'global', as 'global' region is only used to get Global IP Sets.
 	 * For any other region, region value will be same as working region.
 	 */
-	 if scope == "REGIONAL" && region == "global" {
+	if scope == "REGIONAL" && region == "global" {
 		return nil, nil
 	}
 
