@@ -150,12 +150,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", region)
 
 	// Create session
@@ -183,12 +178,7 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEBSVolume")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
 
 	// get service
@@ -219,12 +209,10 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")
 	volume := h.Item.(*ec2.Volume)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	
+	// Table is currently failing with error `Error: region must be passed Ec2Service`
+	// While `LIST` and `GET` function are working
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -249,12 +237,7 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeProductCodes")
 	volume := h.Item.(*ec2.Volume)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
