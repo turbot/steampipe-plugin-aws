@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
-	"github.com/ettle/strcase"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -21,177 +21,51 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudtrail_trail_event",
 		Description: "CloudTrail events from cloudtrail service.",
 		List: &plugin.ListConfig{
-			Hydrate:    listCloudTrailEvents,
+			Hydrate:    listCloudwatchLogEvents,
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
+			// Top columns
+			{Name: "log_group_name", Type: proto.ColumnType_STRING, Transform: transform.FromQual("log_group_name"), Description: "The name of the log group to which this event belongs."},
+			{Name: "log_stream_name", Type: proto.ColumnType_STRING, Description: "The name of the log stream to which this event belongs."},
+			{Name: "timestamp_ms", Type: proto.ColumnType_INT, Transform: transform.FromField("Timestamp"), Description: "The time when the event occurred."},
+			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("Timestamp").Transform(transform.UnixMsToTimestamp), Description: "The time when the event occurred."},
+			{Name: "filter", Type: proto.ColumnType_STRING, Transform: transform.FromQual("filter"), Description: "Filter pattern for the search."},
+
 			// CloudTrail
-			{
-				Name:        "access_key_id",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AccessKeyId"),
-				Description: "The AWS access key ID that was used to sign the request. If the request was made with temporary security credentials, this is the access key ID of the temporary credentials.",
-			},
-			{
-				Name:        "event_id",
-				Description: "The ID of the event.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("EventId"),
-			},
-			{
-				Name:        "event_name",
-				Type:        proto.ColumnType_STRING,
-				Description: "The name of the event returned.",
-			},
-			{
-				Name:        "event_source",
-				Type:        proto.ColumnType_STRING,
-				Description: "The AWS service that the request was made to.",
-			},
-			{
-				Name:        "event_time",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Description: "The date and time the request was made, in coordinated universal time (UTC).",
-			},
-			{
-				Name:        "read_only",
-				Type:        proto.ColumnType_BOOL,
-				Description: "Information about whether the event is a write event or a read event.",
-			},
-			{
-				Name:        "username",
-				Type:        proto.ColumnType_STRING,
-				Description: "The name of the event returned.",
-			},
-			{
-				Name:        "resource_type",
-				Type:        proto.ColumnType_STRING,
-				Description: "The name of the event returned.",
-				Transform:   transform.FromQual("resource_type"),
-			},
-			{
-				Name:        "resource_name",
-				Type:        proto.ColumnType_STRING,
-				Description: "The name of the event returned.",
-				Transform:   transform.FromQual("resource_name"),
-			},
-			{
-				Name:        "event_category",
-				Type:        proto.ColumnType_STRING,
-				Description: "Shows the event category that is used in LookupEvents calls.",
-			},
+			{Name: "access_key_id", Type: proto.ColumnType_STRING, Transform: transform.FromField("AccessKeyId"), Description: "The AWS access key ID that was used to sign the request. If the request was made with temporary security credentials, this is the access key ID of the temporary credentials."},
+			{Name: "event_id", Description: "The ID of the event.", Type: proto.ColumnType_STRING, Transform: transform.FromField("EventId")},
+			{Name: "event_name", Type: proto.ColumnType_STRING, Description: "The name of the event returned."},
+			{Name: "event_source", Type: proto.ColumnType_STRING, Description: "The AWS service that the request was made to."},
+			{Name: "event_time", Type: proto.ColumnType_TIMESTAMP, Description: "The date and time the request was made, in coordinated universal time (UTC)."},
+			{Name: "read_only", Type: proto.ColumnType_BOOL, Description: "Information about whether the event is a write event or a read event."},
+			{Name: "username", Type: proto.ColumnType_STRING, Description: "The name of the event returned."},
+			{Name: "resource_type", Type: proto.ColumnType_STRING, Description: "The name of the event returned.", Transform: transform.FromQual("resource_type")},
+			{Name: "resource_name", Type: proto.ColumnType_STRING, Description: "The name of the event returned.", Transform: transform.FromQual("resource_name")},
+			{Name: "event_category", Type: proto.ColumnType_STRING, Description: "Shows the event category that is used in LookupEvents calls."},
 
 			// Other columns
-			{
-				Name:        "aws_region",
-				Type:        proto.ColumnType_STRING,
-				Description: "The AWS region that the request was made to, such as us-east-2.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "event_type",
-				Type:        proto.ColumnType_STRING,
-				Description: "Identifies the type of event that generated the event record.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "error_code",
-				Type:        proto.ColumnType_STRING,
-				Description: "The AWS service error if the request returns an error.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "error_message",
-				Type:        proto.ColumnType_STRING,
-				Description: "If the request returns an error, the description of the error.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "event_version",
-				Type:        proto.ColumnType_STRING,
-				Description: "The version of the log event format.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "source_ip_address",
-				Type:        proto.ColumnType_STRING,
-				Description: "The IP address that the request was made from.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "request_id",
-				Type:        proto.ColumnType_STRING,
-				Description: "The value that identifies the request.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "shared_event_id",
-				Type:        proto.ColumnType_STRING,
-				Description: "GUID generated by CloudTrail to uniquely identify CloudTrail events from the same AWS action that is sent to different AWS accounts.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "recipient_account_id",
-				Type:        proto.ColumnType_STRING,
-				Description: "Represents the account ID that received this event.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "vpc_endpoint_id",
-				Type:        proto.ColumnType_STRING,
-				Description: "Identifies the VPC endpoint in which requests were made from a VPC to another AWS service, such as Amazon S3.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "user_agent",
-				Type:        proto.ColumnType_STRING,
-				Description: "The agent through which the request was made, such as the AWS Management Console, an AWS service, the AWS SDKs or the AWS CLI.",
-				Hydrate:     getCloudtrailEventField,
-			},
+			{Name: "aws_region", Type: proto.ColumnType_STRING, Description: "The AWS region that the request was made to, such as us-east-2.", Hydrate: getCloudtrailMessageField},
+			{Name: "event_type", Type: proto.ColumnType_STRING, Description: "Identifies the type of event that generated the event record.", Hydrate: getCloudtrailMessageField},
+			{Name: "error_code", Type: proto.ColumnType_STRING, Description: "The AWS service error if the request returns an error.", Hydrate: getCloudtrailMessageField},
+			{Name: "error_message", Type: proto.ColumnType_STRING, Description: "If the request returns an error, the description of the error.", Hydrate: getCloudtrailMessageField},
+			{Name: "event_version", Type: proto.ColumnType_STRING, Description: "The version of the log event format.", Hydrate: getCloudtrailMessageField},
+			{Name: "source_ip_address", Type: proto.ColumnType_STRING, Description: "The IP address that the request was made from.", Hydrate: getCloudtrailMessageField},
+			{Name: "request_id", Type: proto.ColumnType_STRING, Description: "The value that identifies the request.", Hydrate: getCloudtrailMessageField},
+			{Name: "shared_event_id", Type: proto.ColumnType_STRING, Description: "GUID generated by CloudTrail to uniquely identify CloudTrail events from the same AWS action that is sent to different AWS accounts.", Hydrate: getCloudtrailMessageField},
+			{Name: "recipient_account_id", Type: proto.ColumnType_STRING, Description: "Represents the account ID that received this event.", Hydrate: getCloudtrailMessageField},
+			{Name: "vpc_endpoint_id", Type: proto.ColumnType_STRING, Description: "Identifies the VPC endpoint in which requests were made from a VPC to another AWS service, such as Amazon S3.", Hydrate: getCloudtrailMessageField},
+			{Name: "user_agent", Type: proto.ColumnType_STRING, Description: "The agent through which the request was made, such as the AWS Management Console, an AWS service, the AWS SDKs or the AWS CLI.", Hydrate: getCloudtrailMessageField},
 
 			// Json fields
-			{
-				Name:        "request_parameters",
-				Type:        proto.ColumnType_JSON,
-				Description: "The parameters, if any, that were sent with the request.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "response_elements",
-				Type:        proto.ColumnType_JSON,
-				Description: "The response element for actions that make changes (create, update, or delete actions).",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "resources",
-				Type:        proto.ColumnType_JSON,
-				Description: "A list of resources referenced by the event returned.",
-			},
-			{
-				Name:        "user_identity",
-				Type:        proto.ColumnType_JSON,
-				Description: "Information about the user that made a request.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "additional_event_data",
-				Type:        proto.ColumnType_JSON,
-				Description: "Additional data about the event that was not part of the request or response.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "tls_details",
-				Type:        proto.ColumnType_JSON,
-				Description: "Shows information about the Transport Layer Security (TLS) version, cipher suites, and the FQDN of the client-provided host name of a service API call.",
-				Hydrate:     getCloudtrailEventField,
-			},
-			{
-				Name:        "cloudtrail_event",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("CloudTrailEvent"),
-				Description: "The CloudTrail event.",
-			},
+			{Name: "request_parameters", Type: proto.ColumnType_JSON, Description: "The parameters, if any, that were sent with the request.", Hydrate: getCloudtrailMessageField},
+			{Name: "response_elements", Type: proto.ColumnType_JSON, Description: "The response element for actions that make changes (create, update, or delete actions).", Hydrate: getCloudtrailMessageField},
+			{Name: "resources", Type: proto.ColumnType_JSON, Description: "A list of resources referenced by the event returned."},
+			{Name: "user_identity", Type: proto.ColumnType_JSON, Description: "Information about the user that made a request.", Hydrate: getCloudtrailMessageField},
+			{Name: "additional_event_data", Type: proto.ColumnType_JSON, Description: "Additional data about the event that was not part of the request or response.", Hydrate: getCloudtrailMessageField},
+			{Name: "tls_details", Type: proto.ColumnType_JSON, Description: "Shows information about the Transport Layer Security (TLS) version, cipher suites, and the FQDN of the client-provided host name of a service API call.", Hydrate: getCloudtrailMessageField},
+			{Name: "cloudtrail_event", Type: proto.ColumnType_JSON, Transform: transform.FromField("CloudTrailEvent"), Description: "The CloudTrail event."},
 		}),
 	}
 }
@@ -200,54 +74,32 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 
 // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html
 type cloudtrailEvent struct {
-	// The date and time the request was made, in coordinated universal time (UTC).
-	EventTime *time.Time `json:"eventTime" type:"timestamp"`
+	// The AWS access key ID that was used to sign the request. If the request was made with temporary security credentials, this is the access key ID of the temporary credentials.
+	AccessKeyId *string `type:"string"`
 
-	// The version of the log event format. The current version is 1.08.
-	EventVersion *string `json:"eventVersion" type:"string"`
+	// A JSON string that contains a representation of the event returned.
+	CloudTrailEvent *string `type:"string"`
 
-	// Information about the user that made a request. For
-	// UserIdentity *interface{} `json:"userIdentity" type:"map"`
-	UserIdentity userIdentity `json:"userIdentity"`
+	// The CloudTrail ID of the event returned.
+	// A list of resources referenced by the event returned.
+	Resources []*interface{} `type:"list"`
+
+	// A user name or role name of the requester that called the API in the event
+	// returned.
+	Username *string `type:"string"`
+	// contains filtered or unexported fields
 
 	// Additional data about the event that was not part of the request or response.
 	AdditionalEventData *interface{} `json:"additionalEventData" type:"map"`
+
+	// Identifies the API version associated with the AwsApiCall eventType value.
+	ApiVersion *string `json:"apiVersion"`
 
 	// The AWS region that the request was made to, such as us-east-2.
 	AwsRegion *string `json:"awsRegion" type:"string"`
 
 	// Shows the event category that is used in LookupEvents calls.
 	EventCategory *string `json:"eventCategory" type:"string"`
-
-	// Identifies the type of event that generated the event record.
-	EventType *string `json:"eventType" type:"string"`
-
-	// A Boolean value that identifies whether the event is a management event.
-	ManagementEvent *bool `json:"managementEvent" type:"bool"`
-
-	// Represents the account ID that received this event.
-	RecipientAccountId *string `json:"recipientAccountId" type:"string"`
-
-	// The value that identifies the request.
-	RequestId *string `json:"requestID" type:"string"`
-
-	// The parameters, if any, that were sent with the request.
-	RequestParameters *interface{} `json:"requestParameters" type:"map"`
-
-	// The response element for actions that make changes (create, update, or delete actions).
-	ResponseElements *interface{} `json:"responseElements" type:"map"`
-
-	// GUID generated by CloudTrail to uniquely identify CloudTrail events from the same AWS action that is sent to different AWS accounts.
-	SharedEventId *string `json:"sharedEventID" type:"string"`
-
-	// The IP address that the request was made from.
-	SourceIpAddress *string `json:"sourceIPAddress" type:"string"`
-
-	// The agent through which the request was made, such as the AWS Management Console, an AWS service, the AWS SDKs or the AWS CLI.
-	UserAgent *string `json:"userAgent" type:"string"`
-
-	// Identifies the VPC endpoint in which requests were made from a VPC to another AWS service, such as Amazon S3.
-	VpcEndpointId *string `json:"vpcEndpointId" type:"string"`
 
 	// GUID generated by CloudTrail to uniquely identify each event.
 	EventId *string `json:"eventID" type:"string"`
@@ -258,8 +110,14 @@ type cloudtrailEvent struct {
 	// The AWS service that the request was made to.
 	EventSource *string `json:"eventSource" type:"string"`
 
-	// Identifies whether this operation is a read-only operation.
-	ReadOnly *bool `json:"readOnly" type:"bool"`
+	// The date and time the request was made, in coordinated universal time (UTC).
+	EventTime *time.Time `json:"eventTime" type:"timestamp"`
+
+	// Identifies the type of event that generated the event record.
+	EventType *string `json:"eventType" type:"string"`
+
+	// The version of the log event format. The current version is 1.08.
+	EventVersion *string `json:"eventVersion" type:"string"`
 
 	// The AWS service error if the request returns an error.
 	ErrorCode *string `json:"errorCode"`
@@ -267,13 +125,50 @@ type cloudtrailEvent struct {
 	// If the request returns an error, the description of the error.
 	ErrorMessage *string `json:"errorMessage"`
 
-	// Identifies the API version associated with the AwsApiCall eventType value.
-	ApiVersion *string `json:"apiVersion"`
+	// A Boolean value that identifies whether the event is a management event.
+	ManagementEvent *bool `json:"managementEvent" type:"bool"`
+
+	// Represents the account ID that received this event.
+	RecipientAccountId *string `json:"recipientAccountId" type:"string"`
+
+	// The response element for actions that make changes (create, update, or delete actions).
+	ResponseElements *interface{} `json:"responseElements" type:"map"`
+
+	// GUID generated by CloudTrail to uniquely identify CloudTrail
+	// events from the same AWS action that is sent to different AWS accounts.
+	SharedEventId *string `json:"sharedEventID" type:"string"`
+
+	// The IP address that the request was made from.
+	SourceIpAddress *string `json:"sourceIPAddress" type:"string"`
+
+	// Identifies whether this operation is a read-only operation.
+	ReadOnly *bool `json:"readOnly" type:"bool"`
+
+	// The value that identifies the request.
+	RequestId *string `json:"requestID" type:"string"`
+
+	// The parameters, if any, that were sent with the request.
+	RequestParameters *interface{} `json:"requestParameters" type:"map"`
+
+	// The agent through which the request was made,
+	// such as the AWS Management Console, an AWS service,
+	// the AWS SDKs or the AWS CLI.
+	UserAgent *string `json:"userAgent" type:"string"`
+
+	// Information about the user that made a request. For
+	// UserIdentity *interface{} `json:"userIdentity" type:"map"`
+	UserIdentity userIdentity `json:"userIdentity"`
+
+	// Identifies the VPC endpoint in which requests were
+	// made from a VPC to another AWS service, such as Amazon S3.
+	VpcEndpointId *string `json:"vpcEndpointId" type:"string"`
 
 	// Identifies the service event, including what triggered the event and the result.
 	ServiceEventDetails *interface{} `json:"serviceEventDetails"`
 
-	// If an event delivery was delayed, or additional information about an existing event becomes available after the event is logged, an addendum field shows information about why the event was delayed.
+	// If an event delivery was delayed, or additional information
+	// about an existing event becomes available after the event is
+	// logged, an addendum field shows information about why the event was delayed.
 	Addendum *interface{} `json:"addendum"`
 
 	// Shows information about edge devices that are targets of a request. Currently, S3 Outposts device events include this field.
@@ -301,7 +196,7 @@ type userIdentity struct {
 	WebIdFederationData *interface{} `json:"webIdFederationData"`
 }
 
-func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -321,10 +216,10 @@ func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	// Get value of the lookup attributes inorder to reduce
 	// the api calls to get the relevant events
-	lookupAttributes := getLookupAttributes(equalQuals)
-	if lookupAttributes != nil {
-		input.LookupAttributes = lookupAttributes
-	}
+	// lookupAttributes := getLookupAttributes(equalQuals)
+	// if lookupAttributes != nil {
+	// 	input.LookupAttributes = lookupAttributes
+	// }
 
 	if equalQuals["event_category"] != nil {
 		input.EventCategory = aws.String(equalQuals["event_category"].GetStringValue())
@@ -371,6 +266,13 @@ func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CloudTrail.html#lookupEvents-property
 func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 	return []*plugin.KeyColumn{
+		// CloudWatch fields
+		{Name: "log_group_name"},
+		{Name: "log_stream_name", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional},
+		{Name: "region", Require: plugin.Optional},
+		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+
 		{Name: "event_category", Require: plugin.Optional},
 		{Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 
@@ -386,38 +288,48 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 	}
 }
 
-func getLookupAttributes(equalQuals plugin.KeyColumnEqualsQualMap) []*cloudtrail.LookupAttribute {
-	var lookupAttributes []*cloudtrail.LookupAttribute
+// func getLookupAttributes(equalQuals plugin.KeyColumnEqualsQualMap) []*cloudtrail.LookupAttribute {
+// 	var lookupAttributes []*cloudtrail.LookupAttribute
 
-	lookupKeys := []string{"event_id", "event_name", "read_only", "username", "resource_type", "resource_name", "event_source", "access_key_id"}
+// 	lookupKeys := []string{"event_id", "event_name", "read_only", "username", "resource_type", "resource_name", "event_source", "access_key_id"}
 
-	for _, key := range lookupKeys {
-		value := getLookupAttribute(equalQuals, key)
-		if value != nil {
-			lookupAttributes = append(lookupAttributes, value)
-		}
-	}
-	return lookupAttributes
-}
+// 	for _, key := range lookupKeys {
+// 		value := getLookupAttribute(equalQuals, key)
+// 		if value != nil {
+// 			lookupAttributes = append(lookupAttributes, value)
+// 		}
+// 	}
+// 	return lookupAttributes
+// }
 
-func getLookupAttribute(equalQuals plugin.KeyColumnEqualsQualMap, key string) *cloudtrail.LookupAttribute {
-	if equalQuals[key] != nil {
-		return &cloudtrail.LookupAttribute{
-			AttributeKey:   aws.String(toPascalCase(key)),
-			AttributeValue: aws.String(equalQuals[key].GetStringValue()),
-		}
-	}
-	return nil
-}
+// func getLookupAttribute(equalQuals plugin.KeyColumnEqualsQualMap, key string) *cloudtrail.LookupAttribute {
+// 	if equalQuals[key] != nil {
+// 		return &cloudtrail.LookupAttribute{
+// 			AttributeKey:   aws.String(toPascalCase(key)),
+// 			AttributeValue: aws.String(equalQuals[key].GetStringValue()),
+// 		}
+// 	}
+// 	return nil
+// }
 
-func toPascalCase(key string) string {
-	return strcase.ToPascal(key)
-}
+// func toPascalCase(key string) string {
+// 	return strcase.ToPascal(key)
+// }
 
-func getCloudtrailEventField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	e := h.Item.(*cloudtrail.Event)
+// func getCloudtrailEventField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	e := h.Item.(*cloudtrail.Event)
+// 	cte := cloudtrailEvent{}
+// 	err := json.Unmarshal([]byte(*e.CloudTrailEvent), &cte)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return cte, nil
+// }
+
+func getCloudtrailMessageField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
 	cte := cloudtrailEvent{}
-	err := json.Unmarshal([]byte(*e.CloudTrailEvent), &cte)
+	err := json.Unmarshal([]byte(*e.Message), &cte)
 	if err != nil {
 		return nil, err
 	}

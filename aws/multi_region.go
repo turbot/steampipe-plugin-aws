@@ -36,6 +36,9 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 	regionData, _ := listRegions(ctx, pluginQueryData)
 	var allRegions []string
 
+	plugin.Logger(ctx).Error("BuildRegionList", "defaultAwsRegion", defaultAwsRegion)
+	plugin.Logger(ctx).Error("BuildRegionList", "regionData", regionData)
+
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
 	// Get only the regions as required by config file
@@ -49,7 +52,9 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 		}
 	}
 
-	if len(allRegions) > 1 {
+	plugin.Logger(ctx).Warn("BuildRegionList", "allRegions", allRegions)
+
+	if len(allRegions) > 0 {
 		uniqueRegions := unique(allRegions)
 
 		if len(getInvalidRegions(uniqueRegions)) > 0 {
@@ -156,9 +161,9 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 
 	var activeRegions []string
 	var notOptedRegions []string
-	data["AllRegions"] = activeRegions
+	var allRegions []string
 	for _, region := range resp.Regions {
-		data["AllRegions"] = append(data["AllRegions"], *region.RegionName)
+		allRegions = append(allRegions, *region.RegionName)
 		if *region.OptInStatus != "not-opted-in" {
 			activeRegions = append(activeRegions, *region.RegionName)
 		} else {
@@ -166,6 +171,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 		}
 	}
 
+	data["AllRegions"] = allRegions
 	data["ActiveRegions"] = activeRegions
 	data["NotOptedRegions"] = notOptedRegions
 
