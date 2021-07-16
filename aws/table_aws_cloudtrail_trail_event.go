@@ -27,6 +27,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			// Top columns
+			{Name: "data", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
 			{Name: "log_group_name", Type: proto.ColumnType_STRING, Transform: transform.FromQual("log_group_name"), Description: "The name of the log group to which this event belongs."},
 			{Name: "log_stream_name", Type: proto.ColumnType_STRING, Description: "The name of the log stream to which this event belongs."},
 			{Name: "timestamp_ms", Type: proto.ColumnType_INT, Transform: transform.FromField("Timestamp"), Description: "The time when the event occurred."},
@@ -332,7 +333,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 		if filter == "" {
 			filter = filter + "($.sourceIPAddress = \"" + sourceIPAddress + "\")"
 		} else {
-			filter = filter + " || ($.sourceIPAddress = " + sourceIPAddress + "\")"
+			filter = filter + " || ($.sourceIPAddress = \"" + sourceIPAddress + "\")"
 		}
 	}
 
@@ -342,7 +343,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 		input.FilterPattern = aws.String("{ " + filter + " }")
 	}
 
-	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
+	logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
 	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", filter)
 
 	// if equalQuals["error_code"] != nil {
