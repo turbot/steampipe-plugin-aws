@@ -49,7 +49,7 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 		}
 	}
 
-	if len(allRegions) > 1 {
+	if len(allRegions) > 0 {
 		uniqueRegions := unique(allRegions)
 
 		if len(getInvalidRegions(uniqueRegions)) > 0 {
@@ -156,9 +156,9 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 
 	var activeRegions []string
 	var notOptedRegions []string
-	data["AllRegions"] = activeRegions
+	var allRegions []string
 	for _, region := range resp.Regions {
-		data["AllRegions"] = append(data["AllRegions"], *region.RegionName)
+		allRegions = append(allRegions, *region.RegionName)
 		if *region.OptInStatus != "not-opted-in" {
 			activeRegions = append(activeRegions, *region.RegionName)
 		} else {
@@ -166,6 +166,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 		}
 	}
 
+	data["AllRegions"] = allRegions
 	data["ActiveRegions"] = activeRegions
 	data["NotOptedRegions"] = notOptedRegions
 
