@@ -7,8 +7,6 @@ require (
 	github.com/ettle/strcase v0.1.1
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.4.3
-	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
 	github.com/turbot/go-kit v0.2.2-0.20210628165333-268ba0a30be3
 	github.com/turbot/steampipe-plugin-sdk v1.3.1
