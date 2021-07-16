@@ -1,0 +1,8 @@
+[
+  {
+    "repository_name": "{{ resourceName }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]
