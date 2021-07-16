@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -21,7 +21,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudtrail_trail_event",
 		Description: "CloudTrail events from cloudtrail service.",
 		List: &plugin.ListConfig{
-			Hydrate:    listCloudwatchLogEvents,
+			Hydrate:    listCloudwatchLogTrailEvents,
 			KeyColumns: tableAwsCloudtrailEventsListKeyColumns(),
 		},
 		GetMatrixItem: BuildRegionList,
@@ -58,7 +58,7 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 
 			// Json fields
 			// {Name: "additional_event_data", Type: proto.ColumnType_JSON, Hydrate: getCloudtrailMessageField, Description: "Additional data about the event that was not part of the request or response."},
-			// {Name: "cloudtrail_event", Type: proto.ColumnType_STRING, Transform: transform.FromField("Message").Transform(trim), Description: "The CloudTrail event."},
+			{Name: "cloudtrail_event", Type: proto.ColumnType_JSON, Transform: transform.FromField("Message").Transform(trim).Transform(transform.UnmarshalYAML), Description: "The CloudTrail event."},
 			// {Name: "request_parameters", Type: proto.ColumnType_JSON, Hydrate: getCloudtrailMessageField, Description: "The parameters, if any, that were sent with the request."},
 			// {Name: "resources", Type: proto.ColumnType_JSON, Hydrate: getCloudtrailMessageField, Description: "A list of resources referenced by the event returned."},
 			// {Name: "response_elements", Type: proto.ColumnType_JSON, Hydrate: getCloudtrailMessageField, Description: "The response element for actions that make changes (create, update, or delete actions)."},
@@ -195,7 +195,36 @@ type userIdentity struct {
 	WebIdFederationData *interface{} `json:"webIdFederationData"`
 }
 
-func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CloudTrail.html#lookupEvents-property
+func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
+	return []*plugin.KeyColumn{
+		// CloudWatch fields
+		{Name: "log_group_name"},
+		{Name: "log_stream_name", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional},
+		{Name: "region", Require: plugin.Optional},
+		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+
+		{Name: "event_category", Require: plugin.Optional},
+		{Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+
+		// LookupAttributes
+		{Name: "event_id", Require: plugin.Optional},
+		{Name: "aws_region", Require: plugin.Optional},
+		{Name: "source_ip_address", Require: plugin.Optional},
+		{Name: "event_name", Require: plugin.Optional},
+		{Name: "read_only", Require: plugin.Optional},
+		{Name: "username", Require: plugin.Optional},
+		{Name: "event_source", Require: plugin.Optional},
+		{Name: "access_key_id", Require: plugin.Optional},
+		// {Name: "resource_type", Require: plugin.Optional},
+		// {Name: "resource_name", Require: plugin.Optional},
+	}
+}
+
+func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	logger := plugin.Logger(ctx)
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -204,43 +233,151 @@ func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	input := cloudtrail.LookupEventsInput{}
-	equalQuals := d.KeyColumnQuals // Key Quals
-	quals := d.Quals               // Other Quals
+	equalQuals := d.KeyColumnQuals
+	// quals := d.Quals
 
-	// Get value of the lookup attributes inorder to reduce
-	// the api calls to get the relevant events
-	// lookupAttributes := getLookupAttributes(equalQuals)
-	// if lookupAttributes != nil {
-	// 	input.LookupAttributes = lookupAttributes
-	// }
-
-	if equalQuals["event_category"] != nil {
-		input.EventCategory = aws.String(equalQuals["event_category"].GetStringValue())
+	input := cloudwatchlogs.FilterLogEventsInput{
+		LogGroupName: aws.String(equalQuals["log_group_name"].GetStringValue()),
+		// Default to the maximum allowed
+		Limit: aws.Int64(10000),
 	}
 
-	if quals["event_time"] != nil {
-		for _, q := range quals["event_time"].Quals {
-			eventTime := q.Value.GetTimestampValue().AsTime()
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			input.Limit = limit
+		}
+	}
+
+	if equalQuals["log_stream_name"] != nil {
+		input.LogStreamNames = []*string{aws.String(equalQuals["log_stream_name"].GetStringValue())}
+	}
+
+	// filterPattern: "{$.errorCode = \"AccessDenied\"}"
+
+	queryFilter := ""
+	filter := ""
+	if equalQuals["filter"] != nil {
+		queryFilter = equalQuals["filter"].GetStringValue()
+	}
+
+	if equalQuals["error_code"] != nil {
+		errorCode := equalQuals["error_code"].GetStringValue()
+		filter = filter + "($.errorCode = \"" + errorCode + "\")"
+	}
+
+	if equalQuals["event_name"] != nil {
+		eventName := equalQuals["event_name"].GetStringValue()
+
+		if filter == "" {
+			filter = filter + "($.eventName = \"" + eventName + "\")"
+		} else {
+			filter = filter + " || ($.eventName = \"" + eventName + "\")"
+		}
+	}
+
+	if equalQuals["aws_region"] != nil {
+		awsRegion := equalQuals["aws_region"].GetStringValue()
+		if filter == "" {
+			filter = filter + "($.awsRegion = \"" + awsRegion + "\")"
+		} else {
+			filter = filter + " || ($.awsRegion = \"" + awsRegion + "\")"
+		}
+	}
+
+	if equalQuals["event_source"] != nil {
+		eventSource := equalQuals["event_source"].GetStringValue()
+		if filter == "" {
+			filter = filter + "($.awsRegion = \"" + eventSource + "\")"
+		} else {
+			filter = filter + " || ($.awsRegion = \"" + eventSource + "\")"
+		}
+	}
+
+	if equalQuals["read_only"] != nil {
+		readOnly := equalQuals["read_only"].GetBoolValue()
+		if filter == "" {
+			filter = filter + "($.readOnly = " + strconv.FormatBool(readOnly) + ")"
+		} else {
+			filter = filter + " || ($.readOnly = " + strconv.FormatBool(readOnly) + ")"
+		}
+	}
+
+	if equalQuals["event_id"] != nil {
+		eventID := equalQuals["event_id"].GetStringValue()
+		if filter == "" {
+			filter = filter + "($.eventID = \"" + eventID + "\")"
+		} else {
+			filter = filter + " || ($.eventID = " + eventID + "\")"
+		}
+	}
+
+	if equalQuals["event_category"] != nil {
+		eventCategory := equalQuals["event_category"].GetStringValue()
+		if filter == "" {
+			filter = filter + "($.eventCategory = \"" + eventCategory + "\")"
+		} else {
+			filter = filter + " || ($.eventCategory = " + eventCategory + "\")"
+		}
+	}
+
+	if equalQuals["source_ip_address"] != nil {
+		sourceIPAddress := equalQuals["source_ip_address"].GetStringValue()
+		if filter == "" {
+			filter = filter + "($.sourceIPAddress = \"" + sourceIPAddress + "\")"
+		} else {
+			filter = filter + " || ($.sourceIPAddress = " + sourceIPAddress + "\")"
+		}
+	}
+
+	if queryFilter != "" {
+		input.FilterPattern = aws.String(queryFilter)
+	} else if filter != "" {
+		input.FilterPattern = aws.String("{ " + filter + " }")
+	}
+
+	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
+	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", filter)
+
+	// if equalQuals["error_code"] != nil {
+	// 	input.FilterPattern = aws.String(equalQuals["filter"].GetStringValue())
+	// 	filter = filter + "{$.errorCode = \"AccessDenied\"}"
+	// }
+
+	if equalQuals["filter"] != nil {
+		input.FilterPattern = aws.String(equalQuals["filter"].GetStringValue())
+	}
+
+	quals := d.Quals
+
+	if quals["timestamp"] != nil {
+		for _, q := range quals["timestamp"].Quals {
+			tsSecs := q.Value.GetTimestampValue().GetSeconds()
+			tsMs := tsSecs * 1000
 			switch q.Operator {
-			case "=", ">=", ">":
-				input.StartTime = aws.Time(eventTime)
+			case "=":
+				input.StartTime = aws.Int64(tsMs)
+				input.EndTime = aws.Int64(tsMs)
+				break
+			case ">=", ">":
+				input.StartTime = aws.Int64(tsMs)
 			case "<", "<=":
-				input.EndTime = aws.Time(eventTime)
+				input.EndTime = aws.Int64(tsMs)
 			}
 		}
 	}
 
-	err = svc.LookupEventsPages(
+	err = svc.FilterLogEventsPages(
 		&input,
-		func(page *cloudtrail.LookupEventsOutput, _ bool) bool {
-			for _, trailEvent := range page.Events {
-				d.StreamListItem(ctx, trailEvent)
+		func(page *cloudwatchlogs.FilterLogEventsOutput, isLast bool) bool {
+			for _, logEvent := range page.Events {
+				d.StreamListItem(ctx, logEvent)
 			}
 			// Abort if we've been cancelled, which probably means we've reached the requested limit
 			select {
@@ -262,29 +399,14 @@ func listCloudTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	return nil, err
 }
 
-// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CloudTrail.html#lookupEvents-property
-func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
-	return []*plugin.KeyColumn{
-		// CloudWatch fields
-		{Name: "log_group_name"},
-		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional},
-		{Name: "region", Require: plugin.Optional},
-		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
-
-		{Name: "event_category", Require: plugin.Optional},
-		{Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
-
-		// LookupAttributes
-		{Name: "event_id", Require: plugin.Optional},
-		{Name: "event_name", Require: plugin.Optional},
-		{Name: "read_only", Require: plugin.Optional},
-		{Name: "username", Require: plugin.Optional},
-		// {Name: "resource_type", Require: plugin.Optional},
-		// {Name: "resource_name", Require: plugin.Optional},
-		{Name: "event_source", Require: plugin.Optional},
-		{Name: "access_key_id", Require: plugin.Optional},
+func getCloudtrailMessageField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
+	cte := cloudtrailEvent{}
+	err := json.Unmarshal([]byte(*e.Message), &cte)
+	if err != nil {
+		return nil, err
 	}
+	return cte, nil
 }
 
 // func getLookupAttributes(equalQuals plugin.KeyColumnEqualsQualMap) []*cloudtrail.LookupAttribute {
@@ -324,13 +446,3 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 // 	}
 // 	return cte, nil
 // }
-
-func getCloudtrailMessageField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
-	cte := cloudtrailEvent{}
-	err := json.Unmarshal([]byte(*e.Message), &cte)
-	if err != nil {
-		return nil, err
-	}
-	return cte, nil
-}
