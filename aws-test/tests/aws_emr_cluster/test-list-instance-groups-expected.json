@@ -1,0 +1,7 @@
+[
+  {
+    "id": "{{ output.resource_id.value }}",
+    "instance_type": "m4.large",
+    "name": "{{ resourceName }}"
+  }
+]

@@ -89,3 +89,17 @@ from
 where
   log_uri is not null and log_encryption_kms_key_id is null;
 ```
+
+### Get the type of the master instance used for a cluster
+
+```sql
+select
+  distinct name,
+  id,
+  ig ->> 'InstanceType' as instance_type
+from
+  aws_emr_cluster,
+  jsonb_array_elements(instance_groups) as ig
+where
+  ig ->> 'InstanceGroupType' = 'MASTER';
+```

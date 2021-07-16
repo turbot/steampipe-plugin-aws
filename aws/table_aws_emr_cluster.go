@@ -185,6 +185,13 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Hydrate:     getEmrCluster,
 			},
 			{
+				Name:        "instance_groups",
+				Description: "The list of instance groups for the cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listEmrClusterInstanceGroups,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "placement_groups",
 				Description: "Placement group configured for an Amazon EMR cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -293,6 +300,40 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	return op.Cluster, nil
+}
+
+func listEmrClusterInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listEmrClusterInstanceGroups")
+
+	var region string
+	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
+	if matrixRegion != nil {
+		region = matrixRegion.(string)
+	}
+
+	id := clusterID(h.Item)
+
+	// Create Session
+	svc, err := EmrService(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var instanceGroups []*emr.InstanceGroup
+	err = svc.ListInstanceGroupsPages(
+		&emr.ListInstanceGroupsInput{
+			ClusterId: aws.String(id),
+		},
+		func(page *emr.ListInstanceGroupsOutput, isLast bool) bool {
+			instanceGroups = append(instanceGroups, page.InstanceGroups...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return instanceGroups, nil
 }
 
 //// TRANSFORM FUNCTIONS
