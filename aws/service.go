@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 	"fmt"
-	"os"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
@@ -23,6 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
@@ -265,6 +268,26 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.Code
 		return nil, err
 	}
 	svc := codebuild.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// CodeCommitService returns the service connection for AWS CodeCommit service
+func CodeCommitService(ctx context.Context, d *plugin.QueryData, region string) (*codecommit.CodeCommit, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodeCommitService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codecommit-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codecommit.CodeCommit), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codecommit.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
@@ -1421,15 +1444,30 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 }
 
 func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+	sessionCacheKey := fmt.Sprintf("session-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
+		return cachedData.(*session.Session), nil
+	}
+
+	// If seesion was not in cache - create a session and saave to cache
+
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
+
+	// session default configuration
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
+		Config: aws.Config{
+			Region:     &region,
+			MaxRetries: aws.Int(10),
+			Retryer:    NewConnectionErrRetryer(10),
+		},
 	}
 
 	if awsConfig.Profile != nil {
 		sessionOptions.Profile = *awsConfig.Profile
 	}
+
 	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
 		return nil, fmt.Errorf("Partial credentials found in connection config, missing: secret_key")
 	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
@@ -1446,49 +1484,23 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		}
 	}
 
-	// TODO is it correct to always pass region to session?
-	// have we cached a session?
-	sessionCacheKey := fmt.Sprintf("session-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
-		return cachedData.(*session.Session), nil
-	}
-
-	// so it was not in cache - create a session
-	// sess, err := session.NewSession(&aws.Config{Region: &region, MaxRetries: aws.Int(10)})
-
-	sessionOptions.Config.Region = &region
-	sessionOptions.Config.MaxRetries = aws.Int(10)
-
-	// so it was not in cache - create a session
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
 		return nil, err
 	}
+
 	// save session in cache
 	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
 
 	return sess, nil
 }
 
-// GetDefaultRegion returns the default region used
-func GetDefaultRegion() string {
-	os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
-	session, err := session.NewSession(aws.NewConfig())
-	if err != nil {
-		panic(err)
-	}
-
-	region := *session.Config.Region
-	if region == "" {
-		// get aws config info
-		panic("\n\n'regions' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
-	}
-	return region
-}
-
 // GetDefaultAwsRegion returns the default region for AWS partiton
-// if not set by Env variable or in aws profile or i
+// if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
+	allAwsRegions := []string{
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
+
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
@@ -1503,23 +1515,46 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 
 	if awsConfig.Regions != nil {
 		regions = awsConfig.Regions
-	}
-
-	if len(regions) < 1 {
-		os.Setenv("AWS_SDK_LOAD_CONFIG", "1")
-		session, err := session.NewSession(aws.NewConfig())
+		region = regions[0]
+	} else {
+		session, err := session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		})
 		if err != nil {
 			panic(err)
 		}
-		region = *session.Config.Region
-	} else {
-		// Set the first region in regions list to be default region
-		region = regions[0]
+		if session != nil && session.Config != nil {
+			region = *session.Config.Region
+		}
+
+		if region != "" {
+			regions = []string{region}
+		}
+	}
+
+	validPatterns := []string{}
+	invalidPatterns := []string{}
+	for _, namePattern := range regions {
+		validRegions := []string{}
+		for _, validRegion := range allAwsRegions {
+			if ok, _ := path.Match(namePattern, validRegion); ok {
+				validRegions = append(validRegions, validRegion)
+			}
+		}
+		if len(validRegions) == 0 {
+			invalidPatterns = append(invalidPatterns, namePattern)
+		} else {
+			validPatterns = append(validPatterns, namePattern)
+		}
+	}
+
+	if len(validPatterns) == 0 && awsConfig.Regions != nil {
+		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
 	if region == "" {
 		region = "us-east-1"
-	} else if strings.Contains(region, "*") {
+	} else {
 		if strings.HasPrefix(region, "us-gov") {
 			region = "us-gov-east-1"
 		} else if strings.HasPrefix(region, "cn") {
@@ -1529,5 +1564,35 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 	}
 
+	d.ConnectionManager.Cache.Set(serviceCacheKey, region)
 	return region
+}
+
+// Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
+func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+	return &ConnectionErrRetryer{
+		DefaultRetryer: client.DefaultRetryer{
+			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
+		},
+	}
+}
+
+// ConnectionErrRetryer wraps the SDK's built in DefaultRetryer adding customization
+// to retry `connection reset by peer` errors.
+// Note: This retryer should be used for either idempotent operations or for operations
+// where performing duplicate requests to AWS is acceptable.
+// See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
+type ConnectionErrRetryer struct {
+	client.DefaultRetryer
+}
+
+func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
+	if req.Error != nil {
+		if strings.Contains(req.Error.Error(), "connection reset by peer") {
+			return true
+		}
+	}
+
+	// Fallback to SDK's built in retry rules
+	return r.DefaultRetryer.ShouldRetry(req)
 }

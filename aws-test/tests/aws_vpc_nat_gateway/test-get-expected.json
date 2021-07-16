@@ -1,13 +1,14 @@
 [
   {
+    "arn": "{{ output.resource_aka.value }}",
     "nat_gateway_addresses": [
       {
-       "AllocationId": "{{ output.allocation_id.value }}",
-       "NetworkInterfaceId": "{{ output.network_interface_id.value }}",
-       "PrivateIp": "{{ output.private_ip.value }}",
-       "PublicIp": "{{ output.public_ip.value }}"
+        "AllocationId": "{{ output.allocation_id.value }}",
+        "NetworkInterfaceId": "{{ output.network_interface_id.value }}",
+        "PrivateIp": "{{ output.private_ip.value }}",
+        "PublicIp": "{{ output.public_ip.value }}"
       }
-     ],
+    ],
     "nat_gateway_id": "{{ output.resource_id.value }}",
     "subnet_id": "{{ output.subnet_id.value }}",
     "tags_src": [
