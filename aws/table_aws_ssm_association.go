@@ -188,16 +188,10 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSSMAssociations", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSSMAssociations")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,12 +215,6 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMAssociation")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var id string
 	if h.Item != nil {
 		id = associationID(h.Item)
@@ -235,7 +223,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

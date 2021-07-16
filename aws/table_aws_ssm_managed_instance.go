@@ -143,15 +143,8 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSsmManagedInstances")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSsmManagedInstances", "AWS_REGION", region)
-
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

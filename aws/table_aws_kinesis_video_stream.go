@@ -99,16 +99,10 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listKinesisVideoStreams", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listKinesisVideoStreams")
 
 	// Create session
-	svc, err := KinesisVideoService(ctx, d, region)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +127,6 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	logger.Trace("getKinesisVideoStream")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(*kinesisvideo.StreamInfo).StreamName
@@ -148,7 +136,7 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// get service
-	svc, err := KinesisVideoService(ctx, d, region)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,17 +160,10 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("listKinesisVideoStreamTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	data := h.Item.(*kinesisvideo.StreamInfo)
 
 	// Create Session
-	svc, err := KinesisVideoService(ctx, d, region)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

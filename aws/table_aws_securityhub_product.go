@@ -93,15 +93,10 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSecurityyHubProducts", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityyHubProducts")
 
 	// Create Session
-	svc, err := SecurityHubService(ctx, d, region)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -127,15 +122,10 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	productArn := d.KeyColumnQuals["product_arn"].GetStringValue()
 
 	// Create service
-	svc, err := SecurityHubService(ctx, d, region)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -935,7 +935,8 @@ func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData, region 
 }
 
 // KinesisVideoService returns the service connection for AWS Kinesis Video service
-func KinesisVideoService(ctx context.Context, d *plugin.QueryData, region string) (*kinesisvideo.KinesisVideo, error) {
+func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.KinesisVideo, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Kinesis Video")
 	}
@@ -956,7 +957,8 @@ func KinesisVideoService(ctx context.Context, d *plugin.QueryData, region string
 }
 
 // KMSService returns the service connection for AWS KMS service
-func KMSService(ctx context.Context, d *plugin.QueryData, region string) (*kms.KMS, error) {
+func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed KMSService")
 	}
@@ -977,7 +979,8 @@ func KMSService(ctx context.Context, d *plugin.QueryData, region string) (*kms.K
 }
 
 // LambdaService returns the service connection for AWS Lambda service
-func LambdaService(ctx context.Context, d *plugin.QueryData, region string) (*lambda.Lambda, error) {
+func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed LambdaService")
 	}
@@ -998,7 +1001,8 @@ func LambdaService(ctx context.Context, d *plugin.QueryData, region string) (*la
 }
 
 // Macie2Service returns the service connection for AWS Macie2 service
-func Macie2Service(ctx context.Context, d *plugin.QueryData, region string) (*macie2.Macie2, error) {
+func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Macie2Service")
 	}
@@ -1059,7 +1063,8 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 }
 
 // RDSService returns the service connection for AWS RDS service
-func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.RDS, error) {
+func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed RDSService")
 	}
@@ -1080,7 +1085,8 @@ func RDSService(ctx context.Context, d *plugin.QueryData, region string) (*rds.R
 }
 
 // RedshiftService returns the service connection for AWS Redshift service
-func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*redshift.Redshift, error) {
+func RedshiftService(ctx context.Context, d *plugin.QueryData) (*redshift.Redshift, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Redshift")
 	}
@@ -1101,7 +1107,8 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData, region string) (*
 }
 
 // Route53DomainsService returns the service connection for AWS route53 domains service
-func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region string) (*route53domains.Route53Domains, error) {
+func Route53DomainsService(ctx context.Context, d *plugin.QueryData) (*route53domains.Route53Domains, error) {
+	region := "us-east-1"
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Route53Domains")
 	}
@@ -1122,7 +1129,8 @@ func Route53DomainsService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // Route53ResolverService returns the service connection for AWS route53resolver service
-func Route53ResolverService(ctx context.Context, d *plugin.QueryData, region string) (*route53resolver.Route53Resolver, error) {
+func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53resolver.Route53Resolver, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed Route53Resolver")
 	}
@@ -1159,7 +1167,9 @@ func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53,
 }
 
 // SecretsManagerService returns the service connection for AWS secretsManager service
-func SecretsManagerService(ctx context.Context, d *plugin.QueryData, region string) (*secretsmanager.SecretsManager, error) {
+func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager,
+	error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SecretsManagerService")
 	}
@@ -1179,7 +1189,8 @@ func SecretsManagerService(ctx context.Context, d *plugin.QueryData, region stri
 }
 
 // SecurityHubService returns the service connection for AWS securityHub service
-func SecurityHubService(ctx context.Context, d *plugin.QueryData, region string) (*securityhub.SecurityHub, error) {
+func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.SecurityHub, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SecurityHubService")
 	}
@@ -1242,7 +1253,8 @@ func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3,
 }
 
 // SageMakerService returns the service connection for AWS SageMaker service
-func SageMakerService(ctx context.Context, d *plugin.QueryData, region string) (*sagemaker.SageMaker, error) {
+func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SageMakerService")
 	}
@@ -1262,7 +1274,8 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 // SNSService returns the service connection for AWS SNS service
-func SNSService(ctx context.Context, d *plugin.QueryData, region string) (*sns.SNS, error) {
+func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SNSService")
 	}
@@ -1283,7 +1296,8 @@ func SNSService(ctx context.Context, d *plugin.QueryData, region string) (*sns.S
 }
 
 // SQSService returns the service connection for AWS SQS service
-func SQSService(ctx context.Context, d *plugin.QueryData, region string) (*sqs.SQS, error) {
+func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SQSService")
 	}
@@ -1304,7 +1318,8 @@ func SQSService(ctx context.Context, d *plugin.QueryData, region string) (*sqs.S
 }
 
 // SsmService returns the service connection for AWS SSM service
-func SsmService(ctx context.Context, d *plugin.QueryData, region string) (*ssm.SSM, error) {
+func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SsmService")
 	}
@@ -1384,7 +1399,8 @@ func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*waf
 }
 
 // WellArchitectedService returns the service connection for AWS Well-Architected service
-func WellArchitectedService(ctx context.Context, d *plugin.QueryData, region string) (*wellarchitected.WellArchitected, error) {
+func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarchitected.WellArchitected, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed WellArchitectedService")
 	}

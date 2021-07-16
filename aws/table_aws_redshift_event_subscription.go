@@ -109,16 +109,10 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsRedshiftEventSubscriptions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRedshiftEventSubscriptions", "AWS_REGION")
 
 	// Create session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -144,15 +138,8 @@ func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRedshiftEventSubscription")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

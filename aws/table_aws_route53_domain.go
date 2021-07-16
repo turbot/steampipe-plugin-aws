@@ -200,7 +200,7 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	plugin.Logger(ctx).Trace("listRoute53Domains")
 
 	// Create session
-	svc, err := Route53DomainsService(ctx, d, "us-east-1")
+	svc, err := Route53DomainsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		name = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
 	// Create session
-	svc, err := Route53DomainsService(ctx, d, "us-east-1")
+	svc, err := Route53DomainsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	name := domainName(h.Item)
 
 	// Create Session
-	svc, err := Route53DomainsService(ctx, d, "us-east-1")
+	svc, err := Route53DomainsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

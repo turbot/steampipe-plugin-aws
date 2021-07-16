@@ -174,16 +174,10 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSageMakerNotebookInstances", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSageMakerNotebookInstances")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -204,13 +198,6 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*sagemaker.NotebookInstanceSummary).NotebookInstanceName
@@ -219,7 +206,7 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -242,17 +229,10 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsSageMakerNotebookInstanceTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	resourceArn := notebookInstanceARN(h.Item)
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -160,16 +160,10 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("describePatchBaselines", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("describePatchBaselines")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -214,12 +208,6 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPatchBaseline")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var baselineID string
 	if h.Item != nil {
 		baselineID = *h.Item.(*ssm.GetPatchBaselineOutput).BaselineId
@@ -229,7 +217,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// get service
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -252,17 +240,10 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	baseline := h.Item.(*ssm.GetPatchBaselineOutput)
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

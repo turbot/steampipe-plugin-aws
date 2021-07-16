@@ -92,15 +92,10 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
