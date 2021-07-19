@@ -207,10 +207,8 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		{Name: "region", Require: plugin.Optional},
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 
+		// event fields
 		{Name: "event_category", Require: plugin.Optional},
-		// {Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
-
-		// LookupAttributes
 		{Name: "event_id", Require: plugin.Optional},
 		{Name: "aws_region", Require: plugin.Optional},
 		{Name: "source_ip_address", Require: plugin.Optional},
@@ -219,8 +217,6 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		{Name: "username", Require: plugin.Optional},
 		{Name: "event_source", Require: plugin.Optional},
 		{Name: "access_key_id", Require: plugin.Optional},
-		// {Name: "resource_type", Require: plugin.Optional},
-		// {Name: "resource_name", Require: plugin.Optional},
 	}
 }
 
@@ -350,8 +346,6 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 	} else if filter != "" {
 		input.FilterPattern = aws.String("{ " + filter + " }")
 	}
-
-	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
 
 	quals := d.Quals
 
