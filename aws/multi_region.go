@@ -36,9 +36,6 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 	regionData, _ := listRegions(ctx, pluginQueryData)
 	var allRegions []string
 
-	plugin.Logger(ctx).Error("BuildRegionList", "defaultAwsRegion", defaultAwsRegion)
-	plugin.Logger(ctx).Error("BuildRegionList", "regionData", regionData)
-
 	// retrieve regions from connection config
 	awsConfig := GetConfig(connection)
 	// Get only the regions as required by config file
