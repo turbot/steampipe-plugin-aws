@@ -207,7 +207,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 
 		{Name: "event_category", Require: plugin.Optional},
-		{Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+		// {Name: "event_time", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 
 		// LookupAttributes
 		{Name: "event_id", Require: plugin.Optional},
@@ -225,7 +225,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 
 func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
+	// logger := plugin.Logger(ctx)
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -260,8 +260,6 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 		input.LogStreamNames = []*string{aws.String(equalQuals["log_stream_name"].GetStringValue())}
 	}
 
-	// filterPattern: "{$.errorCode = \"AccessDenied\"}"
-
 	queryFilter := ""
 	filter := ""
 	if equalQuals["filter"] != nil {
@@ -295,9 +293,9 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 	if equalQuals["event_source"] != nil {
 		eventSource := equalQuals["event_source"].GetStringValue()
 		if filter == "" {
-			filter = filter + "($.awsRegion = \"" + eventSource + "\")"
+			filter = filter + "($.eventSource = \"" + eventSource + "\")"
 		} else {
-			filter = filter + " || ($.awsRegion = \"" + eventSource + "\")"
+			filter = filter + " || ($.eventSource = \"" + eventSource + "\")"
 		}
 	}
 
@@ -343,17 +341,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 		input.FilterPattern = aws.String("{ " + filter + " }")
 	}
 
-	logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
-	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", filter)
-
-	// if equalQuals["error_code"] != nil {
-	// 	input.FilterPattern = aws.String(equalQuals["filter"].GetStringValue())
-	// 	filter = filter + "{$.errorCode = \"AccessDenied\"}"
-	// }
-
-	if equalQuals["filter"] != nil {
-		input.FilterPattern = aws.String(equalQuals["filter"].GetStringValue())
-	}
+	// logger.Warn("Get CloudTrail filter pattern", "FilterPattern", *input.FilterPattern)
 
 	quals := d.Quals
 
@@ -365,7 +353,6 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 			case "=":
 				input.StartTime = aws.Int64(tsMs)
 				input.EndTime = aws.Int64(tsMs)
-				break
 			case ">=", ">":
 				input.StartTime = aws.Int64(tsMs)
 			case "<", "<=":
