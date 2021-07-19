@@ -147,6 +147,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_access_key":                                          tableAwsIamAccessKey(ctx),
 			"aws_iam_account_password_policy":                             tableAwsIamAccountPasswordPolicy(ctx),
 			"aws_iam_account_summary":                                     tableAwsIamAccountSummary(ctx),
+			"aws_iam_action":                                              tableAwsIamAction(ctx),
 			"aws_iam_credential_report":                                   tableAwsIamCredentialReport(ctx),
 			"aws_iam_group":                                               tableAwsIamGroup(ctx),
 			"aws_iam_policy":                                              tableAwsIamPolicy(ctx),
@@ -244,7 +245,6 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_rule_group":                                        tableAwsWafv2RuleGroup(ctx),
 			"aws_wafv2_web_acl":                                           tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                tableAwsWellArchitectedWorkload(ctx),
-			// "aws_iam_action":                                              tableAwsIamAction(ctx),
 		},
 	}
 
