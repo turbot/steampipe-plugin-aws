@@ -212,6 +212,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		{Name: "event_id", Require: plugin.Optional},
 		{Name: "aws_region", Require: plugin.Optional},
 		{Name: "source_ip_address", Require: plugin.Optional},
+		{Name: "error_code", Require: plugin.Optional},
 		{Name: "event_name", Require: plugin.Optional},
 		{Name: "read_only", Require: plugin.Optional},
 		{Name: "username", Require: plugin.Optional},
@@ -275,6 +276,16 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 			filter = filter + "($.eventName = \"" + eventName + "\")"
 		} else {
 			filter = filter + " || ($.eventName = \"" + eventName + "\")"
+		}
+	}
+
+	if equalQuals["access_key_id"] != nil {
+		accessKeyId := equalQuals["access_key_id"].GetStringValue()
+
+		if filter == "" {
+			filter = filter + "($.userIdentity.accessKeyId = \"" + accessKeyId + "\")"
+		} else {
+			filter = filter + " || ($.userIdentity.accessKeyId = \"" + accessKeyId + "\")"
 		}
 	}
 

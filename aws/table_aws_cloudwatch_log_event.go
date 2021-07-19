@@ -103,7 +103,6 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin
 			case "=":
 				input.StartTime = aws.Int64(tsMs)
 				input.EndTime = aws.Int64(tsMs)
-				break
 			case ">=", ">":
 				input.StartTime = aws.Int64(tsMs)
 			case "<", "<=":
