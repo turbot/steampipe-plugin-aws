@@ -52,8 +52,6 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 		}
 	}
 
-	plugin.Logger(ctx).Warn("BuildRegionList", "allRegions", allRegions)
-
 	if len(allRegions) > 0 {
 		uniqueRegions := unique(allRegions)
 
