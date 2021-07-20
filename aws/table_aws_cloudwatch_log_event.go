@@ -55,7 +55,7 @@ func trim(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	return strings.TrimSpace(s), nil
 }
 
-func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	var region string
 	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
@@ -113,7 +113,7 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	err = svc.FilterLogEventsPages(
 		&input,
-		func(page *cloudwatchlogs.FilterLogEventsOutput, isLast bool) bool {
+		func(page *cloudwatchlogs.FilterLogEventsOutput, _ bool) bool {
 			for _, logEvent := range page.Events {
 				d.StreamListItem(ctx, logEvent)
 			}

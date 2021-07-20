@@ -221,7 +221,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 	}
 }
 
-func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// logger := plugin.Logger(ctx)
 
@@ -378,7 +378,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 
 	err = svc.FilterLogEventsPages(
 		&input,
-		func(page *cloudwatchlogs.FilterLogEventsOutput, isLast bool) bool {
+		func(page *cloudwatchlogs.FilterLogEventsOutput, _ bool) bool {
 			for _, logEvent := range page.Events {
 				d.StreamListItem(ctx, logEvent)
 			}
@@ -402,7 +402,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *p
 	return nil, err
 }
 
-func getCloudtrailMessageField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudtrailMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
 	cte := cloudtrailEvent{}
 	err := json.Unmarshal([]byte(*e.Message), &cte)

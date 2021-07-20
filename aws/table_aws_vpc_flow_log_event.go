@@ -49,7 +49,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 	}
 }
 
-func getMessageField(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getMessageField(_ context.Context, _ *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	e := h.Item.(*cloudwatchlogs.FilteredLogEvent)
 	fields := strings.Fields(*e.Message)
 	return fields, nil
