@@ -261,16 +261,8 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsEc2AutoscalingGroup", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := AutoScalingService(ctx, d, region)
+	svc, err := AutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -294,16 +286,11 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEc2AutoscalingGroup")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d, region)
+	svc, err := AutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -329,16 +316,11 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEc2AutoscalingGroupPolicy")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	asg := h.Item.(*autoscaling.Group)
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d, region)
+	svc, err := AutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

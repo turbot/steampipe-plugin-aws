@@ -313,12 +313,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", region)
 
 	// Create Session
@@ -350,12 +345,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2Instance")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
 
 	// create service
@@ -399,12 +389,7 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceDisableAPITerminationData")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -428,12 +413,7 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 
 func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceInitiatedShutdownBehavior")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -457,12 +437,7 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 
 func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceKernelID")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -486,12 +461,7 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceRAMDiskID")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -515,12 +485,7 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceSriovNetSupport")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -544,12 +509,7 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceUserData")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service
@@ -573,12 +533,7 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getInstanceStatus")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	instance := h.Item.(*ec2.Instance)
 
 	// create service

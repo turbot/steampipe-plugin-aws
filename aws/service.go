@@ -210,7 +210,8 @@ func AuditManagerService(ctx context.Context, d *plugin.QueryData, region string
 }
 
 // AutoScalingService returns the service connection for AWS AutoScaling service
-func AutoScalingService(ctx context.Context, d *plugin.QueryData, region string) (*autoscaling.AutoScaling, error) {
+func AutoScalingService(ctx context.Context, d *plugin.QueryData) (*autoscaling.AutoScaling, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed AutoScalingService")
 	}
@@ -694,7 +695,8 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData, region strin
 }
 
 // ELBv2Service returns the service connection for AWS EC2 service
-func ELBv2Service(ctx context.Context, d *plugin.QueryData, region string) (*elbv2.ELBV2, error) {
+func ELBv2Service(ctx context.Context, d *plugin.QueryData) (*elbv2.ELBV2, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ELBv2Service")
 	}
@@ -717,7 +719,8 @@ func ELBv2Service(ctx context.Context, d *plugin.QueryData, region string) (*elb
 }
 
 // ELBService returns the service connection for AWS ELB Classic service
-func ELBService(ctx context.Context, d *plugin.QueryData, region string) (*elb.ELB, error) {
+func ELBService(ctx context.Context, d *plugin.QueryData) (*elb.ELB, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ELBv2Service")
 	}

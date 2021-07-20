@@ -188,11 +188,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2Amis", "AWS_REGION", region)
 
 	// Create Session
@@ -213,11 +209,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
@@ -243,11 +235,7 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2AmiLaunchPermissionData")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	image := h.Item.(*ec2.Image)
 
 	// create service

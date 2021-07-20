@@ -66,15 +66,8 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listEc2SslPolicies")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEc2SslPolicies", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -108,15 +101,10 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

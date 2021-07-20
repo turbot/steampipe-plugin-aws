@@ -74,12 +74,7 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2KeyPairs", "AWS_REGION", region)
 
 	// Create Session
@@ -99,12 +94,7 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	keyName := d.KeyColumnQuals["key_name"].GetStringValue()
 
 	// create service

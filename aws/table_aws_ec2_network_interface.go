@@ -226,12 +226,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2NetworkInterfaces", "AWS_REGION", region)
 
 	// Create Session
@@ -259,12 +254,7 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2NetworkInterface")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	networkInterfaceID := d.KeyColumnQuals["network_interface_id"].GetStringValue()
 
 	// create service
