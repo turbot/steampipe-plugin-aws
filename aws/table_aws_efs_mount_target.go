@@ -106,15 +106,8 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create session
-	svc, err := EfsService(ctx, d, region)
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -140,14 +133,9 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
-	// create service
-	svc, err := EfsService(ctx, d, region)
+	// Create service
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,14 +160,9 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEfsMountTargetSecurityGroup")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
-	// create service
-	svc, err := EfsService(ctx, d, region)
+	// Create service
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

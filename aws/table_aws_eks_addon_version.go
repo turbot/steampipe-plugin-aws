@@ -76,15 +76,8 @@ type addonVersion struct {
 //// LIST FUNCTION
 
 func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEksAddonVersions", "AWS_REGION", region)
-
 	// Create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

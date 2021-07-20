@@ -525,7 +525,8 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 }
 
 // EcrService returns the service connection for AWS ECR service
-func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.ECR, error) {
+func EcrService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EcrService")
 	}
@@ -547,7 +548,8 @@ func EcrService(ctx context.Context, d *plugin.QueryData, region string) (*ecr.E
 }
 
 // EcrPublicService returns the service connection for AWS ECRPublic service
-func EcrPublicService(ctx context.Context, d *plugin.QueryData, region string) (*ecrpublic.ECRPublic, error) {
+func EcrPublicService(ctx context.Context, d *plugin.QueryData) (*ecrpublic.ECRPublic, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EcrPublicService")
 	}
@@ -569,7 +571,8 @@ func EcrPublicService(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 // EcsService returns the service connection for AWS ECS service
-func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.ECS, error) {
+func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EcsService")
 	}
@@ -591,7 +594,8 @@ func EcsService(ctx context.Context, d *plugin.QueryData, region string) (*ecs.E
 }
 
 // EfsService returns the service connection for AWS Elastic File System service
-func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.EFS, error) {
+func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EfsService")
 	}
@@ -613,7 +617,8 @@ func EfsService(ctx context.Context, d *plugin.QueryData, region string) (*efs.E
 }
 
 // EksService returns the service connection for AWS EKS service
-func EksService(ctx context.Context, d *plugin.QueryData, region string) (*eks.EKS, error) {
+func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EksService")
 	}
