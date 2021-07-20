@@ -42,5 +42,5 @@ select
 from
   aws_ecs_service
 where
-  status <> 'ACTIVE';
+  status = 'INACTIVE';
 ```
