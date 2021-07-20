@@ -9,14 +9,14 @@ This table reads cloudtrail events from a cloudwatch Log Group, that is configur
 **Important Notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to used aws cloudwatch filters. Optional quals is supported for below columns:
+- This table supports optional quals. Queries with optional quals are optimised to use aws cloudwatch filters. Optional quals is supported for below columns:
   - `log_stream_name`
   - `filter`
   - `region`
   - `timestamp`
   - `event_category`
   - `event_id`
-  - `aws_region` (i.e region of events, useful in case of multiregion trails)
+  - `aws_region` (i.e. region of the event, useful in case of multi-region trails)
   - `source_ip_address`
   - `error_code`
   - `event_name`
@@ -38,7 +38,7 @@ select
   user_identifier,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   not read_only
@@ -58,7 +58,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   event_source = 'iam.amazonaws.com'
@@ -79,7 +79,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   username = 'lalit'
@@ -100,7 +100,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   user_type = 'IAMUser'
@@ -121,7 +121,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   user_type = 'AssumedRole'
@@ -144,7 +144,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   error_code is not null
@@ -154,7 +154,7 @@ order by
 
 ### Use `filter` qual to search for specific events
 
-Please refer for [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html)
+Please refer [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples
 
 ###### Filter events for api requests from a specific ip address
 
@@ -171,7 +171,7 @@ select
   jsonb_pretty(request_parameters) as request_parameters,
   jsonb_pretty(response_elements) as response_elements
 from
-  aws_osborn.aws_cloudtrail_trail_event
+  aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
   filter = '{ $.sourceIPAddress = 203.189.* }'
