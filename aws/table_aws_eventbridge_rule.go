@@ -106,16 +106,8 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsEventBridgeRules", "AWS_REGION", region)
-
 	// Create session
-	svc, err := EventBridgeService(ctx, d, region)
+	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -151,13 +143,6 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEventBridgeRule")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*eventbridge.DescribeRuleOutput).Name
@@ -166,7 +151,7 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d, region)
+	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -189,18 +174,11 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEventBridgeTargetByRule")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	eventbusname := h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
 	name := h.Item.(*eventbridge.DescribeRuleOutput).Name
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d, region)
+	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -222,16 +200,10 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEventBridgeRuleTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	arn := h.Item.(*eventbridge.DescribeRuleOutput).Arn
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d, region)
+	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

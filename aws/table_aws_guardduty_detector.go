@@ -107,15 +107,8 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listGuardDutyDetectors", "AWS_REGION", region)
-
 	// Create session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -149,15 +142,8 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		id = quals["detector_id"].GetStringValue()
 	}
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

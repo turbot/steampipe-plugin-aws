@@ -639,7 +639,8 @@ func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
 }
 
 // ElasticBeanstalkService returns the service connection for AWS ElasticBeanstalk service
-func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, region string) (*elasticbeanstalk.ElasticBeanstalk, error) {
+func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.ElasticBeanstalk, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ElasticBeanstalkService")
 	}
@@ -660,7 +661,8 @@ func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, region st
 }
 
 // ElastiCacheService returns the service connection for AWS ElastiCache service
-func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string) (*elasticache.ElastiCache, error) {
+func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.ElastiCache, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ElastiCache")
 	}
@@ -680,7 +682,8 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // ElasticsearchService returns the service connection for AWS Elasticsearch service
-func ElasticsearchService(ctx context.Context, d *plugin.QueryData, region string) (*elasticsearchservice.ElasticsearchService, error) {
+func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.ElasticsearchService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed ElasticsearchService")
 	}
@@ -748,7 +751,8 @@ func ELBService(ctx context.Context, d *plugin.QueryData) (*elb.ELB, error) {
 }
 
 // EventBridgeService returns the service connection for AWS EventBridge service
-func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string) (*eventbridge.EventBridge, error) {
+func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.EventBridge, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EventBridgeService")
 	}
@@ -771,7 +775,8 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, region string)
 }
 
 // EmrService returns the service connection for AWS EMR service
-func EmrService(ctx context.Context, d *plugin.QueryData, region string) (*emr.EMR, error) {
+func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed EmrService")
 	}
@@ -815,7 +820,8 @@ func FirehoseService(ctx context.Context, d *plugin.QueryData, region string) (*
 }
 
 // GlacierService returns the service connection for AWS Glacier service
-func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*glacier.Glacier, error) {
+func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed GlacierService")
 	}
@@ -838,7 +844,8 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, region string) (*g
 }
 
 // GlueService returns the service connection for AWS Glue service
-func GlueService(ctx context.Context, d *plugin.QueryData, region string) (*glue.Glue, error) {
+func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed GlueService")
 	}
@@ -861,7 +868,8 @@ func GlueService(ctx context.Context, d *plugin.QueryData, region string) (*glue
 }
 
 // GuardDutyService returns the service connection for AWS GuardDuty service
-func GuardDutyService(ctx context.Context, d *plugin.QueryData, region string) (*guardduty.GuardDuty, error) {
+func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.GuardDuty, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed GuardDutyService")
 	}
@@ -903,7 +911,8 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 }
 
 // InspectorService returns the service connection for AWS Inspector service
-func InspectorService(ctx context.Context, d *plugin.QueryData, region string) (*inspector.Inspector, error) {
+func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Inspector, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed InspectorService")
 	}

@@ -97,18 +97,10 @@ type ipsetInfo = struct {
 //// LIST FUNCTION
 
 func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsGuardDutyIPSets", "AWS_REGION", region)
-
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -137,15 +129,8 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsGuardDutyIPSet")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

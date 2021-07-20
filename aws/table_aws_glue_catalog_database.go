@@ -89,15 +89,8 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listGlueCatalogDatabases", "AWS_REGION", region)
-
 	// Create session
-	svc, err := GlueService(ctx, d, region)
+	svc, err := GlueService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -122,15 +115,10 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlueCatalogDatabase")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := GlueService(ctx, d, region)
+	svc, err := GlueService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

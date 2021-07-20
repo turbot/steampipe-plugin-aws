@@ -121,15 +121,8 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listInspectorAssessmentTemplates", "AWS_REGION", region)
-
 	// Create session
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -156,11 +149,6 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getInspectorAssessmentTemplate")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var assessmentTemplateArn string
 	if h.Item != nil {
 		assessmentTemplateArn = *h.Item.(*inspector.AssessmentTemplate).Arn
@@ -170,7 +158,7 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// get service
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -197,16 +185,10 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsInspectorAssessmentTemplateTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,16 +213,10 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 	logger := plugin.Logger(ctx)
 	logger.Trace("ListAwsInspectorAssessmentTemplateEventSubscriptions")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
