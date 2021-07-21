@@ -97,12 +97,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", region)
 
 	// Create session
@@ -130,12 +125,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcDhcpOption")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	dhcpOptionsID := d.KeyColumnQuals["dhcp_options_id"].GetStringValue()
 
 	// Create session

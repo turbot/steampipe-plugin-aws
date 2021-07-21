@@ -133,13 +133,7 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcFlowlogs", "AWS_REGION", region)
 
 	// Create session
@@ -170,12 +164,7 @@ func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	quals := d.KeyColumnQuals
 	flowlogID := quals["flow_log_id"].GetStringValue()
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)

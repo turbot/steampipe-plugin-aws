@@ -91,13 +91,7 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listVpcCustomerGateways", "AWS_REGION", region)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -119,12 +113,7 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcCustomerGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	customerGatewayID := d.KeyColumnQuals["customer_gateway_id"].GetStringValue()
 
 	// Create session

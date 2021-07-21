@@ -93,13 +93,7 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcNetworkACLs", "AWS_REGION", region)
 
 	// Create session
@@ -127,12 +121,7 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNetworkACL")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	networkACLID := d.KeyColumnQuals["network_acl_id"].GetStringValue()
 
 	// get service

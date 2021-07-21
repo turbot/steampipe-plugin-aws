@@ -110,12 +110,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
@@ -145,7 +140,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 	logger.Trace("getVpc")
 
 	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service

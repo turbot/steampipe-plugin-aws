@@ -86,13 +86,7 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcVpnGateways", "AWS_REGION", region)
 
 	// Create session
@@ -116,12 +110,7 @@ func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	logger := plugin.Logger(ctx)
 	logger.Trace("getVpcVpnGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	vpnGatewayID := d.KeyColumnQuals["vpn_gateway_id"].GetStringValue()
 
 	// get service
