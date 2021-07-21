@@ -98,7 +98,7 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Trace("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
 	}
 
 	quals := d.Quals
