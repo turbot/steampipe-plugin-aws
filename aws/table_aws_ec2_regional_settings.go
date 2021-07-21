@@ -112,8 +112,8 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 
 //// TRANSFORM FUNCTIONS
 
-func getEc2SettingTitle(ctx context.Context, t *transform.TransformData) (interface{}, error) {
-	region := t.MatrixItem[matrixKeyRegion]
+func getEc2SettingTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	region := d.MatrixItem[matrixKeyRegion]
 
 	title := region.(string) + " EC2 Settings"
 	return title, nil
