@@ -290,7 +290,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Trace("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(
@@ -334,7 +334,6 @@ func buildQueryFilter(equalQuals plugin.KeyColumnEqualsQualMap) []string {
 
 	filterQuals := map[string]string{
 		"access_key_id":     "userIdentity.accessKeyId",
-		"region":            "awsRegion",
 		"aws_region":        "awsRegion",
 		"error_code":        "errorCode",
 		"event_category":    "eventCategory",
