@@ -270,7 +270,6 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	} else if len(filter) > 0 {
 		input.FilterPattern = aws.String(fmt.Sprintf("{ %s }", strings.Join(filter, " && ")))
 	}
-	plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "filter", filter)
 
 	quals := d.Quals
 
@@ -291,7 +290,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Trace("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
@@ -11,6 +12,26 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+func tableAwsVpcFlowLogEventListKeyColumns() []*plugin.KeyColumn {
+	return []*plugin.KeyColumn{
+		{Name: "log_group_name"},
+		{Name: "log_stream_name", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional},
+		{Name: "region", Require: plugin.Optional},
+		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+
+		// others
+		{Name: "event_id", Require: plugin.Optional},
+		{Name: "interface_id", Require: plugin.Optional},
+		{Name: "src_addr", Require: plugin.Optional},
+		{Name: "dst_addr", Require: plugin.Optional},
+		{Name: "src_port", Require: plugin.Optional},
+		{Name: "dst_port", Require: plugin.Optional},
+		{Name: "action", Require: plugin.Optional},
+		{Name: "log_status", Require: plugin.Optional},
+	}
+}
+
 //// TABLE DEFINITION
 
 func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
@@ -19,7 +40,7 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Flow Log events from CloudWatch Logs",
 		List: &plugin.ListConfig{
 			Hydrate:    listCloudwatchLogEvents,
-			KeyColumns: tableAwsCloudwatchLogEventListKeyColumns(),
+			KeyColumns: tableAwsVpcFlowLogEventListKeyColumns(),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -62,4 +83,29 @@ func getField(_ context.Context, d *transform.TransformData) (interface{}, error
 		return nil, nil
 	}
 	return fields[idx], nil
+}
+
+func buildFilter(equalQuals plugin.KeyColumnEqualsQualMap) []string {
+	filters := []string{}
+
+	filterQuals := []string{"action", "log_status", "interface_id", "event_id", "src_addr", "dst_addr", "src_port", "dst_port"}
+
+	for _, qual := range filterQuals {
+		switch qual {
+		case "action", "log_status", "interface_id", "event_id":
+			if equalQuals[qual] != nil {
+				filters = append(filters, equalQuals[qual].GetStringValue())
+			}
+		case "src_addr", "dst_addr":
+			if equalQuals[qual] != nil {
+				filters = append(filters, equalQuals[qual].GetInetValue().Addr)
+			}
+		case "src_port", "dst_port":
+			if equalQuals[qual] != nil {
+				filters = append(filters, strconv.Itoa(int(equalQuals[qual].GetInt64Value())))
+			}
+		}
+	}
+
+	return filters
 }

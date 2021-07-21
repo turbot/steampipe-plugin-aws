@@ -91,6 +91,14 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	if equalQuals["filter"] != nil {
 		input.FilterPattern = aws.String(equalQuals["filter"].GetStringValue())
+	} else {
+		if filterStrings := buildFilter(equalQuals); len(filterStrings) > 0 {
+			input.FilterPattern = aws.String(strings.Join(filterStrings, " "))
+		}
+	}
+
+	if input.FilterPattern != nil {
+		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
 	}
 
 	quals := d.Quals
