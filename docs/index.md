@@ -131,6 +131,73 @@ The `region` argument supports wildcards:
 AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
 
 
+
+## Multi-Account Connections 
+
+
+You may create multiple aws connections:
+```hcl
+connection "aws_01 {
+  plugin      = "aws" 
+  profile     = "aws_01"
+  regions     = ["us-east-1", "us-west-2"]
+}
+
+connection "aws_02 {
+  plugin      = "aws" 
+  profile     = "aws_02"
+  regions     = ["*"]
+}
+
+connection "aws_03 {
+  plugin      = "aws" 
+  profile     = "aws_03"
+  regions     = ["us-*"]
+}
+```
+
+Each connection is implemented as a distinct [Postgres schema](https://www.postgresql.org/docs/current/ddl-schemas.html).  As such, you can use qualified table names to query a specific connection:
+
+```sql
+select * from aws_02.aws_account
+```
+
+Alternatively, can use an unqualified name and it will be resolved according to the [Search Path](https://steampipe.io/docs/using-steampipe/managing-connections#setting-the-search-path):
+```sql
+select * from aws_account
+```
+
+
+You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
+
+```
+connection "aws_all {
+  plugin      = "aws" 
+  type        = "aggregator"
+  connections = ["aws_01", "aws_02", "aws_03"]
+}
+```
+
+Querying tables from this connection will return results from the `aws_01`, `aws_02`, and `aws_03` connections:
+```sql
+select * from aws_all.aws_account
+```
+
+Steampipe supports the `*` wildcard in the connection names.  For example, to aggregate all the AWS plugin connections whose names begin with `aws_`:
+
+```hcl
+connection "aws_all" {
+  type        = "aggregator"
+  plugin      = "aws"  
+  connections = ["aws_*"]
+}
+```
+
+Aggregators are powerful, but they are not infinitely scalable.  Like any other steampipe connection, they query APIs and are subject to API limits and throttling.  Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions.  This means you essentially run the same list API calls 48 times!  When using aggregators, it is especially important to:
+- Query only what you need!  `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
+- Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options).  The default is currently 300 seconds (5 minutes).  Obviously, anytime steampipe can pull from the cache, its is faster and less impactful to the APIs.  If you don't need the most up-to-date results, increase the cache TTL!
+
+
 ## Configuring AWS Credentials
 
 ### AWS Profile Credentials
