@@ -799,7 +799,8 @@ func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
 }
 
 // FirehoseService returns the service connection for AWS Kinesis Firehose service
-func FirehoseService(ctx context.Context, d *plugin.QueryData, region string) (*firehose.Firehose, error) {
+func FirehoseService(ctx context.Context, d *plugin.QueryData) (*firehose.Firehose, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed FirehoseService")
 	}
@@ -933,7 +934,8 @@ func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Insp
 }
 
 // KinesisService returns the service connection for AWS Kinesis service
-func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*kinesis.Kinesis, error) {
+func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed KinesisService")
 	}
@@ -954,7 +956,8 @@ func KinesisService(ctx context.Context, d *plugin.QueryData, region string) (*k
 }
 
 // KinesisAnalyticsV2Service returns the service connection for AWS Kinesis AnalyticsV2 service
-func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData, region string) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
+func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed KinesisAnalyticsV2Service")
 	}

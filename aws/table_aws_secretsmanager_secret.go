@@ -147,13 +147,6 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSecretsManagerSecrets", "AWS_REGION", region)
-
 	// Create session
 	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {

@@ -93,7 +93,7 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityyHubProducts")
+	plugin.Logger(ctx).Trace("listSecurityHubProducts")
 
 	// Create Session
 	svc, err := SecurityHubService(ctx, d)

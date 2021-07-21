@@ -145,16 +145,8 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listFirehoseDeliveryStreams", "AWS_REGION", region)
-
 	// Create session
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -185,12 +177,6 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeFirehoseDeliveryStream")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
@@ -200,7 +186,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// get service
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -224,17 +210,10 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listFirehoseDeliveryStreamTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	streamName := *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
 
 	// Create Session
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -137,13 +137,6 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3AccessPoints")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listS3AccessPoints", "AWS_REGION", region)
-
 	// Get account details
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -153,7 +146,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, region)
+	svc, err := S3ControlService(ctx, d, commonColumnData.Region)
 	if err != nil {
 		return nil, err
 	}
