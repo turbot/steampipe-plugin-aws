@@ -274,7 +274,8 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.Code
 }
 
 // CodeCommitService returns the service connection for AWS CodeCommit service
-func CodeCommitService(ctx context.Context, d *plugin.QueryData, region string) (*codecommit.CodeCommit, error) {
+func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CodeCommitService")
 	}
