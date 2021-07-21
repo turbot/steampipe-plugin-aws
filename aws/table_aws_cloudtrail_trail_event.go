@@ -3,7 +3,8 @@ package aws
 import (
 	"context"
 	"encoding/json"
-	"strconv"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -34,8 +35,6 @@ func tableAwsCloudtrailTrailEvent(_ context.Context) *plugin.Table {
 			{Name: "timestamp_ms", Type: proto.ColumnType_INT, Transform: transform.FromField("Timestamp"), Description: "The time when the event occurred."},
 
 			// CloudTrail event fields
-			// {Name: "resource_name", Type: proto.ColumnType_STRING, Description: "The name of the event returned.", Transform: transform.FromQual("resource_name")},
-			// {Name: "resource_type", Type: proto.ColumnType_STRING, Description: "The name of the event returned.", Transform: transform.FromQual("resource_type")},
 			{Name: "access_key_id", Type: proto.ColumnType_STRING, Hydrate: getCloudtrailMessageField, Transform: transform.FromField("UserIdentity.AccessKeyId"), Description: "The AWS access key ID that was used to sign the request. If the request was made with temporary security credentials, this is the access key ID of the temporary credentials."},
 			{Name: "aws_region", Type: proto.ColumnType_STRING, Hydrate: getCloudtrailMessageField, Description: "The AWS region that the request was made to, such as us-east-2."},
 			{Name: "error_code", Type: proto.ColumnType_STRING, Hydrate: getCloudtrailMessageField, Description: "The AWS service error if the request returns an error."},
@@ -216,6 +215,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		{Name: "event_name", Require: plugin.Optional},
 		{Name: "read_only", Require: plugin.Optional},
 		{Name: "username", Require: plugin.Optional},
+		{Name: "user_type", Require: plugin.Optional},
 		{Name: "event_source", Require: plugin.Optional},
 		{Name: "access_key_id", Require: plugin.Optional},
 	}
@@ -259,104 +259,18 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	queryFilter := ""
-	filter := ""
+	filter := buildQueryFilter(equalQuals)
+
 	if equalQuals["filter"] != nil {
 		queryFilter = equalQuals["filter"].GetStringValue()
 	}
 
-	if equalQuals["error_code"] != nil {
-		errorCode := equalQuals["error_code"].GetStringValue()
-		filter = filter + "($.errorCode = \"" + errorCode + "\")"
-	}
-
-	if equalQuals["event_name"] != nil {
-		eventName := equalQuals["event_name"].GetStringValue()
-
-		if filter == "" {
-			filter = filter + "($.eventName = \"" + eventName + "\")"
-		} else {
-			filter = filter + " || ($.eventName = \"" + eventName + "\")"
-		}
-	}
-
-	if equalQuals["access_key_id"] != nil {
-		accessKeyId := equalQuals["access_key_id"].GetStringValue()
-
-		if filter == "" {
-			filter = filter + "($.userIdentity.accessKeyId = \"" + accessKeyId + "\")"
-		} else {
-			filter = filter + " || ($.userIdentity.accessKeyId = \"" + accessKeyId + "\")"
-		}
-	}
-
-	if equalQuals["aws_region"] != nil {
-		awsRegion := equalQuals["aws_region"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.awsRegion = \"" + awsRegion + "\")"
-		} else {
-			filter = filter + " || ($.awsRegion = \"" + awsRegion + "\")"
-		}
-	}
-
-	if equalQuals["event_source"] != nil {
-		eventSource := equalQuals["event_source"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.eventSource = \"" + eventSource + "\")"
-		} else {
-			filter = filter + " || ($.eventSource = \"" + eventSource + "\")"
-		}
-	}
-
-	if equalQuals["read_only"] != nil {
-		readOnly := equalQuals["read_only"].GetBoolValue()
-		if filter == "" {
-			filter = filter + "($.readOnly = " + strconv.FormatBool(readOnly) + ")"
-		} else {
-			filter = filter + " || ($.readOnly = " + strconv.FormatBool(readOnly) + ")"
-		}
-	}
-
-	if equalQuals["event_id"] != nil {
-		eventID := equalQuals["event_id"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.eventID = \"" + eventID + "\")"
-		} else {
-			filter = filter + " || ($.eventID = " + eventID + "\")"
-		}
-	}
-
-	if equalQuals["event_category"] != nil {
-		eventCategory := equalQuals["event_category"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.eventCategory = \"" + eventCategory + "\")"
-		} else {
-			filter = filter + " || ($.eventCategory = " + eventCategory + "\")"
-		}
-	}
-
-	if equalQuals["source_ip_address"] != nil {
-		sourceIPAddress := equalQuals["source_ip_address"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.sourceIPAddress = \"" + sourceIPAddress + "\")"
-		} else {
-			filter = filter + " || ($.sourceIPAddress = \"" + sourceIPAddress + "\")"
-		}
-	}
-
-	if equalQuals["username"] != nil {
-		userName := equalQuals["username"].GetStringValue()
-		if filter == "" {
-			filter = filter + "($.userIdentity.userName = \"" + userName + "\")"
-		} else {
-			filter = filter + " || ($.userIdentity.userName = \"" + userName + "\")"
-		}
-	}
-
 	if queryFilter != "" {
 		input.FilterPattern = aws.String(queryFilter)
-	} else if filter != "" {
-		input.FilterPattern = aws.String("{ " + filter + " }")
+	} else if len(filter) > 0 {
+		input.FilterPattern = aws.String(fmt.Sprintf("{ %s }", strings.Join(filter, " && ")))
 	}
+	plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "filter", filter)
 
 	quals := d.Quals
 
@@ -374,6 +288,10 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 				input.EndTime = aws.Int64(tsMs)
 			}
 		}
+	}
+
+	if input.FilterPattern != nil {
+		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(
@@ -410,4 +328,31 @@ func getCloudtrailMessageField(_ context.Context, _ *plugin.QueryData, h *plugin
 		return nil, err
 	}
 	return cte, nil
+}
+
+func buildQueryFilter(equalQuals plugin.KeyColumnEqualsQualMap) []string {
+	filters := []string{}
+
+	filterQuals := map[string]string{
+		"access_key_id":     "userIdentity.accessKeyId",
+		"region":            "awsRegion",
+		"aws_region":        "awsRegion",
+		"error_code":        "errorCode",
+		"event_category":    "eventCategory",
+		"event_id":          "eventID",
+		"event_name":        "eventName",
+		"event_source":      "eventSource",
+		"read_only":         "readOnly",
+		"source_ip_address": "sourceIPAddress",
+		"username":          "userIdentity.userName",
+		"user_type":         "userIdentity.type",
+	}
+
+	for qual, filterKey := range filterQuals {
+		if equalQuals[qual] != nil {
+			filters = append(filters, fmt.Sprintf("( $.%s = \"%s\" )", filterKey, equalQuals[qual].GetStringValue()))
+		}
+	}
+
+	return filters
 }
