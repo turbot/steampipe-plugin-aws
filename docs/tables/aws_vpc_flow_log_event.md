@@ -12,6 +12,14 @@ This table reads vpc flow logs from a Cloudwatch log group, that is configured t
   - `filter`
   - `region`
   - `timestamp`
+  - `action`
+  - `dst_addr`
+  - `dst_port`
+  - `event_id`
+  - `interface_id`
+  - `log_status`
+  - `src_addr`
+  - `src_port`
 
 ## Examples
 
