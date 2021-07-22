@@ -136,15 +136,10 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRules", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRules")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -170,15 +165,10 @@ func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRule")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -202,15 +192,10 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("listResolverRuleAssociation")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
 	id := resolverRuleData.Id
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -240,11 +225,6 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRuleTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
 
 	// For default resolver rule i.e not supported tag
@@ -254,7 +234,7 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

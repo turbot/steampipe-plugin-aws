@@ -230,16 +230,8 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCloudtrailTrails", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudTrailService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -261,13 +253,6 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrail")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 	if len(arn) > 0 {
@@ -276,7 +261,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudTrailService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -301,12 +286,7 @@ func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrailStatus")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
@@ -316,7 +296,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudTrailService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -336,12 +316,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrailEventSelector")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
@@ -351,7 +326,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudTrailService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -371,12 +346,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrailTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	trail := h.Item.(*cloudtrail.Trail)
 
 	// Avoid api call if home_region is not equal to current region
@@ -386,7 +356,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create session
-	svc, err := CloudTrailService(ctx, d, region)
+	svc, err := CloudTrailService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

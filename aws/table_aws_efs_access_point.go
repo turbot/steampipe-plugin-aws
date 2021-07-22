@@ -104,15 +104,8 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EfsService(ctx, d, region)
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -134,18 +127,11 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	quals := d.KeyColumnQuals
 	accessPointID := quals["access_point_id"].GetStringValue()
 
 	// create service
-	svc, err := EfsService(ctx, d, region)
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

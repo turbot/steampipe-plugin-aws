@@ -149,16 +149,8 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := DaxService(ctx, d, region)
+	svc, err := DaxService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -190,16 +182,8 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// create service
-	svc, err := DaxService(ctx, d, region)
+	svc, err := DaxService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -224,15 +208,11 @@ func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDaxClusterTags")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	clusterArn := *h.Item.(*dax.Cluster).ClusterArn
 
 	// Create service
-	svc, err := DaxService(ctx, d, region)
+	svc, err := DaxService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

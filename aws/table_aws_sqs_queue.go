@@ -146,16 +146,10 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSqsQueues", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSqsQueues")
 
 	// Create session
-	svc, err := SQSService(ctx, d, region)
+	svc, err := SQSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -181,13 +175,6 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getQueueAttributes")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var queueURL string
 	if h.Item != nil {
 		data := h.Item.(*sqs.GetQueueAttributesOutput)
@@ -197,7 +184,7 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create session
-	svc, err := SQSService(ctx, d, region)
+	svc, err := SQSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,15 +208,9 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listQueueTags")
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create session
-	svc, err := SQSService(ctx, d, region)
+	svc, err := SQSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

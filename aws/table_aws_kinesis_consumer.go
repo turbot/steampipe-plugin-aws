@@ -74,15 +74,10 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listKinesisConsumers", "AWS_REGION", region)
 	streamData := *h.Item.(*kinesis.DescribeStreamOutput)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +89,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
 
 	// Create session
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +110,6 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKinesisConsumer")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	var arn string
 	if h.Item != nil {
@@ -130,7 +120,7 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

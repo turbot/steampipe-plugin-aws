@@ -76,15 +76,8 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listInspectorAssessmentTargets", "AWS_REGION", region)
-
 	// Create session
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -111,11 +104,6 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	logger := plugin.Logger(ctx)
 	logger.Trace("getInspectorAssessmentTarget")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var assessmentTargetArn string
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*inspector.AssessmentTarget).Arn
@@ -125,7 +113,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// get service
-	svc, err := InspectorService(ctx, d, region)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

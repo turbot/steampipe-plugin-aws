@@ -589,7 +589,8 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	plugin.Logger(ctx).Trace("getAwsS3BucketArn")
 	bucket := h.Item.(*s3.Bucket)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

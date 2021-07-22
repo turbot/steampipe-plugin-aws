@@ -115,15 +115,8 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listConfigRules", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -145,14 +138,8 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigRule")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -178,14 +165,8 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigRuleTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

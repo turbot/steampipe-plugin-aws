@@ -71,12 +71,7 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcInternetGateways", "AWS_REGION", region)
 
 	// Create session
@@ -104,12 +99,7 @@ func listVpcInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcInternetGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	internetGatewayID := d.KeyColumnQuals["internet_gateway_id"].GetStringValue()
 
 	// get service
@@ -140,7 +130,8 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcInternetGatewayTurbotAkas")
 	internetGateway := h.Item.(*ec2.InternetGateway)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

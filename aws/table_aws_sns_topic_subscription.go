@@ -126,16 +126,10 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSnsTopicSubscriptions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSnsTopicSubscriptions")
 
 	// Create Session
-	svc, err := SNSService(ctx, d, region)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -166,13 +160,6 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSubscriptionAttributes")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var arn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
@@ -182,7 +169,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, region)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

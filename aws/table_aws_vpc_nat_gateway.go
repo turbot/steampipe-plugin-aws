@@ -114,13 +114,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcNatGateways", "AWS_REGION", region)
 
 	// Create session
@@ -148,12 +142,7 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNatGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	natGatewayID := d.KeyColumnQuals["nat_gateway_id"].GetStringValue()
 
 	// get service
@@ -184,7 +173,8 @@ func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getVpcNatGatewayARN")
 
 	natGateway := h.Item.(*ec2.NatGateway)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

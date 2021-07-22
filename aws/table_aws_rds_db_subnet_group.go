@@ -96,16 +96,10 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups", "AWS_REGION", region)
+plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -126,16 +120,10 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -157,16 +145,11 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRDSDBSubnetGroupTags")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +166,7 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRDSDBSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	dbSubnetGroup := d.HydrateItem.(*rds.ListTagsForResourceOutput)

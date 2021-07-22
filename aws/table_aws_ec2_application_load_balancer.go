@@ -145,16 +145,8 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEc2ApplicationLoadBalancers", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -178,16 +170,10 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -209,16 +195,11 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 
 func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2ApplicationLoadBalancerAttributes")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	applicationLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -237,16 +218,11 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 
 func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2ApplicationLoadBalancerTags")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	applicationLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

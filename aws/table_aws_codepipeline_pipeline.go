@@ -121,15 +121,8 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCodepipelinePipelines", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -153,12 +146,6 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCodepipelinePipeline")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*codepipeline.PipelineSummary).Name
@@ -167,7 +154,7 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -193,15 +180,10 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPipelineTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	pipelineArn := pipelineARN(ctx, d, h)
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +207,8 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	plugin.Logger(ctx).Trace("pipelineARN")
 
 	// Get region, partition, account id
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return ""
 	}

@@ -179,15 +179,8 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := DatabaseMigrationService(ctx, d, region)
+	svc, err := DatabaseMigrationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +204,8 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	// create service
-	svc, err := DatabaseMigrationService(ctx, d, region)
+	// Create service
+	svc, err := DatabaseMigrationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -248,15 +234,11 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 
 func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDmsReplicationInstanceTags")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	replicationInstanceArn := h.Item.(*databasemigrationservice.ReplicationInstance).ReplicationInstanceArn
 
 	// Create service
-	svc, err := DatabaseMigrationService(ctx, d, region)
+	svc, err := DatabaseMigrationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

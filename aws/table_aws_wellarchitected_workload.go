@@ -176,15 +176,11 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listWellArchitectedWorkloads", "AWS_REGION", region)
+	logger := plugin.Logger(ctx)
+	logger.Trace("listWellArchitectedWorkloads")
 
 	// Create session
-	svc, err := WellArchitectedService(ctx, d, region)
+	svc, err := WellArchitectedService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -216,14 +212,8 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 		id = quals["workload_id"].GetStringValue()
 	}
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := WellArchitectedService(ctx, d, region)
+	svc, err := WellArchitectedService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

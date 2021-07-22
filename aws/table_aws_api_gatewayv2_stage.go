@@ -154,18 +154,12 @@ type v2StageRowData = struct {
 //// LIST FUNCTION
 
 func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var stages []*apigatewayv2.Stage
 
-	plugin.Logger(ctx).Trace("listAPIGatewayV2Stages", "AWS_REGION", region)
+	// Get API details
 	apiGatewayv2API := h.Item.(*apigatewayv2.Api)
 
-	svc, err := APIGatewayV2Service(ctx, d, region)
+	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -202,15 +196,8 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayV2Stage")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d, region)
+	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +242,8 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
