@@ -224,16 +224,10 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsLambdaFunctions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsLambdaFunctions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -256,13 +250,6 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsLambdaFunction")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*lambda.FunctionConfiguration).FunctionName
@@ -271,7 +258,7 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -292,16 +279,11 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getFunctionPolicy")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	functionName := functionName(h.Item)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

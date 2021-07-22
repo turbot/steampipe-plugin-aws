@@ -104,16 +104,8 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAPIKeys", "AWS_REGION", region)
-
 	// Create service
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -136,14 +128,8 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIKey")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +150,9 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAPIKeysAkas")
 	item := h.Item.(*apigateway.ApiKey)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

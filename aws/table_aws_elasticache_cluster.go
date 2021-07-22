@@ -184,15 +184,8 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -214,16 +207,8 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	// create service
-	svc, err := ElastiCacheService(ctx, d, region)
+	// Create service
+	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -250,17 +235,10 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("listTagsForElastiCacheCluster")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	cluster := h.Item.(*elasticache.CacheCluster)
 
 	// Create session
-	svc, err := ElastiCacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

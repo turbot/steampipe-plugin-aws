@@ -110,12 +110,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2TransitGatewayVpcAttachment", "AWS_REGION", region)
 
 	// Create Session
@@ -143,12 +138,7 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2TransitGatewayVpcAttachment")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayAttachmentID := d.KeyColumnQuals["transit_gateway_attachment_id"].GetStringValue()
 
 	// Create Session
@@ -178,15 +168,15 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayVpcAttachmentAkas")
 	transitGatewayAttachment := h.Item.(*ec2.TransitGatewayAttachment)
 
-	commonColumnData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
-	commonData := commonColumnData.(*awsCommonColumnData)
+	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get the resource akas
-	akas := []string{"arn:" + commonData.Partition + ":ec2:" + commonData.Region + ":" + commonData.AccountId + ":transit-gateway-attachment/" + *transitGatewayAttachment.TransitGatewayAttachmentId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":transit-gateway-attachment/" + *transitGatewayAttachment.TransitGatewayAttachmentId}
 
 	return akas, nil
 }

@@ -139,16 +139,8 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEc2GatewayLoadBalancers", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,15 +164,8 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -205,16 +190,11 @@ func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 
 func getAwsEc2GatewayLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2GatewayLoadBalancerTags")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	gatewayLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -237,16 +217,11 @@ func getAwsEc2GatewayLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 
 func getAwsEc2GatewayLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2GatewayLoadBalancerAttributes")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	gatewayLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
