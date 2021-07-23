@@ -64,6 +64,7 @@ resource "aws_iam_role" "iam_emr_service_role" {
 }
 EOF
 }
+
 resource "aws_iam_role_policy" "iam_emr_service_policy" {
   name   = "${var.resource_name}_1"
   role   = aws_iam_role.iam_emr_service_role.id
@@ -132,6 +133,7 @@ resource "aws_iam_role_policy" "iam_emr_service_policy" {
 }
 EOF
 }
+
 resource "aws_iam_role" "iam_emr_profile_role" {
   name               = "${var.resource_name}_2"
   assume_role_policy = <<EOF
@@ -150,10 +152,12 @@ resource "aws_iam_role" "iam_emr_profile_role" {
 }
 EOF
 }
+
 resource "aws_iam_instance_profile" "emr_profile" {
   name = "var.resource_name"
   role = aws_iam_role.iam_emr_profile_role.name
 }
+
 resource "aws_iam_role_policy" "iam_emr_profile_policy" {
   name   = "${var.resource_name}_2"
   role   = aws_iam_role.iam_emr_profile_role.id
@@ -181,9 +185,11 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
 }
 EOF
 }
+
 resource "aws_vpc" "my_vpc" {
   cidr_block = "168.31.0.0/16"
 }
+
 resource "aws_security_group" "emr_master" {
   vpc_id                 = aws_vpc.my_vpc.id
   revoke_rules_on_delete = true
@@ -203,6 +209,7 @@ resource "aws_security_group" "emr_master" {
     ignore_changes = ["ingress", "egress"]
   }
 }
+
 resource "aws_subnet" "my_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "168.31.0.0/20"
