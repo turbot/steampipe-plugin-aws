@@ -161,14 +161,8 @@ type instanceGroupDetails = struct {
 //// LIST FUNCTION
 
 func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EmrService(ctx, d, region)
+	svc, err := EmrService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -196,10 +190,12 @@ func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	plugin.Logger(ctx).Trace("getEmrInstanceGroupARN")
 	data := h.Item.(instanceGroupDetails)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
+
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	arn := "arn:" + commonColumnData.Partition + ":emr:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":instance-group/" + *data.Id
