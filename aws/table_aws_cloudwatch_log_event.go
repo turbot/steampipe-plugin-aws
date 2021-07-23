@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -39,10 +40,12 @@ func tableAwsCloudwatchLogEvent(_ context.Context) *plugin.Table {
 			{Name: "log_stream_name", Type: proto.ColumnType_STRING, Description: "The name of the log stream to which this event belongs."},
 			{Name: "event_id", Type: proto.ColumnType_STRING, Description: "The ID of the event."},
 			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("Timestamp").Transform(transform.UnixMsToTimestamp), Description: "The time when the event occurred."},
-			{Name: "message", Type: proto.ColumnType_STRING, Transform: transform.FromField("Message").Transform(trim), Description: "The data contained in the log event."},
-			// Other columns
 			{Name: "ingestion_time", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("IngestionTime").Transform(transform.UnixMsToTimestamp), Description: "The time when the event was ingested."},
 			{Name: "filter", Type: proto.ColumnType_STRING, Transform: transform.FromQual("filter"), Description: "Filter pattern for the search."},
+			{Name: "message", Type: proto.ColumnType_STRING, Transform: transform.FromField("Message").Transform(trim), Description: "The data contained in the log event."},
+			{Name: "message_json", Type: proto.ColumnType_JSON, Transform: transform.FromField("Message").Transform(trim).Transform(cloudwatchLogsMesssageJson), Description: "The data contained in the log event in json format. Only if data is valid json string."},
+			// Other columns
+
 		}),
 	}
 }
@@ -143,4 +146,16 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	return nil, err
+}
+
+//// TRANSFORM FUNCTIONS
+
+func cloudwatchLogsMesssageJson(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	event := d.HydrateItem.(*cloudwatchlogs.FilteredLogEvent)
+	var eventMessage interface{}
+	err := json.Unmarshal([]byte(*event.Message), &eventMessage)
+	if err != nil {
+		return nil, nil
+	}
+	return eventMessage, nil
 }
