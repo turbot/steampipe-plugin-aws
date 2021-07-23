@@ -16,7 +16,7 @@ provider "turbot" {
 
 variable "aws_profile" {
   type    = string
-  default = "default"
+  default = "integration-tests"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 

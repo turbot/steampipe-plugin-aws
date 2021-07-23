@@ -125,11 +125,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
 	if region == "global" {
@@ -175,11 +171,7 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSet")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id, name, scope string
 	if h.Item != nil {
@@ -242,11 +234,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RegexPatternSet")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"
@@ -331,11 +319,7 @@ func regexPatternSetRegion(ctx context.Context, d *transform.TransformData) (int
 	data := regexPatternSetData(d.HydrateItem)
 	loc := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.MatrixItem[matrixKeyRegion]
 
 	if loc == "global" {
 		return "global", nil

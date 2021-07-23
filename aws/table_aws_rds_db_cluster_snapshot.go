@@ -175,16 +175,10 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRDSDBClusterSnapshots", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listRDSDBClusterSnapshots")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -205,16 +199,10 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	snapshotIdentifier := d.KeyColumnQuals["db_cluster_snapshot_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -236,16 +224,11 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRDSDBClusterSnapshotAttributes")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	dbClusterSnapshot := h.Item.(*rds.DBClusterSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +245,7 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 	return dbClusterSnapshotData, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	dbClusterSnapshot := d.HydrateItem.(*rds.DBClusterSnapshot)

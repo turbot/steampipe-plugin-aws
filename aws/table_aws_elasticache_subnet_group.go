@@ -74,15 +74,8 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d, region)
+	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -106,15 +99,8 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getElastiCacheSubnetGroup")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	// create service
-	svc, err := ElastiCacheService(ctx, d, region)
+	// Create service
+	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

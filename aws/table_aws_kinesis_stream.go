@@ -145,16 +145,8 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listStreams", "AWS_REGION", region)
-
 	// Create session
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -183,12 +175,6 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeStream")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
@@ -198,7 +184,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// get service
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -222,16 +208,10 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeStreamSummary")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -255,17 +235,10 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKinesisStreamTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// Create Session
-	svc, err := KinesisService(ctx, d, region)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

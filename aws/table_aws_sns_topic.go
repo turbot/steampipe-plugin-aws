@@ -137,16 +137,10 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSnsTopics", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSnsTopics")
 
 	// Create session
-	svc, err := SNSService(ctx, d, region)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -174,13 +168,6 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getTopicAttributes")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var arn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetTopicAttributesOutput)
@@ -190,7 +177,7 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, region)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +198,9 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForSnsTopic")
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, region)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

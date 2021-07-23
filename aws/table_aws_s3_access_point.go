@@ -137,22 +137,16 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3AccessPoints")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listS3AccessPoints", "AWS_REGION", region)
-
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, region)
+	svc, err := S3ControlService(ctx, d, commonColumnData.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +171,8 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	plugin.Logger(ctx).Trace("getS3AccessPoint")
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +217,8 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 	plugin.Logger(ctx).Trace("getS3AccessPointPolicyStatus")
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +255,8 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	plugin.Logger(ctx).Trace("getS3AccessPointPolicy")
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +293,8 @@ func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	accessPointName := accessPointName(h.Item)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

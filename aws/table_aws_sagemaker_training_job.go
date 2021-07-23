@@ -289,15 +289,10 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSageMakerTrainingJobs", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSageMakerTrainingJobs")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -318,12 +313,6 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*sagemaker.TrainingJobSummary).TrainingJobName
@@ -332,7 +321,7 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -354,16 +343,9 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSageMakerTrainingJobTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	arn := trainingJobArn(h.Item)
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

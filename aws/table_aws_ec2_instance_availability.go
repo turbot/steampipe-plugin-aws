@@ -100,7 +100,8 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 func getAwsInstanceAvailableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsInstanceAvailableAkas")
 	instanceType := h.Item.(*ec2.InstanceTypeOffering)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

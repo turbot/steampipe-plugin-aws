@@ -135,14 +135,8 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 
 	plugin.Logger(ctx).Trace("getCWMetricStatistics")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := CloudWatchService(ctx, d, region)
+	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

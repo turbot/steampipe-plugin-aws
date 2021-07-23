@@ -150,17 +150,10 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listLambdaVersions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listLambdaVersions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -185,16 +178,10 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 // do not have a get call
 // using list api call to create get function
 func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("getFunctionVersion", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("getFunctionVersion")
 
 	// Create service
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

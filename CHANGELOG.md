@@ -1,3 +1,26 @@
+## v0.26.0 [2021-07-22]
+
+_What's new?_
+
+- New tables added
+  - [aws_codecommit_repository](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codecommit_repository) ([#515](https://github.com/turbot/steampipe-plugin-aws/pull/515))
+  - [aws_ecs_service](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_service) ([#555](https://github.com/turbot/steampipe-plugin-aws/pull/555))
+
+_Enhancements_
+
+- Updated: Add column `arn` in `aws_vpc_nat_gateway` table ([#540](https://github.com/turbot/steampipe-plugin-aws/pull/540))
+- Updated: Add multi-account connection information and examples to index doc ([#565](https://github.com/turbot/steampipe-plugin-aws/pull/565))
+- Updated: Improve error message when connection config regions are not valid ([#558](https://github.com/turbot/steampipe-plugin-aws/pull/558))
+- Updated: Cleanup region selection in connection creation code for table modules ([#566](https://github.com/turbot/steampipe-plugin-aws/pull/566))
+- Recompiled plugin with [steampipe-plugin-sdk v1.4.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v141--2021-07-20)
+
+_Bug fixes_
+
+- Fixed: Connection creation is now retried when receiving reset by peer errors ([#557](https://github.com/turbot/steampipe-plugin-aws/pull/557))
+- Fixed: Fix plugin sometimes incorrectly selecting the wrong region from connection config ([#561](https://github.com/turbot/steampipe-plugin-aws/pull/561))
+- Fixed: Hydration now works for `created_at`, `name`, `title`, `updated_at`, and `version` columns in `aws_codepipeline_pipeline` table ([#537](https://github.com/turbot/steampipe-plugin-aws/pull/537))
+- Fixed: Several column descriptions in `aws_ecs_task_definition` table ([#541](https://github.com/turbot/steampipe-plugin-aws/pull/541))
+
 ## v0.25.0 [2021-07-08]
 
 _What's new?_

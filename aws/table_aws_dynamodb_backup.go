@@ -98,15 +98,8 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listDynamodbBackups", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -130,15 +123,10 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDynamodbBackup")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
