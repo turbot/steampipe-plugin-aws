@@ -88,15 +88,8 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listConfigConformancePacks", "AWS_REGION", region)
-
 	// Create session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -123,15 +116,8 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
-
 	// Create Session
-	svc, err := ConfigService(ctx, d, region)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -134,14 +134,8 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listEcsContainerInstances")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

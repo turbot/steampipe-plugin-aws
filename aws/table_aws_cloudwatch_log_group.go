@@ -87,16 +87,8 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCloudwatchLogGroups", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -118,10 +110,9 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -149,10 +140,9 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

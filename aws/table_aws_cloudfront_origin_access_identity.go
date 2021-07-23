@@ -142,7 +142,8 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 	plugin.Logger(ctx).Trace("getCloudFrontOriginAccessIdentityARN")
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

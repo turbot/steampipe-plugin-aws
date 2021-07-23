@@ -173,15 +173,8 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCloudFormationStacks", "AWS_REGION", region)
-
-	svc, err := CloudFormationService(ctx, d, region)
+	// Create session
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -201,11 +194,8 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFormationStack")
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, region)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,10 +221,9 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(*cloudformation.Stack)
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, region)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -254,10 +243,9 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(*cloudformation.Stack)
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, region)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

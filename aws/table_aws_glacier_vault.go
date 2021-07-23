@@ -122,20 +122,14 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := GlacierService(ctx, d, region)
+	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -162,16 +156,11 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	quals := d.KeyColumnQuals
 	vaultName := quals["vault_name"].GetStringValue()
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +169,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	accountID := commonColumnData.AccountId
 
 	// create service
-	svc, err := GlacierService(ctx, d, region)
+	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -202,18 +191,11 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("getGlacierVaultAccessPolicy")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	data := h.Item.(*glacier.DescribeVaultOutput)
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d, region)
+	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -240,18 +222,11 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getGlacierVaultLockPolicy")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	data := h.Item.(*glacier.DescribeVaultOutput)
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d, region)
+	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -278,18 +253,11 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	logger := plugin.Logger(ctx)
 	logger.Trace("listTagsForGlacierVault")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	data := h.Item.(*glacier.DescribeVaultOutput)
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d, region)
+	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

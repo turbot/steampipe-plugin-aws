@@ -126,15 +126,10 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -160,15 +155,10 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -192,15 +182,10 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	logger := plugin.Logger(ctx)
 	logger.Trace("listResolverEndpointIpAddresses")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +208,10 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverEndpointTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	resolverEndpintData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d, region)
+	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

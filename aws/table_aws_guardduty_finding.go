@@ -114,15 +114,8 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 
 // listGuardDutyFindings handles both listing and get the details of the findings.
 func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listGuardDutyDetectors", "AWS_REGION", region)
-
 	// Create session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
