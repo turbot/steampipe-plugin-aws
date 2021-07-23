@@ -211,14 +211,8 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -246,11 +240,6 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEcsTaskDefinition")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	var taskDefinitionArn string
 	if h.Item != nil {
@@ -261,7 +250,7 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

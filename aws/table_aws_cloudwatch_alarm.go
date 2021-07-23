@@ -198,15 +198,8 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCloudWatchAlarms", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CloudWatchService(ctx, d, region)
+	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -233,14 +226,8 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := CloudWatchService(ctx, d, region)
+	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -264,15 +251,10 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsCloudWatchAlarmTags")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	alarm := h.Item.(*cloudwatch.MetricAlarm)
 
 	// Create service
-	svc, err := CloudWatchService(ctx, d, region)
+	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -292,15 +274,15 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 //// TRANSFORM FUNCTIONS
 
 func getAwsCloudWatchAlarmTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	coudWatchAlarm := d.HydrateItem.(*cloudwatch.ListTagsForResourceOutput)
+	cloudWatchAlarm := d.HydrateItem.(*cloudwatch.ListTagsForResourceOutput)
 
-	if coudWatchAlarm.Tags == nil {
+	if cloudWatchAlarm.Tags == nil {
 		return nil, nil
 	}
 
-	if coudWatchAlarm.Tags != nil {
+	if cloudWatchAlarm.Tags != nil {
 		turbotTagsMap := map[string]string{}
-		for _, i := range coudWatchAlarm.Tags {
+		for _, i := range cloudWatchAlarm.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil

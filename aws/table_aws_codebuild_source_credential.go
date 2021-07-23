@@ -57,15 +57,8 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCodeBuildSourceCredentials", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CodeBuildService(ctx, d, region)
+	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

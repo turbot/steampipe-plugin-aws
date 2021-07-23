@@ -209,12 +209,11 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 
 func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	logger.Trace("listAwsAcmCertificates", "AWS_REGION", region)
 
 	// Create service
-	svc, err := ACMService(ctx, d, region)
+	svc, err := ACMService(ctx, d)
 	if err != nil {
+		logger.Trace("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
 
@@ -236,11 +235,10 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("getAwsAcmCertificateAttributes")
 
 	// Create session
-	svc, err := ACMService(ctx, d, region)
+	svc, err := ACMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -265,12 +263,11 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("getAwsAcmCertificateProperties")
 	item := h.Item.(*acm.CertificateDetail)
 
 	// Create session
-	svc, err := ACMService(ctx, d, region)
+	svc, err := ACMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -286,12 +283,11 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
 	plugin.Logger(ctx).Trace("listTagsForAcmCertificate")
 	item := h.Item.(*acm.CertificateDetail)
 
 	// Create session
-	svc, err := ACMService(ctx, d, region)
+	svc, err := ACMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

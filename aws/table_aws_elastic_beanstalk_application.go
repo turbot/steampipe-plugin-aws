@@ -102,16 +102,8 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsElasticBeanstalkApplications", "AWS_REGION", region)
-
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d, region)
+	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -137,15 +129,10 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsElasticBeanstalkApplication")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d, region)
+	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -169,16 +156,10 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsElasticBeanstalkApplicationTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	arn := *h.Item.(*elasticbeanstalk.ApplicationDescription).ApplicationArn
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d, region)
+	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

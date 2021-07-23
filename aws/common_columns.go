@@ -99,10 +99,7 @@ type awsCommonColumnData struct {
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	if plugin.GetMatrixItem(ctx)[matrixKeyRegion] != nil {
-		region = plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
 	}

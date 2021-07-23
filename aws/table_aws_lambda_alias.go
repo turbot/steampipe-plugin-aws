@@ -84,15 +84,9 @@ type aliasRowData = struct {
 //// LIST FUNCTION
 
 func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listLambdaAliases", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listLambdaAliases")
 
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -117,17 +111,11 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getLambdaAlias")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, region)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

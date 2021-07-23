@@ -75,16 +75,8 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listDynamboDbGlobalTables", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +97,6 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDynamboDbGlobalTable")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		data := h.Item.(*dynamodb.GlobalTableDescription)
@@ -121,7 +106,7 @@ func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d, region)
+	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
