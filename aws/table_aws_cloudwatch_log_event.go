@@ -60,14 +60,8 @@ func trim(_ context.Context, d *transform.TransformData) (interface{}, error) {
 
 func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

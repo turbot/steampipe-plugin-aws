@@ -223,16 +223,8 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 
 func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	// logger := plugin.Logger(ctx)
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
