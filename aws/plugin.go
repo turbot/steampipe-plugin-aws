@@ -137,6 +137,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_subnet_group":                                tableAwsElastiCacheSubnetGroup(ctx),
 			"aws_elasticsearch_domain":                                    tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster":                                             tableAwsEmrCluster(ctx),
+			"aws_emr_cluster_metric_isidle":                               tableAwsEmrClusterMetricIsidle(ctx),
 			"aws_emr_instance_group":                                      tableAwsEmrInstanceGroup(ctx),
 			"aws_eventbridge_rule":                                        tableAwsEventBridgeRule(ctx),
 			"aws_glacier_vault":                                           tableAwsGlacierVault(ctx),
