@@ -4,12 +4,12 @@ AWS CloudTrail is an AWS service that helps you enable governance, compliance, a
 
 CloudTrail can be configured with CloudWatch Logs to monitor your trail logs.
 
-This table reads cloudtrail events from a cloudwatch Log Group, that is configured to log events from a trail.
+This table reads CloudTrail events from a CloudWatch log group that is configured to log events from a trail.
 
 **Important Notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to use aws cloudwatch filters. Optional quals is supported for below columns:
+- This table supports optional quals. Queries with optional quals are optimised to use AWS CloudWatch filters. Optional quals is supported for below columns:
   - `log_stream_name`
   - `filter`
   - `region`
@@ -129,7 +129,7 @@ order by
   event_time asc;
 ```
 
-### List api request that were not successfully executed.
+### List API requests that were not successfully executed
 
 ```sql
 select
@@ -154,9 +154,9 @@ order by
 
 ### Use `filter` qual to search for specific events
 
-Please refer [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples
+Please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples.
 
-###### Filter events for api requests from a specific ip address
+#### Filter events for API requests from a specific IP address
 
 ```sql
 select
