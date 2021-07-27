@@ -5,7 +5,7 @@ This table list events from a Cloudwatch log group.
 **Important Notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to used aws cloudwatch filters. Optional quals is supported for below columns:
+- This table supports optional quals. Queries with optional quals are optimised to used AWS CloudWatch filters. Optional quals is supported for below columns:
   - `log_stream_name`
   - `filter`
   - `region`
@@ -13,8 +13,8 @@ This table list events from a Cloudwatch log group.
 
 **Similar Tables**
 
-- [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event) - To get details of VPC flow log events from Cloudwatch logs.
-- [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event) - To get details of CloudTrail events from Cloudwatch logs.
+- [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event) - To get details of VPC flow log events from CloudWatch logs.
+- [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event) - To get details of CloudTrail events from CloudWatch logs.
 
 ## Examples
 
