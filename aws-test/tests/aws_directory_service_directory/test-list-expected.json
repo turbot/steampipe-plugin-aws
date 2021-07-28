@@ -1,6 +1,6 @@
 [ 
   {
-    "aka": ["{{ output.resource_aka.value }}"],
+    "akas": ["{{ output.resource_aka.value }}"],
     "name": "{{ resourceName }}.com",
     "title": "{{ resourceName }}.com"
   }
