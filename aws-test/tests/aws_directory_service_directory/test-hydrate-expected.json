@@ -1,1 +1,10 @@
-[]
+[  
+  {
+    "aka": ["{{ output.resource_aka.value }}"],
+    "name": "{{ resourceName }}.com",
+    "tags": {
+      "Name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}.com"
+  }
+]
