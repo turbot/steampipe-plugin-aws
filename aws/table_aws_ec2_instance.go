@@ -582,9 +582,13 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
 			// User initiated (2019-09-12 16:38:34 GMT)
 			regexExp := regexp.MustCompile(`\((.*?) *\)`)
-			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)[1]
-			stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
-			return stateTransitionTimeInUTC, nil
+			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)
+			if len(stateTransitionTime) >= 1 {
+				stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime[1], " ", "T", 1), " GMT", "Z", 1)
+				return stateTransitionTimeInUTC, nil
+			} else {
+				return data.LaunchTime, nil
+			}
 		}
 	}
 	return data.LaunchTime, nil
