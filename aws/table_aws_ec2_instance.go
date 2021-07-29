@@ -577,12 +577,15 @@ func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (i
 
 func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*ec2.Instance)
-	if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
-		// User initiated (2019-09-12 16:38:34 GMT)
-		regexExp := regexp.MustCompile(`\((.*?) *\)`)
-		stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)[1]
-		stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
-		return stateTransitionTimeInUTC, nil
+
+	if *data.StateTransitionReason != "" {
+		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
+			// User initiated (2019-09-12 16:38:34 GMT)
+			regexExp := regexp.MustCompile(`\((.*?) *\)`)
+			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)[1]
+			stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime, " ", "T", 1), " GMT", "Z", 1)
+			return stateTransitionTimeInUTC, nil
+		}
 	}
 	return data.LaunchTime, nil
 }
