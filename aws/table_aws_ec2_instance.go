@@ -586,9 +586,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 			if len(stateTransitionTime) >= 1 {
 				stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime[1], " ", "T", 1), " GMT", "Z", 1)
 				return stateTransitionTimeInUTC, nil
-			} else {
-				return data.LaunchTime, nil
-			}
+			} 
 		}
 	}
 	return data.LaunchTime, nil
