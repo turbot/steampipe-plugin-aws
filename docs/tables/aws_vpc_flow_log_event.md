@@ -72,3 +72,55 @@ where
   log_group_name = 'my-vpc-logs'
   and action = 'REJECT';
 ```
+
+## Filter Examples
+
+For more information on CloudWatch log filters, please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
+
+### List flow logs with traffic between specific IP addresses
+
+```sql
+select
+  log_group_name,
+  log_stream_name,
+  log_status,
+  action,
+  ingestion_time,
+  timestamp,
+  interface_id,
+  interface_account_id,
+  src_addr,
+  region
+from
+  aws_vpc_flow_log_event
+where
+  log_group_name = 'vpc_flow_logs_vpc-ba23a1d5'
+  and log_stream_name = 'eni-1d47d21d-all'
+  and (src_addr = '10.85.14.210' or dst_addr = '10.85.14.213')
+order by
+  timestamp;
+```
+
+###  List flow logs with source IP address in a specific range
+
+```sql
+select
+  log_group_name,
+  log_stream_name,
+  log_status,
+  action,
+  ingestion_time,
+  timestamp,
+  interface_id,
+  interface_account_id,
+  src_addr,
+  region
+from
+  aws_vpc_flow_log_event
+where
+  log_group_name = 'vpc_flow_logs_vpc-ba23a1d5'
+  and log_stream_name = 'eni-1d47d21d-all'
+  and src_addr << '10.0.0.0/8'::inet
+order by
+  timestamp;
+```
