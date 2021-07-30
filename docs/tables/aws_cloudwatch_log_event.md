@@ -34,6 +34,7 @@ from
 where
   log_group_name = '/aws/lambda/myfunction';
 ```
+
 ## Filter Examples
 
 For more information on CloudWatch log filters, please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
