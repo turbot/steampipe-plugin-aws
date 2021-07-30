@@ -21,10 +21,11 @@ func tableAwsCloudtrailTrail(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
 			Hydrate:           getCloudtrailTrail,
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException", "TrailNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException", "TrailNotFoundException", "CloudTrailARNInvalidException"}),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listCloudtrailTrails,
+			Hydrate:           listCloudtrailTrails,
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidTrailNameException", "TrailNotFoundException", "CloudTrailARNInvalidException"}),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
