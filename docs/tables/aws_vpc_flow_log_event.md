@@ -1,13 +1,13 @@
 # Table: aws_vpc_flow_log_event
 
-VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC.
+VPC flow logs capture information about the IP traffic going to and from network interfaces in your VPC.
 
-This table reads vpc flow logs from a Cloudwatch log group, that is configured to log traffic.
+This table reads flow log records from CloudWatch log groups.
 
-**Important Notes:**
+**Important notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to used aws cloudwatch filters. Optional quals is supported for below columns:
+- This table supports optional quals. Queries with optional quals are optimised to used CloudWatch filters. Optional quals are supported for the following columns:
   - `log_stream_name`
   - `filter`
   - `region`
@@ -38,23 +38,23 @@ select
   src_addr,
   region
 from
-  aa_osborn_east2.aws_vpc_flow_log_event
+  aws_vpc_flow_log_event
 where
   log_group_name = 'my-vpc-logs';
 ```
 
-### List distinct interface ids for flow logs
+### List distinct interface IDs found in all flow logs
 
 ```sql
 select
   distinct(interface_id)
 from
-  aa_osborn_east2.aws_vpc_flow_log_event
+  aws_vpc_flow_log_event
 where
   log_group_name = 'my-vpc-logs';
 ```
 
-### List details for the rejected traffic
+### Get details for all rejected traffic
 
 ```sql
 select
@@ -67,7 +67,7 @@ select
   dst_addr,
   dst_port
 from
-  aa_osborn_east2.aws_vpc_flow_log_event
+  aws_vpc_flow_log_event
 where
   log_group_name = 'my-vpc-logs'
   and action = 'REJECT';
