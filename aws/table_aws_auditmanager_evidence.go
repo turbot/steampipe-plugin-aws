@@ -255,7 +255,7 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 
 //// HYDRATE FUNCTIONS
 
-func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
