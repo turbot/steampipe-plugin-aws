@@ -8,18 +8,18 @@ This table reads flow log records from CloudWatch log groups.
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
 - This table supports optional quals. Queries with optional quals are optimised to used CloudWatch filters. Optional quals are supported for the following columns:
-  - `log_stream_name`
-  - `filter`
-  - `region`
-  - `timestamp`
   - `action`
   - `dst_addr`
   - `dst_port`
   - `event_id`
+  - `filter`
   - `interface_id`
   - `log_status`
+  - `log_stream_name`
+  - `region`
   - `src_addr`
   - `src_port`
+  - `timestamp`
 
 ## Examples
 
