@@ -1,13 +1,13 @@
 # Table: aws_cloudwatch_log_event
 
-This table list events from a Cloudwatch log group.
+This table lists events from a CloudWatch log group.
 
-**Important Notes:**
+**Important notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to used AWS CloudWatch filters. Optional quals is supported for below columns:
-  - `log_stream_name`
+- This table supports optional quals. Queries with optional quals are optimised to used CloudWatch filters. Optional quals are supported for the following columns:
   - `filter`
+  - `log_stream_name`
   - `region`
   - `timestamp`
 
