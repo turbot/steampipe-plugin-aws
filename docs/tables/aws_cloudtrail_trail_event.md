@@ -150,11 +150,11 @@ order by
   event_time asc;
 ```
 
-### Use `filter` qual to search for specific events
+## Filter Examples
 
-Please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples.
+For more information on CloudWatch log filters, please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
 
-#### Filter events originating from a specific IP address range
+#### List events originating from a specific IP address range
 
 ```sql
 select
