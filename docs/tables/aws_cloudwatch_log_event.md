@@ -1,5 +1,7 @@
 # Table: aws_cloudwatch_log_event
 
+A log group is a group of log streams that share the same retention, monitoring, and access control settings. Log streams contain sequences of log events that share the same source.
+
 This table lists events from a CloudWatch log group.
 
 **Important notes:**
@@ -11,10 +13,9 @@ This table lists events from a CloudWatch log group.
   - `region`
   - `timestamp`
 
-**Similar Tables**
-
-- [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event) - To get details of VPC flow log events from CloudWatch logs.
-- [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event) - To get details of CloudTrail events from CloudWatch logs.
+The following tables also retrieve data from CloudWatch log groups, but have columns specific to the log type for easier querying:
+- [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event)
+- [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event)
 
 ## Examples
 
@@ -32,4 +33,26 @@ from
   aws_cloudwatch_log_event
 where
   log_group_name = '/aws/lambda/myfunction';
+```
+## Filter Examples
+
+Please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples.
+
+### List events for the last 1 hour
+
+```sql
+select
+  log_group_name,
+  log_stream_name,
+  event_id,
+  timestamp,
+  ingestion_time,
+  message
+from
+  aws_cloudwatch_log_event
+where
+  log_group_name = '/aws/lambda/myfunction' and
+  timestamp > ('now'::timestamp - interval '1 hr')
+order by
+  event_time asc;
 ```
