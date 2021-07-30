@@ -1,32 +1,30 @@
 # Table: aws_cloudtrail_trail_event
 
-AWS CloudTrail is an AWS service that helps you enable governance, compliance, and operational and risk auditing of your AWS account. Actions taken by a user, role, or an AWS service are recorded as events in CloudTrail. Events include actions taken in the AWSManagement Console, AWS Command Line Interface, and AWS SDKs and APIs.
+AWS CloudTrail is an AWS service that helps you enable governance, compliance, and operational and risk auditing of your AWS account. Actions taken by a user, role, or an AWS service are recorded as events in CloudTrail. These events can be sent to a CloudWatch log group to allow for easy monitoring.
 
-CloudTrail can be configured with CloudWatch Logs to monitor your trail logs.
+This table reads CloudTrail event data from a CloudWatch log group that is configured to log events from a trail.
 
-This table reads CloudTrail events from a CloudWatch log group that is configured to log events from a trail.
-
-**Important Notes:**
+**Important notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to use AWS CloudWatch filters. Optional quals is supported for below columns:
-  - `log_stream_name`
-  - `filter`
-  - `region`
-  - `timestamp`
+- This table supports optional quals. Queries with optional quals are optimised to use CloudWatch filters. Optional quals are supported for the following columns:
+  - `access_key_id`
+  - `aws_region` (region of the event, useful in case of multi-region trails)
+  - `error_code`
   - `event_category`
   - `event_id`
-  - `aws_region` (i.e. region of the event, useful in case of multi-region trails)
-  - `source_ip_address`
-  - `error_code`
   - `event_name`
-  - `username`
   - `event_source`
-  - `access_key_id`
+  - `filter`
+  - `log_stream_name`
+  - `region`
+  - `source_ip_address`
+  - `timestamp`
+  - `username`
 
 ## Examples
 
-### List all action events (i.e not ReadOnly)
+### List all action events, i.e., not ReadOnly
 
 ```sql
 select
@@ -46,7 +44,7 @@ order by
   event_time asc;
 ```
 
-### List events for a specific service
+### List events for a specific service (IAM)
 
 ```sql
 select
@@ -66,7 +64,7 @@ order by
   event_time asc;
 ```
 
-### List events for an IAM user
+### List events for an IAM user (steampipe)
 
 ```sql
 select
@@ -82,7 +80,7 @@ from
   aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-logs-013122550996-77246e11' and
-  username = 'lalit'
+  username = 'steampipe'
 order by
   event_time asc;
 ```
@@ -108,7 +106,7 @@ order by
   event_time asc;
 ```
 
-### List events performed using assumed role
+### List events performed with an assumed role
 
 ```sql
 select
@@ -129,7 +127,7 @@ order by
   event_time asc;
 ```
 
-### List API requests that were not successfully executed
+### List events that were not successfully executed
 
 ```sql
 select
@@ -156,7 +154,7 @@ order by
 
 Please refer to [Filter Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html) for filter examples.
 
-#### Filter events for API requests from a specific IP address
+#### Filter events originating from a specific IP address range
 
 ```sql
 select
