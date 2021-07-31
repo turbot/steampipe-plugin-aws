@@ -1,3 +1,20 @@
+## v0.27.0 [2021-07-31]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event) ([#564](https://github.com/turbot/steampipe-plugin-aws/pull/564))
+  - [aws_cloudwatch_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_log_event) ([#564](https://github.com/turbot/steampipe-plugin-aws/pull/564))
+  - [aws_ecs_cluster_metric_cpu_utilization](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_cluster_metric_cpu_utilization) ([#563](https://github.com/turbot/steampipe-plugin-aws/pull/563))
+  - [aws_ecs_cluster_metric_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_cluster_metric_cpu_utilization_daily) ([#563](https://github.com/turbot/steampipe-plugin-aws/pull/563))
+  - [aws_ecs_cluster_metric_cpu_utilization_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_cluster_metric_cpu_utilization_hourly) ([#563](https://github.com/turbot/steampipe-plugin-aws/pull/563))
+  - [aws_emr_instance_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_instance_group) ([#562](https://github.com/turbot/steampipe-plugin-aws/pull/562))
+  - [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event) ([#564](https://github.com/turbot/steampipe-plugin-aws/pull/564))
+
+_Bug fixes_
+
+- Fixed: `aws_ec2_instance` table should not panic when hydrating `state_transition_time` column if there is no state transition reason ([#574](https://github.com/turbot/steampipe-plugin-aws/pull/574))
+
 ## v0.26.0 [2021-07-22]
 
 _What's new?_
