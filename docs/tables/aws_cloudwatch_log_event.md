@@ -55,5 +55,5 @@ where
   log_group_name = '/aws/lambda/myfunction' and
   timestamp > ('now'::timestamp - interval '1 hr')
 order by
-  event_time asc;
+  timestamp asc;
 ```
