@@ -168,4 +168,3 @@ output "account_id" {
 output "resource_name" {
   value = var.resource_name
 }
-

@@ -10,11 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
-// type ClusterNameWithConfig struct {
-// 	ClusterName *string
-// 	*eks.IdentityProviderConfig
-// }
-
 type IdentityProviderConfig struct {
 	Name *string
 	Type *string
@@ -33,7 +28,7 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEksClusters,
-			Hydrate:       listEksIdentityProviderConfig,
+			Hydrate:       listEksIdentityProviderConfigs,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -41,13 +36,17 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the identity provider configuration.",
 				Type:        proto.ColumnType_STRING,
-				// Transform:   transform.FromP(getAwsEksProviderConfigNameAndType, "Name"),
 			},
 			{
 				Name:        "type",
 				Description: "The type of the identity provider configuration.",
 				Type:        proto.ColumnType_STRING,
-				// Transform:   transform.FromP(getAwsEksProviderConfigNameAndType, "Type"),
+			},
+			{
+				Name:        "client_id",
+				Description: "This is also known as audience. The ID of the client application that makes authentication requests to the OIDC identity provider.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksIdentityProviderConfig,
 			},
 			{
 				Name:        "cluster_name",
@@ -80,9 +79,9 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 				Hydrate:     getEksIdentityProviderConfig,
 			},
 			{
-				Name:        "required_claims",
-				Description: "The key-value pairs that describe required claims in the identity token.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "username_claim",
+				Description: "The JSON Web token (JWT) claim that is used as the username.",
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksIdentityProviderConfig,
 			},
 			{
@@ -92,23 +91,23 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 				Hydrate:     getEksIdentityProviderConfig,
 			},
 			{
+				Name:        "username_prefix",
+				Description: "The prefix that is prepended to username claims to prevent clashes with existing names.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEksIdentityProviderConfig,
+			},
+			{
+				Name:        "required_claims",
+				Description: "The key-value pairs that describe required claims in the identity token.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEksIdentityProviderConfig,
+			},
+			{
 				Name:        "tags_src",
 				Description: "The metadata to apply to the provider configuration to assist with categorization and organization.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksIdentityProviderConfig,
 				Transform:   transform.FromField("Tags"),
-			},
-			{
-				Name:        "username_claim",
-				Description: "The JSON Web token (JWT) claim that is used as the username.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksIdentityProviderConfig,
-			},
-			{
-				Name:        "username_prefix",
-				Description: "The JSON Web token (JWT) claim that is used as the username.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksIdentityProviderConfig,
 			},
 
 			// Standard columns for all tables
@@ -138,7 +137,7 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get Eks Cluster details
 	cluster := h.Item.(*eks.Cluster)
 
@@ -180,7 +179,6 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
 		providerConfigName = d.KeyColumnQuals["name"].GetStringValue()
 		providerConfigType = d.KeyColumnQuals["type"].GetStringValue()
-
 	}
 
 	// create service
@@ -208,21 +206,3 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 		*op.IdentityProviderConfig.Oidc,
 	}, nil
 }
-
-//// TRANSFORM FUNCTIONS
-
-// func getAwsEksProviderConfigNameAndType(_ context.Context, d *transform.TransformData) (interface{},
-// 	error) {
-// 	configProvider := d.HydrateItem.(ClusterNameWithConfig)
-
-// 	if configProvider.Name == nil {
-// 		return nil, nil
-// 	}
-// 	if d.Param.(string) == "Name" {
-// 		return configProvider.Name, nil
-// 	} else if d.Param.(string) == "Type" {
-// 		return configProvider.Type, nil
-// 	} else {
-// 		return nil, nil
-// 	}
-// }
