@@ -321,11 +321,6 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	// List resource tags
 	item, err := svc.GetTrailStatus(params)
 	if err != nil {
-		// if awsErr, ok := err.(awserr.Error); ok {
-		// 	if awsErr.Code() == "TrailNotFoundException" {
-		// 		return nil, nil
-		// 	}
-		// }
 		return nil, err
 	}
 	return item, nil
@@ -368,11 +363,6 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	// List resource tags
 	item, err := svc.GetEventSelectors(params)
 	if err != nil {
-		// if awsErr, ok := err.(awserr.Error); ok {
-		// 	if awsErr.Code() == "TrailNotFoundException" {
-		// 		return nil, nil
-		// 	}
-		// }
 		return nil, err
 	}
 	return item, nil
@@ -390,10 +380,12 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	trail := h.Item.(*cloudtrail.Trail)
 
+	var traiTag []*cloudtrail.Tag
+
 	// Avoid api call if accountId is not equal to the accountId available in arn
 	accountId := arnToAccountId(*trail.TrailARN)
 	if commonColumnData.AccountId != accountId {
-		return nil, nil
+		return traiTag, nil
 	}
 
 	// Avoid api call if home_region is not equal to current region
@@ -401,7 +393,6 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if region != homeRegion {
 		return []*cloudtrail.Tag{}, nil
 	}
-	//var trailTag []*cloudtrail.Tag
 
 	// Create session
 	svc, err := CloudTrailService(ctx, d)
@@ -415,11 +406,6 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	resp, err := svc.ListTags(params)
 	if err != nil {
-		// if awsErr, ok := err.(awserr.Error); ok {
-		// 	if awsErr.Code() == "CloudTrailARNInvalidException" {
-		// 		return trailTag, nil
-		// 	}
-		// }
 		return nil, err
 	}
 
