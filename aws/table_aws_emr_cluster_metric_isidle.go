@@ -14,10 +14,10 @@ import (
 func tableAwsEmrClusterMetricIsidle(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_emr_cluster_metric_isidle",
-		Description: "AWS EMR Cluster Cloudwatch Metrics - IsIdle",
+		Description: "AWS EMR Cluster Cloudwatch Metrics - Isidle",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEmrClusters,
-			Hydrate:       listEmrClusterMetricIsIdle,
+			Hydrate:       listEmrClusterMetricIsidle,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
@@ -32,7 +32,7 @@ func tableAwsEmrClusterMetricIsidle(_ context.Context) *plugin.Table {
 	}
 }
 
-func listEmrClusterMetricIsIdle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEmrClusterMetricIsidle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*emr.ClusterSummary)
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ElasticMapReduce", "IsIdle", "JobFlowId", *data.Id)
 }
