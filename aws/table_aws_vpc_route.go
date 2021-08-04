@@ -178,9 +178,12 @@ func getAwsVpcRouteTurbotData(ctx context.Context, d *plugin.QueryData, h *plugi
 	if routeData.Route.DestinationCidrBlock != nil {
 		title = *routeData.RouteTableID + "_" + *routeData.Route.DestinationCidrBlock
 		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationCidrBlock}
-	} else {
+	} else if routeData.Route.DestinationIpv6CidrBlock != nil {
 		title = *routeData.RouteTableID + "_" + *routeData.Route.DestinationIpv6CidrBlock
 		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationIpv6CidrBlock}
+	} else {
+		title = *routeData.RouteTableID
+		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID}
 	}
 
 	// Mapping all turbot defined properties
