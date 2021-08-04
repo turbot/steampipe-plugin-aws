@@ -1,3 +1,16 @@
+## v0.28.0 [2021-08-04]
+
+_What's new?_
+
+- New tables added
+  - [aws_emr_cluster_metric_isidle](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_cluster_metric_isidle) ([#570](https://github.com/turbot/steampipe-plugin-aws/pull/570))
+
+_Bug fixes_
+
+- Fixed: Exception handling for organization trail arn in `aws_cloud_trail` ([#578](https://github.com/turbot/steampipe-plugin-aws/pull/578))
+
+- Fixed: Panic run time error in hydrate function getAwsVpcRouteTurbotData for `aws_vpc_route` ([#581](https://github.com/turbot/steampipe-plugin-aws/pull/581))
+
 ## v0.27.0 [2021-07-31]
 
 _What's new?_
