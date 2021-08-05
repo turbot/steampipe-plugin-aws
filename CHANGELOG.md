@@ -3,7 +3,7 @@
 _What's new?_
 
 - New tables added
-  - [aws_emr_cluster_metric_isidle](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_cluster_metric_isidle) ([#570](https://github.com/turbot/steampipe-plugin-aws/pull/570))
+  - [aws_emr_cluster_metric_is_idle](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_cluster_metric_is_idle) ([#570](https://github.com/turbot/steampipe-plugin-aws/pull/570))
 
 _Bug fixes_
 
