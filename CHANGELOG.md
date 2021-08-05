@@ -1,3 +1,15 @@
+## v0.28.0 [2021-08-05]
+
+_What's new?_
+
+- New tables added
+  - [aws_emr_cluster_metric_is_idle](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_cluster_metric_is_idle) ([#570](https://github.com/turbot/steampipe-plugin-aws/pull/570))
+
+_Bug fixes_
+
+- Fixed: `aws_cloudtrail_trail` table is now smarter when hydrating data for shadow trails (global and organization) ([#578](https://github.com/turbot/steampipe-plugin-aws/pull/578))
+- Fixed: Route tables with IPv6 routes no longer cause queries to fail in the `aws_vpc_route` table ([#581](https://github.com/turbot/steampipe-plugin-aws/pull/581))
+
 ## v0.27.0 [2021-07-31]
 
 _What's new?_
