@@ -136,6 +136,7 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*redshift.ClusterSubnetGroup)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -144,7 +145,7 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
 
 	// Get data for turbot defined properties
 	akas := []string{arn}

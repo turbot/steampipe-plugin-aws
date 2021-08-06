@@ -209,7 +209,7 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")
 	volume := h.Item.(*ec2.Volume)
-	
+
 	// Table is currently failing with error `Error: region must be passed Ec2Service`
 	// While `LIST` and `GET` function are working
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -260,6 +260,7 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEBSVolumeARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	volume := h.Item.(*ec2.Volume)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -269,7 +270,7 @@ func getEBSVolumeARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":volume/" + *volume.VolumeId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":volume/" + *volume.VolumeId
 
 	return arn, nil
 }

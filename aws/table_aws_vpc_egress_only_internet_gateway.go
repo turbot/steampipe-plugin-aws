@@ -125,6 +125,7 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 
 func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGatewayTurbotAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	egw := h.Item.(*ec2.EgressOnlyInternetGateway)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -134,7 +135,7 @@ func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.Qu
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get resource aka
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":egress-only-internet-gateway/" + *egw.EgressOnlyInternetGatewayId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":egress-only-internet-gateway/" + *egw.EgressOnlyInternetGatewayId}
 
 	return akas, nil
 }

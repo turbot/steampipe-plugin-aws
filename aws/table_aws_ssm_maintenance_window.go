@@ -214,6 +214,7 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -221,7 +222,7 @@ func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *id
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *id
 
 	return []string{aka}, nil
 }

@@ -168,6 +168,7 @@ func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSsmManagedInstanceARN")
 	data := h.Item.(*ssm.InstanceInformation)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -176,7 +177,7 @@ func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.InstanceId
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.InstanceId
 
 	return arn, nil
 }

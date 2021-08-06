@@ -178,6 +178,7 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 
 func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRestAPITurbotData")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	item := h.Item.(*apigateway.RestApi)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -188,7 +189,7 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/restapis/" + *item.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/restapis/" + *item.Id}
 
 	return akas, nil
 }

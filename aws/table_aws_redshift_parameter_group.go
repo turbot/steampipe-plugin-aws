@@ -165,6 +165,7 @@ func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRedshiftParameterGroupAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(*redshift.ClusterParameterGroup)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -173,7 +174,7 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":parametergroup"
+	aka := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":parametergroup"
 
 	if strings.HasPrefix(*parameterData.ParameterGroupName, ":") {
 		aka = aka + *parameterData.ParameterGroupName

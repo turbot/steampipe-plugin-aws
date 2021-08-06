@@ -191,6 +191,7 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func getVpcEndpointAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEndpointAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	vpcEndpoint := h.Item.(*ec2.VpcEndpoint)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -199,7 +200,7 @@ func getVpcEndpointAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc-endpoint/" + *vpcEndpoint.VpcEndpointId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpc-endpoint/" + *vpcEndpoint.VpcEndpointId}
 
 	return akas, nil
 }

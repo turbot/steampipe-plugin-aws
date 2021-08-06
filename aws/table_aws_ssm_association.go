@@ -244,6 +244,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSSMAssociationARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	associationData := associationID(h.Item)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -251,7 +252,7 @@ func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":association/" + associationData
 
 	return arn, nil
 }

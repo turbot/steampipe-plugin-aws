@@ -132,6 +132,7 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getUsagePlanAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	usagePlan := h.Item.(*apigateway.UsagePlan)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -141,7 +142,7 @@ func getUsagePlanAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/usageplans/" + *usagePlan.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/usageplans/" + *usagePlan.Id}
 
 	return akas, nil
 }

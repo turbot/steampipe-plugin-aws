@@ -257,6 +257,7 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getAPIGatewayV2IntegrationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(integrationInfo)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -265,7 +266,7 @@ func getAPIGatewayV2IntegrationARN(ctx context.Context, d *plugin.QueryData, h *
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId
+	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + data.ApiId + "/integrations/" + *data.IntegrationId
 
 	return arn, nil
 }

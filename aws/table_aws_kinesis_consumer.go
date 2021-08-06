@@ -75,6 +75,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	streamData := *h.Item.(*kinesis.DescribeStreamOutput)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -84,7 +85,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":stream" + "/" + *streamData.StreamDescription.StreamName
+	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + *streamData.StreamDescription.StreamName
 
 	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
 

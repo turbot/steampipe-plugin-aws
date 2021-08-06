@@ -149,6 +149,7 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAPIKeysAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	item := h.Item.(*apigateway.ApiKey)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -158,7 +159,7 @@ func getAwsAPIKeysAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apikeys/" + *item.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apikeys/" + *item.Id}
 
 	return akas, nil
 }

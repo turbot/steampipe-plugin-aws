@@ -101,6 +101,7 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAddonVersionAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	version := h.Item.(addonVersion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -110,7 +111,7 @@ func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":eks:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":addonversion/" + *version.AddonName + "/" + *version.AddonVersion}
+	akas := []string{"arn:" + commonColumnData.Partition + ":eks:" + region + ":" + commonColumnData.AccountId + ":addonversion/" + *version.AddonName + "/" + *version.AddonVersion}
 
 	return akas, nil
 }

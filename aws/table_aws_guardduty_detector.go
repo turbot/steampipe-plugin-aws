@@ -163,6 +163,7 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGuardDutyDetectorARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(detectorInfo)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -171,7 +172,7 @@ func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
+	arn := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
 
 	return arn, nil
 }

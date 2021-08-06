@@ -166,6 +166,7 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBackupSelectionARN")
 
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := selectionID(h.Item)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -176,7 +177,7 @@ func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	arn := "arn:" + commonColumnData.Partition + ":backup:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":backup-plan:" + data["PlanID"] + "/selection/" + data["SelectionID"]
+	arn := "arn:" + commonColumnData.Partition + ":backup:" + region + ":" + commonColumnData.AccountId + ":backup-plan:" + data["PlanID"] + "/selection/" + data["SelectionID"]
 
 	return arn, nil
 }
