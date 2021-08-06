@@ -234,6 +234,11 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getHostedZoneDNSSEC")
 	hostedZone := h.Item.(*route53.HostedZone)
 
+	// Operation is unsupported for private hosted zones.
+	if *hostedZone.Config.PrivateZone {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
