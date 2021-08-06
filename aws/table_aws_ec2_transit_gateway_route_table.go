@@ -19,7 +19,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Transit Gateway Route Table",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableId.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
 			Hydrate:           getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
