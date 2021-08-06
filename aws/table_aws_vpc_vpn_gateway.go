@@ -140,6 +140,8 @@ func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcVpnGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcVpnGatewayTurbotAkas")
 	vpnGateway := h.Item.(*ec2.VpnGateway)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -148,7 +150,7 @@ func getVpcVpnGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpn-gateway/" + *vpnGateway.VpnGatewayId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpn-gateway/" + *vpnGateway.VpnGatewayId}
 
 	return akas, nil
 }
