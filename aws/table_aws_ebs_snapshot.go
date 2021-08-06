@@ -223,6 +223,7 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 
 func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotData := h.Item.(*ec2.Snapshot)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -232,7 +233,7 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// Get the resource arn
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
 
 	return arn, nil
 }

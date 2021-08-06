@@ -105,7 +105,6 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	plugin.Logger(ctx).Trace("getCommonColumns", "region", region)
 
-	cacheKey := "commonColumnData" + region
 	var commonColumnData *awsCommonColumnData
 	getCallerIdentityCached := plugin.HydrateFunc(getCallerIdentity).WithCache()
 	getCallerIdentityData, err := getCallerIdentityCached(ctx, d, h)
@@ -120,9 +119,6 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		AccountId: *callerIdentity.Account,
 		Region:    region,
 	}
-
-	// save to extension cache
-	d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
 
 	return commonColumnData, nil
 }

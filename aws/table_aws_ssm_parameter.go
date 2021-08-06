@@ -257,6 +257,7 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMParameterAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -264,7 +265,7 @@ func getAwsSSMParameterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":parameter"
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":parameter"
 
 	if strings.HasPrefix(*parameterData.Name, "/") {
 		aka = aka + *parameterData.Name

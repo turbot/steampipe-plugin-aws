@@ -125,7 +125,7 @@ data "local_file" "input" {
 
 output "arn" {
   depends_on = [null_resource.list_compliance]
-  value      = "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:managed-instance-compliance/${jsondecode(data.local_file.input.content).ComplianceItems[0].Id}"
+  value      = "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:managed-instance/${aws_instance.named_test_resource.id}/compliance-item/${jsondecode(data.local_file.input.content).ComplianceItems[0].Id}:${jsondecode(data.local_file.input.content).ComplianceItems[0].ComplianceType}"
 }
 
 output "resource_id" {

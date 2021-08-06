@@ -374,6 +374,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2InstanceARN")
 	instance := h.Item.(*ec2.Instance)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -382,7 +383,7 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":instance/" + *instance.InstanceId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":instance/" + *instance.InstanceId
 
 	return arn, nil
 }
@@ -586,7 +587,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 			if len(stateTransitionTime) >= 1 {
 				stateTransitionTimeInUTC := strings.Replace(strings.Replace(stateTransitionTime[1], " ", "T", 1), " GMT", "Z", 1)
 				return stateTransitionTimeInUTC, nil
-			} 
+			}
 		}
 	}
 	return data.LaunchTime, nil

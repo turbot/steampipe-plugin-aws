@@ -280,6 +280,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2NetworkInterfaceTurbotData")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	networkInterface := h.Item.(*ec2.NetworkInterface)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -289,7 +290,7 @@ func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":network-interface/" + *networkInterface.NetworkInterfaceId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":network-interface/" + *networkInterface.NetworkInterfaceId}
 
 	return akas, nil
 }
