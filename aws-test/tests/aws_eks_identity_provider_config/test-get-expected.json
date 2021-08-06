@@ -1,0 +1,8 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "cluster_name": "{{ output.cluster_name.value }}",
+    "name": "{{ resourceName }}",
+    "type": "{{ output.identity_provider_config_type.value }}"
+  }
+]
