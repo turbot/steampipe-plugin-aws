@@ -171,7 +171,7 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNatGatewayARN")
-
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	natGateway := h.Item.(*ec2.NatGateway)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -181,7 +181,7 @@ func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":natgateway/" + *natGateway.NatGatewayId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":natgateway/" + *natGateway.NatGatewayId
 
 	return arn, nil
 }

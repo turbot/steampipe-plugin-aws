@@ -170,6 +170,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcARN")
 	vpc := h.Item.(*ec2.Vpc)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -178,7 +179,7 @@ func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId
 
 	return arn, nil
 }

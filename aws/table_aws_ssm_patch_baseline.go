@@ -270,6 +270,7 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineAkas")
 	parameterData := h.Item.(*ssm.GetPatchBaselineOutput)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -278,7 +279,7 @@ func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":patchbaseline"
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":patchbaseline"
 
 	if strings.HasPrefix(*parameterData.BaselineId, "/") {
 		aka = aka + *parameterData.BaselineId

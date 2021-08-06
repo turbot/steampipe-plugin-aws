@@ -163,6 +163,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -171,7 +172,7 @@ func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":config:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
+	arn := "arn:" + commonColumnData.Partition + ":config:" + region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
 
 	return arn, nil
 }

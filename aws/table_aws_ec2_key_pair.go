@@ -120,6 +120,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2KeyPairAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	keyPair := h.Item.(*ec2.KeyPairInfo)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -129,7 +130,7 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":key-pair/" + *keyPair.KeyName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":key-pair/" + *keyPair.KeyName}
 
 	return akas, nil
 }

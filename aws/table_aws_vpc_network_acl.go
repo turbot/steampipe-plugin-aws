@@ -151,6 +151,8 @@ func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcNetworkACLARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNetworkACLARN")
 	networkACL := h.Item.(*ec2.NetworkAcl)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -159,7 +161,7 @@ func getVpcNetworkACLARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":network-acl/" + *networkACL.NetworkAclId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":network-acl/" + *networkACL.NetworkAclId
 
 	return arn, nil
 }

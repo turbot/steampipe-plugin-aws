@@ -184,6 +184,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 
 func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEfsMountTargetAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*efs.MountTargetDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -193,7 +194,7 @@ func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugi
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	aka := "arn:" + commonColumnData.Partition + ":elasticfilesystem:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":file-system/" + *data.FileSystemId + "/mount-target/" + *data.MountTargetId
+	aka := "arn:" + commonColumnData.Partition + ":elasticfilesystem:" + region + ":" + commonColumnData.AccountId + ":file-system/" + *data.FileSystemId + "/mount-target/" + *data.MountTargetId
 
 	return aka, nil
 }

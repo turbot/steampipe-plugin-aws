@@ -359,6 +359,7 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 
 func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -369,7 +370,7 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	arn := "arn:" + commonColumnData.Partition + ":elasticloadbalancing:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":loadbalancer/" + *classicLoadBalancer.LoadBalancerName
+	arn := "arn:" + commonColumnData.Partition + ":elasticloadbalancing:" + region + ":" + commonColumnData.AccountId + ":loadbalancer/" + *classicLoadBalancer.LoadBalancerName
 
 	return arn, nil
 }

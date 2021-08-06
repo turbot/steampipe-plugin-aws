@@ -163,6 +163,7 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	endpointService := h.Item.(*ec2.ServiceDetail)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -173,7 +174,7 @@ func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Get data for turbot defined properties
 	splitServicName := strings.Split(*endpointService.ServiceName, ".")
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc-endpoint-service/" + splitServicName[len(splitServicName)-1]}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpc-endpoint-service/" + splitServicName[len(splitServicName)-1]}
 
 	return akas, nil
 }

@@ -283,6 +283,7 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 
 func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getTableTagging")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	table := h.Item.(*dynamodb.TableDescription)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -298,7 +299,7 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		return nil, err
 	}
 
-	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
+	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
 
 	params := &dynamodb.ListTagsOfResourceInput{
 		ResourceArn: &tableArn,

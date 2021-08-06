@@ -166,6 +166,7 @@ func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData,
 
 func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayVpcAttachmentAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayAttachment := h.Item.(*ec2.TransitGatewayAttachment)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -176,7 +177,7 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get the resource akas
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":transit-gateway-attachment/" + *transitGatewayAttachment.TransitGatewayAttachmentId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":transit-gateway-attachment/" + *transitGatewayAttachment.TransitGatewayAttachmentId}
 
 	return akas, nil
 }
