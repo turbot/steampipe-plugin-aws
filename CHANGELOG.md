@@ -1,3 +1,15 @@
+## v0.28.1 [2021-08-06]
+
+_What's new?_
+
+- New tables added
+  - [aws_eks_identity_provider_config](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_identity_provider_config) ([#571](https://github.com/turbot/steampipe-plugin-aws/pull/571))
+
+_Bug fixes_
+
+- Fixed: `arn` column data now contain the correct regions in regional resource tables ([#590](https://github.com/turbot/steampipe-plugin-aws/pull/590))
+- Fixed: Querying columns `dnssec_key_signing_keys` and `dnssec_status` in `aws_route53_zone` table for private hosted zones no longer causes errors ([#589](https://github.com/turbot/steampipe-plugin-aws/pull/589))
+
 ## v0.28.0 [2021-08-05]
 
 _What's new?_
