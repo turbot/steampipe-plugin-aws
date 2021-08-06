@@ -19,7 +19,7 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 		Description: "AWS Backup Selection",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"backup_plan_id", "selection_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
 			Hydrate:           getBackupSelection,
 		},
 		List: &plugin.ListConfig{

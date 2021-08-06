@@ -16,7 +16,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Security Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
 			Hydrate:           getVpcSecurityGroup,
 		},
 		List: &plugin.ListConfig{
