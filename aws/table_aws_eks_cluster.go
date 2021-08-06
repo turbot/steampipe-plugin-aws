@@ -136,23 +136,16 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEksClusters", "AWS_REGION", region)
-
+func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	err = svc.ListClustersPages(
 		&eks.ListClustersInput{},
-		func(page *eks.ListClustersOutput, b bool) bool {
+		func(page *eks.ListClustersOutput, _ bool) bool {
 			for _, cluster := range page.Clusters {
 				d.StreamListItem(ctx, &eks.Cluster{
 					Name: cluster,
@@ -168,11 +161,6 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEksCluster")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	var clusterName string
 	if h.Item != nil {
@@ -182,7 +170,7 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

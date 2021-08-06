@@ -205,16 +205,8 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCodeBuildProjects", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CodeBuildService(ctx, d, region)
+	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -240,12 +232,6 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCodeBuildProject")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*codebuild.Project).Name
@@ -255,7 +241,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// get service
-	svc, err := CodeBuildService(ctx, d, region)
+	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +266,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// TRANSFORM FUNCTIONS
 
-func codeBuildProjectTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*codebuild.Project)
 

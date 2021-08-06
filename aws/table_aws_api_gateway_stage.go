@@ -17,7 +17,7 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_stage",
 		Description: "AWS API Gateway Stage",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "stage_name"}),
+			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
 			Hydrate:           getAPIGatewayStage,
 		},
@@ -169,17 +169,11 @@ type stageRowData = struct {
 //// LIST FUNCTION
 
 func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAPIGatewayStage", "AWS_REGION", region)
+	// Get Rest API details
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -205,20 +199,13 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayStage")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	stageName := d.KeyColumnQuals["stage_name"].GetStringValue()
+	stageName := d.KeyColumnQuals["name"].GetStringValue()
 	restAPIID := d.KeyColumnQuals["rest_api_id"].GetStringValue()
 
 	params := &apigateway.GetStageInput{
@@ -237,9 +224,10 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayStageARN")
-
 	apiStage := h.Item.(*stageRowData)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

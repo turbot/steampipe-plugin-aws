@@ -234,6 +234,11 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getHostedZoneDNSSEC")
 	hostedZone := h.Item.(*route53.HostedZone)
 
+	// Operation is unsupported for private hosted zones.
+	if *hostedZone.Config.PrivateZone {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
@@ -256,7 +261,8 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRoute53HostedZoneTurbotAkas")
 	hostedZone := h.Item.(*route53.HostedZone)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

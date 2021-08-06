@@ -17,7 +17,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 		Name:        "aws_cost_forecast_daily",
 		Description: "AWS Cost Explorer - Cost Forecast (Daily)",
 		List: &plugin.ListConfig{
-			Hydrate:    listCostForecastDaily,
+			Hydrate: listCostForecastDaily,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -71,7 +71,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, nil
 }
 
-func buildCostForecastInput(keyQuals map[string]*proto.QualValue, granularity string) *costexplorer.GetCostForecastInput {
+func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *costexplorer.GetCostForecastInput {
 
 	// TO DO - specify metric as qual?   get all cost metrics in parallel?
 	//metric := strings.ToUpper(keyQuals["metric"].GetStringValue())

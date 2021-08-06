@@ -92,16 +92,10 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRDSDBParameterGroups", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listRDSDBParameterGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -122,16 +116,10 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -153,16 +141,11 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRDSParameterGroupParameters")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -178,21 +161,16 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 		},
 	)
 
-	return items, nil
+	return items, err
 }
 
 func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRDSParameterGroupTags")
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +187,7 @@ func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRDSDBParameterGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	dbParameterGroup := d.HydrateItem.(*rds.ListTagsForResourceOutput)

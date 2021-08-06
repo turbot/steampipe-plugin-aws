@@ -66,16 +66,12 @@ func tableAwsS3AccountSettings(_ context.Context) *plugin.Table {
 	}
 }
 
-type s3AccountData struct {
-	commonColumnData awsCommonColumnData
-	Aliases          []*string
-}
-
-//// HYDRATE FUNCTIONS
+//// LIST FUNCTION
 
 func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +80,8 @@ func listS3Account(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	d.StreamListItem(ctx, commonData)
 	return nil, nil
 }
+
+//// HYDRATE FUNCTIONS
 
 func getAccountBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAccountBucketPublicAccessBlock")

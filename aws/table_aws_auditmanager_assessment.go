@@ -148,11 +148,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAwsAuditManagerAssessments", "AWS_REGION", region)
 
 	// Create session
@@ -179,11 +175,7 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAuditManagerAssessment")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id string
 	if h.Item != nil {

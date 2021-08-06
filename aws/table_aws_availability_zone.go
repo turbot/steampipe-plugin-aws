@@ -162,17 +162,17 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	return nil, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
 func getAwsAvailabilityZoneAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAvailabilityZoneAkas")
 	zone := h.Item.(*ec2.AvailabilityZone)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-	commonColumnData := commonData.(*awsCommonColumnData)
 
+	commonColumnData := commonData.(*awsCommonColumnData)
 	akas := []string{"arn:" + commonColumnData.Partition + "::" + *zone.RegionName + "::availability-zone/" + *zone.ZoneName}
 	return akas, nil
 }

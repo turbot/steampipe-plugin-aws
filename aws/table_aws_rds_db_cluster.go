@@ -332,16 +332,10 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRDSDBClusters", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listRDSDBClusters")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -362,16 +356,10 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 //// HYDRATE FUNCTIONS
 
 func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, region)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +379,7 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	dbCluster := d.HydrateItem.(*rds.DBCluster)

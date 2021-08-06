@@ -130,12 +130,8 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAuditManagerControls", "AWS_REGION", region)
 
 	// Create Session
@@ -156,6 +152,10 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 			return !lastPage
 		},
 	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	// List all custom controls
 	err = svc.ListControlsPages(
@@ -178,11 +178,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugi
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerControl")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)

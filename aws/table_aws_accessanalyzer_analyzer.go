@@ -100,16 +100,8 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAccessAnalyzers", "AWS_REGION", region)
-
 	// Create session
-	svc, err := AccessAnalyzerService(ctx, d, region)
+	svc, err := AccessAnalyzerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -133,16 +125,10 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAccessAnalyzer")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d, region)
+	svc, err := AccessAnalyzerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -165,16 +151,10 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAccessAnalyzerFindings")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	data := h.Item.(*accessanalyzer.AnalyzerSummary)
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d, region)
+	svc, err := AccessAnalyzerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

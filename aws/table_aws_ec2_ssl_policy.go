@@ -18,7 +18,7 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ssl_policy",
 		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
+			KeyColumns:        plugin.SingleColumn("name"),
 			ShouldIgnoreError: isNotFoundError([]string{"name"}),
 			Hydrate:           getEc2SslPolicy,
 		},
@@ -65,16 +65,9 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 
 func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listEc2SslPolicies")
-	
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEc2SslPolicies", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -108,15 +101,10 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d, region)
+	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +130,8 @@ func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getEc2SslPolicyAkas")
 	data := h.Item.(*elbv2.SslPolicy)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

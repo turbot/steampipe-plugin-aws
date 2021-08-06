@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/wellarchitected"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/wellarchitected"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -176,15 +176,11 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listWellArchitectedWorkloads", "AWS_REGION", region)
+	logger := plugin.Logger(ctx)
+	logger.Trace("listWellArchitectedWorkloads")
 
 	// Create session
-	svc, err := WellArchitectedService(ctx, d, region)
+	svc, err := WellArchitectedService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +195,7 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		},
 	)
 
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -216,14 +212,8 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 		id = quals["workload_id"].GetStringValue()
 	}
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := WellArchitectedService(ctx, d, region)
+	svc, err := WellArchitectedService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -244,11 +234,11 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func workloadID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *wellarchitected.WorkloadSummary:
-		return *item.(*wellarchitected.WorkloadSummary).WorkloadId
+		return *item.WorkloadId
 	case *wellarchitected.Workload:
-		return *item.(*wellarchitected.Workload).WorkloadId
+		return *item.WorkloadId
 	}
 	return ""
 }

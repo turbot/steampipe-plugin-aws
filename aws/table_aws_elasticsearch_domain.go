@@ -15,7 +15,7 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticsearch_domain",
 		Description: "AWS Elasticsearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
+			KeyColumns:        plugin.SingleColumn("domain_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
 			Hydrate:           getAwsElasticsearchDomain,
 		},
@@ -208,16 +208,8 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsElasticsearchDomains", "AWS_REGION", region)
-
 	// Create session
-	svc, err := ElasticsearchService(ctx, d, region)
+	svc, err := ElasticsearchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -245,21 +237,15 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsElasticsearchDomain")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var domainname string
 	if h.Item != nil {
 		domainname = *h.Item.(*elasticsearchservice.ElasticsearchDomainStatus).DomainName
 	} else {
-		domainname = d.KeyColumnQuals["name"].GetStringValue()
+		domainname = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d, region)
+	svc, err := ElasticsearchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -283,16 +269,10 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsElasticsearchDomainTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*elasticsearchservice.ElasticsearchDomainStatus).ARN
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d, region)
+	svc, err := ElasticsearchService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

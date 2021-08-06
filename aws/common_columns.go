@@ -99,10 +99,7 @@ type awsCommonColumnData struct {
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	if plugin.GetMatrixItem(ctx)[matrixKeyRegion] != nil {
-		region = plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
 	}
@@ -110,31 +107,27 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	cacheKey := "commonColumnData" + region
 	var commonColumnData *awsCommonColumnData
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		commonColumnData = cachedData.(*awsCommonColumnData)
-	} else {
-		callerIdentity, err := getCallerIdentity(ctx, d, h)
-		if err != nil {
-			return nil, err
-		}
-
-		commonColumnData = &awsCommonColumnData{
-			// extract partition from arn
-			Partition: strings.Split(*callerIdentity.Arn, ":")[1],
-			AccountId: *callerIdentity.Account,
-			Region:    region,
-		}
-
-		// save to extension cache
-		d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
+	getCallerIdentityCached := plugin.HydrateFunc(getCallerIdentity).WithCache()
+	getCallerIdentityData, err := getCallerIdentityCached(ctx, d, h)
+	if err != nil {
+		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("getCommonColumns: ", "commonColumnData", commonColumnData)
+	callerIdentity := getCallerIdentityData.(*sts.GetCallerIdentityOutput)
+	commonColumnData = &awsCommonColumnData{
+		// extract partition from arn
+		Partition: strings.Split(*callerIdentity.Arn, ":")[1],
+		AccountId: *callerIdentity.Account,
+		Region:    region,
+	}
+
+	// save to extension cache
+	d.ConnectionManager.Cache.Set(cacheKey, commonColumnData)
 
 	return commonColumnData, nil
 }
 
-func getCallerIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*sts.GetCallerIdentityOutput, error) {
+func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	cacheKey := "GetCallerIdentity"
 
 	// if found in cache, return the result

@@ -142,7 +142,8 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 	plugin.Logger(ctx).Trace("getCloudFrontOriginAccessIdentityARN")
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -154,11 +155,11 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 }
 
 func originAccessIdentityID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetCloudFrontOriginAccessIdentityOutput:
-		return item.(*cloudfront.GetCloudFrontOriginAccessIdentityOutput).CloudFrontOriginAccessIdentity.Id
+		return item.CloudFrontOriginAccessIdentity.Id
 	case *cloudfront.OriginAccessIdentitySummary:
-		return item.(*cloudfront.OriginAccessIdentitySummary).Id
+		return item.Id
 	}
 	return nil
 }

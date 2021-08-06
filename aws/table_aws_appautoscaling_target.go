@@ -82,18 +82,10 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsApplicationAutoScalingTargets", "AWS_REGION", region)
-
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 
 	// Create Session
-	svc, err := ApplicationAutoScalingService(ctx, d, region)
+	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -117,19 +109,14 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 
 //// HYDRATE FUNCTIONS
 
-func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsApplicationAutoScalingTarget")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
+	
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 	id := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// create service
-	svc, err := ApplicationAutoScalingService(ctx, d, region)
+	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

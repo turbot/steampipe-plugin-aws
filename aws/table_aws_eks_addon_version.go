@@ -75,23 +75,16 @@ type addonVersion struct {
 
 //// LIST FUNCTION
 
-func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEksAddonVersions", "AWS_REGION", region)
-
+func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	err = svc.DescribeAddonVersionsPages(
 		&eks.DescribeAddonVersionsInput{},
-		func(page *eks.DescribeAddonVersionsOutput, b bool) bool {
+		func(page *eks.DescribeAddonVersionsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				for _, version := range addon.AddonVersions {
 					d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
@@ -110,7 +103,8 @@ func getAddonVersionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("getAddonVersionAkas")
 	version := h.Item.(addonVersion)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

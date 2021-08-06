@@ -86,16 +86,8 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAPIGatewayV2API", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d, region)
+	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -129,15 +121,8 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayV2API")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d, region)
+	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +157,9 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 func getAPIGatewayV2APIAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	apigatewayV2Api := h.Item.(*apigatewayv2.Api)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

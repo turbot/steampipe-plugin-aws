@@ -133,7 +133,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "REGION", region)
 
 	svc, err := AuditManagerService(ctx, d, region)
@@ -142,7 +142,7 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 
 	// List standard audit manager frameworks
-	listErr := svc.ListAssessmentFrameworksPages(
+	err = svc.ListAssessmentFrameworksPages(
 		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Standard")},
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
@@ -152,8 +152,12 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// List custom audit manager frameworks
-	listErr = svc.ListAssessmentFrameworksPages(
+	err = svc.ListAssessmentFrameworksPages(
 		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Custom")},
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
@@ -163,13 +167,13 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
-	return nil, listErr
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Debug("getAuditManagerFramework", "REGION", region)
 
 	// Create Session

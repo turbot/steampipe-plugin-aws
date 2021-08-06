@@ -177,15 +177,8 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -208,16 +201,10 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getKmsKey")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	keyID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -232,8 +219,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	var rowData *kms.KeyListEntry
-	rowData = &kms.KeyListEntry{
+	rowData := &kms.KeyListEntry{
 		KeyArn: keyData.KeyMetadata.Arn,
 		KeyId:  keyData.KeyMetadata.KeyId,
 	}
@@ -244,15 +230,9 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsKmsKeyData")
 	key := h.Item.(*kms.KeyListEntry)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -272,15 +252,9 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsKmsKeyRotationStatus")
 	key := h.Item.(*kms.KeyListEntry)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -304,15 +278,9 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsKmsKeyTagging")
 	key := h.Item.(*kms.KeyListEntry)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -346,15 +314,9 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsKmsKeyAliases")
 	key := h.Item.(*kms.KeyListEntry)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -374,15 +336,9 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsKmsKeyPolicy")
 	key := h.Item.(*kms.KeyListEntry)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	// Create Session
-	svc, err := KMSService(ctx, d, region)
+	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -402,14 +358,4 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 	return keyPolicy, nil
-}
-
-//// TRANSFORM FUNCTIONS//
-
-func getAwsKmsKeyTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	hydrateData := d.HydrateItem.(*kms.ListAliasesOutput)
-	if hydrateData.Aliases != nil && len(hydrateData.Aliases) > 0 {
-		return hydrateData.Aliases[0].AliasName, nil
-	}
-	return nil, nil
 }
