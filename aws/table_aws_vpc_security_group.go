@@ -158,6 +158,8 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcSecurityGroupARN")
 	securityGroup := h.Item.(*ec2.SecurityGroup)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -165,7 +167,7 @@ func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId
 
 	return arn, nil
 }

@@ -148,6 +148,8 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcRouteTableTurbotAkas")
 	routeTable := h.Item.(*ec2.RouteTable)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -156,7 +158,7 @@ func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":route-table/" + *routeTable.RouteTableId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":route-table/" + *routeTable.RouteTableId}
 
 	return akas, nil
 }
