@@ -156,6 +156,10 @@ output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
 
+output "region_id" {
+  value = var.aws_region
+}
+
 output "addon_version" {
   value = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
 }
