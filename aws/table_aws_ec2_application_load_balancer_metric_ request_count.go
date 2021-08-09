@@ -14,7 +14,7 @@ import (
 func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_application_load_balancer_metric_request_count",
-		Description: "AWS EC2 Application LoadBalancer Metrics - Request Count",
+		Description: "AWS EC2 Application Load Balancer Metrics - Request Count",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2ApplicationLoadBalancers,
 			Hydrate:       listEc2ApplicationLoadBalancerMetricRequestCount,

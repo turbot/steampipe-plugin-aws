@@ -14,7 +14,7 @@ import (
 func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_network_load_balancer_metric_net_flow_count",
-		Description: "AWS EC2 Network LoadBalancer Metrics - Net Flow Count",
+		Description: "AWS EC2 Network Load Balancer Metrics - Net Flow Count",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2NetworkLoadBalancers,
 			Hydrate:       listEc2NetworkLoadBalancerMetricNetFlowCount,
