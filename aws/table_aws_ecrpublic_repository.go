@@ -101,16 +101,8 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsEcrpublicRepositories", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := EcrPublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -136,17 +128,10 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicRepository")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -173,16 +158,10 @@ func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsEcrpublicRepositoryTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	resourceArn := h.Item.(*ecrpublic.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -205,16 +184,10 @@ func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicRepositoryPolicy")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -241,17 +214,10 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicDescribeImages")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d, region)
+	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

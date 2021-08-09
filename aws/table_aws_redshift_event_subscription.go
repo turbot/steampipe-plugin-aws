@@ -109,16 +109,10 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsRedshiftEventSubscriptions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRedshiftEventSubscriptions", "AWS_REGION")
 
 	// Create session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -140,19 +134,12 @@ func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData,
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRedshiftEventSubscription")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -178,13 +165,15 @@ func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, h
 
 func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRedshiftEventSubscriptionAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(*redshift.EventSubscription)
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":eventsubscription"
+	aka := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":eventsubscription"
 
 	if strings.HasPrefix(*parameterData.CustSubscriptionId, ":") {
 		aka = aka + *parameterData.CustSubscriptionId

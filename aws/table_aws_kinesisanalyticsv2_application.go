@@ -123,15 +123,8 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listKinesisAnalyticsV2Applications", "AWS_REGION", region)
-
 	// Create session
-	svc, err := KinesisAnalyticsV2Service(ctx, d, region)
+	svc, err := KinesisAnalyticsV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -151,12 +144,6 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getKinesisAnalyticsV2Application")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var applicationName string
 	if h.Item != nil {
 		i := h.Item.(*kinesisanalyticsv2.ApplicationSummary)
@@ -166,7 +153,7 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d, region)
+	svc, err := KinesisAnalyticsV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +177,10 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	logger := plugin.Logger(ctx)
 	logger.Trace("getKinesisAnalyticsV2ApplicationTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	arn := applicationArn(h.Item)
 
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d, region)
+	svc, err := KinesisAnalyticsV2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -241,11 +223,11 @@ func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *tr
 }
 
 func applicationArn(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *kinesisanalyticsv2.ApplicationDetail:
-		return item.(*kinesisanalyticsv2.ApplicationDetail).ApplicationARN
+		return item.ApplicationARN
 	case *kinesisanalyticsv2.ApplicationSummary:
-		return item.(*kinesisanalyticsv2.ApplicationSummary).ApplicationARN
+		return item.ApplicationARN
 	}
 	return nil
 }

@@ -30,37 +30,39 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the pipeline.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name", "Pipeline.Name"),
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the pipeline.",
-				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodepipelinePipeline,
 				Transform:   transform.FromField("Metadata.PipelineArn"),
 			},
 			{
 				Name:        "created_at",
-				Description: "The date and time the pipeline was created, in timestamp format.",
+				Description: "The date and time the pipeline was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("Created"),
+				Transform:   transform.FromField("Created", "Metadata.Created"),
 			},
 			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) for AWS CodePipeline to use to either perform actions with no actionRoleArn, or to use to assume roles for actions with an actionRoleArn.",
-				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodepipelinePipeline,
 				Transform:   transform.FromField("Pipeline.RoleArn"),
 			},
 			{
 				Name:        "updated_at",
-				Description: "The date and time of the last update to the pipeline, in timestamp format.",
+				Description: "The date and time of the last update to the pipeline.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("Updated"),
+				Transform:   transform.FromField("Updated", "Metadata.Updated"),
 			},
 			{
 				Name:        "version",
 				Description: "The version number of the pipeline.",
 				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Version", "Pipeline.Version"),
 			},
 			{
 				Name:        "encryption_key",
@@ -72,15 +74,15 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 			{
 				Name:        "artifact_stores",
 				Description: "A mapping of artifactStore objects and their corresponding AWS Regions. There must be an artifact store for the pipeline Region and for each cross-region action in the pipeline.",
-				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodepipelinePipeline,
 				Transform:   transform.FromField("Pipeline.ArtifactStores"),
 			},
 			{
 				Name:        "stages",
 				Description: "The stage in which to perform the action.",
-				Hydrate:     getCodepipelinePipeline,
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodepipelinePipeline,
 				Transform:   transform.FromField("Pipeline.Stages"),
 			},
 			{
@@ -96,7 +98,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("Name", "Pipeline.Name"),
 			},
 			{
 				Name:        "tags",
@@ -119,15 +121,8 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCodepipelinePipelines", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -151,12 +146,6 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCodepipelinePipeline")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*codepipeline.PipelineSummary).Name
@@ -165,7 +154,7 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -191,15 +180,10 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPipelineTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	pipelineArn := pipelineARN(ctx, d, h)
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d, region)
+	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,9 +205,11 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 	plugin.Logger(ctx).Trace("pipelineARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get region, partition, account id
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return ""
 	}
@@ -231,7 +217,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	switch item := h.Item.(type) {
 	case *codepipeline.PipelineSummary:
-		return "arn:" + commonColumnData.Partition + ":codepipeline:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":" + *item.Name
+		return "arn:" + commonColumnData.Partition + ":codepipeline:" + region + ":" + commonColumnData.AccountId + ":" + *item.Name
 	case *codepipeline.GetPipelineOutput:
 		return *item.Metadata.PipelineArn
 	}
@@ -239,7 +225,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	return ""
 }
 
-func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*codepipeline.ListTagsForResourceOutput)
 
 	if data.Tags == nil {
@@ -247,8 +233,7 @@ func codepipelineTurbotTags(ctx context.Context, d *transform.TransformData) (in
 	}
 
 	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	turbotTagsMap = map[string]string{}
+	turbotTagsMap := map[string]string{}
 	for _, i := range data.Tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}

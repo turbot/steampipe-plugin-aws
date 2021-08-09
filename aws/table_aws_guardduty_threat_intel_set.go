@@ -100,15 +100,8 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	// Get details of detector
 	detectorID := h.Item.(detectorInfo).DetectorID
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listGuardDutyThreatIntelSets", "AWS_REGION", region)
-
 	// Create session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +129,8 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("getGuardDutyThreatIntelSet")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -179,13 +164,15 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsGuardDutyThreatIntelSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsGuardDutyThreatIntelSetAkas")
 	data := h.Item.(threatIntelSetInfo)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/threatintelset/" + data.ThreatIntelSetID
+	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/threatintelset/" + data.ThreatIntelSetID
 
 	return []string{aka}, nil
 }

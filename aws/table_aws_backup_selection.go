@@ -19,7 +19,7 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 		Description: "AWS Backup Selection",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"backup_plan_id", "selection_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
 			Hydrate:           getBackupSelection,
 		},
 		List: &plugin.ListConfig{
@@ -105,11 +105,8 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listBackupSelections")
 
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("listBackupSelections", "AWS_REGION", region)
-
 	// Create session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +131,8 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBackupSelection")
 
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
-	plugin.Logger(ctx).Trace("getBackupSelection", "AWS_REGION", region)
-
 	// Create Session
-	svc, err := BackupService(ctx, d, region)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,16 +166,18 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func getBackupSelectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBackupSelectionARN")
 
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := selectionID(h.Item)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	arn := "arn:" + commonColumnData.Partition + ":backup:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":backup-plan:" + data["PlanID"] + "/selection/" + data["SelectionID"]
+	arn := "arn:" + commonColumnData.Partition + ":backup:" + region + ":" + commonColumnData.AccountId + ":backup-plan:" + data["PlanID"] + "/selection/" + data["SelectionID"]
 
 	return arn, nil
 }

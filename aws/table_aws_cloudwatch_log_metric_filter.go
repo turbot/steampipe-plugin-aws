@@ -81,16 +81,8 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listCloudwatchLogMetricFilters", "AWS_REGION", region)
-
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -113,16 +105,10 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, region)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -148,16 +134,18 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 
 func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	metricFilter := h.Item.(*cloudwatchlogs.MetricFilter)
 
-	commonColumnData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
+	commonColumnData := commonData.(*awsCommonColumnData)
 
-	commonData := commonColumnData.(*awsCommonColumnData)
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonData.Partition + ":logs:" + commonData.Region + ":" + commonData.AccountId + ":log-group:" + *metricFilter.LogGroupName + ":metric-filter:" + *metricFilter.FilterName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":logs:" + region + ":" + commonColumnData.AccountId + ":log-group:" + *metricFilter.LogGroupName + ":metric-filter:" + *metricFilter.FilterName}
 
 	return akas, nil
 }

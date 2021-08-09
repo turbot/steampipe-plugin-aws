@@ -124,7 +124,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 			{
 				Name:        "next_execution_time",
 				Description: "The next time the maintenance window will actually run, taking into account any specified times for the Maintenance Window to become active or inactive.",
-				Type:        proto.ColumnType_DATETIME,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 
 			/// Standard columns for all tables
@@ -155,16 +155,10 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -190,12 +184,6 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMMaintenanceWindow")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var id string
 	if h.Item != nil {
 		id = *maintenanceWindowID(h.Item)
@@ -204,7 +192,7 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -226,13 +214,15 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getAwsSSMMaintenanceWindowAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMMaintenanceWindowAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := maintenanceWindowID(h.Item)
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *id
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":maintenancewindow" + "/" + *id
 
 	return []string{aka}, nil
 }
@@ -241,16 +231,10 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMMaintenanceWindowTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -275,16 +259,10 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("getMaintenanceWindowTargets")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -308,16 +286,10 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("getMaintenanceWindowTasks")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -358,11 +330,11 @@ func ssmMaintenanceWindowTagListToTurbotTags(ctx context.Context, d *transform.T
 }
 
 func maintenanceWindowID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.GetMaintenanceWindowOutput:
-		return item.(*ssm.GetMaintenanceWindowOutput).WindowId
+		return item.WindowId
 	case *ssm.MaintenanceWindowIdentity:
-		return item.(*ssm.MaintenanceWindowIdentity).WindowId
+		return item.WindowId
 	}
 	return nil
 }

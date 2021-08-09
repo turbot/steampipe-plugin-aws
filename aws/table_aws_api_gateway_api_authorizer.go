@@ -106,18 +106,11 @@ type authorizerRowData = struct {
 //// LIST FUNCTION
 
 func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRestAPIAuthorizers", "AWS_REGION", region)
-
+	// Get Rest API details
 	restAPI := h.Item.(*apigateway.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -142,14 +135,8 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRestAPIAuthorizer")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := APIGatewayService(ctx, d, region)
+	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -173,14 +160,16 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayAuthorizerAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	apiAuthorizer := h.Item.(*authorizerRowData)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + ":" + commonColumnData.AccountId + "::/restapis/" + *apiAuthorizer.RestAPIId + "/authorizer/" + *apiAuthorizer.Authorizer.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + ":" + commonColumnData.AccountId + "::/restapis/" + *apiAuthorizer.RestAPIId + "/authorizer/" + *apiAuthorizer.Authorizer.Id}
 	return akas, nil
 }

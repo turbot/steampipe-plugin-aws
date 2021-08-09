@@ -139,14 +139,8 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,11 +166,6 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEcsCluster")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	var clusterArn string
 	if h.Item != nil {
@@ -187,7 +176,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +200,11 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEcsClusterTags")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+
 	clusterArn := *h.Item.(*ecs.Cluster).ClusterArn
 
 	// Create service
-	svc, err := EcsService(ctx, d, region)
+	svc, err := EcsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +223,7 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// TRANSFORM FUNCTIONS
 
-func getAwsEcsClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func getAwsEcsClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	ecsClusterTags := d.HydrateItem.(*ecs.ListTagsForResourceOutput)
 

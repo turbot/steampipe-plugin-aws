@@ -1,0 +1,12 @@
+[
+  {
+    "cluster_id": "{{ output.resource_id.value }}",
+    "configurations_version": 0,
+    "instance_group_type": "MASTER",
+    "instance_type": "m4.large",
+    "last_successfully_applied_configurations_version": 0,
+    "market": "ON_DEMAND",
+    "requested_instance_count": 1,
+    "running_instance_count": 1
+  }
+]

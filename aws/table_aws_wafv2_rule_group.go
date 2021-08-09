@@ -139,11 +139,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
 	if region == "global" {
@@ -189,11 +185,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsWafv2EuleGroup")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id, name, scope string
 	if h.Item != nil {
@@ -256,11 +248,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RuleGroup")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"
@@ -326,11 +314,7 @@ func ruleGroupRegion(ctx context.Context, d *transform.TransformData) (interface
 	data := ruleGroupData(d.HydrateItem)
 	loc := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.MatrixItem[matrixKeyRegion]
 
 	if loc == "global" {
 		return "global", nil

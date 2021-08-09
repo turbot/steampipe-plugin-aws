@@ -19,7 +19,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Transit Gateway Route Table",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableId.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
 			Hydrate:           getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
@@ -89,12 +89,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
@@ -119,12 +114,7 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	routeTableID := d.KeyColumnQuals["transit_gateway_route_table_id"].GetStringValue()
 
 	// create service
@@ -150,15 +140,17 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ 
 
 func getAwsEc2TransitGatewayRouteTableTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayRouteTableTurbotData")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayRouteTable := h.Item.(*ec2.TransitGatewayRouteTable)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":transit-gateway-route-table/" + *transitGatewayRouteTable.TransitGatewayRouteTableId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":transit-gateway-route-table/" + *transitGatewayRouteTable.TransitGatewayRouteTableId}
 
 	return akas, nil
 }

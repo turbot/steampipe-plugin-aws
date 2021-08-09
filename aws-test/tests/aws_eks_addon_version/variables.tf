@@ -136,7 +136,7 @@ data "local_file" "input" {
 
 data "template_file" "resource_aka" {
   depends_on = [null_resource.named_test_resource]
-  template   = "arn:$${partition}:eks:$${region}:$${account_id}:addon-version/$${version_name}"
+  template   = "arn:$${partition}:eks:$${region}:$${account_id}:addonversion/$${addon_name}/$${version_name}"
   vars = {
     version_name     = jsondecode(data.local_file.input.content).addons[0].addonVersions[0].addonVersion
     addon_name       = jsondecode(data.local_file.input.content).addons[0].addonName
@@ -154,6 +154,10 @@ output "resource_aka" {
 
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
+}
+
+output "region_id" {
+  value = var.aws_region
 }
 
 output "addon_version" {

@@ -16,7 +16,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Security Group",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
 			Hydrate:           getVpcSecurityGroup,
 		},
 		List: &plugin.ListConfig{
@@ -100,13 +100,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcSecurityGroups", "AWS_REGION", region)
 
 	// Create session
@@ -134,12 +128,7 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcSecurityGroup")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
 
 	// get service
@@ -169,13 +158,16 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getVpcSecurityGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcSecurityGroupARN")
 	securityGroup := h.Item.(*ec2.SecurityGroup)
-	commonData, err := getCommonColumns(ctx, d, h)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":security-group/" + *securityGroup.GroupId
 
 	return arn, nil
 }

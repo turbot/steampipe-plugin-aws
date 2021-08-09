@@ -51,11 +51,7 @@ func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2RegionalSettings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
 	d.StreamListItem(ctx, region)
@@ -64,14 +60,10 @@ func listEc2RegionalSettings(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryption")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
 	// Create session
@@ -93,14 +85,10 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, h *
 	return defaultEncryption.EbsEncryptionByDefault, nil
 }
 
-func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultEBSVolumeEncryptionKey")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
 	// Create session
@@ -125,12 +113,8 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func getEc2SettingTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.MatrixItem[matrixKeyRegion]
 
-	title := region + " EC2 Settings"
+	title := region.(string) + " EC2 Settings"
 	return title, nil
 }

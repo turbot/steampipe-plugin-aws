@@ -311,16 +311,10 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listUsagePlans", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listUsagePlans")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -340,15 +334,9 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
+func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -376,17 +364,10 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	name := h.Item.(*redshift.Cluster).ClusterIdentifier
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -406,19 +387,21 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
 	cluster := h.Item.(*redshift.Cluster)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
 
 	return arn, nil
 }
 
-//// TRANSFORM FUNCTIONS ////
+//// TRANSFORM FUNCTIONS
 
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	cluster := d.HydrateItem.(*redshift.Cluster)

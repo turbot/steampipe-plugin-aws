@@ -165,8 +165,10 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sgRule := h.Item.(*vpcSecurityGroupRulesRowData)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -183,14 +185,14 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 		hashCode = hashCode + "_" + *sgRule.IPRange.CidrIp
 	} else if sgRule.Ipv6Range != nil && sgRule.Ipv6Range.CidrIpv6 != nil {
 		hashCode = hashCode + "_" + *sgRule.Ipv6Range.CidrIpv6
-	} else if sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
+	} else if sgRule.Group != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
 		hashCode = hashCode + "_" + *sgRule.Group.GroupId
 	} else if sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
 		hashCode = hashCode + "_" + *sgRule.UserIDGroupPair.GroupId
 	}
 
 	// generate aka for the rule
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + *sgRule.Group.OwnerId + ":security-group/" + *sgRule.Group.GroupId + ":" + hashCode}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *sgRule.Group.OwnerId + ":security-group/" + *sgRule.Group.GroupId + ":" + hashCode}
 
 	title := *sgRule.Group.GroupId + "_" + hashCode
 

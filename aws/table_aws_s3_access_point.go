@@ -136,16 +136,11 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 
 func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3AccessPoints")
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listS3AccessPoints", "AWS_REGION", region)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -175,16 +170,18 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getS3AccessPoint")
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, commonColumnData.Region)
+	svc, err := S3ControlService(ctx, d, matrixRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -192,14 +189,14 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	var name, region string
 	if h.Item != nil {
 		name = *h.Item.(*s3control.AccessPoint).Name
-		region = commonColumnData.Region
+		region = matrixRegion
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		region = d.KeyColumnQuals["region"].GetStringValue()
 	}
 
 	// Return nil, if given region doesn't match config region
-	if region != commonColumnData.Region {
+	if region != matrixRegion {
 		return nil, nil
 	}
 
@@ -220,16 +217,18 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getS3AccessPointPolicyStatus")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, commonColumnData.Region)
+	svc, err := S3ControlService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -257,16 +256,18 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 
 func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getS3AccessPointPolicy")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlService(ctx, d, commonColumnData.Region)
+	svc, err := S3ControlService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -294,14 +295,16 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAccessPointArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	accessPointName := accessPointName(h.Item)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":s3:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":accesspoint/" + accessPointName
+	arn := "arn:" + commonColumnData.Partition + ":s3:" + region + ":" + commonColumnData.AccountId + ":accesspoint/" + accessPointName
 
 	return arn, nil
 }

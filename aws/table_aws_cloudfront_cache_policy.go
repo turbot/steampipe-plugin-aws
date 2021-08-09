@@ -153,7 +153,8 @@ func getCloudFrontCachePolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudfrontCachePolicyAkas")
 	id := cloudFrontCachePolicyAka(h.Item)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -167,11 +168,11 @@ func getCloudfrontCachePolicyAkas(ctx context.Context, d *plugin.QueryData, h *p
 //// TRANSFORM FUNCTIONS
 
 func cloudFrontCachePolicyAka(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetCachePolicyOutput:
-		return item.(*cloudfront.GetCachePolicyOutput).CachePolicy.Id
+		return item.CachePolicy.Id
 	case *cloudfront.CachePolicySummary:
-		return item.(*cloudfront.CachePolicySummary).CachePolicy.Id
+		return item.CachePolicy.Id
 	}
 	return nil
 }

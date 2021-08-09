@@ -17,8 +17,8 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Name:        "aws_secretsmanager_secret",
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn, name"),
-			Hydrate:           describeSecretsManagerSecret,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,
@@ -147,15 +147,8 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSecretsManagerSecrets", "AWS_REGION", region)
-
 	// Create session
-	svc, err := SecretsManagerService(ctx, d, region)
+	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -179,12 +172,6 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("describeSecretsManagerSecret")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var secretID string
 	if h.Item != nil {
 		data := secretData(h.Item)
@@ -195,7 +182,7 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// get service
-	svc, err := SecretsManagerService(ctx, d, region)
+	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

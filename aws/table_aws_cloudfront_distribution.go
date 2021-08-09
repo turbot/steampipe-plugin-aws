@@ -325,11 +325,11 @@ func cloudFrontDistributionTagListToTurbotTags(ctx context.Context, d *transform
 }
 
 func cloudFrontDistributionAka(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetDistributionOutput:
-		return item.(*cloudfront.GetDistributionOutput).Distribution.ARN
+		return item.Distribution.ARN
 	case *cloudfront.DistributionSummary:
-		return item.(*cloudfront.DistributionSummary).ARN
+		return item.ARN
 	}
 	return nil
 }

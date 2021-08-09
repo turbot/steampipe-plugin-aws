@@ -165,22 +165,27 @@ func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 func getAwsVpcRouteTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsVpcRouteTurbotData")
 	routeData := h.Item.(*routeTableRoute)
-	commonColumnData, err := getCommonColumns(ctx, d, h)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-
-	commonData := commonColumnData.(*awsCommonColumnData)
+	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
 	var title string
 	var akas []string
 	if routeData.Route.DestinationCidrBlock != nil {
 		title = *routeData.RouteTableID + "_" + *routeData.Route.DestinationCidrBlock
-		akas = []string{"arn:" + commonData.Partition + ":ec2:" + commonData.Region + ":" + commonData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationCidrBlock}
-	} else {
+		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationCidrBlock}
+	} else if routeData.Route.DestinationIpv6CidrBlock != nil {
 		title = *routeData.RouteTableID + "_" + *routeData.Route.DestinationIpv6CidrBlock
-		akas = []string{"arn:" + commonData.Partition + ":ec2:" + commonData.Region + ":" + commonData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationIpv6CidrBlock}
+		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID + ":" + *routeData.Route.DestinationIpv6CidrBlock}
+	} else {
+		title = *routeData.RouteTableID
+		akas = []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":route-table/" + *routeData.RouteTableID}
 	}
 
 	// Mapping all turbot defined properties

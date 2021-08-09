@@ -160,16 +160,10 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("describePatchBaselines", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("describePatchBaselines")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -214,12 +208,6 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPatchBaseline")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var baselineID string
 	if h.Item != nil {
 		baselineID = *h.Item.(*ssm.GetPatchBaselineOutput).BaselineId
@@ -229,7 +217,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// get service
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -252,17 +240,10 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	baseline := h.Item.(*ssm.GetPatchBaselineOutput)
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -289,14 +270,16 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMPatchBaselineAkas")
 	parameterData := h.Item.(*ssm.GetPatchBaselineOutput)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":patchbaseline"
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":patchbaseline"
 
 	if strings.HasPrefix(*parameterData.BaselineId, "/") {
 		aka = aka + *parameterData.BaselineId

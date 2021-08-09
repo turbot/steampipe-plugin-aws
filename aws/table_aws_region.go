@@ -136,7 +136,9 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRegionAkas")
 	region := h.Item.(*ec2.Region)
-	commonData, err := getCommonColumns(ctx, d, h)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

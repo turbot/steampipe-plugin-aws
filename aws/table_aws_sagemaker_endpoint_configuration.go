@@ -95,15 +95,10 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSagemakerEndpointConfigurations", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSagemakerEndpointConfigurations")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +119,6 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 //// HYDRATE FUNCTIONS
 
 func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Get config name
 	var configName string
 	if h.Item != nil {
@@ -139,7 +128,7 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -162,14 +151,8 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSageMakerEndpointConfigurationTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +175,7 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 
 //// TRANSFORM FUNCTIONS
 
-func sageMakerEndpointConfigurationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func sageMakerEndpointConfigurationTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 
 	if data.Tags == nil {

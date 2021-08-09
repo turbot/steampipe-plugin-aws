@@ -152,15 +152,8 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EfsService(ctx, d, region)
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -181,17 +174,9 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
-	// create service
-	svc, err := EfsService(ctx, d, region)
+func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Create service
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -218,17 +203,10 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("getElasticFileSystemPolicy")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	fileSystem := h.Item.(*efs.FileSystemDescription)
 
 	// Create session
-	svc, err := EfsService(ctx, d, region)
+	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

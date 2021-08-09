@@ -143,15 +143,10 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listMacie2ClassificationJobs", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listMacie2ClassificationJobs")
 
 	// Create Session
-	svc, err := Macie2Service(ctx, d, region)
+	svc, err := Macie2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -175,12 +170,6 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getMacie2ClassificationJob")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var id string
 	if h.Item != nil {
 		id = *h.Item.(*macie2.JobSummary).JobId
@@ -189,7 +178,7 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create service
-	svc, err := Macie2Service(ctx, d, region)
+	svc, err := Macie2Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

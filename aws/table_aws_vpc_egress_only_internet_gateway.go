@@ -67,13 +67,7 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcEgressOnlyInternetGateways", "AWS_REGION", region)
 
 	// Create session
@@ -101,12 +95,7 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	gatewayID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// get service
@@ -136,15 +125,17 @@ func getVpcEgressOnlyInternetGateway(ctx context.Context, d *plugin.QueryData, h
 
 func getVpcEgressOnlyInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEgressOnlyInternetGatewayTurbotAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	egw := h.Item.(*ec2.EgressOnlyInternetGateway)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get resource aka
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":egress-only-internet-gateway/" + *egw.EgressOnlyInternetGatewayId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":egress-only-internet-gateway/" + *egw.EgressOnlyInternetGatewayId}
 
 	return akas, nil
 }

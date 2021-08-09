@@ -1,0 +1,23 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "cluster_arn": "{{ output.cluster_arn.value }}",
+    "desired_count": 3,
+    "enable_ecs_managed_tags": false,
+    "enable_execute_command": false,
+    "placement_constraints": [
+      {
+        "Expression": "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]",
+        "Type": "memberOf"
+      }
+    ],
+    "placement_strategy": [
+      {
+        "Field": "CPU",
+        "Type": "binpack"
+      }
+    ],
+    "service_name": "{{ resourceName }}",
+    "task_definition": "{{ output.task_definition_arn.value }}"
+  }
+]

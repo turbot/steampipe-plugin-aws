@@ -16,7 +16,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Network Address Translation Gateway",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("nat_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NatGatewayMalformed"}),
+			ShouldIgnoreError: isNotFoundError([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
 			Hydrate:           getVpcNatGateway,
 		},
 		List: &plugin.ListConfig{
@@ -28,6 +28,13 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 				Name:        "nat_gateway_id",
 				Description: "The ID of the NAT gateway.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the NAT gateway.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getVpcNatGatewayARN,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "nat_gateway_addresses",
@@ -97,8 +104,8 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getVpcNatGatewayTurbotAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getVpcNatGatewayARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -107,13 +114,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcNatGateways", "AWS_REGION", region)
 
 	// Create session
@@ -141,12 +142,7 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcNatGateway")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	natGatewayID := d.KeyColumnQuals["nat_gateway_id"].GetStringValue()
 
 	// get service
@@ -173,19 +169,21 @@ func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	return nil, nil
 }
 
-func getVpcNatGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcNatGatewayTurbotAkas")
+func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getVpcNatGatewayARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	natGateway := h.Item.(*ec2.NatGateway)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":natgateway/" + *natGateway.NatGatewayId}
+	// Build ARN
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":natgateway/" + *natGateway.NatGatewayId
 
-	return akas, nil
+	return arn, nil
 }
 
 //// TRANSFORM FUNCTIONS

@@ -162,7 +162,8 @@ func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryDa
 	plugin.Logger(ctx).Trace("getCloudFrontOriginRequestPolicyAkas")
 	policyID := *originRequestPolicyID(h.Item)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -175,11 +176,11 @@ func getCloudFrontOriginRequestPolicyAkas(ctx context.Context, d *plugin.QueryDa
 }
 
 func originRequestPolicyID(item interface{}) *string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *cloudfront.GetOriginRequestPolicyOutput:
-		return item.(*cloudfront.GetOriginRequestPolicyOutput).OriginRequestPolicy.Id
+		return item.OriginRequestPolicy.Id
 	case *cloudfront.OriginRequestPolicySummary:
-		return item.(*cloudfront.OriginRequestPolicySummary).OriginRequestPolicy.Id
+		return item.OriginRequestPolicy.Id
 	}
 	return nil
 }

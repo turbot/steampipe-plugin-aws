@@ -110,12 +110,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
 
 	// Create session
@@ -145,7 +140,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 	logger.Trace("getVpc")
 
 	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
-	region := plugin.GetMatrixItem(ctx)[matrixKeyRegion].(string)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace(" getVpc", "AWS_REGION", region)
 
 	// get service
@@ -175,14 +170,16 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcARN")
 	vpc := h.Item.(*ec2.Vpc)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpc/" + *vpc.VpcId
 
 	return arn, nil
 }

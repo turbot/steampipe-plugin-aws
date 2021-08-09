@@ -216,16 +216,10 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSSMDocuments", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSSMDocuments")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -251,12 +245,6 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMDocument")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var name string
 	if h.Item != nil {
 		name = documentName(h.Item)
@@ -265,7 +253,7 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -289,12 +277,6 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMDocumentPermissionDetail")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var name string
 	if h.Item != nil {
 		name = documentName(h.Item)
@@ -303,7 +285,7 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -326,13 +308,15 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 
 func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMDocumentAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	name := documentName(h.Item)
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":document"
+	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":document"
 
 	if strings.HasPrefix(name, "/") {
 		aka = aka + name
@@ -363,21 +347,21 @@ func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 }
 
 func documentName(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.DocumentDescription:
-		return *item.(*ssm.DocumentDescription).Name
+		return *item.Name
 	case *ssm.DocumentIdentifier:
-		return *item.(*ssm.DocumentIdentifier).Name
+		return *item.Name
 	}
 	return ""
 }
 
 func resourceTags(item interface{}) []*ssm.Tag {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.DocumentDescription:
-		return item.(*ssm.DocumentDescription).Tags
+		return item.Tags
 	case *ssm.DocumentIdentifier:
-		return item.(*ssm.DocumentIdentifier).Tags
+		return item.Tags
 	}
 	return nil
 }

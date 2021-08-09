@@ -107,15 +107,8 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listGuardDutyDetectors", "AWS_REGION", region)
-
 	// Create session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -149,15 +142,8 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		id = quals["detector_id"].GetStringValue()
 	}
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("matrixRegionmatrixRegion", "matrixRegion", matrixRegion)
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d, region)
+	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -177,14 +163,16 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGuardDutyDetectorARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(detectorInfo)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":guardduty:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
+	arn := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector/" + data.DetectorID
 
 	return arn, nil
 }

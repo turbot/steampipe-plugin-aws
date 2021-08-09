@@ -109,25 +109,18 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listEksAddons", "AWS_REGION", region)
-
 	// Get cluster details
 	clusterName := *h.Item.(*eks.Cluster).Name
 
 	// Create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	err = svc.ListAddonsPages(
 		&eks.ListAddonsInput{ClusterName: &clusterName},
-		func(page *eks.ListAddonsOutput, b bool) bool {
+		func(page *eks.ListAddonsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				d.StreamListItem(ctx, &eks.Addon{
 					AddonName:   addon,
@@ -145,12 +138,6 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEksAddon")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var clusterName, addonName string
 	if h.Item != nil {
 		clusterName = *h.Item.(*eks.Addon).ClusterName
@@ -161,7 +148,7 @@ func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	// create service
-	svc, err := EksService(ctx, d, region)
+	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

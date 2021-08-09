@@ -224,16 +224,10 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 }
 
 func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsRedshiftSnapshots", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsRedshiftSnapshots")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -254,13 +248,6 @@ func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// TODO Put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = *h.Item.(*redshift.Snapshot).SnapshotIdentifier
@@ -269,7 +256,7 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -291,15 +278,17 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRedshiftSnapshotAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshot := h.Item.(*redshift.Snapshot)
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier
 
 	// Get data for turbot defined properties
 	akas := []string{arn}

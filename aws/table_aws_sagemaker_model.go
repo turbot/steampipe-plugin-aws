@@ -114,15 +114,10 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSageMakerModels", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSageMakerModels")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -143,12 +138,6 @@ func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsSageMakerModel(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var name string
 	if h.Item != nil {
 		name = modelName(h.Item)
@@ -157,7 +146,7 @@ func getAwsSageMakerModel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -180,12 +169,6 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsSageMakerModelTags")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	var modelArn string
 	switch h.Item.(type) {
 	case *sagemaker.ModelSummary:
@@ -195,7 +178,7 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, region)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +200,7 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 //// TRANSFORM FUNCTION
 
-func sageMakerModelTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func sageMakerModelTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
 
@@ -236,11 +219,11 @@ func sageMakerModelTurbotTags(ctx context.Context, d *transform.TransformData) (
 }
 
 func modelName(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *sagemaker.ModelSummary:
-		return *item.(*sagemaker.ModelSummary).ModelName
+		return *item.ModelName
 	case *sagemaker.DescribeModelOutput:
-		return *item.(*sagemaker.DescribeModelOutput).ModelName
+		return *item.ModelName
 	}
 	return ""
 }

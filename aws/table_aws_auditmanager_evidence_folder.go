@@ -146,11 +146,7 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAuditManagerEvidenceFolders", "AWS_REGION", region)
 
 	// Create session
@@ -180,11 +176,7 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolder")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
@@ -215,15 +207,17 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 
 func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolderARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	evidenceFolderID := *h.Item.(*auditmanager.AssessmentEvidenceFolder).Id
 
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
+	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
 
 	return arn, nil
 }

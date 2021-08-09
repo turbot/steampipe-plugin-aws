@@ -97,12 +97,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcDhcpOptions", "AWS_REGION", region)
 
 	// Create session
@@ -130,12 +125,7 @@ func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcDhcpOption")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	dhcpOptionsID := d.KeyColumnQuals["dhcp_options_id"].GetStringValue()
 
 	// Create session
@@ -165,15 +155,17 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getVpcDhcpOptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcDhcpOptionAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	dhcpOption := h.Item.(*ec2.DhcpOptions)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":dhcp-options/" + *dhcpOption.DhcpOptionsId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":dhcp-options/" + *dhcpOption.DhcpOptionsId}
 
 	return akas, nil
 }

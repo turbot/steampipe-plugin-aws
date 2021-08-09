@@ -18,7 +18,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_transit_gateway",
 		Description: "AWS EC2 Transit Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("network_interface_id"),
+			KeyColumns:        plugin.SingleColumn("transit_gateway_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed"}),
 			Hydrate:           getEc2TransitGateway,
 		},
@@ -150,12 +150,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
@@ -180,12 +175,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
 
 	// create service

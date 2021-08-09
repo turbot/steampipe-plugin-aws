@@ -231,14 +231,8 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	// Create Session
-	svc, err := EmrService(ctx, d, region)
+	svc, err := EmrService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -262,11 +256,6 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEmrCluster")
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 
 	var id string
 	if h.Item != nil {
@@ -277,7 +266,7 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EmrService(ctx, d, region)
+	svc, err := EmrService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -318,11 +307,11 @@ func getEmrClusterTurbotTags(ctx context.Context, d *transform.TransformData) (i
 }
 
 func clusterID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *emr.ClusterSummary:
-		return *item.(*emr.ClusterSummary).Id
+		return *item.Id
 	case *emr.Cluster:
-		return *item.(*emr.Cluster).Id
+		return *item.Id
 	}
 	return ""
 }

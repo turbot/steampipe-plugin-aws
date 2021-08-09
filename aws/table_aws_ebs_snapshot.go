@@ -137,12 +137,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
 
 	// Create session
@@ -173,12 +168,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEBSSnapshot")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
 
 	// get service
@@ -209,12 +199,7 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEBSSnapshotCreateVolumePermissions")
 	snapshotData := h.Item.(*ec2.Snapshot)
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -238,15 +223,17 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 
 func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEBSSnapshotARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshotData := h.Item.(*ec2.Snapshot)
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// Get the resource arn
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
 
 	return arn, nil
 }

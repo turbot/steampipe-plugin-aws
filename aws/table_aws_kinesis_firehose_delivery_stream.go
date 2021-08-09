@@ -17,7 +17,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_firehose_delivery_stream",
 		Description: "AWS Kinesis Firehose Delivery Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("stream_name"),
+			KeyColumns:        plugin.SingleColumn("delivery_stream_name"),
 			ShouldIgnoreError: isNotFoundError([]string{}),
 			Hydrate:           describeFirehoseDeliveryStream,
 		},
@@ -145,16 +145,8 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listFirehoseDeliveryStreams", "AWS_REGION", region)
-
 	// Create session
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -185,22 +177,16 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeFirehoseDeliveryStream")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
 	} else {
 		quals := d.KeyColumnQuals
-		streamName = quals["stream_name"].GetStringValue()
+		streamName = quals["delivery_stream_name"].GetStringValue()
 	}
 
 	// get service
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -224,17 +210,10 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listFirehoseDeliveryStreamTags")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	streamName := *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
 
 	// Create Session
-	svc, err := FirehoseService(ctx, d, region)
+	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

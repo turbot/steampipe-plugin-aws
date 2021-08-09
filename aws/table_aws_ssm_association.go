@@ -188,16 +188,10 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listAwsSSMAssociations", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listAwsSSMAssociations")
 
 	// Create session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,12 +215,6 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsSSMAssociation")
 
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	var id string
 	if h.Item != nil {
 		id = associationID(h.Item)
@@ -235,7 +223,7 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d, region)
+	svc, err := SsmService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -256,23 +244,25 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSSMAssociationARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	associationData := associationID(h.Item)
-	c, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ssm:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":association/" + associationData
+	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":association/" + associationData
 
 	return arn, nil
 }
 
 func associationID(item interface{}) string {
-	switch item.(type) {
+	switch item := item.(type) {
 	case *ssm.Association:
-		return *item.(*ssm.Association).AssociationId
+		return *item.AssociationId
 	case *ssm.AssociationDescription:
-		return *item.(*ssm.AssociationDescription).AssociationId
+		return *item.AssociationId
 	}
 	return ""
 }

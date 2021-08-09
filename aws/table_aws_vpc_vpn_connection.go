@@ -122,11 +122,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listVpcVpnConnections", "AWS_REGION", region)
 
 	// Create session
@@ -149,11 +145,7 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcVpnConnection")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	vpnConnectionID := d.KeyColumnQuals["vpn_connection_id"].GetStringValue()
 
 	// Create session
@@ -183,14 +175,17 @@ func getVpcVpnConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 func getVpcVpnConnectionARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcVpnConnectionARN")
 	vpnConnection := h.Item.(*ec2.VpnConnection)
-	commonData, err := getCommonColumns(ctx, d, h)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":vpn-connection/" + *vpnConnection.VpnConnectionId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":vpn-connection/" + *vpnConnection.VpnConnectionId
 
 	return arn, nil
 }

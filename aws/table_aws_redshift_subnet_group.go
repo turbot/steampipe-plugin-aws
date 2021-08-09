@@ -87,16 +87,10 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listRedshiftSubnetGroup", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listRedshiftSubnetGroup")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -117,16 +111,10 @@ func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// TODO put me in helper function
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
 	clusterSubnetGroupName := d.KeyColumnQuals["cluster_subnet_group_name"].GetStringValue()
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -148,14 +136,16 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftSubnetGroupAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*redshift.ClusterSubnetGroup)
-	commonData, err := getCommonColumns(ctx, d, h)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":subnetgroup:" + *data.ClusterSubnetGroupName
 
 	// Get data for turbot defined properties
 	akas := []string{arn}
@@ -170,7 +160,7 @@ func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData
 	if data.Tags == nil {
 		return nil, nil
 	}
-	
+
 	// Get the resource tags
 	var turbotTagsMap map[string]string
 	if data.Tags != nil {
