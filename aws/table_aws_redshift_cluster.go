@@ -392,18 +392,14 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	name := h.Item.(*redshift.Cluster).ClusterIdentifier
+	plugin.Logger(ctx).Trace("getClusterScheduledActions")
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, region)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
+	name := h.Item.(*redshift.Cluster).ClusterIdentifier
 
 	// List call
 	var scheduledActions []*redshift.ScheduledAction
