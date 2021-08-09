@@ -133,6 +133,7 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	v2ApiDomain := h.Item.(*apigatewayv2.DomainName)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -141,7 +142,7 @@ func getapiGatewayV2DomainNameAkas(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/domainnames/" + *v2ApiDomain.DomainName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/domainnames/" + *v2ApiDomain.DomainName}
 
 	return akas, nil
 }

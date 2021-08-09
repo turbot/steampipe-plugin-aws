@@ -431,6 +431,7 @@ func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plu
 func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRedshiftClusterARN")
 	cluster := h.Item.(*redshift.Cluster)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -439,7 +440,7 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":cluster:" + *cluster.ClusterIdentifier
 
 	return arn, nil
 }

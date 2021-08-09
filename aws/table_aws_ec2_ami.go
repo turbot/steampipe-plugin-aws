@@ -259,6 +259,7 @@ func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, 
 
 func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2AmiAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	image := h.Item.(*ec2.Image)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -268,7 +269,7 @@ func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + *image.OwnerId + ":image/" + *image.ImageId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *image.OwnerId + ":image/" + *image.ImageId}
 
 	return akas, nil
 }

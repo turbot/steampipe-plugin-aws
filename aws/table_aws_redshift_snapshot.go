@@ -278,6 +278,7 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRedshiftSnapshotAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	snapshot := h.Item.(*redshift.Snapshot)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -287,7 +288,7 @@ func getAwsRedshiftSnapshotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier
+	arn := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":snapshot:" + *snapshot.ClusterIdentifier + "/" + *snapshot.SnapshotIdentifier
 
 	// Get data for turbot defined properties
 	akas := []string{arn}

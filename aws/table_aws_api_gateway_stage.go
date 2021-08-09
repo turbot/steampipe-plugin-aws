@@ -225,6 +225,7 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIGatewayStageARN")
 	apiStage := h.Item.(*stageRowData)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -233,6 +234,6 @@ func getAPIGatewayStageARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/restapis/" + *apiStage.RestAPIId + "/stages/" + *apiStage.Stage.StageName
+	arn := "arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/restapis/" + *apiStage.RestAPIId + "/stages/" + *apiStage.Stage.StageName
 	return arn, nil
 }

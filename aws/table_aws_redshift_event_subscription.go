@@ -165,6 +165,7 @@ func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _
 
 func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRedshiftEventSubscriptionAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	parameterData := h.Item.(*redshift.EventSubscription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -172,7 +173,7 @@ func getAwsRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":redshift:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":eventsubscription"
+	aka := "arn:" + commonColumnData.Partition + ":redshift:" + region + ":" + commonColumnData.AccountId + ":eventsubscription"
 
 	if strings.HasPrefix(*parameterData.CustSubscriptionId, ":") {
 		aka = aka + *parameterData.CustSubscriptionId

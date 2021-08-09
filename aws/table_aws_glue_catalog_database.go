@@ -140,6 +140,7 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlueCatalogDatabaseAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*glue.Database)
 
 	// Get common columns
@@ -149,7 +150,7 @@ func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":glue:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":database/" + *data.Name
+	aka := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":database/" + *data.Name
 
 	return []string{aka}, nil
 }

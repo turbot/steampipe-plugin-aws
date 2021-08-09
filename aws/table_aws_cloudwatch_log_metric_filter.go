@@ -134,6 +134,7 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 
 func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	metricFilter := h.Item.(*cloudwatchlogs.MetricFilter)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -144,7 +145,7 @@ func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":logs:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":log-group:" + *metricFilter.LogGroupName + ":metric-filter:" + *metricFilter.FilterName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":logs:" + region + ":" + commonColumnData.AccountId + ":log-group:" + *metricFilter.LogGroupName + ":metric-filter:" + *metricFilter.FilterName}
 
 	return akas, nil
 }

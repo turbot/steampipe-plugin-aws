@@ -142,6 +142,7 @@ func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcCustomerGatewayTurbotAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	customerGateway := h.Item.(*ec2.CustomerGateway)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -151,7 +152,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":customer-gateway/" + *customerGateway.CustomerGatewayId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":customer-gateway/" + *customerGateway.CustomerGatewayId}
 
 	return akas, nil
 }

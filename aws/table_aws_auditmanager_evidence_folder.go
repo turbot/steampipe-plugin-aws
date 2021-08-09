@@ -207,6 +207,7 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 
 func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolderARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	evidenceFolderID := *h.Item.(*auditmanager.AssessmentEvidenceFolder).Id
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -216,7 +217,7 @@ func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, 
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
+	arn := "arn:" + commonColumnData.Partition + ":auditmanager:" + region + ":" + commonColumnData.AccountId + ":evidence-folder/" + evidenceFolderID
 
 	return arn, nil
 }

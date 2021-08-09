@@ -205,6 +205,7 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 	plugin.Logger(ctx).Trace("pipelineARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get region, partition, account id
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -216,7 +217,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	switch item := h.Item.(type) {
 	case *codepipeline.PipelineSummary:
-		return "arn:" + commonColumnData.Partition + ":codepipeline:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":" + *item.Name
+		return "arn:" + commonColumnData.Partition + ":codepipeline:" + region + ":" + commonColumnData.AccountId + ":" + *item.Name
 	case *codepipeline.GetPipelineOutput:
 		return *item.Metadata.PipelineArn
 	}

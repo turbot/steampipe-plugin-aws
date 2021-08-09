@@ -188,6 +188,7 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEmrInstanceGroupARN")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(instanceGroupDetails)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -198,7 +199,7 @@ func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":emr:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":instance-group/" + *data.Id
+	arn := "arn:" + commonColumnData.Partition + ":emr:" + region + ":" + commonColumnData.AccountId + ":instance-group/" + *data.Id
 
 	return arn, nil
 }

@@ -242,6 +242,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*v2StageRowData)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -249,7 +250,7 @@ func apiGatewayV2StageAkas(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + commonColumnData.Region + "::/apis/" + *data.APIId + "/stages/" + *data.Stage.StageName}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + *data.APIId + "/stages/" + *data.Stage.StageName}
 
 	return akas, nil
 }

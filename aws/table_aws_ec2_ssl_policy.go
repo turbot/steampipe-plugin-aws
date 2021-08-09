@@ -128,6 +128,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2SslPolicyAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*elbv2.SslPolicy)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -138,7 +139,7 @@ func getEc2SslPolicyAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":elbv2:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":ssl-policy/" + *data.Name}
+	akas := []string{"arn:" + commonColumnData.Partition + ":elbv2:" + region + ":" + commonColumnData.AccountId + ":ssl-policy/" + *data.Name}
 
 	return akas, nil
 }
