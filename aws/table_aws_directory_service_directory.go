@@ -58,6 +58,16 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Description: "The description for the directory.",
 				Type:        proto.ColumnType_STRING,
 			},
+            {
+                 Name:        "stage",
+                 Description: "The current stage of the directory.",
+                 Type:        proto.ColumnType_STRING,
+             },
+             {
+                 Name:        "type",
+                 Description: "The directory type.",
+                 Type:        proto.ColumnType_STRING,
+             },
 			{
 				Name:        "desired_number_of_domain_controllers",
 				Description: "The desired number of domain controllers in the directory if the directory is Microsoft AD.",
@@ -109,11 +119,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "stage",
-				Description: "The current stage of the directory.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "stage_last_updated_date_time",
 				Description: "The date and time that the stage was last updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -121,11 +126,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 			{
 				Name:        "stage_reason",
 				Description: "Additional information about the directory stage.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "type",
-				Description: "The directory type.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
