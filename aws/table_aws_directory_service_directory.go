@@ -58,16 +58,16 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Description: "The description for the directory.",
 				Type:        proto.ColumnType_STRING,
 			},
-            {
-                 Name:        "stage",
-                 Description: "The current stage of the directory.",
-                 Type:        proto.ColumnType_STRING,
-             },
-             {
-                 Name:        "type",
-                 Description: "The directory type.",
-                 Type:        proto.ColumnType_STRING,
-             },
+			{
+				Name:        "stage",
+				Description: "The current stage of the directory.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "type",
+				Description: "The directory type.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "desired_number_of_domain_controllers",
 				Description: "The desired number of domain controllers in the directory if the directory is Microsoft AD.",
