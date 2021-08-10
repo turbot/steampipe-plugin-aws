@@ -15,7 +15,7 @@ from
   aws_directory_service_directory;
 ```
 
-### List Directories of  type MicrosoftAD
+### List MicrosoftAD type directories 
 
 ```sql
 select

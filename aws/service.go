@@ -483,11 +483,11 @@ func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databa
 	return svc, nil
 }
 
-// DirectoryServiceService returns the service connection for AWS Directory service
-func DirectoryServiceService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
+// DirectoryService returns the service connection for AWS Directory service
+func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DirectoryServiceService")
+		return nil, fmt.Errorf("region must be passed DirectoryService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("directoryservice-%s", region)

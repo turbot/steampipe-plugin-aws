@@ -18,11 +18,11 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		Description: "AWS Directory Service Directory",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("directory_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
 			Hydrate:           getDirectoryServiceDirectory,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDirectiryServiceDirectorties,
+			Hydrate: listDirectoryServiceDirectories,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -54,11 +54,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "connect_settings",
-				Description: "A DirectoryConnectSettingsDescription object that contains additional information about an AD Connector directory.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "description",
 				Description: "The description for the directory.",
 				Type:        proto.ColumnType_STRING,
@@ -67,11 +62,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Name:        "desired_number_of_domain_controllers",
 				Description: "The desired number of domain controllers in the directory if the directory is Microsoft AD.",
 				Type:        proto.ColumnType_INT,
-			},
-			{
-				Name:        "dns_ip_addrs",
-				Description: "he IP addresses of the DNS servers for the directory.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "edition",
@@ -84,24 +74,9 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "owner_directory_description",
-				Description: "Describes the AWS Managed Microsoft AD directory in the directory owner account.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "radius_settings",
-				Description: "A RadiusSettings object that contains information about the RADIUS server",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "radius_status",
 				Description: "The status of the RADIUS MFA server connection.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "regions_info",
-				Description: "Lists the Regions where the directory has replicated.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "share_method",
@@ -150,8 +125,33 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "type",
-				Description: "The directory size.",
+				Description: "The directory type.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "connect_settings",
+				Description: "A DirectoryConnectSettingsDescription object that contains additional information about an AD Connector directory.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "dns_ip_addrs",
+				Description: "he IP addresses of the DNS servers for the directory.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "owner_directory_description",
+				Description: "Describes the AWS Managed Microsoft AD directory in the directory owner account.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "radius_settings",
+				Description: "A RadiusSettings object that contains information about the RADIUS server.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "regions_info",
+				Description: "Lists the Regions where the directory has replicated.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "vpc_settings",
@@ -160,7 +160,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tag_src",
-				Description: "A list of tags currently associated with the Directory Service Directory",
+				Description: "A list of tags currently associated with the Directory Service Directory.",
 				Hydrate:     getDirectoryServiceDirectoryTags,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
@@ -193,9 +193,9 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDirectiryServiceDirectorties(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DirectoryServiceService(ctx, d)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -220,16 +220,15 @@ func listDirectiryServiceDirectorties(ctx context.Context, d *plugin.QueryData, 
 
 func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := DirectoryServiceService(ctx, d)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
 
-	params := &directoryservice.DescribeDirectoriesInput{
-		DirectoryIds: []*string{&directoryID},
-	}
+	params := &directoryservice.DescribeDirectoriesInput{}
+	params.SetDirectoryIds([]*string{&directoryID})
 
 	op, err := svc.DescribeDirectories(params)
 	if err != nil {
@@ -264,7 +263,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	directoryID := h.Item.(*directoryservice.DirectoryDescription).DirectoryId
 
 	// Create service
-	svc, err := DirectoryServiceService(ctx, d)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
