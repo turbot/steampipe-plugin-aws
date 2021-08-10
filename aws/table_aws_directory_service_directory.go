@@ -44,6 +44,16 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "stage",
+				Description: "The current stage of the directory.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "type",
+				Description: "The directory type.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "access_url",
 				Description: "The access URL for the directory, such as http://<alias>.awsapps.com.",
 				Type:        proto.ColumnType_STRING,
@@ -56,16 +66,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 			{
 				Name:        "description",
 				Description: "The description for the directory.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "stage",
-				Description: "The current stage of the directory.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "type",
-				Description: "The directory type.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -159,7 +159,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tag_src",
+				Name:        "tags_src",
 				Description: "A list of tags currently associated with the Directory Service Directory.",
 				Hydrate:     getDirectoryServiceDirectoryTags,
 				Type:        proto.ColumnType_JSON,
@@ -226,6 +226,9 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
+	if directoryID == "" {
+		return nil, nil
+	}
 
 	params := &directoryservice.DescribeDirectoriesInput{}
 	params.SetDirectoryIds([]*string{&directoryID})
@@ -252,7 +255,9 @@ func getDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ds:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":directory/" + *directory.DirectoryId
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	arn := "arn:" + commonColumnData.Partition + ":ds:" + region + ":" + commonColumnData.AccountId + ":directory/" + *directory.DirectoryId
 
 	return arn, nil
 }
@@ -280,7 +285,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	return tags, nil
 }
 
-//// TRANSFORMATION FUNCTION
+//// TRANSFORM FUNCTION
 
 func directoryServiceDirectoryTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*directoryservice.ListTagsForResourceOutput)
