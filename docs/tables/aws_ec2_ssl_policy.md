@@ -30,3 +30,15 @@ on
 where
   ssl_policy.ciphers @> '[{"Name":"DES-CBC3-SHA"}]';
 ```
+
+### Get SSL policy by region
+
+```sql
+select
+  name,
+  ssl_protocols
+from
+  aws_ec2_ssl_policy
+where 
+  name = 'ELBSecurityPolicy-2016-08' and region = 'us-east-1';
+```
