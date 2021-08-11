@@ -1,6 +1,6 @@
 # Table: aws_ec2_network_load_balancer_metric_net_flow_count
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_ec2_network_load_balancer_metric_net_flow_count` table provides metric statistics at 5 min intervals for the most recent 7 days.
+Amazon CloudWatch Metrics provide data about the performance of your systems. The `aws_ec2_network_load_balancer_metric_net_flow_count` table provides metric statistics at 5 min intervals for the most recent 5 days.
 
 ## Examples
 
