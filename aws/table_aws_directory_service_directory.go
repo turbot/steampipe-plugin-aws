@@ -40,7 +40,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) that uniquely identifies the directory.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDirectoryArn,
+				Hydrate:     getDirectoryARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -184,7 +184,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDirectoryArn,
+				Hydrate:     getDirectoryARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -244,8 +244,8 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 	return nil, nil
 }
 
-func getDirectoryArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDirectoryArn")
+func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getDirectoryARN")
 	directory := h.Item.(*directoryservice.DirectoryDescription)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -285,7 +285,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	return tags, nil
 }
 
-//// TRANSFORM FUNCTION
+//// TRANSFORM FUNCTIONS
 
 func directoryServiceDirectoryTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*directoryservice.ListTagsForResourceOutput)
