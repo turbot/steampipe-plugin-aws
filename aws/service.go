@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
+	"github.com/aws/aws-sdk-go/service/directoryservice"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -477,6 +478,28 @@ func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databa
 		return nil, err
 	}
 	svc := databasemigrationservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DirectoryService returns the service connection for AWS Directory service
+func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DirectoryService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("directoryservice-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*directoryservice.DirectoryService), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := directoryservice.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
