@@ -1,0 +1,39 @@
+package aws
+
+import (
+	"context"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+//// TABLE DEFINITION
+func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_ec2_network_load_balancer_metric_net_flow_count",
+		Description: "AWS EC2 Network Load Balancer Metrics - Net Flow Count",
+		List: &plugin.ListConfig{
+			ParentHydrate: listEc2NetworkLoadBalancers,
+			Hydrate:       listEc2NetworkLoadBalancerMetricNetFlowCount,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns(cwMetricColumns(
+			[]*plugin.Column{
+				{
+					Name:        "name",
+					Description: "The friendly name of the Load Balancer.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("DimensionValue"),
+				},
+			})),
+	}
+}
+
+func listEc2NetworkLoadBalancerMetricNetFlowCount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	loadBalancer := h.Item.(*elbv2.LoadBalancer)
+	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
+	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/NetworkELB", "NewFlowCount", "LoadBalancer", arn)
+}
