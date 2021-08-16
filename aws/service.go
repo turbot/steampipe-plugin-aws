@@ -1597,7 +1597,11 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
-	if !helpers.StringSliceContains(allAwsRegions, region) {
+	if strings.HasPrefix(region, "us-gov") {
+		region = "us-gov-east-1"
+	} else if strings.HasPrefix(region, "cn") {
+		region = "cn-north-1"
+	} else if !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-east-1"
 	}
 
