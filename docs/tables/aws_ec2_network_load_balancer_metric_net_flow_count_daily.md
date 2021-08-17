@@ -1,4 +1,4 @@
-# Table: aws_ec2_network_load_balancer_metric_net_flow_count
+# Table: aws_ec2_network_load_balancer_metric_net_flow_count_daily
 
 Amazon CloudWatch Metrics provide data about the performance of your systems. The `aws_ec2_network_load_balancer_metric_net_flow_count_daily` table provides metric statistics at 24 hour intervals for the most recent 1 year.
 
