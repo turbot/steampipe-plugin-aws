@@ -81,16 +81,10 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-	plugin.Logger(ctx).Trace("listSecurityHubStandardsSubcriptions", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listSecurityHubStandardsSubcriptions")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, region)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -112,15 +106,9 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("GetEnabledStandards")
 
-	var region string
-	matrixRegion := plugin.GetMatrixItem(ctx)[matrixKeyRegion]
-	if matrixRegion != nil {
-		region = matrixRegion.(string)
-	}
-
 	standardArn := *h.Item.(*securityhub.Standard).StandardsArn
 	// get service
-	svc, err := SecurityHubService(ctx, d, region)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
