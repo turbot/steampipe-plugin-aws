@@ -1,0 +1,10 @@
+[
+  {
+    "akas": [
+      "arn:aws:securityhub:{{ output.aws_region.value }}::standards/pci-dss/v/3.2.1"
+    ],
+    "name": "PCI DSS v3.2.1",
+    "region": "{{ output.aws_region.value }}",
+    "title": "PCI DSS v3.2.1"
+  }
+]
