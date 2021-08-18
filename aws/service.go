@@ -77,6 +77,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
@@ -1592,20 +1593,16 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 	}
 
-	if len(validPatterns) == 0 && awsConfig.Regions != nil {
+	if len(validPatterns) == 0 {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
-	if region == "" {
+	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
+		region = "us-gov-east-1"
+	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
+		region = "cn-north-1"
+	} else if !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-east-1"
-	} else {
-		if strings.HasPrefix(region, "us-gov") {
-			region = "us-gov-east-1"
-		} else if strings.HasPrefix(region, "cn") {
-			region = "cn-north-1"
-		} else {
-			region = "us-east-1"
-		}
 	}
 
 	d.ConnectionManager.Cache.Set(serviceCacheKey, region)
