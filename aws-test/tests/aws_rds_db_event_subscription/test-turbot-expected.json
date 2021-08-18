@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "cust_subscription_id": "{{ resourceName }}",
+    "title": "{{ resourceName }}"
+  }
+]
