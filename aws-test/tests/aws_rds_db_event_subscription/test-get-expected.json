@@ -1,0 +1,10 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "cust_subscription_id": "{{ resourceName }}",
+    "customer_aws_id": "{{ output.customer_aws_id.value }}",
+    "enabled": false,
+    "sns_topic_arn": "{{ output.sns_topic_arn.value }}",
+    "status": "active"
+  }
+]
