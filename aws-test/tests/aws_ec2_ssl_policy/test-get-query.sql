@@ -7,4 +7,4 @@ select
 from 
   aws.aws_ec2_ssl_policy
 where 
-  name = '{{ resourceName }}';
+  name = '{{ resourceName }}' and region = '{{ output.region_name.value }}';

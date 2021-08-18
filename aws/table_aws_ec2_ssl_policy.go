@@ -18,8 +18,8 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ssl_policy",
 		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"name"}),
+			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
+			ShouldIgnoreError: isNotFoundError([]string{"SSLPolicyNotFound"}),
 			Hydrate:           getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
@@ -101,7 +101,14 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
+	matrixKeyRegion := d.KeyColumnQualString(matrixKeyRegion)
 	name := d.KeyColumnQuals["name"].GetStringValue()
+	regionName := d.KeyColumnQuals["region"].GetStringValue()
+
+	// Handle empty name or region
+	if name == "" || regionName == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d)
@@ -114,13 +121,15 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		Names: []*string{aws.String(name)},
 	}
 
-	op, err := svc.DescribeSSLPolicies(params)
-	if err != nil {
-		return nil, err
-	}
+	if(matrixKeyRegion == regionName){
+		op, err := svc.DescribeSSLPolicies(params)
+		if err != nil {
+			return nil, err
+		}
 
-	if op.SslPolicies != nil && len(op.SslPolicies) > 0 {
-		return op.SslPolicies[0], nil
+		if op.SslPolicies != nil && len(op.SslPolicies) > 0 {
+			return op.SslPolicies[0], nil
+		}
 	}
 
 	return nil, nil
