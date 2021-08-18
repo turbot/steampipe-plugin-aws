@@ -152,8 +152,7 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 
 func convertStringToRFC3339Timestamp(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*rds.EventSubscription)
-
-	// 2021-08-18 06:24:35
 	parsedTime := strings.Replace(*data.SubscriptionCreationTime, " ", "T", 1)
+	
 	return parsedTime, nil
 }
