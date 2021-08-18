@@ -14,7 +14,7 @@ select
   status,
   enabled
 from
-  aws_rds_db_event_subscription
+  aws_rds_db_event_subscription;
 ```
 
 ### List DB event subscription which are enable
