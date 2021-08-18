@@ -200,6 +200,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_rds_db_snapshot":                                          tableAwsRDSDBSnapshot(ctx),
 			"aws_rds_db_subnet_group":                                      tableAwsRDSDBSubnetGroup(ctx),
 			"aws_redshift_cluster":                                         tableAwsRedshiftCluster(ctx),
+			"aws_redshift_cluster_metric_cpu_utilization_daily":            tableAwsRedshiftClusterMetricCpuUtilizationDaily(ctx),
 			"aws_redshift_event_subscription":                              tableAwsRedshiftEventSubscription(ctx),
 			"aws_redshift_parameter_group":                                 tableAwsRedshiftParameterGroup(ctx),
 			"aws_redshift_snapshot":                                        tableAwsRedshiftSnapshot(ctx),
