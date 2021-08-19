@@ -197,7 +197,6 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	params := &ec2.DescribeReservedInstancesInput{
 		ReservedInstancesIds: []*string{aws.String(instanceID)},
-		// InstanceIds: []*string{aws.String(instanceID)},
 	}
 
 	op, err := svc.DescribeReservedInstances(params)
