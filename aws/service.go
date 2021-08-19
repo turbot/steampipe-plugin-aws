@@ -1598,9 +1598,9 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	}
 
 	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
-		region = "us-gov-east-1"
+		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
-		region = "cn-north-1"
+		region = "cn-northwest-1"
 	} else if !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-east-1"
 	}
