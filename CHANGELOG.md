@@ -1,3 +1,27 @@
+## v0.30.0 [2021-08-19]
+
+_What's new?_
+
+- New tables added
+  - [aws_directory_service_directory](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_directory_service_directory) ([#572](https://github.com/turbot/steampipe-plugin-aws/pull/572))
+  - [aws_ec2_application_load_balancer_metric_request_count_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_application_load_balancer_metric_request_count_daily) ([#605](https://github.com/turbot/steampipe-plugin-aws/pull/605))
+  - [aws_ec2_network_load_balancer_metric_net_flow_count](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_network_load_balancer_metric_net_flow_count) ([#527](https://github.com/turbot/steampipe-plugin-aws/pull/527))
+  - [aws_ec2_application_load_balancer_metric_request_count](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_application_load_balancer_metric_request_count) ([#527](https://github.com/turbot/steampipe-plugin-aws/pull/527))
+  - [aws_ec2_network_load_balancer_metric_net_flow_count_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_network_load_balancer_metric_net_flow_count_daily) ([#604](https://github.com/turbot/steampipe-plugin-aws/pull/604))
+  - [aws_rds_db_event_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_db_event_subscription) ([#609](https://github.com/turbot/steampipe-plugin-aws/pull/609))
+  - [aws_redshift_cluster_metric_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshift_cluster_metric_cpu_utilization_daily) ([#606](https://github.com/turbot/steampipe-plugin-aws/pull/606))
+  - [aws_securityhub_standards_subscription](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_securityhub_standards_subscription) ([#286](https://github.com/turbot/steampipe-plugin-aws/pull/286))
+
+_Enhancements_
+
+- Updated: Default region for `us-gov` and `cn` partition will be `us-gov-west-1` and `cn-northwest-1` ([#613](https://github.com/turbot/steampipe-plugin-aws/pull/613))
+- Updated: Add column `scheduled_actions` to `aws_redshift_cluster` table ([#523](https://github.com/turbot/steampipe-plugin-aws/pull/523))
+
+_Bug fixes_
+
+- Fixed: `aws_ec2_ssl_policy` table will no longer generate duplicate values with multi-region setup ([#594](https://github.com/turbot/steampipe-plugin-aws/pull/594))
+- Fixed: AWS plugin tables will work properly with `AWS_REGION` or `AWS_DEFAULT_REGION` env variables ([#598](https://github.com/turbot/steampipe-plugin-aws/pull/598))
+
 ## v0.29.0 [2021-08-06]
 
 _What's new?_
