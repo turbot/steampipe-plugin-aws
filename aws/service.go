@@ -1597,6 +1597,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
+	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are the targeting the respective regions
 	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
