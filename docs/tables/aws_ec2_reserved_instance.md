@@ -20,7 +20,7 @@ from
   aws.aws_ec2_reserved_instance;
 ```
 
-### Count the number of instances by instance type
+### Count reserved instances by instance type
 
 ```sql
 select
@@ -32,7 +32,7 @@ group by
   instance_type;
 ```
 
-### List of EC2 reserved instances provisioned with undesired(for example t2.large and m3.medium is desired) instance type(s).
+### List reserved instances provisioned with undesired(for example t2.large and m3.medium is desired) instance type(s)
 
 ```sql
 select
@@ -46,7 +46,7 @@ group by
   instance_type;
 ```
 
-### List reserved instances of standard offering class
+### List standard offering class type reserved instances
 
 ```sql
 select

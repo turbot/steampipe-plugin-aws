@@ -23,7 +23,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2ReservedInstance,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2ReservedInstance,
+			Hydrate: listEc2ReservedInstances,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -137,7 +137,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getEc2ReservedInstanceTurbotTitle),
+				Transform:   transform.FromField("ReservedInstancesId"),
 			},
 			{
 				Name:        "tags",
@@ -158,9 +158,9 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEc2ReservedInstances", "AWS_REGION", region)
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
@@ -263,22 +263,9 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 	return nil, err
 }
 
-//// TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTION
 
 func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	instance := d.HydrateItem.(*ec2.ReservedInstances)
 	return ec2TagsToMap(instance.Tags)
-}
-
-func getEc2ReservedInstanceTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.ReservedInstances)
-	title := data.ReservedInstancesId
-	if data.Tags != nil {
-		for _, i := range data.Tags {
-			if *i.Key == "Name" {
-				title = i.Value
-			}
-		}
-	}
-	return title, nil
 }
