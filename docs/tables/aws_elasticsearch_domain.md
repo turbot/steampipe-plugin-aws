@@ -95,3 +95,28 @@ where
   p = '*'
   and s ->> 'Effect' = 'Allow';
 ```
+
+
+### List domain log publishing options
+
+```sql
+select
+  domain_name,
+  domain_id,
+  log_publishing_options
+from
+  aws_elasticsearch_domain;
+```
+
+
+### List domain Search slow logs details
+
+```sql
+select
+  domain_name,
+  domain_id,
+  log_publishing_options -> 'SEARCH_SLOW_LOGS' -> 'Enabled' as enabled,
+  log_publishing_options -> 'SEARCH_SLOW_LOGS' -> 'CloudWatchLogsLogGroupArn' as cloud_watch_logs_log_group_arn
+from
+  aws_elasticsearch_domain;
+```

@@ -61,6 +61,12 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
+				Name:        "access_policies",
+				Description: "IAM access policy as a JSON-formatted string.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
 				Name:        "created",
 				Description: "The domain creation status.",
 				Type:        proto.ColumnType_BOOL,
@@ -90,12 +96,6 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsElasticsearchDomain,
 				Transform:   transform.FromField("NodeToNodeEncryptionOptions.Enabled"),
-			},
-			{
-				Name:        "access_policies",
-				Description: "IAM access policy attach with domain.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsElasticsearchDomain,
 			},
 			{
 				Name:        "policy_std",
@@ -150,6 +150,12 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 			{
 				Name:        "encryption_at_rest_options",
 				Description: "Specifies the status of the EncryptionAtRestOptions.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsElasticsearchDomain,
+			},
+			{
+				Name:        "log_publishing_options",
+				Description: "Log publishing options for the given domain.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsElasticsearchDomain,
 			},
