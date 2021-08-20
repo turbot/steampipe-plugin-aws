@@ -1,0 +1,31 @@
+# Table: aws_ec2_ami_shared
+
+On-Demand Capacity Reservations enable you to reserve compute capacity for your Amazon EC2 instances in a specific Availability Zone for any duration. A Capacity Reservation is tied to a specific Availability Zone and, by default automatically utilized by running instances in that Availability Zone.
+
+## Examples
+
+### Basic info
+
+```sql
+select
+  capacity_reservation_arn,
+  capacity_reservation_id,
+  instance_type,
+  state
+from
+  aws_ec2_capacity_reservation;
+```
+
+### List EC2 cancelled capacity reservations
+
+```sql
+select
+  capacity_reservation_arn,
+  capacity_reservation_id,
+  instance_type,
+  state
+from
+  aws_ec2_capacity_reservation
+where
+  state = 'cancelled';
+```
