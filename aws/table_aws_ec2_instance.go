@@ -115,6 +115,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("InstanceInitiatedShutdownBehavior.Value"),
 			},
 			{
+				Name:        "instance_lifecycle",
+				Description: "Indicates whether this is a spot instance or a scheduled instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "kernel_id",
 				Description: "The kernel ID",
 				Type:        proto.ColumnType_STRING,
