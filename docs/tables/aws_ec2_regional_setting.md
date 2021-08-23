@@ -1,4 +1,4 @@
-# Table: aws_ec2_regional_settings
+# Table: aws_ec2_regional_setting
 
 Settings associated with the AWS Account.
 
@@ -13,7 +13,7 @@ select
   title,
   region
 from
-  aws_ec2_regional_settings;
+  aws_ec2_regional_setting;
 ```
 
 
@@ -26,7 +26,7 @@ select
   title,
   region
 from
-  aws_ec2_regional_settings
+  aws_ec2_regional_setting
 where
   region = 'ap-south-1';
 ```
@@ -40,7 +40,7 @@ select
   default_ebs_encryption_enabled,
   default_ebs_encryption_key
 from
-  aws_ec2_regional_settings
+  aws_ec2_regional_setting
 where
   default_ebs_encryption_enabled;
 ```

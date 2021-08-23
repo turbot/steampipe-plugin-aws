@@ -13,10 +13,10 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEc2RegionalSettings(_ context.Context) *plugin.Table {
+func tableAwsEc2RegionalSetting(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ec2_regional_settings",
-		Description: "AWS EC2 Regional Settings",
+		Name:        "aws_ec2_regional_setting",
+		Description: "AWS EC2 Regional Setting",
 		List: &plugin.ListConfig{
 			Hydrate: listEc2RegionalSettings,
 		},
