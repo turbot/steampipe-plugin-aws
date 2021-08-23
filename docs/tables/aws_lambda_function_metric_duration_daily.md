@@ -22,8 +22,6 @@ order by
   timestamp;
 ```
 
-
-
 ### Lambda function daily maximum duration over 100 milliseconds
 
 ```sql
