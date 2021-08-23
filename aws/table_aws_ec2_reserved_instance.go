@@ -222,7 +222,7 @@ func getEc2ReservedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":instance/" + *instance.ReservedInstancesId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":reserved-instances/" + *instance.ReservedInstancesId
 
 	return arn, nil
 }

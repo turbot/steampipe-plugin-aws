@@ -105,5 +105,5 @@ output "currency_code" {
 
 output "resource_aka" {
   depends_on = [null_resource.named_test_resource]
-  value = "arn:${data.aws_partition.current.partition}:ec2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:instance/${jsondecode(data.local_file.input.content).ReservedInstances[0].ReservedInstancesId}"
+  value = "arn:${data.aws_partition.current.partition}:ec2:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:reserved-instances/${jsondecode(data.local_file.input.content).ReservedInstances[0].ReservedInstancesId}"
 }
