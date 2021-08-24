@@ -14,12 +14,12 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		Name:        "aws_tagging_resource",
 		Description: "AWS Tagging Resource",
 		Get: &plugin.GetConfig{
-			Hydrate:           getAwsTaggingResource,
+			Hydrate:           getTaggingResource,
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException"}),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsTaggingResources,
+			Hydrate: listTaggingResources,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -85,8 +85,8 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsTaggingResources")
+func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listTaggingResources")
 
 	// Create session
 	svc, err := TaggignResourceService(ctx, d)
@@ -110,8 +110,8 @@ func listAwsTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getAwsTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsTaggingResource")
+func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getTaggingResource")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
