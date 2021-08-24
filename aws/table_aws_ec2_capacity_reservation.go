@@ -28,13 +28,13 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "capacity_reservation_arn",
-				Description: "The Amazon Resource Name (ARN) of the capacity reservation.",
+				Name:        "capacity_reservation_id",
+				Description: "The ID of the capacity reservation.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "capacity_reservation_id",
-				Description: "The ID of the capacity reservation.",
+				Name:        "capacity_reservation_arn",
+				Description: "The Amazon Resource Name (ARN) of the capacity reservation.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -117,6 +117,12 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				Description: "The total number of instances for which the capacity reservation reserves capacity",
 				Type:        proto.ColumnType_INT,
 			},
+			{
+				Name:        "tag_src",
+				Description: "Any tags assigned to the capacity reservation.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// Steampipe standard columns
 			{
@@ -129,14 +135,13 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(ec2CapacityReservationTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2CapacityReservationAkas,
-				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("CapacityReservationArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -197,19 +202,20 @@ func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plug
 	return nil, nil
 }
 
-func getAwsEc2CapacityReservationAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2CapacityReservationAkas")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	reservation := h.Item.(*ec2.CapacityReservation)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
+//// TRANSFORM FUNCTIONS
+
+func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("ec2CapacityReservationTagListToTurbotTags")
+	tagList := d.Value.([]*ec2.Tag)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
 	}
-	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *reservation.OwnerId + ":capacity-reservation/" + *reservation.CapacityReservationId}
-
-	return akas, nil
+	return turbotTagsMap, nil
 }

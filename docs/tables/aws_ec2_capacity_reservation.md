@@ -8,24 +8,24 @@ On-Demand Capacity Reservations enable you to reserve compute capacity for your 
 
 ```sql
 select
-  capacity_reservation_arn,
   capacity_reservation_id,
+  capacity_reservation_arn,
   instance_type,
   state
 from
   aws_ec2_capacity_reservation;
 ```
 
-### List EC2 cancelled capacity reservations
+### List EC2 expired capacity reservations
 
 ```sql
 select
-  capacity_reservation_arn,
   capacity_reservation_id,
+  capacity_reservation_arn,
   instance_type,
   state
 from
   aws_ec2_capacity_reservation
 where
-  state = 'cancelled';
+  state = 'expired';
 ```
