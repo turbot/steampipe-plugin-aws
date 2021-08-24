@@ -17,15 +17,16 @@ from
   aws_tagging_resource;
 ```
 
-### List of resources with tag key test-resource
+### List of resources where resource is compliant with the effective tag policy
 
 ```sql
 select
   name,
   arn,
-  tags
+  tags,
+  compliance_status
 from
   aws_tagging_resource
 where
-  tags -> 'test-resource' is not null;
+  compliance_status;
 ```
