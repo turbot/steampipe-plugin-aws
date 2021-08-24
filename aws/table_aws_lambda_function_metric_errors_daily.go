@@ -1,0 +1,37 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+//// TABLE DEFINITION
+func tableAwsLambdaFunctionMetricErrorsDaily(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_lambda_function_metric_errors_daily",
+		Description: "AWS Lambda Function Cloudwatch Metrics - Errors (Daily)",
+		List: &plugin.ListConfig{
+			ParentHydrate: listAwsLambdaFunctions,
+			Hydrate:       listLambdaFunctionMetricErrorsDaily,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns(cwMetricColumns(
+			[]*plugin.Column{
+				{
+					Name:        "name",
+					Description: "The name of the function.",
+					Type:        proto.ColumnType_STRING,
+					Transform:   transform.FromField("DimensionValue"),
+				},
+			})),
+	}
+}
+
+func listLambdaFunctionMetricErrorsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	lambdaFunctionConfiguration := h.Item.(*lambda.FunctionConfiguration)
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Lambda", "Errors", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
+}
