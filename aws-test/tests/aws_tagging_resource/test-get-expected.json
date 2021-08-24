@@ -1,0 +1,15 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "arn": "{{ output.resource_aka.value }}",
+    "name": "{{ output.resource_title.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.aws_region.value }}",
+    "tags": {
+      "Name": "{{ resourceName }}"
+    }
+  }
+]

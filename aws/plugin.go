@@ -234,6 +234,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssm_managed_instance_compliance":                          tableAwsSSMManagedInstanceCompliance(ctx),
 			"aws_ssm_parameter":                                            tableAwsSSMParameter(ctx),
 			"aws_ssm_patch_baseline":                                       tableAwsSSMPatchBaseline(ctx),
+			"aws_tagging_resource":                                         tableAwsTaggingResource(ctx),
 			"aws_vpc":                                                      tableAwsVpc(ctx),
 			"aws_vpc_customer_gateway":                                     tableAwsVpcCustomerGateway(ctx),
 			"aws_vpc_dhcp_options":                                         tableAwsVpcDhcpOptions(ctx),
