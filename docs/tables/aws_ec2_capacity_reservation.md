@@ -29,3 +29,17 @@ from
 where
   state = 'expired';
 ```
+
+### Get EC2 capacity reservation by ID
+
+```sql
+select
+  capacity_reservation_id,
+  capacity_reservation_arn,
+  instance_type,
+  state
+from
+  aws_ec2_capacity_reservation
+where
+  capacity_reservation_id = 'cr-0b30935e9fc2da81e';
+```
