@@ -1,6 +1,6 @@
 # Table: aws_lambda_function_metric_invocations_daily
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_lambda_function_metric_invocations_daily` table provides metric statistics at 24 hour intervals for the last year.
+Amazon CloudWatch Metrics provide data about the performance of your systems. The `aws_lambda_function_metric_invocations_daily` table provides metric statistics at 24 hour intervals for the last year.
 
 ## Examples
 
