@@ -19,7 +19,6 @@ order by
 ```
 
 
-
 ### Lambda function daily invocations over 10 in last 3 days
 
 ```sql
