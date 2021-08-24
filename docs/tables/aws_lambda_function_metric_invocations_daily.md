@@ -30,7 +30,7 @@ select
 from
   aws_lambda_function_metric_invocations_daily
 where 
-    date_part('day', now() - timestamp) <=3
+  date_part('day', now() - timestamp) <=3
 and sum > 10
 order by
   name,
