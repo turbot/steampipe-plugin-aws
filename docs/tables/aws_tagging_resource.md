@@ -1,6 +1,6 @@
 # Table: aws_tagging_resource
 
-A patch baseline defines which patches are approved for installation on your instances.
+You can assign metadata to your AWS resources in the form of tags. Each tag is a label consisting of a user-defined key and value. Tags can help you manage, identify, organize, search for, and filter resources. You can create tags to categorize resources by purpose, owner, environment, or other criteria.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_tagging_resource;
 ```
 
-### List of resources where resource is compliant with the effective tag policy
+### List resources which are compliant with effective tag policy
 
 ```sql
 select

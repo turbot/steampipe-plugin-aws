@@ -1430,7 +1430,7 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 func TaggignResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed SsmService")
+		return nil, fmt.Errorf("region must be passed TaggignResourceService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("resourcetaggingapi-%s", region)
