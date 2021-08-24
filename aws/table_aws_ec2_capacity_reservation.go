@@ -16,7 +16,7 @@ import (
 func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_capacity_reservation",
-		Description: "AWS EC2 capacity reservation",
+		Description: "AWS EC2 Capacity Reservation",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("capacity_reservation_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
