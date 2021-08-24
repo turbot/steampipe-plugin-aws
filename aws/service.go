@@ -61,6 +61,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
+	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
@@ -1420,6 +1421,29 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return nil, err
 	}
 	svc := sts.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// TaggignResourceService returns the service connection for AWS ResourceTaggingAPI service
+func TaggignResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SsmService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("resourcetaggingapi-%s", region)
+
+	if cacheData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cacheData.(*resourcegroupstaggingapi.ResourceGroupsTaggingAPI), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := resourcegroupstaggingapi.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
