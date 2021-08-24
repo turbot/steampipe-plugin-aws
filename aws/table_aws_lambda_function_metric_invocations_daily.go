@@ -12,7 +12,7 @@ import (
 //// TABLE DEFINITION
 func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_lambda_function_metric_errors_daily",
+		Name:        "aws_lambda_function_metric_invocations_daily",
 		Description: "AWS Lambda Function Cloudwatch Metrics - Errors (Daily)",
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
