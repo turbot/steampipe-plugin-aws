@@ -137,7 +137,7 @@ where
   or user_data ~ '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]';
 ```
 
-### Deteect secrets in user_data
+### Detect secrets in user_data
 
 ```sql
 select
