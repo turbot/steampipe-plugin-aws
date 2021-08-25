@@ -137,10 +137,12 @@ where
   or user_data ~ '(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]';
 ```
 
-### List secrets info in the user data using code plugin
+### Deteect secrets in instance user_data
 
 ```sql
 select
+  instance_id,
+  region as instance_region,
   secret_type,
   secret,
   line,
@@ -149,15 +151,5 @@ from
   code_secret,
   aws_ec2_instance
 where
-  src = user_data
-```
-
-```
-+-------------------+---------------------------------------------------------------------------+------+-----+
-| secret_type       | secret                                                                    | line | col |
-+-------------------+---------------------------------------------------------------------------+------+-----+
-| aws_access_key_id | AKIA4YFAKFKFYXTDS353                                                      | 3    | 8   |
-| basic_auth        | https://joe:passwd123                                                     | 4    | 15  |
-| slack_api_token   | xoxp-5228148520-5228148525-1323104836872-10674849628c43b9d4b4660f7f9a7b65 | 2    | 10  |
-+-------------------+---------------------------------------------------------------------------+------+-----+
+  src = user_data;
 ```

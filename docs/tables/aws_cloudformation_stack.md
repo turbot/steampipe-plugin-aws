@@ -15,7 +15,6 @@ from
   aws_cloudformation_stack;
 ```
 
-
 ### List of cloudformation stack where rollback is disabled
 
 ```sql
@@ -27,7 +26,6 @@ from
 where
   disable_rollback;
 ```
-
 
 ### List of stacks where termination protection is not enabled
 
@@ -41,7 +39,6 @@ where
   not enable_termination_protection;
 ```
 
-
 ### Rollback configuration info for each cloudformation stack
 
 ```sql
@@ -53,7 +50,6 @@ from
   aws_cloudformation_stack;
 ```
 
-
 ### Resource ARNs where notifications about stack actions will be sent
 
 ```sql
@@ -62,4 +58,22 @@ select
   jsonb_array_elements_text(notification_arns) as resource_arns
 from
   aws_cloudformation_stack;
+```
+
+### Deteect secrets in cloudformation stack template
+
+```sql
+select
+  id as stack_id,
+  name as stack_name,
+  region as stack_region,
+  secret_type,
+  secret,
+  line,
+  col
+from
+  code_secret,
+  aws_cloudformation_stack
+where
+  src = template_body;
 ```
