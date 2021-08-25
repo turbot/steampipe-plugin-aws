@@ -60,7 +60,7 @@ from
   aws_cloudformation_stack;
 ```
 
-### Deteect secrets in cloudformation stack template
+### Deteect secrets in stack template
 
 ```sql
 select
