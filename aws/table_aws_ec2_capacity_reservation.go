@@ -114,7 +114,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "total_instance_count",
-				Description: "The total number of instances for which the capacity reservation reserves capacity",
+				Description: "The total number of instances for which the capacity reservation reserves capacity.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
@@ -158,7 +158,7 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// List call
 	err = svc.DescribeCapacityReservationsPages(
 		&ec2.DescribeCapacityReservationsInput{},
