@@ -100,6 +100,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_application_load_balancer_metric_request_count":       tableAwsEc2ApplicationLoadBalancerMetricRequestCount(ctx),
 			"aws_ec2_application_load_balancer_metric_request_count_daily": tableAwsEc2ApplicationLoadBalancerMetricRequestCountDaily(ctx),
 			"aws_ec2_autoscaling_group":                                    tableAwsEc2ASG(ctx),
+			"aws_ec2_capacity_reservation":                                 tableAwsEc2CapacityReservation(ctx),
 			"aws_ec2_classic_load_balancer":                                tableAwsEc2ClassicLoadBalancer(ctx),
 			"aws_ec2_gateway_load_balancer":                                tableAwsEc2GatewayLoadBalancer(ctx),
 			"aws_ec2_instance":                                             tableAwsEc2Instance(ctx),

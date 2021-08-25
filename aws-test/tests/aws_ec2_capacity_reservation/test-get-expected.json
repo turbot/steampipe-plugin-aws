@@ -1,0 +1,12 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "availability_zone": "{{ output.availability_zone.value }}",
+    "capacity_reservation_id": "{{ output.resource_id.value }}",
+    "instance_platform": "{{ output.instance_platform.value }}",
+    "instance_type": "{{ output.instance_type.value }}",
+    "partition": "{{ output.aws_partition.value }}",
+    "region": "{{ output.region_name.value }}",
+    "state": "active"
+  }
+]
