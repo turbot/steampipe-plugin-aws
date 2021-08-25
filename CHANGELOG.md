@@ -1,3 +1,16 @@
+## v0.31.0 [2021-08-25]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_capacity_reservation](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_capacity_reservation) ([#619](https://github.com/turbot/steampipe-plugin-aws/pull/619))
+  - [aws_ec2_reserved_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_reserved_instance) ([#612](https://github.com/turbot/steampipe-plugin-aws/pull/612))
+  - [aws_lambda_function_metric_duration_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_function_metric_duration_daily) ([#624](https://github.com/turbot/steampipe-plugin-aws/pull/624))
+  - [aws_lambda_function_metric_errors_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_function_metric_errors_daily) ([#625](https://github.com/turbot/steampipe-plugin-aws/pull/625))
+  - [aws_lambda_function_metric_invocations_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_function_metric_invocations_daily) ([#627](https://github.com/turbot/steampipe-plugin-aws/pull/627))
+  - [aws_tagging_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_tagging_resource) ([#628](https://github.com/turbot/steampipe-plugin-aws/pull/628))
+
+
 ## v0.30.0 [2021-08-20]
 
 _What's new?_
