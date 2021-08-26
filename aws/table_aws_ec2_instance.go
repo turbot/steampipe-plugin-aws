@@ -28,6 +28,26 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "iam_instance_profile_arn", Require: plugin.Optional},
+				{Name: "image_id", Require: plugin.Optional},
+				{Name: "instance_lifecycle", Require: plugin.Optional},
+				{Name: "instance_state", Require: plugin.Optional},
+				{Name: "instance_type", Require: plugin.Optional},
+				{Name: "monitoring_state", Require: plugin.Optional},
+				{Name: "outpost_arn", Require: plugin.Optional},
+				{Name: "placement_availability_zone", Require: plugin.Optional},
+				{Name: "placement_group_name", Require: plugin.Optional},
+				{Name: "public_dns_name", Require: plugin.Optional},
+				{Name: "ram_disk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "subnet_id", Require: plugin.Optional},
+				{Name: "placement_tenancy", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -327,19 +347,33 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	input := ec2.DescribeInstancesInput{}
+	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	if input.Filters != nil {
+		for _, filter := range input.Filters {
+			plugin.Logger(ctx).Error("Filter", *filter.Name, filter.Values)
+			for _, filterValue := range filter.Values {
+				plugin.Logger(ctx).Error("Filter", *filter.Name, *filterValue)
+			}
+		}
+	}
+
 	// List call
-	err = svc.DescribeInstancesPages(
-		&ec2.DescribeInstancesInput{},
-		func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
-			if page.Reservations != nil && len(page.Reservations) > 0 {
-				for _, reservation := range page.Reservations {
-					for _, instance := range reservation.Instances {
-						d.StreamListItem(ctx, instance)
-					}
+	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
+		if page.Reservations != nil && len(page.Reservations) > 0 {
+			for _, reservation := range page.Reservations {
+				for _, instance := range reservation.Instances {
+					d.StreamListItem(ctx, instance)
 				}
 			}
-			return !isLast
-		},
+		}
+		return !isLast
+	},
 	)
 
 	return nil, err
@@ -596,4 +630,42 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 		}
 	}
 	return data.LaunchTime, nil
+}
+
+//// other useful functions
+
+// build ec2 instance list call input filter
+func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"hypervisor":                  "hypervisor",
+		"iam_instance_profile_arn":    "iam-instance-profile.arn",
+		"image_id":                    "image-id",
+		"instance_lifecycle":          "instance-lifecycle",
+		"instance_state":              "instance-state-name",
+		"instance_type":               "instance-type",
+		"monitoring_state":            "monitoring-state",
+		"outpost_arn":                 "outpost-arn",
+		"placement_availability_zone": "availability-zone",
+		"placement_group_name":        "placement-group-name",
+		"public_dns_name":             "dns-name",
+		"ram_disk_id":                 "ramdisk-id",
+		"root_device_name":            "root-device-name",
+		"root_device_type":            "root-device-type",
+		"subnet_id":                   "subnet-id",
+		"placement_tenancy":           "tenancy",
+		"virtualization_type":         "virtualization-type",
+		"vpc_id":                      "vpc-id",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filters = append(filters, &ec2.Filter{
+				Name:   types.String(filterName),
+				Values: []*string{types.String(equalQuals[columnName].GetStringValue())},
+			})
+		}
+	}
+	return filters
 }
