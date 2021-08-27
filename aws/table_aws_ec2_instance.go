@@ -586,6 +586,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstances.html
 		if a, ok := err.(awserr.RequestFailure); ok {
 			if a.StatusCode() == 400 {
 				return nil, nil
