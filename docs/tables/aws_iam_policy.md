@@ -79,7 +79,6 @@ where
 ### Find policy statements that grant service level full access
 
 ```sql
-
 select
   name,
   arn,
