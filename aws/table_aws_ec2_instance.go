@@ -661,11 +661,25 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 	for columnName, filterName := range filterQuals {
 		if equalQuals[columnName] != nil {
-			filters = append(filters, &ec2.Filter{
-				Name:   types.String(filterName),
-				Values: []*string{types.String(equalQuals[columnName].GetStringValue())},
-			})
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
 		}
 	}
 	return filters
+}
+
+func getListValues(listValue *proto.QualValueList) []*string {
+	values := make([]*string, 0)
+	for _, value := range listValue.Values {
+		values = append(values, types.String(value.GetStringValue()))
+	}
+	return values
 }
