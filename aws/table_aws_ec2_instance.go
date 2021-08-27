@@ -586,8 +586,8 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidInstanceID.Malformed" || a.Code() == "InvalidInstanceID.NotFound" || a.Code() == "InvalidInstanceID.Unavailable" {
+		if a, ok := err.(awserr.RequestFailure); ok {
+			if a.StatusCode() == 400 {
 				return nil, nil
 			}
 		}
