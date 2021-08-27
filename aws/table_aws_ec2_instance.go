@@ -354,15 +354,6 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filters = filters
 	}
 
-	if input.Filters != nil {
-		for _, filter := range input.Filters {
-			plugin.Logger(ctx).Error("Filter", *filter.Name, filter.Values)
-			for _, filterValue := range filter.Values {
-				plugin.Logger(ctx).Error("Filter", *filter.Name, *filterValue)
-			}
-		}
-	}
-
 	// List call
 	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
 		if page.Reservations != nil && len(page.Reservations) > 0 {

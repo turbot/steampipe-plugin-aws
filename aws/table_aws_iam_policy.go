@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -23,6 +24,11 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamPolicies,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "is_aws_managed", Require: plugin.Optional, Operators: []string{"<>", "="}},
+				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
+				{Name: "path", Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -72,6 +78,12 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Name:        "attachment_count",
 				Description: "The number of entities (users, groups, and roles) that the policy is attached to.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "is_attached",
+				Description: "True if policy is attached to atleast one of the users, groups, or role.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("AttachmentCount").Transform(attachementCountToBool),
 			},
 			{
 				Name:        "default_version_id",
@@ -138,14 +150,14 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	err = svc.ListPoliciesPages(
-		&iam.ListPoliciesInput{},
-		func(page *iam.ListPoliciesOutput, lastPage bool) bool {
-			for _, policy := range page.Policies {
-				d.StreamListItem(ctx, policy)
-			}
-			return !lastPage
-		},
+	input := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
+
+	err = svc.ListPoliciesPages(&input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
+		for _, policy := range page.Policies {
+			d.StreamListItem(ctx, policy)
+		}
+		return !lastPage
+	},
 	)
 	return nil, err
 }
@@ -244,4 +256,81 @@ func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	}
 
 	return &turbotTagsMap, nil
+}
+
+func attachementCountToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	attachementCount := types.Int64Value((d.Value.(*int64)))
+	if attachementCount == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func buildIamPolicyFilter(equalQuals plugin.KeyColumnEqualsQualMap, quals plugin.KeyColumnQualMap) iam.ListPoliciesInput {
+	input := iam.ListPoliciesInput{}
+
+	filterQuals := FilterQuals{
+		FilterQual{"is_aws_managed", "Bool", "Scope"},
+		FilterQual{"is_attached", "Bool", "OnlyAttached"},
+		FilterQual{"path", "String", "PathPrefix"},
+	}
+
+	// EqualsQualMap handling
+	for _, filterQual := range filterQuals {
+		if equalQuals[filterQual.ColumnName] != nil {
+			switch filterQual.ColumnType {
+			case "String":
+				input.PathPrefix = types.String(equalQuals[filterQual.ColumnName].GetStringValue())
+			case "Bool":
+				if filterQual.ColumnName == "is_aws_managed" {
+					input.SetScope("Local")
+					if equalQuals[filterQual.ColumnName].GetBoolValue() {
+						input.SetScope("AWS")
+					}
+				}
+				if filterQual.ColumnName == "is_attached" {
+					input.SetOnlyAttached(false)
+					if equalQuals[filterQual.ColumnName].GetBoolValue() {
+						input.SetOnlyAttached(true)
+					}
+				}
+			}
+		}
+	}
+
+	boolNEQuals := []string{
+		"is_aws_managed",
+		"is_attached",
+	}
+	// Non-Equals Qual Map handling
+	for _, qual := range boolNEQuals {
+		if quals[qual] != nil {
+			for _, q := range quals[qual].Quals {
+				value := q.Value.GetBoolValue()
+				if q.Operator == "<>" {
+					if qual == "is_aws_managed" {
+						input.SetScope("Local")
+						if !value {
+							input.SetScope("AWS")
+						}
+					}
+					if qual == "is_attached" {
+						input.SetOnlyAttached(false)
+						if !value {
+							input.SetOnlyAttached(true)
+						}
+					}
+				}
+			}
+		}
+	}
+	return input
+}
+
+type FilterQuals []FilterQual
+
+type FilterQual struct {
+	ColumnName   string
+	ColumnType   string
+	PropertyName string
 }
