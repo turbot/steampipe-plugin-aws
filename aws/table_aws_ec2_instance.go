@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -411,6 +412,11 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -435,6 +441,11 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -459,6 +470,11 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -483,6 +499,11 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -507,6 +528,11 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -531,6 +557,11 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -555,6 +586,11 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidInstanceID.Malformed" || a.Code() == "InvalidInstanceID.NotFound" || a.Code() == "InvalidInstanceID.Unavailable" {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
