@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -24,6 +25,12 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "db_cluster_identifier", Require: plugin.Optional},
+				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -183,15 +190,29 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	// List call
-	err = svc.DescribeDBClusterSnapshotsPages(
-		&rds.DescribeDBClusterSnapshotsInput{},
-		func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
-			for _, dbClusterSnapshot := range page.DBClusterSnapshots {
-				d.StreamListItem(ctx, dbClusterSnapshot)
+	input := rds.DescribeDBClusterSnapshotsInput{}
+	filters := buildRdsDbClusterSnapshotFilter(d.KeyColumnQuals)
+
+	if len(filters) != 0 {
+		input.SetFilters(filters)
+	}
+
+	// testing log
+	if input.Filters != nil {
+		for _, f := range filters {
+			for _, v := range f.Values {
+				plugin.Logger(ctx).Error("Filter ", *f.Name, *v)
 			}
-			return !isLast
-		},
+		}
+	}
+
+	// List call
+	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
+		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
+			d.StreamListItem(ctx, dbClusterSnapshot)
+		}
+		return !isLast
+	},
 	)
 	return nil, err
 }
@@ -258,4 +279,33 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+//// other useful functions
+
+// build ec2 instance list call input filter
+func buildRdsDbClusterSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*rds.Filter {
+	filters := make([]*rds.Filter, 0)
+	filterQuals := map[string]string{
+		"db_cluster_identifier":          "db-cluster-id",
+		"db_cluster_snapshot_identifier": "db-cluster-snapshot-id",
+		"engine":                         "engine",
+		"type":                           "snapshot-type",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := rds.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }
