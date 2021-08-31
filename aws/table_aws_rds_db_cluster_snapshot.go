@@ -190,27 +190,52 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	input := rds.DescribeDBClusterSnapshotsInput{}
+	input := rds.DescribeDBClusterSnapshotsInput{
+		MaxRecords: types.Int64(100),
+	}
+
+	// If the request no of items is less than the paging max limit
+	// update limit to requested no of results.
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		// select * from aws_rds_db_cluster_snapshot limit 3
+		// Error: InvalidParameterValue: Invalid value 3 for MaxRecords. Must be between 20 and 100
+		// 	status code: 400, request id: c39eead1-96e0-49c8-a927-aa9a3131836d
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = types.Int64(100)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
 	filters := buildRdsDbClusterSnapshotFilter(d.KeyColumnQuals)
 
 	if len(filters) != 0 {
 		input.SetFilters(filters)
 	}
 
-	// testing log
-	if input.Filters != nil {
-		for _, f := range filters {
-			for _, v := range f.Values {
-				plugin.Logger(ctx).Error("Filter ", *f.Name, *v)
-			}
-		}
-	}
+	// Counter for no. of db clusters
+	var count int64
 
 	// List call
 	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
 		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
 			d.StreamListItem(ctx, dbClusterSnapshot)
+			count++
+			// Break for loop if requested no of results acheived
+			if limit != nil {
+				if count >= *limit {
+					return true
+				}
+			}
 		}
+
+		// Check if the context is cancelled for query
+		if plugin.IsCancelled(ctx) {
+			return true
+		}
+
 		return !isLast
 	},
 	)

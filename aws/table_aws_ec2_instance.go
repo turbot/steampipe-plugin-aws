@@ -361,7 +361,14 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+			// select * from aws_ec2_instance limit 1
+			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
+			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
 		}
 	}
 
