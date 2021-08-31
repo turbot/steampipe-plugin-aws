@@ -374,7 +374,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 				for _, instance := range reservation.Instances {
 					d.StreamListItem(ctx, instance)
 					count++
-					// Break for loops if requested no of results acheived
+					// Break for loop if requested no of results acheived
 					if limit != nil {
 						if count >= *limit {
 							return true
@@ -383,10 +383,12 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 				}
 			}
 		}
+
 		// Check if the context is cancelled for query
 		if plugin.IsCancelled(ctx) {
 			return true
 		}
+
 		return !isLast
 	},
 	)

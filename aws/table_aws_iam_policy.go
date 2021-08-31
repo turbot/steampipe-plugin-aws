@@ -151,11 +151,37 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	input := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
+	input.MaxItems = types.Int64(100)
 
+	// If the request no of items is less than the paging max limit
+	// update limit to requested no of results.
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			input.MaxItems = limit
+		}
+	}
+
+	// Counter for no. of policies
+	var count int64
+	// List call
 	err = svc.ListPoliciesPages(&input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
 		for _, policy := range page.Policies {
 			d.StreamListItem(ctx, policy)
+			count++
+			// Break for loop if requested no of results acheived
+			if limit != nil {
+				if count >= *limit {
+					return true
+				}
+			}
 		}
+
+		// Check if the context is cancelled for query
+		if plugin.IsCancelled(ctx) {
+			return true
+		}
+
 		return !lastPage
 	},
 	)
