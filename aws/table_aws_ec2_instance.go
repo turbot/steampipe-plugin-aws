@@ -347,21 +347,45 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	input := ec2.DescribeInstancesInput{}
+	input := ec2.DescribeInstancesInput{
+		MaxResults: types.Int64(1000),
+	}
 	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
 
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
 
+	// If the request no of items is less than the paging max limit
+	// update limit to requested no of results.
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
+
+	// Counter for no. of instances
+	var count int64
 	// List call
 	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
 		if page.Reservations != nil && len(page.Reservations) > 0 {
 			for _, reservation := range page.Reservations {
 				for _, instance := range reservation.Instances {
 					d.StreamListItem(ctx, instance)
+					count++
+					// Break for loops if requested no of results acheived
+					if limit != nil {
+						if count >= *limit {
+							return true
+						}
+					}
 				}
 			}
+		}
+		// Check if the context is cancelled for query
+		if plugin.IsCancelled(ctx) {
+			return true
 		}
 		return !isLast
 	},
