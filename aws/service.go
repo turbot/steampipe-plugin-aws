@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 	"fmt"
+	"math"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -930,7 +932,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	if err != nil {
 		return nil, err
 	}
-	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
+
 	svc := iam.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
@@ -1518,7 +1520,7 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		return cachedData.(*session.Session), nil
 	}
 
-	// If seesion was not in cache - create a session and saave to cache
+	// If seesion was not in cache - create a session and save to cache
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
@@ -1528,8 +1530,8 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
 			Region:     &region,
-			MaxRetries: aws.Int(10),
-			Retryer:    NewConnectionErrRetryer(10),
+			MaxRetries: aws.Int(5),
+			Retryer:    NewConnectionErrRetryer(5),
 		},
 	}
 
@@ -1621,7 +1623,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
-	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are the targeting the respective regions
+	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are targeting the respective regions
 	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
@@ -1639,6 +1641,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 	return &ConnectionErrRetryer{
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
+			MinRetryDelay: 30000000,   // Set default minimum retry delay to 300ms
 		},
 	}
 }
@@ -1661,4 +1664,13 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 
 	// Fallback to SDK's built in retry rules
 	return r.DefaultRetryer.ShouldRetry(req)
+}
+
+// Customize the RetryRules to implement exponential backoff retry
+func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
+	minDelay := d.MinRetryDelay
+	retryCount := r.RetryCount
+	delay := time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
+
+	return delay
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -343,6 +342,10 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		},
 	)
 
+	if err != nil {
+		plugin.Logger(ctx).Error("listEc2Instance", "DescribeInstancesPages_error", err)
+	}
+
 	return nil, err
 }
 
@@ -366,6 +369,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	op, err := svc.DescribeInstances(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getEc2Instance", "DescribeInstances_error", err)
 		return nil, err
 	}
 
@@ -385,6 +389,7 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -412,11 +417,7 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceDisableAPITerminationData", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -441,11 +442,7 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceInitiatedShutdownBehavior", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -470,11 +467,7 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceKernelID", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -499,11 +492,7 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceRAMDiskID", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -528,11 +517,7 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceSriovNetSupport", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -557,11 +542,7 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "InvalidParameterValue" || a.Code() == "MissingParameter" {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceUserData", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -586,12 +567,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
-		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstances.html
-		if a, ok := err.(awserr.RequestFailure); ok {
-			if a.StatusCode() == 400 {
-				return nil, nil
-			}
-		}
+		plugin.Logger(ctx).Error("getInstanceStatus", "DescribeInstanceStatus_error", err)
 		return nil, err
 	}
 
