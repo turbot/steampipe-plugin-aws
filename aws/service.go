@@ -1670,7 +1670,6 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	minDelay := d.MinRetryDelay
 	retryCount := r.RetryCount
-	delay := time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
 
-	return delay
+	return time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
 }
