@@ -1668,13 +1668,13 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 
 /**
 * Customize the RetryRules to implement exponential backoff retry
-* For 5 retries the delay will be
-* Ist retry - 300ms after 1st api call
+* For example with 5 retries the delay will be
+* Ist retry - 300ms after 1st API call
 * 2nd retry - 1.2s after 1st retry attempt fails with retryable error
-* 3rd retry - 2.7s after 2nd retry..
-* 4th retry - 4.8s after 3rd retry..
-* 5th retry - 7.5s after 4th retry..
-*/
+* 3rd retry - 2.7s after 2nd retry...
+* 4th retry - 4.8s after 3rd retry...
+* 5th retry - 7.5s after 4th retry...
+ */
 func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	minDelay := d.MinRetryDelay
 	retryCount := r.RetryCount
