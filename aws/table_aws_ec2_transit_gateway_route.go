@@ -15,7 +15,7 @@ import (
 func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_transit_gateway_route",
-		Description: "AWS EC2 Transit Gateway Route Table",
+		Description: "AWS EC2 Transit Gateway Route",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2TransitGatewayRouteTable,
 			Hydrate:       listEc2TransitGatewayRoute,
