@@ -372,28 +372,18 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		}
 	}
 
-	// Counter for no. of instances
-	var count int64
 	// List call
 	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
 		if page.Reservations != nil && len(page.Reservations) > 0 {
 			for _, reservation := range page.Reservations {
 				for _, instance := range reservation.Instances {
 					d.StreamListItem(ctx, instance)
-					count++
-					// Break for loop if requested no of results acheived
-					if limit != nil {
-						if count >= *limit {
-							return true
-						}
+					// Context can be cancelled due to manual cancellation or the limit has been hit
+					if plugin.IsCancelled(ctx) {
+						return true
 					}
 				}
 			}
-		}
-
-		// Check if the context is cancelled for query
-		if plugin.IsCancelled(ctx) {
-			return true
 		}
 
 		return !isLast

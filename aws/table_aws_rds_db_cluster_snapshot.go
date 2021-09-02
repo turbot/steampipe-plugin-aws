@@ -215,25 +215,14 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		input.SetFilters(filters)
 	}
 
-	// Counter for no. of db clusters
-	var count int64
-
 	// List call
 	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
 		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
 			d.StreamListItem(ctx, dbClusterSnapshot)
-			count++
-			// Break for loop if requested no of results acheived
-			if limit != nil {
-				if count >= *limit {
-					return true
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if plugin.IsCancelled(ctx) {
+				return true
 			}
-		}
-
-		// Check if the context is cancelled for query
-		if plugin.IsCancelled(ctx) {
-			return true
 		}
 
 		return !isLast
