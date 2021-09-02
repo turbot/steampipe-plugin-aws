@@ -1638,10 +1638,11 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
 func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+	var minRetryDelay time.Duration = 300 * time.Millisecond
 	return &ConnectionErrRetryer{
 		DefaultRetryer: client.DefaultRetryer{
-			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
-			MinRetryDelay: 300000000,  // Set default minimum retry delay to 300ms
+			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
+			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 300ms
 		},
 	}
 }
