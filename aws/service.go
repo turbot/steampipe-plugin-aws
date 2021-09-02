@@ -1641,7 +1641,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 	return &ConnectionErrRetryer{
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
-			MinRetryDelay: 30000000,   // Set default minimum retry delay to 300ms
+			MinRetryDelay: 300000000,  // Set default minimum retry delay to 300ms
 		},
 	}
 }
