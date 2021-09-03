@@ -105,6 +105,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_gateway_load_balancer":                                tableAwsEc2GatewayLoadBalancer(ctx),
 			"aws_ec2_instance":                                             tableAwsEc2Instance(ctx),
 			"aws_ec2_instance_availability":                                tableAwsInstanceAvailability(ctx),
+			"aws_ec2_instance_on_demand_pricing":                           tableAwsEc2InstanceCostHourly(ctx),
 			"aws_ec2_instance_metric_cpu_utilization":                      tableAwsEc2InstanceMetricCpuUtilization(ctx),
 			"aws_ec2_instance_metric_cpu_utilization_daily":                tableAwsEc2InstanceMetricCpuUtilizationDaily(ctx),
 			"aws_ec2_instance_metric_cpu_utilization_hourly":               tableAwsEc2InstanceMetricCpuUtilizationHourly(ctx),

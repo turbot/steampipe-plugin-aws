@@ -59,6 +59,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
@@ -1126,6 +1127,28 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 		return nil, err
 	}
 	svc := configservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// PricingService returns the service connection for AWS Pricing
+func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
+	// region := d.KeyColumnQualString(matrixKeyRegion)
+	// if region == "" {
+	// 	return nil, fmt.Errorf("region must be passed PricingService")
+	// }
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("pricing-%s", "us-east-1")
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*pricing.Pricing), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, "us-east-1")
+	if err != nil {
+		return nil, err
+	}
+	svc := pricing.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
