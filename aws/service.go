@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -1514,7 +1515,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return svc, nil
 }
 
-func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
@@ -1531,7 +1532,7 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		Config: aws.Config{
 			Region:     &region,
 			MaxRetries: aws.Int(5),
-			Retryer:    NewConnectionErrRetryer(5),
+			Retryer:    NewConnectionErrRetryer(ctx, 5),
 		},
 	}
 
@@ -1637,9 +1638,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
-	var minRetryDelay time.Duration = 300 * time.Millisecond
+func NewConnectionErrRetryer(ctx1 context.Context, maxRetries int) *ConnectionErrRetryer {
+	var minRetryDelay time.Duration = 25 * time.Millisecond
 	return &ConnectionErrRetryer{
+		ctx: ctx1,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
 			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 300ms
@@ -1654,9 +1656,12 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
 	client.DefaultRetryer
+	ctx context.Context
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
+	awsError := req.Error.(awserr.Error)
+	plugin.Logger(r.ctx).Error("ShouldRetry", "Error", awsError.Code(), "Message", awsError.Message())
 	if req.Error != nil {
 		if strings.Contains(req.Error.Error(), "connection reset by peer") {
 			return true
@@ -1680,5 +1685,8 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	minDelay := d.MinRetryDelay
 	retryCount := r.RetryCount
 
-	return time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
+	delay := time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
+	plugin.Logger(d.ctx).Error("RetryRules", "retryCount", retryCount, "delay ", delay, "r.AttemptTime", r.AttemptTime)
+
+	return delay
 }

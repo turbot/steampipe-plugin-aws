@@ -210,6 +210,20 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	for i := 0; i < 6; i++ {
+		_, err = svc.GenerateCredentialReport(&iam.GenerateCredentialReportInput{})
+		logger.Info("GenerateCredentialReport", "COUNT", i)
+		if err != nil {
+			if a, ok := err.(awserr.Error); ok {
+				if helpers.StringSliceContains([]string{"ReportNotPresent"}, a.Code()) {
+					return nil, errors.New("No credential report was found. You can generate one with " + chalk.Bold.TextStyle("aws iam generate-credential-report"))
+				}
+			}
+			return nil, err
+		}
+
+	}
+
 	resp, err := svc.GetCredentialReport(&iam.GetCredentialReportInput{})
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
