@@ -30,7 +30,7 @@ func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 			{
 				Name:        "destination_cidr_block",
 				Description: "The CIDR block used for destination matches.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_CIDR,
 				Transform:   transform.FromField("Route.DestinationCidrBlock"),
 			},
 			{
