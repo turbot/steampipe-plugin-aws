@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"math/rand"
 	"path"
 	"strings"
 	"time"
@@ -1531,8 +1532,8 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
 			Region:     &region,
-			MaxRetries: aws.Int(5),
-			Retryer:    NewConnectionErrRetryer(ctx, 5),
+			MaxRetries: aws.Int(10),
+			Retryer:    NewConnectionErrRetryer(ctx, 10),
 		},
 	}
 
@@ -1644,7 +1645,7 @@ func NewConnectionErrRetryer(ctx1 context.Context, maxRetries int) *ConnectionEr
 		ctx: ctx1,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
-			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 300ms
+			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
 		},
 	}
 }
@@ -1682,10 +1683,11 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 * 5th retry - 7.5s after 4th retry...
  */
 func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
-	minDelay := d.MinRetryDelay
 	retryCount := r.RetryCount
-
-	delay := time.Duration(int(minDelay.Nanoseconds()) * int(math.Pow(float64(retryCount+1), 2)))
+	minDelay := d.MinRetryDelay
+	rand.Seed(time.Now().UnixNano())
+	var randomDelay = float64(rand.Intn(120-80)+80) / 100
+	delay := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * randomDelay))
 	plugin.Logger(d.ctx).Error("RetryRules", "retryCount", retryCount, "delay ", delay, "r.AttemptTime", r.AttemptTime)
 
 	return delay
