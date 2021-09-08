@@ -163,8 +163,7 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 			return !isLast
 		},
 	)
-	// Generate AccessDeniedException when macie is not enabled for a single region
-	// It Should return the value if for any of the region macie is enabled and has job
+	// Throws AccessDeniedException when AWS Macie is not enabled in a region
 	if a, ok := err.(awserr.Error); ok {
 		if helpers.StringSliceContains([]string{"AccessDeniedException"}, a.Code()) {
 			return nil, nil
@@ -200,7 +199,7 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	op, err := svc.DescribeClassificationJob(params)
 	if err != nil {
-		// Generate AccessDeniedException when macie is not enabled for a single region
+		// Throws AccessDeniedException when AWS Macie is not enabled in a region
 		// It Should return the value if for any of the region macie is enabled and has job
 		if a, ok := err.(awserr.Error); ok {
 			if helpers.StringSliceContains([]string{"AccessDeniedException"}, a.Code()) {
