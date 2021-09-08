@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -1661,8 +1660,6 @@ type ConnectionErrRetryer struct {
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
-	awsError := req.Error.(awserr.Error)
-	plugin.Logger(r.ctx).Error("ShouldRetry", "Error", awsError.Code(), "Message", awsError.Message())
 	if req.Error != nil {
 		if strings.Contains(req.Error.Error(), "connection reset by peer") {
 			return true
