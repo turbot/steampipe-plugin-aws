@@ -200,7 +200,6 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	op, err := svc.DescribeClassificationJob(params)
 	if err != nil {
 		// Throws AccessDeniedException when AWS Macie is not enabled in a region
-		// It Should return the value if for any of the region macie is enabled and has job
 		if a, ok := err.(awserr.Error); ok {
 			if helpers.StringSliceContains([]string{"AccessDeniedException"}, a.Code()) {
 				return nil, nil
