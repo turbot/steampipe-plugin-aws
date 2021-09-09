@@ -121,14 +121,15 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	op, err := svc.DescribeConfigRules(&configservice.DescribeConfigRulesInput{})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, rule := range op.ConfigRules {
-		d.StreamListItem(ctx, rule)
-	}
+	err = svc.DescribeConfigRulesPages(
+		&configservice.DescribeConfigRulesInput{},
+		func(page *configservice.DescribeConfigRulesOutput, lastPage bool) bool {
+			for _, rule := range page.ConfigRules {
+				d.StreamListItem(ctx, rule)
+			}
+			return !lastPage
+		},
+	)
 
 	return nil, err
 }
