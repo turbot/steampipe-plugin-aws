@@ -1515,7 +1515,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return svc, nil
 }
 
-func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
@@ -1532,7 +1532,7 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		Config: aws.Config{
 			Region:     &region,
 			MaxRetries: aws.Int(9),
-			Retryer:    NewConnectionErrRetryer(ctx, 9),
+			Retryer:    NewConnectionErrRetryer(9),
 		},
 	}
 
@@ -1638,10 +1638,9 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(ctx1 context.Context, maxRetries int) *ConnectionErrRetryer {
+func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 	var minRetryDelay time.Duration = 25 * time.Millisecond
 	return &ConnectionErrRetryer{
-		ctx: ctx1,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
 			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
@@ -1676,8 +1675,5 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	minDelay := d.MinRetryDelay
 	rand.Seed(time.Now().UnixNano())
 	var randomDelay = float64(rand.Intn(120-80)+80) / 100
-	delay := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * randomDelay))
-	plugin.Logger(d.ctx).Error("RetryRules", "retryCount", retryCount, "delay ", delay, "r.AttemptTime", r.AttemptTime)
-
-	return delay
+	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * randomDelay))
 }
