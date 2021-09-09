@@ -3,8 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/rand"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -930,7 +933,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	if err != nil {
 		return nil, err
 	}
-	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
+
 	svc := iam.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
@@ -1512,13 +1515,13 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return svc, nil
 }
 
-func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
 	}
 
-	// If seesion was not in cache - create a session and saave to cache
+	// If seesion was not in cache - create a session and save to cache
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
@@ -1527,9 +1530,12 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
-			Region:     &region,
-			MaxRetries: aws.Int(10),
-			Retryer:    NewConnectionErrRetryer(10),
+			Region: &region,
+			// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
+			// number of retries as 9, the maximum delay will not be more than approximately 3 minutes to avoid steampipe
+			// waiting too long to render result
+			MaxRetries: aws.Int(9),
+			Retryer:    NewConnectionErrRetryer(9, ctx),
 		},
 	}
 
@@ -1621,7 +1627,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
-	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are the targeting the respective regions
+	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are targeting the respective regions
 	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
@@ -1635,10 +1641,14 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+func NewConnectionErrRetryer(maxRetries int, ctx context.Context) *ConnectionErrRetryer {
+	var minRetryDelay time.Duration = 25 * time.Millisecond
+	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
+		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
-			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
+			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
+			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
 		},
 	}
 }
@@ -1650,6 +1660,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
 	client.DefaultRetryer
+	ctx context.Context
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
@@ -1661,4 +1672,20 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 
 	// Fallback to SDK's built in retry rules
 	return r.DefaultRetryer.ShouldRetry(req)
+}
+
+// Customize the RetryRules to implement exponential backoff retry
+func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
+	retryCount := r.RetryCount
+	minDelay := d.MinRetryDelay
+
+	// If errors are caused by load, retries can be ineffective if all API request retry at the same time.
+	// To avoid this problem added a jitter of "+/-20%" with delay time.
+	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	// Creates a new exponential backoff using the starting value of
+	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
+	// as example (23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s...) up to max.
+	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
 }
