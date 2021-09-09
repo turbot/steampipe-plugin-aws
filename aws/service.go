@@ -1655,7 +1655,6 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
 	client.DefaultRetryer
-	ctx context.Context
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
