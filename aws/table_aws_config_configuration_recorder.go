@@ -90,6 +90,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	// Pagination not supported as of date
 	op, err := svc.DescribeConfigurationRecorders(
 		&configservice.DescribeConfigurationRecordersInput{})
 	if err != nil {

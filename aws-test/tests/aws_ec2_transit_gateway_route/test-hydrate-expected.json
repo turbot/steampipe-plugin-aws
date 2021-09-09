@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "title": "{{ output.destination_cidr_block.value }}",
+    "transit_gateway_route_table_id": "{{ output.transit_gateway_rtb_id.value }}"
+  }
+]
