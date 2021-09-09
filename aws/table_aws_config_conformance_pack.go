@@ -94,16 +94,17 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	op, err := svc.DescribeConformancePacks(
-		&configservice.DescribeConformancePacksInput{})
-	if err != nil {
-		return nil, err
-	}
-	if op.ConformancePackDetails != nil {
-		for _, ConformancePackDetails := range op.ConformancePackDetails {
-			d.StreamListItem(ctx, ConformancePackDetails)
-		}
-	}
+	err = svc.DescribeConformancePacksPages(
+		&configservice.DescribeConformancePacksInput{},
+		func(page *configservice.DescribeConformancePacksOutput, lastPage bool) bool {
+			if page.ConformancePackDetails != nil {
+				for _, ConformancePackDetails := range page.ConformancePackDetails {
+					d.StreamListItem(ctx, ConformancePackDetails)
+				}
+			}
+			return !lastPage
+		},
+	)
 
 	return nil, err
 }

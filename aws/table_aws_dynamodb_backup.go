@@ -104,6 +104,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	// Pagination not supported as of date
 	results, err := svc.ListBackups(&dynamodb.ListBackupsInput{})
 	if err != nil {
 		return nil, err
