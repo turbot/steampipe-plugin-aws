@@ -1531,8 +1531,8 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
 			Region:     &region,
-			MaxRetries: aws.Int(10),
-			Retryer:    NewConnectionErrRetryer(ctx, 10),
+			MaxRetries: aws.Int(9),
+			Retryer:    NewConnectionErrRetryer(ctx, 9),
 		},
 	}
 
