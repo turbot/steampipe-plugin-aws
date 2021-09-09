@@ -121,6 +121,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_ssl_policy":                                           tableAwsEc2SslPolicy(ctx),
 			"aws_ec2_target_group":                                         tableAwsEc2TargetGroup(ctx),
 			"aws_ec2_transit_gateway":                                      tableAwsEc2TransitGateway(ctx),
+			"aws_ec2_transit_gateway_route":                                tableAwsEc2TransitGatewayRoute(ctx),
 			"aws_ec2_transit_gateway_route_table":                          tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment":                       tableAwsEc2TransitGatewayVpcAttachment(ctx),
 			"aws_ecr_repository":                                           tableAwsEcrRepository(ctx),
