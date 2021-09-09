@@ -3,12 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/macie2"
 )
 
@@ -163,12 +161,6 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 			return !isLast
 		},
 	)
-	// Throws AccessDeniedException when AWS Macie is not enabled in a region
-	if a, ok := err.(awserr.Error); ok {
-		if helpers.StringSliceContains([]string{"AccessDeniedException"}, a.Code()) {
-			return nil, nil
-		}
-	}
 
 	return nil, err
 }
@@ -199,12 +191,6 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	op, err := svc.DescribeClassificationJob(params)
 	if err != nil {
-		// Throws AccessDeniedException when AWS Macie is not enabled in a region
-		if a, ok := err.(awserr.Error); ok {
-			if helpers.StringSliceContains([]string{"AccessDeniedException"}, a.Code()) {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 
