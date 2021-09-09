@@ -1515,7 +1515,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return svc, nil
 }
 
-func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
@@ -1530,9 +1530,12 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
-			Region:     &region,
+			Region: &region,
+			// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
+			// number of retries as 9, the maximum delay will not be more than approximately 3 minutes to avoid steampipe
+			// waiting too long to render result
 			MaxRetries: aws.Int(9),
-			Retryer:    NewConnectionErrRetryer(9),
+			Retryer:    NewConnectionErrRetryer(9, ctx),
 		},
 	}
 
@@ -1638,9 +1641,11 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+func NewConnectionErrRetryer(maxRetries int, ctx context.Context) *ConnectionErrRetryer {
 	var minRetryDelay time.Duration = 25 * time.Millisecond
+	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
+		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
 			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
@@ -1655,6 +1660,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
 	client.DefaultRetryer
+	ctx context.Context
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
@@ -1672,7 +1678,14 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	retryCount := r.RetryCount
 	minDelay := d.MinRetryDelay
-	rand.Seed(time.Now().UnixNano())
-	var randomDelay = float64(rand.Intn(120-80)+80) / 100
-	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * randomDelay))
+
+	// If errors are caused by load, retries can be ineffective if all API request retry at the same time.
+	// To avoid this problem added a jitter of "+/-20%" with delay time.
+	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	// Creates a new exponential backoff using the starting value of
+	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
+	// as example (23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s...) up to max.
+	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
 }
