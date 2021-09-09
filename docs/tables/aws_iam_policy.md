@@ -59,7 +59,7 @@ where
   and permissions_boundary_usage_count = 0;
 ```
 
-### Find policy statements that grant Full Control (_:_) access
+### Find policy statements that grant Full Control (*:*) access
 
 ```sql
 select
