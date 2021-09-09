@@ -4,7 +4,7 @@ Transit gateway routes IPv4 and IPv6 packets between attachments using transit g
 
 ## Examples
 
-### Basic transit gateway route info
+### Basic info
 
 ```sql
 select
