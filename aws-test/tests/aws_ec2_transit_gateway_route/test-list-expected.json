@@ -1,0 +1,8 @@
+[
+  {
+    "destination_cidr_block": "{{ output.destination_cidr_block.value }}",
+    "state": "blackhole",
+    "transit_gateway_route_table_id": "{{ output.transit_gateway_rtb_id.value }}",
+    "type": "static"
+  }
+]
