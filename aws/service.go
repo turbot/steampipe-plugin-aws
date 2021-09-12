@@ -76,6 +76,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssoadmin"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafv2"
@@ -1406,6 +1407,28 @@ func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
 		return nil, err
 	}
 	svc := ssm.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// SSOAdminService returns the service connection for AWS SSM service
+func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SSOAdminService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ssoadmin-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ssoadmin.SSOAdmin), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ssoadmin.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
