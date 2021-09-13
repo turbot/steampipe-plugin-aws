@@ -8,8 +8,8 @@ Contains information about the current AWS SSO instance.
 
 ```sql
 select
-  identity_store_id,
-  instance_arn
+  arn,
+  identity_store_id
 from
   aws_ssoadmin_instance
 ```

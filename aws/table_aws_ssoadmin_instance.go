@@ -19,15 +19,17 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "arn",
+				Description: "The ARN of the SSO instance under which the operation will be executed.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("InstanceArn"),
+			},
+			{
 				Name:        "identity_store_id",
 				Description: "The identifier of the identity store that is connected to the SSO instance.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{
-				Name:        "instance_arn",
-				Description: "The ARN of the SSO instance under which the operation will be executed.",
-				Type:        proto.ColumnType_STRING,
-			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -48,6 +50,8 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listSsoAdminInstances")
+
 	// Create session
 	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
@@ -63,6 +67,10 @@ func listSsoAdminInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			return !isLast
 		},
 	)
+	if err != nil {
+		plugin.Logger(ctx).Error("listSsoAdminInstances", "ListInstancesPages_error", err)
+		return nil, err
+	}
 
 	return nil, err
 }
