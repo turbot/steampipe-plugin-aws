@@ -16,13 +16,18 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Description: "AWS Organizations Account",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AccountNotFoundException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
 			Hydrate:           getOrganizationsAccount,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
 		},
 		Columns: awsColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The description of the permission set.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "id",
 				Description: "The unique identifier (ID) of the account.",
@@ -31,6 +36,11 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the account.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "The status of the account in the organization.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -49,22 +59,19 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "name",
-				Description: "The description of the permission set.",
-				Type:        proto.ColumnType_STRING,
+				Name:      "tags_src",
+				Type:      proto.ColumnType_JSON,
+				Hydrate:   getOrganizationsAccountTags,
+				Transform: transform.FromValue(),
 			},
-			{
-				Name:        "status",
-				Description: "The status of the account in the organization.",
-				Type:        proto.ColumnType_STRING,
-			},
+
 			// Standard columns for all tables
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getOrganizationsAccountTags,
-				Transform:   transform.FromValue(),
+				Transform:   transform.From(getOrganizationsResourceTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -104,7 +111,10 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 			return !isLast
 		},
 	)
+	if err != nil {
+		plugin.Logger(ctx).Error("listOrganizationsAccounts", "ListAccountsPages_error", err)
 
+	}
 	return nil, err
 }
 
@@ -127,6 +137,7 @@ func getOrganizationsAccount(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	op, err := svc.DescribeAccount(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getOrganizationsAccount", "DescribeAccount_error", err)
 		return nil, err
 	}
 
@@ -155,18 +166,34 @@ func getOrganizationsResourceTags(ctx context.Context, d *plugin.QueryData, reso
 		ResourceId: aws.String(resourceId),
 	}
 
-	tags := map[string]string{}
+	tags := []*organizations.Tag{}
+
 	err = svc.ListTagsForResourcePages(
 		params,
 		func(page *organizations.ListTagsForResourceOutput, isLast bool) bool {
-			for _, i := range page.Tags {
-				tags[*i.Key] = *i.Value
-			}
+			tags = append(tags, page.Tags...)
 			return !isLast
 		},
 	)
+	if err != nil {
+		plugin.Logger(ctx).Error("getOrganizationsResourceTags", "ListTagsForResourcePages_error", err)
+		return nil, err
+	}
 
 	return &tags, err
 }
 
 //// TRANSFORM FUNCTIONS
+
+func getOrganizationsResourceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getOrganizationsResourceTurbotTags")
+
+	tags := d.HydrateItem.(*[]*organizations.Tag)
+	tagsMap := map[string]string{}
+
+	for _, tag := range *tags {
+		tagsMap[*tag.Key] = *tag.Value
+	}
+
+	return &tagsMap, nil
+}
