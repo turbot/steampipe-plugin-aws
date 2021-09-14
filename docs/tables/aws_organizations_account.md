@@ -2,7 +2,7 @@
 
 Contains information about AWS accounts that are members of the current AWS Organizations organization.
 
-Note: This table can only be queried using IAM access key credentials for the AWS Organizations management account or a member account that is a delegated administrator for an AWS service.
+Note: This table can only be queried using credentials from an AWS Organizations management account or a member account that is a delegated administrator for an AWS service.
 
 ## Examples
 
