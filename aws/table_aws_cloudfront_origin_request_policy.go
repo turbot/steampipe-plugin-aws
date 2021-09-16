@@ -111,13 +111,13 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 	for pagesLeft {
 		response, err := svc.ListOriginRequestPolicies(params)
 		if err != nil {
+			plugin.Logger(ctx).Error("listCloudFrontOriginRequestPolicies", "ListOriginRequestPolicies_error", err)
 			return nil, err
 		}
 		for _, policy := range response.OriginRequestPolicyList.Items {
 			d.StreamListItem(ctx, policy)
 		}
 		if response.OriginRequestPolicyList.NextMarker != nil {
-			pagesLeft = true
 			params.Marker = response.OriginRequestPolicyList.NextMarker
 		} else {
 			pagesLeft = false
@@ -152,6 +152,7 @@ func getCloudFrontOriginRequestPolicy(ctx context.Context, d *plugin.QueryData, 
 
 	op, err := svc.GetOriginRequestPolicy(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCloudFrontOriginRequestPolicy", "GetOriginRequestPolicy_error", err)
 		return nil, err
 	}
 

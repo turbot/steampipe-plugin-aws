@@ -193,8 +193,17 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		ResourceArn: aws.String(pipelineArn),
 	}
 
-	tags, err := svc.ListTagsForResource(params)
+	tags := []*codepipeline.Tag{}
+
+	err = svc.ListTagsForResourcePages(
+		params,
+		func(page *codepipeline.ListTagsForResourceOutput, isLast bool) bool {
+			tags = append(tags, page.Tags...)
+			return !isLast
+		},
+	)
 	if err != nil {
+		plugin.Logger(ctx).Error("getPipelineTags", "ListTagsForResourcePages_error", err)
 		return nil, err
 	}
 
