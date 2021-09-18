@@ -82,14 +82,19 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 		},
 	}
 
-	// execute list call
-	resp, err := svc.DescribeInstanceTypeOfferings(params)
-	if err != nil {
-		return nil, err
-	}
+	// List call
+	err = svc.DescribeInstanceTypeOfferingsPages(
+		params,
+		func(page *ec2.DescribeInstanceTypeOfferingsOutput, isLast bool) bool {
+			for _, instanceTypeOffering := range page.InstanceTypeOfferings {
+				d.StreamListItem(ctx, instanceTypeOffering)
+			}
+			return !isLast
+		},
+	)
 
-	for _, zone := range resp.InstanceTypeOfferings {
-		d.StreamLeafListItem(ctx, zone)
+	if err != nil {
+		plugin.Logger(ctx).Error("listAwsAvailableInstanceTypes", "DescribeInstanceTypeOfferingsPages", err)
 	}
 
 	return nil, err

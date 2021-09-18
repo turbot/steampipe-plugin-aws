@@ -202,15 +202,24 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 	// Build the params
 	params := &directoryservice.DescribeDirectoriesInput{}
+	pagesLeft := true
 
 	// List call
-	result, err := svc.DescribeDirectories(params)
-	if err != nil {
-		return nil, err
-	}
+	for pagesLeft {
+		result, err := svc.DescribeDirectories(params)
+		if err != nil {
+			return nil, err
+		}
 
-	for _, directory := range result.DirectoryDescriptions {
-		d.StreamListItem(ctx, directory)
+		for _, directory := range result.DirectoryDescriptions {
+			d.StreamListItem(ctx, directory)
+		}
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return nil, err
@@ -277,9 +286,21 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 		ResourceId: directoryID,
 	}
 
-	tags, err := svc.ListTagsForResource(params)
-	if err != nil {
-		return nil, err
+	pagesLeft := true
+	tags := []*directoryservice.Tag{}
+
+	for pagesLeft {
+		result, err := svc.ListTagsForResource(params)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, result.Tags...)
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return tags, nil
@@ -288,15 +309,12 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func directoryServiceDirectoryTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*directoryservice.ListTagsForResourceOutput)
-	if data.Tags == nil {
-		return nil, nil
-	}
+	tags := d.HydrateItem.([]*directoryservice.Tag)
 
 	// Mapping the resource tags inside turbotTags
-	if data.Tags != nil {
+	if tags != nil {
 		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
