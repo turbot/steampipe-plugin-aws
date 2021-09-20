@@ -251,7 +251,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 func passwordEnabledToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	enabled := types.SafeString(d.Value)
 	if enabled == "not_supported" {
-		return false, nil
+		return true, nil
 	}
 	if enabled == "true" {
 		return true, nil
