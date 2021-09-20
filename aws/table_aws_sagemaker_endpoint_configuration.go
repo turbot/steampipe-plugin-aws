@@ -80,7 +80,7 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listSageMakerEndpointConfigurationTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerEndpointConfigurationTurbotTags),
+				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -163,31 +163,27 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 		ResourceArn: aws.String(configArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("listSageMakerEndpointConfigurationTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listSageMakerEndpointConfigurationTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTIONS
-
-func sageMakerEndpointConfigurationTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap := map[string]string{}
-	for _, i := range data.Tags {
-		turbotTagsMap[*i.Key] = *i.Value
-	}
-	return turbotTagsMap, nil
-}
 
 func endpointConfigARN(item interface{}) string {
 	switch item := item.(type) {

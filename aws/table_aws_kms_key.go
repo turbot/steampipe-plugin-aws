@@ -290,24 +290,32 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		KeyId: key.KeyId,
 	}
 
-	keyTags, err := svc.ListResourceTags(params)
-	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "AccessDeniedException" {
-				return tagsData, nil
-			}
+	pagesLeft := true
+	tags := []*kms.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListResourceTags(params)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextMarker != nil {
+			params.Marker = keyTags.NextMarker
+		} else {
+			pagesLeft = false
+		}
 	}
-	if keyTags.Tags != nil {
-		tagsData["TagsSrc"] = keyTags.Tags
+
+	if tags != nil {
+		tagsData["TagsSrc"] = tags
 
 		turbotTagsMap := make(map[string]string)
-		for _, t := range keyTags.Tags {
+		for _, t := range tags {
 			turbotTagsMap[*t.TagKey] = *t.TagValue
 		}
 		tagsData["Tags"] = turbotTagsMap
 	}
+
 	return tagsData, nil
 }
 
@@ -324,10 +332,18 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	params := &kms.ListAliasesInput{
 		KeyId: key.KeyId,
 	}
-
-	keyData, err := svc.ListAliases(params)
+	keyData := []*kms.AliasListEntry{}
+	err = svc.ListAliasesPages(
+		params,
+		func(page *kms.ListAliasesOutput, lastPage bool) bool {
+			for _, aliases := range page.Aliases {
+				keyData = append(keyData, aliases)
+			}
+			return !lastPage
+		},
+	)
 	if err != nil {
-		return nil, err
+		plugin.Logger(ctx).Error("getAwsKmsKeyAliases", "ListAliasesPages_error", err)
 	}
 
 	return keyData, nil

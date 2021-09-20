@@ -84,7 +84,7 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the model.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerModelTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -99,7 +99,7 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerModelTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerModelTurbotTags),
+				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -188,35 +188,27 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 		ResourceArn: aws.String(modelArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		logger.Debug("listAwsSageMakerModelTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsSageMakerModelTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTION
-
-func sageMakerModelTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags == nil {
-		return nil, nil
-	}
-
-	if data.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
 
 func modelName(item interface{}) string {
 	switch item := item.(type) {

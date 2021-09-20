@@ -63,7 +63,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the Rule.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsWafRateBasedRuleTags,
-				Transform:   transform.FromField("TagInfoForResource.TagList"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -78,7 +78,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsWafRateBasedRuleTags,
-				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(wafRateBasedRuletagListToTurbotTags),
+				Transform:   transform.FromValue().Transform(wafTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -176,11 +176,24 @@ func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *pl
 	params := &waf.ListTagsForResourceInput{
 		ResourceARN: &aka,
 	}
-	op, err := svc.ListTagsForResource(params)
-	if err != nil {
-		return nil, err
+	tags := []*waf.Tag{}
+
+	pagesLeft := true
+	for pagesLeft {
+		response, err := svc.ListTagsForResource(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsWafRateBasedRuleTags", "ListTagsForResource_error", err)
+			return nil, err
+		}
+		tags = append(tags, response.TagInfoForResource.TagList...)
+		if response.NextMarker != nil {
+			params.NextMarker = response.NextMarker
+		} else {
+			pagesLeft = false
+		}
 	}
-	return op, nil
+
+	return tags, nil
 }
 
 func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -198,24 +211,6 @@ func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 //// TRANSFORM FUNCTIONS
-
-func wafRateBasedRuletagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("wafRateBasedRuletagListToTurbotTags")
-	tagList := d.HydrateItem.(*waf.ListTagsForResourceOutput)
-	if tagList.TagInfoForResource.TagList == nil {
-		return nil, nil
-	}
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList.TagInfoForResource.TagList {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-	return turbotTagsMap, nil
-}
 
 func rateBasedRuleData(item interface{}) string {
 	switch item := item.(type) {

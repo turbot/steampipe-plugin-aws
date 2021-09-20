@@ -121,11 +121,28 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	pagesLeft := true
+	params := &ec2.DescribeVpcEndpointServicesInput{}
+
 	// List call
-	data, err := svc.DescribeVpcEndpointServices(&ec2.DescribeVpcEndpointServicesInput{})
-	for _, endpointService := range data.ServiceDetails {
-		d.StreamListItem(ctx, endpointService)
+	for pagesLeft {
+		result, err := svc.DescribeVpcEndpointServices(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listVpcEndpointServices", "DescribeVpcEndpointServices_error", err)
+			return nil, err
+		}
+
+		for _, endpointService := range result.ServiceDetails {
+			d.StreamListItem(ctx, endpointService)
+		}
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
+
 	return nil, err
 }
 
