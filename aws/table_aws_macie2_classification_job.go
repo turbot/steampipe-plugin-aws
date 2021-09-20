@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/macie2"
 )
 
@@ -18,7 +19,7 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Description: "AWS Macie2 Classification Job",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("job_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter"}),
 			Hydrate:           getMacie2ClassificationJob,
 		},
 		List: &plugin.ListConfig{
@@ -161,6 +162,15 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 			return !isLast
 		},
 	)
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			// Throws AccessDeniedException: Macie is not enabled. when AWS Macie is not enabled in a region
+			if awsErr.Message() == "Macie is not enabled." {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("listMacie2ClassificationJobs", "ListClassificationJobsPages_error", err)
+	}
 
 	return nil, err
 }
@@ -177,6 +187,11 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 		id = d.KeyColumnQuals["job_id"].GetStringValue()
 	}
 
+	// empty check for job id
+	if id == "" {
+		return nil, nil
+	}
+
 	// Create service
 	svc, err := Macie2Service(ctx, d)
 	if err != nil {
@@ -191,6 +206,13 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	op, err := svc.DescribeClassificationJob(params)
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			// Throws AccessDeniedException: Macie is not enabled. when AWS Macie is not enabled in a region
+			if awsErr.Message() == "Macie is not enabled." {
+				return nil, nil
+			}
+		}
+		plugin.Logger(ctx).Error("getMacie2ClassificationJob", "DescribeClassificationJob_error", err)
 		return nil, err
 	}
 
