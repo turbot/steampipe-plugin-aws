@@ -250,7 +250,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func passwordEnabledToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	enabled := types.SafeString(d.Value)
-	// The password_enabled value for the AWS account (root) is always not_supported and root password can not be disabled.
+	// The value for the AWS root account <root_account> is always returned as not_supported for password_enabled and password_last_changed by API. The root password can not be disabled. Hence it has always a value associated.
 	if enabled == "not_supported" {
 		return true, nil
 	}
