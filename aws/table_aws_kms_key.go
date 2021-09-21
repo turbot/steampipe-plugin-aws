@@ -336,9 +336,7 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	err = svc.ListAliasesPages(
 		params,
 		func(page *kms.ListAliasesOutput, lastPage bool) bool {
-			for _, aliases := range page.Aliases {
-				keyData = append(keyData, aliases)
-			}
+			keyData = append(keyData, page.Aliases...)
 			return !lastPage
 		},
 	)
