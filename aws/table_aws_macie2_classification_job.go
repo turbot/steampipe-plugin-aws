@@ -165,6 +165,8 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			// Throws AccessDeniedException: Macie is not enabled. when AWS Macie is not enabled in a region
+			// Also the API throws AccessDeniedException if the request does not have proper permission
+			// with the below check we will only handle "Macie is not enabled"
 			if awsErr.Message() == "Macie is not enabled." {
 				return nil, nil
 			}
