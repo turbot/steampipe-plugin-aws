@@ -1,0 +1,6 @@
+[
+  {
+    "arn": "{{ output.resource_arn.value }}",
+    "identity_store_id": "{{ output.resource_identity_store_id.value }}"
+  }
+]
