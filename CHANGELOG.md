@@ -1,3 +1,15 @@
+## v0.33.0 [2021-09-22]
+
+_What's new?_
+
+- New tables added
+  - [aws_organizations_account](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_account) ([#650](https://github.com/turbot/steampipe-plugin-aws/pull/650))
+  - [aws_ssoadmin_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_instance) ([#658](https://github.com/turbot/steampipe-plugin-aws/pull/658))
+
+_Bug fixes_
+
+- When the macie service is not enabled in a particular region, `aws_macie2_classification_job` table will now return `nil` instead of `error` ([#661](https://github.com/turbot/steampipe-plugin-aws/pull/661))
+
 ## v0.32.1 [2021-09-13]
 
 _Enhancements_
