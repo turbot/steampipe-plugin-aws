@@ -163,7 +163,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Description: "A list of tags currently associated with the Directory Service Directory.",
 				Hydrate:     getDirectoryServiceDirectoryTags,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe Standard columns
