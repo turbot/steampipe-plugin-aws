@@ -167,7 +167,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags",
@@ -313,7 +313,6 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 			return nil, err
 		}
 		tags = append(tags, result.Tags...)
-
 		if result.NextToken != nil {
 			params.NextToken = result.NextToken
 		} else {
