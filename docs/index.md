@@ -137,19 +137,19 @@ AWS multi-region connections are common, but be aware that performance may be im
 
 You may create multiple aws connections:
 ```hcl
-connection "aws_01 {
+connection "aws_01" {
   plugin      = "aws" 
   profile     = "aws_01"
   regions     = ["us-east-1", "us-west-2"]
 }
 
-connection "aws_02 {
+connection "aws_02" {
   plugin      = "aws" 
   profile     = "aws_02"
   regions     = ["*"]
 }
 
-connection "aws_03 {
+connection "aws_03" {
   plugin      = "aws" 
   profile     = "aws_03"
   regions     = ["us-*"]
@@ -171,7 +171,7 @@ select * from aws_account
 You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
 
 ```
-connection "aws_all {
+connection "aws_all" {
   plugin      = "aws" 
   type        = "aggregator"
   connections = ["aws_01", "aws_02", "aws_03"]

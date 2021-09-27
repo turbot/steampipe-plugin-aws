@@ -1,3 +1,37 @@
+## v0.33.0 [2021-09-22]
+
+_What's new?_
+
+- New tables added
+  - [aws_organizations_account](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_account) ([#650](https://github.com/turbot/steampipe-plugin-aws/pull/650))
+  - [aws_ssoadmin_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_instance) ([#658](https://github.com/turbot/steampipe-plugin-aws/pull/658))
+
+_Bug fixes_
+
+- When the macie service is not enabled in a particular region, `aws_macie2_classification_job` table will now return `nil` instead of `error` ([#661](https://github.com/turbot/steampipe-plugin-aws/pull/661))
+
+## v0.32.1 [2021-09-13]
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v1.5.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v151--2021-09-13) ([#653](https://github.com/turbot/steampipe-plugin-aws/pull/653))
+
+## v0.32.0 [2021-09-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_transit_gateway_route](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_transit_gateway_route) ([#637](https://github.com/turbot/steampipe-plugin-aws/pull/637))
+
+_Enhancements_
+
+- Added customized exponential back-off retry logic to optimize retry mechanism ([#635](https://github.com/turbot/steampipe-plugin-aws/pull/635))
+
+_Bug fixes_
+
+- Fixed: Implemented pagination in `aws_config_rule` and `aws_config_conformance_pack` table ([#646](https://github.com/turbot/steampipe-plugin-aws/pull/646))
+- Fixed: Improved documentations ([#639](https://github.com/turbot/steampipe-plugin-aws/pull/639))
+
 ## v0.31.0 [2021-08-25]
 
 _What's new?_
@@ -9,7 +43,6 @@ _What's new?_
   - [aws_lambda_function_metric_errors_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_function_metric_errors_daily) ([#625](https://github.com/turbot/steampipe-plugin-aws/pull/625))
   - [aws_lambda_function_metric_invocations_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_function_metric_invocations_daily) ([#627](https://github.com/turbot/steampipe-plugin-aws/pull/627))
   - [aws_tagging_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_tagging_resource) ([#628](https://github.com/turbot/steampipe-plugin-aws/pull/628))
-
 
 ## v0.30.0 [2021-08-20]
 
