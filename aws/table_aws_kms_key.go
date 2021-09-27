@@ -295,6 +295,11 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	for pagesLeft {
 		keyTags, err := svc.ListResourceTags(params)
 		if err != nil {
+			if a, ok := err.(awserr.Error); ok {
+				if a.Code() == "AccessDeniedException" {
+					return tagsData, nil
+				}
+			}
 			return nil, err
 		}
 		tags = append(tags, keyTags.Tags...)
