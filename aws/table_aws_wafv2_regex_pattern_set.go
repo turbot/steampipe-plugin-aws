@@ -75,7 +75,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Description: "A list of tags associated with the resource.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForAwsWafv2RegexPatternSet,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
 			// steampipe standard columns
@@ -90,7 +90,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForAwsWafv2RegexPatternSet,
-				Transform:   transform.FromValue().Transform(wafv2TurbotTags),
+				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(regexPatternSetTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -254,28 +254,15 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Build param
-	params := &wafv2.ListTagsForResourceInput{
+	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
 	}
 
-	tags := []*wafv2.Tag{}
-
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListTagsForResource(params)
-		if err != nil {
-			plugin.Logger(ctx).Error("listTagsForAwsWafv2RegexPatternSet", "ListTagsForResource_error", err)
-			return nil, err
-		}
-		tags = append(tags, response.TagInfoForResource.TagList...)
-		if response.NextMarker != nil {
-			params.NextMarker = response.NextMarker
-		} else {
-			pagesLeft = false
-		}
+	regexPatternSetTags, err := svc.ListTagsForResource(param)
+	if err != nil {
+		return nil, err
 	}
-
-	return tags, nil
+	return regexPatternSetTags, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -287,6 +274,26 @@ func regexPatternSetLocation(_ context.Context, d *transform.TransformData) (int
 		return "REGIONAL", nil
 	}
 	return "CLOUDFRONT", nil
+}
+
+func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("regexPatternSetTagListToTurbotTags")
+	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
+
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
+		return nil, nil
+	}
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if data.TagInfoForResource.TagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range data.TagInfoForResource.TagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
 
 func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {

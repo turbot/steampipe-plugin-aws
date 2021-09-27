@@ -89,7 +89,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Description: "A list of tags associated with the resource.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForAwsWafv2RuleGroup,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
 			// steampipe standard columns
@@ -104,7 +104,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForAwsWafv2RuleGroup,
-				Transform:   transform.FromValue().Transform(wafv2TurbotTags),
+				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(ruleGroupTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -268,28 +268,15 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Build param
-	params := &wafv2.ListTagsForResourceInput{
+	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
 	}
 
-	tags := []*wafv2.Tag{}
-
-	pagesLeft := true
-	for pagesLeft {
-		response, err := svc.ListTagsForResource(params)
-		if err != nil {
-			plugin.Logger(ctx).Error("listTagsForAwsWafv2RuleGroup", "ListTagsForResource_error", err)
-			return nil, err
-		}
-		tags = append(tags, response.TagInfoForResource.TagList...)
-		if response.NextMarker != nil {
-			params.NextMarker = response.NextMarker
-		} else {
-			pagesLeft = false
-		}
+	ruleGroupTags, err := svc.ListTagsForResource(param)
+	if err != nil {
+		return nil, err
 	}
-
-	return tags, nil
+	return ruleGroupTags, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -301,6 +288,26 @@ func ruleGroupLocation(_ context.Context, d *transform.TransformData) (interface
 		return "REGIONAL", nil
 	}
 	return "CLOUDFRONT", nil
+}
+
+func ruleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("ruleGroupTagListToTurbotTags")
+	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
+
+	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
+		return nil, nil
+	}
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if data.TagInfoForResource.TagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range data.TagInfoForResource.TagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
 
 func ruleGroupRegion(ctx context.Context, d *transform.TransformData) (interface{}, error) {

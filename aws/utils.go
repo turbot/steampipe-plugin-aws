@@ -11,8 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
@@ -172,38 +170,4 @@ func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	}
 
 	return nil, nil
-}
-
-func wafTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	tagList := d.HydrateItem.([]*waf.Tag)
-	if tagList == nil {
-		return nil, nil
-	}
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-	return turbotTagsMap, nil
-}
-
-func wafv2TurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	tagList := d.HydrateItem.([]*wafv2.Tag)
-	if tagList == nil {
-		return nil, nil
-	}
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-	return turbotTagsMap, nil
 }
