@@ -159,7 +159,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
+				Transform:   transform.From(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
