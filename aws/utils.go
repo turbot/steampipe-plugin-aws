@@ -157,6 +157,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 	return data, nil
 }
 
+// Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	tags := d.HydrateItem.([]*sagemaker.Tag)

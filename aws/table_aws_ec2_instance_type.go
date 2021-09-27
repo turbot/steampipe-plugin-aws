@@ -233,7 +233,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listAwsInstanceTypesOfferings", "DescribeInstanceTypeOfferingsPages", err)
+		plugin.Logger(ctx).Error("listAwsInstanceTypesOfferings", "InstanceType_DescribeInstanceTypeOfferingsPages", err)
 	}
 
 	return nil, err
