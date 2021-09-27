@@ -123,6 +123,7 @@ func tableAwsKmsKey(_ context.Context) *plugin.Table {
 				Description: "A list of aliases for the key.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsKmsKeyAliases,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "key_rotation_enabled",
