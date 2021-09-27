@@ -214,6 +214,10 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		},
 	)
 
+	if err != nil {
+		plugin.Logger(ctx).Error("ListTablesPages", "list", err)
+	}
+
 	return nil, err
 }
 
@@ -310,6 +314,7 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for pagesLeft {
 		result, err := svc.ListTagsOfResource(params)
 		if err != nil {
+			plugin.Logger(ctx).Error("ListTagsOfResource", "tag", err)
 			return nil, err
 		}
 		tags = append(tags, result.Tags...)

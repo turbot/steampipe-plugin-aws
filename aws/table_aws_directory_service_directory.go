@@ -208,6 +208,7 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	for pagesLeft {
 		result, err := svc.DescribeDirectories(params)
 		if err != nil {
+			plugin.Logger(ctx).Error("DescribeDirectories", "list", err)
 			return nil, err
 		}
 
@@ -244,6 +245,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 
 	op, err := svc.DescribeDirectories(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("DescribeDirectories", "get", err)
 		return nil, err
 	}
 
@@ -292,6 +294,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	for pagesLeft {
 		result, err := svc.ListTagsForResource(params)
 		if err != nil {
+			plugin.Logger(ctx).Error("ListTagsForResource", "tag", err)
 			return nil, err
 		}
 		tags = append(tags, result.Tags...)

@@ -138,6 +138,10 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 		},
 	)
 
+	if err != nil {
+		plugin.Logger(ctx).Error("ListPipelinesPages", "list", err)
+	}
+
 	return nil, err
 }
 
