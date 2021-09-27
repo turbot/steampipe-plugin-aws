@@ -65,7 +65,7 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the endpoint configuration.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listSageMakerEndpointConfigurationTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
