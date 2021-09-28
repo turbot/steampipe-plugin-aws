@@ -294,9 +294,10 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	webAclTags, err := svc.ListTagsForResource(param)

@@ -271,9 +271,10 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	ruleGroupTags, err := svc.ListTagsForResource(param)
