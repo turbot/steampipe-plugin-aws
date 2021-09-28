@@ -81,6 +81,7 @@ func tableAwsWAFRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
+// List API request does not support scope for getting the details of regional rules till date, we can get only the global rules.
 func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	plugin.Logger(ctx).Trace("listAwsWAFRules")
