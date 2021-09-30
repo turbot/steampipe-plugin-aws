@@ -167,7 +167,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the table.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableTagging,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags",
@@ -213,6 +213,10 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			return !lastPage
 		},
 	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("ListTablesPages", "list", err)
+	}
 
 	return nil, err
 }
@@ -305,12 +309,23 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		ResourceArn: &tableArn,
 	}
 
-	op, err := svc.ListTagsOfResource(params)
-	if err != nil {
-		return nil, err
+	pagesLeft := true
+	tags := []*dynamodb.Tag{}
+	for pagesLeft {
+		result, err := svc.ListTagsOfResource(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("ListTagsOfResource", "tag", err)
+			return nil, err
+		}
+		tags = append(tags, result.Tags...)
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -325,13 +340,13 @@ func getTableBillingMode(_ context.Context, d *transform.TransformData) (interfa
 }
 
 func getTableTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	output := d.HydrateItem.(*dynamodb.ListTagsOfResourceOutput)
+	tags := d.HydrateItem.([]*dynamodb.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if output.Tags != nil {
+	if tags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range output.Tags {
+		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

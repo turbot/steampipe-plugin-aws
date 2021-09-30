@@ -178,16 +178,19 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
-	evidenceFolderList, err := svc.GetEvidenceFoldersByAssessment(&auditmanager.GetEvidenceFoldersByAssessmentInput{
-		AssessmentId: aws.String(assessmentID),
-	})
-	if err != nil {
-		return nil, err
-	}
 
-	for _, evidenceFolder := range evidenceFolderList.EvidenceFolders {
-		evidenceFolders = append(evidenceFolders, *evidenceFolder)
-	}
+	// List call
+	err = svc.GetEvidenceFoldersByAssessmentPages(
+		&auditmanager.GetEvidenceFoldersByAssessmentInput{
+			AssessmentId: aws.String(assessmentID),
+		},
+		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
+			for _, evidenceFolder := range page.EvidenceFolders {
+				evidenceFolders = append(evidenceFolders, *evidenceFolder)
+			}
+			return !isLast
+		},
+	)
 
 	var wg sync.WaitGroup
 	evidenceCh := make(chan []evidenceInfo, len(evidenceFolders))

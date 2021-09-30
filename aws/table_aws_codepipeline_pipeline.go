@@ -90,7 +90,7 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 				Description: "A list of tag key and value pairs associated with this pipeline.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPipelineTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -137,6 +137,10 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 			return !isLast
 		},
 	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("ListPipelinesPages", "list", err)
+	}
 
 	return nil, err
 }
@@ -193,8 +197,17 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 		ResourceArn: aws.String(pipelineArn),
 	}
 
-	tags, err := svc.ListTagsForResource(params)
+	tags := []*codepipeline.Tag{}
+
+	err = svc.ListTagsForResourcePages(
+		params,
+		func(page *codepipeline.ListTagsForResourceOutput, isLast bool) bool {
+			tags = append(tags, page.Tags...)
+			return !isLast
+		},
+	)
 	if err != nil {
+		plugin.Logger(ctx).Error("getPipelineTags", "ListTagsForResourcePages_error", err)
 		return nil, err
 	}
 
@@ -226,15 +239,15 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 }
 
 func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*codepipeline.ListTagsForResourceOutput)
+	tags := d.HydrateItem.([]*codepipeline.Tag)
 
-	if data.Tags == nil {
+	if tags == nil {
 		return nil, nil
 	}
 
 	// Mapping the resource tags inside turbotTags
 	turbotTagsMap := map[string]string{}
-	for _, i := range data.Tags {
+	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 

@@ -117,13 +117,22 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		FileSystemId: data.FileSystemId,
 	}
 
-	op, err := svc.DescribeMountTargets(params)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, mounttarget := range op.MountTargets {
-		d.StreamLeafListItem(ctx, mounttarget)
+	// List call
+	pagesLeft := true
+	for pagesLeft {
+		result, err := svc.DescribeMountTargets(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsEfsMountTargets", "DescribeMountTargets_error", err)
+			return nil, err
+		}
+		for _, mountTarget := range result.MountTargets {
+			d.StreamListItem(ctx, mountTarget)
+		}
+		if result.NextMarker != nil {
+			params.Marker = result.NextMarker
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return nil, nil
@@ -148,6 +157,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	op, err := svc.DescribeMountTargets(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getAwsEfsMountTarget", "DescribeMountTargets_error", err)
 		return nil, err
 	}
 

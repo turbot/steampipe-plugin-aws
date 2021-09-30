@@ -268,6 +268,9 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return op.WebACL, nil
 }
 
+// ListTagsForResource.NextMarker return empty string in API call
+// due to which pagination will not work properly
+// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2WebAcl")
 
@@ -290,9 +293,10 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	webAclTags, err := svc.ListTagsForResource(param)

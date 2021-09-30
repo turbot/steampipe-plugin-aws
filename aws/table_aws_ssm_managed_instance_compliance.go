@@ -108,12 +108,17 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// List call
-	data, err := svc.ListComplianceItems(params)
+	err = svc.ListComplianceItemsPages(
+		params,
+		func(page *ssm.ListComplianceItemsOutput, isLast bool) bool {
+			for _, item := range page.ComplianceItems {
+				d.StreamListItem(ctx, item)
+			}
+			return !isLast
+		},
+	)
 	if err != nil {
-		return nil, err
-	}
-	for _, item := range data.ComplianceItems {
-		d.StreamListItem(ctx, item)
+		plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances", "ListComplianceItemsPages_error", err)
 	}
 
 	return nil, err
@@ -134,7 +139,7 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.ResourceId + "/compliance-item/" + *data.Id + ":" + *data.ComplianceType}
-  
+
 	return akas, nil
 }
 

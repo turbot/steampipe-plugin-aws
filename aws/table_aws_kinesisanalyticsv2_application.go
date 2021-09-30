@@ -130,9 +130,29 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	}
 
 	// List call
-	resp, err := svc.ListApplications(&kinesisanalyticsv2.ListApplicationsInput{})
-	for _, application := range resp.ApplicationSummaries {
-		d.StreamListItem(ctx, application)
+	pagesLeft := true
+	params := &kinesisanalyticsv2.ListApplicationsInput{}
+
+	for pagesLeft {
+		result, err := svc.ListApplications(params)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, application := range result.ApplicationSummaries {
+			d.StreamListItem(ctx, application)
+		}
+
+		if result.NextToken != nil {
+			pagesLeft = true
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
+
+	if err != nil {
+		plugin.Logger(ctx).Error("listKinesisAnalyticsV2Applications", "ListApplications_error", err)
 	}
 
 	return nil, err
@@ -166,7 +186,7 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	// Get call
 	data, err := svc.DescribeApplication(params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2Application", "ERROR", err)
+		logger.Debug("getKinesisAnalyticsV2Application", "DescribeApplication_error", err)
 		return nil, err
 	}
 
