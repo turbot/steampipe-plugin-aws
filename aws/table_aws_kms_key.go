@@ -266,7 +266,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 
 	keyData, err := svc.GetKeyRotationStatus(params)
 	if err != nil {
-		// For AWS managed Kms keys GetKeyRotationStatus API generate exceptions
+		// For AWS managed KMS keys GetKeyRotationStatus API generates exceptions
 		if a, ok := err.(awserr.Error); ok {
 			if helpers.StringSliceContains([]string{"AccessDeniedException", "UnsupportedOperationException"}, a.Code()) {
 				return kms.GetKeyRotationStatusOutput{}, nil
@@ -297,7 +297,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	for pagesLeft {
 		keyTags, err := svc.ListResourceTags(params)
 		if err != nil {
-			// For AWS managed Kms keys ListResourceTags API generate AccessDeniedException
+			// For AWS managed KMS keys ListResourceTags API generates AccessDeniedException
 			if a, ok := err.(awserr.Error); ok {
 				if a.Code() == "AccessDeniedException" {
 					return tagsData, nil

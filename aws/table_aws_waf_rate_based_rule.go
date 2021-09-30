@@ -155,7 +155,6 @@ func getAwsWafRateBasedRule(ctx context.Context, d *plugin.QueryData, h *plugin.
 // ListTagsForResource.NextMarker return empty string in API call
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
-
 func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWafRateBasedRuleTags")
 

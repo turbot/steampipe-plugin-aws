@@ -236,7 +236,6 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // ListTagsForResource.NextMarker return empty string in API call
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
-
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
 
