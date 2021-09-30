@@ -259,7 +259,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the training job.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerTrainingJobTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -274,7 +274,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerTrainingJobTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerTrainingJobTagListToTurbotTags),
+				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -355,35 +355,27 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 		ResourceArn: aws.String(arn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		return nil, err
-	}
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("getAwsSageMakerTrainingJobTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
 
-	return op, nil
-}
-
-//// TRANSFORM FUNCTIONS
-
-func sageMakerTrainingJobTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("sageMakerTrainingJobTagListToTurbotTags")
-	tagList := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if tagList.Tags == nil {
-		return nil, nil
-	}
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
 		}
 	}
 
-	return turbotTagsMap, nil
+	return tags, nil
 }
+
+//// TRANSFORM FUNCTIONS
 
 func trainingJobArn(item interface{}) string {
 	switch item := item.(type) {

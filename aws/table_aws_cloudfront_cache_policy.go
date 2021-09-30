@@ -111,10 +111,22 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// List call
-	result, err := svc.ListCachePolicies(&cloudfront.ListCachePoliciesInput{})
-
-	for _, policy := range result.CachePolicyList.Items {
-		d.StreamListItem(ctx, policy)
+	params := &cloudfront.ListCachePoliciesInput{}
+	pagesLeft := true
+	for pagesLeft {
+		result, err := svc.ListCachePolicies(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listCloudFrontCachePolicies", "ListCachePolicies_error", err)
+			return nil, err
+		}
+		for _, policy := range result.CachePolicyList.Items {
+			d.StreamListItem(ctx, policy)
+		}
+		if result.CachePolicyList.NextMarker != nil {
+			params.Marker = result.CachePolicyList.NextMarker
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return nil, err
@@ -144,6 +156,7 @@ func getCloudFrontCachePolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	op, err := svc.GetCachePolicy(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCloudFrontCachePolicy", "GetCachePolicy_error", err)
 		return nil, err
 	}
 

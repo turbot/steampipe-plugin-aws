@@ -163,7 +163,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Description: "A list of tags currently associated with the Directory Service Directory.",
 				Hydrate:     getDirectoryServiceDirectoryTags,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe Standard columns
@@ -202,15 +202,25 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 	// Build the params
 	params := &directoryservice.DescribeDirectoriesInput{}
+	pagesLeft := true
 
 	// List call
-	result, err := svc.DescribeDirectories(params)
-	if err != nil {
-		return nil, err
-	}
+	for pagesLeft {
+		result, err := svc.DescribeDirectories(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("DescribeDirectories", "list", err)
+			return nil, err
+		}
 
-	for _, directory := range result.DirectoryDescriptions {
-		d.StreamListItem(ctx, directory)
+		for _, directory := range result.DirectoryDescriptions {
+			d.StreamListItem(ctx, directory)
+		}
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return nil, err
@@ -235,6 +245,7 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 
 	op, err := svc.DescribeDirectories(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("DescribeDirectories", "get", err)
 		return nil, err
 	}
 
@@ -277,9 +288,22 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 		ResourceId: directoryID,
 	}
 
-	tags, err := svc.ListTagsForResource(params)
-	if err != nil {
-		return nil, err
+	pagesLeft := true
+	tags := []*directoryservice.Tag{}
+
+	for pagesLeft {
+		result, err := svc.ListTagsForResource(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("ListTagsForResource", "tag", err)
+			return nil, err
+		}
+		tags = append(tags, result.Tags...)
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return tags, nil
@@ -288,15 +312,12 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func directoryServiceDirectoryTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*directoryservice.ListTagsForResourceOutput)
-	if data.Tags == nil {
-		return nil, nil
-	}
+	tags := d.HydrateItem.([]*directoryservice.Tag)
 
 	// Mapping the resource tags inside turbotTags
-	if data.Tags != nil {
+	if tags != nil {
 		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil

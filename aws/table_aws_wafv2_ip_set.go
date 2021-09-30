@@ -233,6 +233,9 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return op.IPSet, nil
 }
 
+// ListTagsForResource.NextMarker return empty string in API call
+// due to which pagination will not work properly
+// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
 
@@ -255,9 +258,10 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	ipSetTags, err := svc.ListTagsForResource(param)

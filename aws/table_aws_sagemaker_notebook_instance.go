@@ -144,7 +144,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the notebook instance.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Standard columns
@@ -159,7 +159,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.FromField("Tags").Transform(getAwsSageMakerNotebookInstanceTurbotTags),
+				Transform:   transform.From(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -242,31 +242,27 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 		ResourceArn: aws.String(resourceArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		logger.Debug("listAwsSageMakerNotebookInstanceTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsSageMakerNotebookInstanceTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTION
-
-func getAwsSageMakerNotebookInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
 
 func notebookInstanceARN(item interface{}) string {
 	switch item := item.(type) {

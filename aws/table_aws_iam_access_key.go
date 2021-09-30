@@ -73,16 +73,20 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// List IAM user access keys
-	item, err := svc.ListAccessKeys(params)
+	err = svc.ListAccessKeysPages(
+		params,
+		func(page *iam.ListAccessKeysOutput, isLast bool) bool {
+			for _, key := range page.AccessKeyMetadata {
+				d.StreamListItem(ctx, key)
+			}
+			return !isLast
+		},
+	)
 	if err != nil {
-		return nil, err
+		plugin.Logger(ctx).Error("listUserAccessKeys", "ListAccessKeysPages", err)
 	}
 
-	for _, key := range item.AccessKeyMetadata {
-		d.StreamLeafListItem(ctx, key)
-	}
-
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
