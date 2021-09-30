@@ -1,3 +1,14 @@
+## v0.34.0 [2021-09-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_identitystore_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_identitystore_group) ([#663](https://github.com/turbot/steampipe-plugin-aws/pull/663))
+  
+_Bug fixes_
+
+- Add pagination to list and list tags functions in several tables ([#660](https://github.com/turbot/steampipe-plugin-aws/pull/660))
+
 ## v0.33.0 [2021-09-22]
 
 _What's new?_
