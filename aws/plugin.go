@@ -270,6 +270,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_rule_group":                                         tableAwsWafv2RuleGroup(ctx),
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
+			"awscc_cloudtrail_trail":                                       tableAwsCCCloudTrailTrail(ctx),
 		},
 	}
 
