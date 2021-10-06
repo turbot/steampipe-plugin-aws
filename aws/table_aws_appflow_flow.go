@@ -25,7 +25,7 @@ func tableAwsAppFlowFlow(_ context.Context) *plugin.Table {
 			Hydrate: listAppFlowFlows,
 		},
 		GetMatrixItem: BuildRegionList,
-		Columns: awsColumns([]*plugin.Column{
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "flow_name",
 				Description: "Name of the flow.",
