@@ -112,7 +112,7 @@ func listAppFlowFlows(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	plugin.Logger(ctx).Trace("listAppFlowFlows")
 
 	// Create session
-	svc, err := CloudControlService(ctx, d)
+	svc, err := CloudControlAPIService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func getAppFlowFlow(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	plugin.Logger(ctx).Trace("getAppFlowFlow")
 
 	// Create session
-	svc, err := CloudControlService(ctx, d)
+	svc, err := CloudControlAPIService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
