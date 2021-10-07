@@ -70,7 +70,7 @@ func tableAwsAppFlowFlow(_ context.Context) *plugin.Table {
 			},
 			//{
 			//Name:        "tags_src",
-			//Description: "A list of tags assigned to the flow. NOTE: Missing description.",
+			//Description: "A list of tags assigned to the flow.",
 			//Type:        proto.ColumnType_JSON,
 			//Hydrate:     getAppFlowFlow,
 			//Transform:   transform.FromField("Tags"),
@@ -124,13 +124,16 @@ func listAppFlowFlows(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			for _, flow := range page.ResourceDescriptions {
 				properties := flow.Properties
 				var jsonMap map[string]interface{}
-				json.Unmarshal([]byte(*properties), &jsonMap)
+				unmarshalErr := json.Unmarshal([]byte(*properties), &jsonMap)
+				if unmarshalErr != nil {
+					plugin.Logger(ctx).Error("listAppFlowFlows", "Unmarshal_error", err)
+					panic(unmarshalErr)
+				}
 
 				d.StreamListItem(ctx, jsonMap)
-				// This will return zero if context has been cancelled (i.e due to manual cancellation) or
-				// if there is a limit, it will return the number of rows required to reach this limit
+				// Check if context has been cancelled or if the limit has been hit (if specified)
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return true
+					return false
 				}
 			}
 			return !isLast
@@ -173,7 +176,10 @@ func getAppFlowFlow(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	properties := item.ResourceDescription.Properties
 	var jsonMap map[string]interface{}
-	json.Unmarshal([]byte(*properties), &jsonMap)
+	err = json.Unmarshal([]byte(*properties), &jsonMap)
+	if err != nil {
+		return nil, err
+	}
 
 	return jsonMap, nil
 }
@@ -192,7 +198,7 @@ func getAppFlowFlowARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	result := h.Item
 	reflectedARN := reflect.ValueOf(result).MapIndex(reflect.ValueOf("FlowArn"))
 
-	// FlowArn property exists when listing flows
+	// FlowArn property exists when listing (but not getting) flows
 	if reflectedARN.IsValid() {
 		flowARN = reflectedARN.Interface().(string)
 		return flowARN, nil
@@ -204,7 +210,7 @@ func getAppFlowFlowARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("getAppFlowFlowARN", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
