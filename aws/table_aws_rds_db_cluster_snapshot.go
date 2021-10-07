@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -24,6 +25,12 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "db_cluster_identifier", Require: plugin.Optional},
+				{Name: "db_cluster_snapshot_identifier", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -183,15 +190,44 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	// List call
-	err = svc.DescribeDBClusterSnapshotsPages(
-		&rds.DescribeDBClusterSnapshotsInput{},
-		func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
-			for _, dbClusterSnapshot := range page.DBClusterSnapshots {
-				d.StreamListItem(ctx, dbClusterSnapshot)
+	input := rds.DescribeDBClusterSnapshotsInput{
+		MaxRecords: types.Int64(100),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		// select * from aws_rds_db_cluster_snapshot limit 3
+		// Error: InvalidParameterValue: Invalid value 3 for MaxRecords. Must be between 20 and 100
+		// 	status code: 400, request id: c39eead1-96e0-49c8-a927-aa9a3131836d
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = types.Int64(100)
+			} else {
+				input.MaxRecords = limit
 			}
-			return !isLast
-		},
+		}
+	}
+	filters := buildRdsDbClusterSnapshotFilter(d.KeyColumnQuals)
+
+	if len(filters) != 0 {
+		input.SetFilters(filters)
+	}
+
+	// List call
+	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
+		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
+			d.StreamListItem(ctx, dbClusterSnapshot)
+			// Check if context has been cancelled or if the limit has been hit (if specified)
+			// if there is a limit, it will return the number of rows required to reach this limit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return true
+			}
+		}
+
+		return !isLast
+	},
 	)
 	return nil, err
 }
@@ -258,4 +294,33 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// build snapshots list call input filter
+func buildRdsDbClusterSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*rds.Filter {
+	filters := make([]*rds.Filter, 0)
+	filterQuals := map[string]string{
+		"db_cluster_identifier":          "db-cluster-id",
+		"db_cluster_snapshot_identifier": "db-cluster-snapshot-id",
+		"engine":                         "engine",
+		"type":                           "snapshot-type",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := rds.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }
