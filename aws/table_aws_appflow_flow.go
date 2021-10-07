@@ -126,7 +126,7 @@ func listAppFlowFlows(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 				var jsonMap map[string]interface{}
 				unmarshalErr := json.Unmarshal([]byte(*properties), &jsonMap)
 				if unmarshalErr != nil {
-					plugin.Logger(ctx).Error("listAppFlowFlows", "Unmarshal_error", err)
+					plugin.Logger(ctx).Error("listAppFlowFlows", "Unmarshal_error", unmarshalErr)
 					panic(unmarshalErr)
 				}
 
@@ -178,7 +178,8 @@ func getAppFlowFlow(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	var jsonMap map[string]interface{}
 	err = json.Unmarshal([]byte(*properties), &jsonMap)
 	if err != nil {
-		return nil, err
+		plugin.Logger(ctx).Error("getAppFlowFlow", "Unmarshal_error", err)
+		panic(err)
 	}
 
 	return jsonMap, nil
