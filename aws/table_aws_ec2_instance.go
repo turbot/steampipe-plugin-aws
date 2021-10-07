@@ -356,8 +356,8 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filters = filters
 	}
 
-	// If the request no of items is less than the paging max limit
-	// update limit to requested no of results.
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
@@ -378,7 +378,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			for _, reservation := range page.Reservations {
 				for _, instance := range reservation.Instances {
 					d.StreamListItem(ctx, instance)
-					// This will return zero if context has been cancelled (i.e due to manual cancellation) or
+					// Check if context has been cancelled or if the limit has been hit (if specified)
 					// if there is a limit, it will return the number of rows required to reach this limit
 					if d.QueryStatus.RowsRemaining(ctx) == 0 {
 						return true
@@ -660,7 +660,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 	return data.LaunchTime, nil
 }
 
-//// other useful functions
+//// UTILITY FUNCTIONS
 
 // build ec2 instance list call input filter
 func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {

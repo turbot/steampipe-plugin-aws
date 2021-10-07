@@ -81,7 +81,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "is_attached",
-				Description: "True if policy is attached to atleast one of the users, groups, or role.",
+				Description: "Specifies whether the policy is attached to at least one IAM user, group, or role.",
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("AttachmentCount").Transform(attachementCountToBool),
 			},
@@ -153,8 +153,8 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	input := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
 	input.MaxItems = types.Int64(100)
 
-	// If the request no of items is less than the paging max limit
-	// update limit to requested no of results.
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
@@ -166,7 +166,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	err = svc.ListPoliciesPages(&input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
 		for _, policy := range page.Policies {
 			d.StreamListItem(ctx, policy)
-			// This will return zero if context has been cancelled (i.e due to manual cancellation) or
+			// Check if context has been cancelled or if the limit has been hit (if specified)
 			// if there is a limit, it will return the number of rows required to reach this limit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return true
@@ -258,7 +258,7 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	return false, nil
 }
 
-//// Transform Function
+//// TRANSFORM FUNCTIONS
 
 func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	policy := d.HydrateItem.(*iam.Policy)
@@ -282,6 +282,8 @@ func attachementCountToBool(_ context.Context, d *transform.TransformData) (inte
 	}
 	return true, nil
 }
+
+//// UTILITY FUNCTIONS
 
 func buildIamPolicyFilter(equalQuals plugin.KeyColumnEqualsQualMap, quals plugin.KeyColumnQualMap) iam.ListPoliciesInput {
 	input := iam.ListPoliciesInput{}

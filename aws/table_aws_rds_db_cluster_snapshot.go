@@ -194,8 +194,8 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 		MaxRecords: types.Int64(100),
 	}
 
-	// If the request no of items is less than the paging max limit
-	// update limit to requested no of results.
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		// select * from aws_rds_db_cluster_snapshot limit 3
@@ -219,7 +219,7 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 	err = svc.DescribeDBClusterSnapshotsPages(&input, func(page *rds.DescribeDBClusterSnapshotsOutput, isLast bool) bool {
 		for _, dbClusterSnapshot := range page.DBClusterSnapshots {
 			d.StreamListItem(ctx, dbClusterSnapshot)
-			// This will return zero if context has been cancelled (i.e due to manual cancellation) or
+			// Check if context has been cancelled or if the limit has been hit (if specified)
 			// if there is a limit, it will return the number of rows required to reach this limit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return true
@@ -296,9 +296,9 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 	return nil, nil
 }
 
-//// other useful functions
+//// UTILITY FUNCTIONS
 
-// build ec2 instance list call input filter
+// build snapshots list call input filter
 func buildRdsDbClusterSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*rds.Filter {
 	filters := make([]*rds.Filter, 0)
 	filterQuals := map[string]string{
