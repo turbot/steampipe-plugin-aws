@@ -111,7 +111,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listVpcs", "AWS_REGION", region)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
