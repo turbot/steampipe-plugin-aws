@@ -272,8 +272,10 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudcontrolapi.CloudControlApi), nil
 	}
+	// CloudControl returns GeneralServiceException, which appears to be retryable
+	// We deliberately reduce the number of retries to avoid long delays
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -1585,6 +1587,10 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+	return getSessionWithMaxRetries(ctx, d, region, 9)
+}
+
+func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
@@ -1601,10 +1607,10 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		Config: aws.Config{
 			Region: &region,
 			// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
-			// number of retries as 9, the maximum delay will not be more than approximately 3 minutes to avoid steampipe
+			// number of retries as 9 (our default), the maximum delay will not be more than approximately 3 minutes to avoid steampipe
 			// waiting too long to render result
-			MaxRetries: aws.Int(9),
-			Retryer:    NewConnectionErrRetryer(9, ctx),
+			MaxRetries: aws.Int(maxRetries),
+			Retryer:    NewConnectionErrRetryer(maxRetries, ctx),
 		},
 	}
 

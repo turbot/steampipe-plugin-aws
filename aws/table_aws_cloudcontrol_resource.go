@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/turbot/go-kit/types"
@@ -61,7 +60,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 
 type cloudControlResource struct {
 	Identifier *string
-	Properties map[string]interface{}
+	Properties *string
 }
 
 //// LIST FUNCTION
@@ -81,7 +80,7 @@ func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plug
 	// Set input to a lower number in case the get hydration calls a lot of APIs
 	input := cloudcontrolapi.ListResourcesInput{
 		TypeName:   types.String(typeName),
-		MaxResults: types.Int64(50),
+		MaxResults: types.Int64(100),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -102,16 +101,10 @@ func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plug
 			for _, resource := range page.ResourceDescriptions {
 				identifier := resource.Identifier
 				properties := resource.Properties
-				var jsonMap map[string]interface{}
-				unmarshalErr := json.Unmarshal([]byte(*properties), &jsonMap)
-				if unmarshalErr != nil {
-					plugin.Logger(ctx).Error("listCloudControlResources", "Unmarshal_error", unmarshalErr)
-					panic(unmarshalErr)
-				}
 
 				d.StreamListItem(ctx, &cloudControlResource{
 					Identifier: identifier,
-					Properties: jsonMap,
+					Properties: properties,
 				})
 
 				// Check if context has been cancelled or if the limit has been hit (if specified)
@@ -138,17 +131,24 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	var identifier string
-	var resourceProperties map[string]interface{}
+
+	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
 
 	if h.Item != nil {
 		resource := h.Item.(*cloudControlResource)
 		identifier = *resource.Identifier
-		resourceProperties = resource.Properties
+		resourceProperties := *resource.Properties
+
+		// S3 buckets are too expensive to hydrate
+		if typeName == "AWS::S3::Bucket" {
+			return &cloudControlResource{
+				Identifier: types.String(identifier),
+				Properties: types.String(resourceProperties),
+			}, nil
+		}
 	} else {
 		identifier = d.KeyColumnQuals["identifier"].GetStringValue()
 	}
-
-	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
 
 	input := &cloudcontrolapi.GetResourceInput{
 		Identifier: types.String(identifier),
@@ -161,25 +161,9 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	properties := item.ResourceDescription.Properties
-	var jsonMap map[string]interface{}
-	err = json.Unmarshal([]byte(*properties), &jsonMap)
-	if err != nil {
-		plugin.Logger(ctx).Error("getCloudControlResource", "Unmarshal_error", err)
-		panic(err)
-	}
-
-	// Add any properties from the list not in the get
-	if resourceProperties != nil {
-		for k, v := range resourceProperties {
-			_, ok := jsonMap[k]
-			if !ok {
-				jsonMap[k] = v
-			}
-		}
-	}
 
 	return &cloudControlResource{
 		Identifier: types.String(identifier),
-		Properties: jsonMap,
+		Properties: properties,
 	}, nil
 }
