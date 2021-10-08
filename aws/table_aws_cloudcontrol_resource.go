@@ -77,7 +77,7 @@ func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plug
 	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
 	resourceModel := d.KeyColumnQuals["resource_model"].GetStringValue()
 
-	// Set input to a lower number in case the get hydration calls a lot of APIs
+	// Set MaxResults to the maximum number allowed
 	input := cloudcontrolapi.ListResourcesInput{
 		TypeName:   types.String(typeName),
 		MaxResults: types.Int64(100),
@@ -131,7 +131,6 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	var identifier string
-
 	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
 
 	if h.Item != nil {
