@@ -50,7 +50,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_backup_plan":                                              tableAwsBackupPlan(ctx),
 			"aws_backup_selection":                                         tableAwsBackupSelection(ctx),
 			"aws_backup_vault":                                             tableAwsBackupVault(ctx),
-			"aws_cloudcontrolapi_resource":                                 tableAwsCloudControlAPIResource(ctx),
+			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudfront_cache_policy":                                  tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                                  tableAwsCloudFrontDistribution(ctx),

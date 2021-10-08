@@ -12,23 +12,23 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 )
 
-func tableAwsCloudControlAPIResource(_ context.Context) *plugin.Table {
+func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cloudcontrolapi_resource",
-		Description: "AWS Cloud Control API Resource",
-		Get: &plugin.GetConfig{
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "type_name"},
-				{Name: "identifier"},
-			},
-			Hydrate: getCloudControlAPIResource,
-		},
+		Name:        "aws_cloudcontrol_resource",
+		Description: "AWS Cloud Control Resource",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "type_name"},
 				{Name: "resource_model", Require: plugin.Optional},
 			},
-			Hydrate: listCloudControlAPIResources,
+			Hydrate: listCloudControlResources,
+		},
+		Get: &plugin.GetConfig{
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "type_name"},
+				{Name: "identifier"},
+			},
+			Hydrate: getCloudControlResource,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -42,7 +42,6 @@ func tableAwsCloudControlAPIResource(_ context.Context) *plugin.Table {
 				Name:        "identifier",
 				Description: "The identifier for the resource.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("identifier"),
 			},
 			{
 				Name:        "resource_model",
@@ -51,27 +50,26 @@ func tableAwsCloudControlAPIResource(_ context.Context) *plugin.Table {
 				Transform:   transform.FromQual("resource_model"),
 			},
 			{
-				Name:        "resource_description",
+				Name:        "properties",
 				Description: "Represents information about a provisioned resource.",
 				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "raw",
-				Description: "Raw information.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue(),
 			},
 		}),
 	}
 }
 
+type cloudControlResource struct {
+	Identifier *string
+	Properties map[string]interface{}
+}
+
 //// LIST FUNCTION
 
-func listCloudControlAPIResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listCloudControlAPIResources")
+func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listCloudControlResources")
 
 	// Create session
-	svc, err := CloudControlAPIService(ctx, d)
+	svc, err := CloudControlService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -87,15 +85,20 @@ func listCloudControlAPIResources(ctx context.Context, d *plugin.QueryData, _ *p
 	err = svc.ListResourcesPages(&input,
 		func(page *cloudcontrolapi.ListResourcesOutput, isLast bool) bool {
 			for _, resource := range page.ResourceDescriptions {
+				identifier := resource.Identifier
 				properties := resource.Properties
 				var jsonMap map[string]interface{}
 				unmarshalErr := json.Unmarshal([]byte(*properties), &jsonMap)
 				if unmarshalErr != nil {
-					plugin.Logger(ctx).Error("listCloudControlAPIResources", "Unmarshal_error", unmarshalErr)
+					plugin.Logger(ctx).Error("listCloudControlResources", "Unmarshal_error", unmarshalErr)
 					panic(unmarshalErr)
 				}
 
-				d.StreamListItem(ctx, jsonMap)
+				d.StreamListItem(ctx, &cloudControlResource{
+					Identifier: identifier,
+					Properties: jsonMap,
+				})
+
 				// Check if context has been cancelled or if the limit has been hit (if specified)
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
@@ -110,11 +113,11 @@ func listCloudControlAPIResources(ctx context.Context, d *plugin.QueryData, _ *p
 
 //// HYDRATE FUNCTIONS
 
-func getCloudControlAPIResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudControlAPIResource")
+func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getCloudControlResource")
 
 	// Create session
-	svc, err := CloudControlAPIService(ctx, d)
+	svc, err := CloudControlService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +139,14 @@ func getCloudControlAPIResource(ctx context.Context, d *plugin.QueryData, h *plu
 	var jsonMap map[string]interface{}
 	err = json.Unmarshal([]byte(*properties), &jsonMap)
 	if err != nil {
-		plugin.Logger(ctx).Error("getCloudControlAPIResource", "Unmarshal_error", err)
+		plugin.Logger(ctx).Error("getCloudControlResource", "Unmarshal_error", err)
 		panic(err)
 	}
 
-	return jsonMap, nil
+	return &cloudControlResource{
+		Identifier: types.String(identifier),
+		Properties: jsonMap,
+	}, nil
+
+	//return jsonMap, nil
 }

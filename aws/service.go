@@ -261,11 +261,11 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	return svc, nil
 }
 
-// CloudControlAPIService returns the service connection for AWS Cloud Control API service
-func CloudControlAPIService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
+// CloudControlService returns the service connection for AWS Cloud Control API service
+func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed CloudControlAPIService")
+		return nil, fmt.Errorf("region must be passed CloudControlService")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("cloudcontrolapi-%s", region)
