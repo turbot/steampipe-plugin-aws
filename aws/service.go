@@ -277,7 +277,7 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 
 	// CloudControl returns GeneralServiceException, which appears to be retryable
 	// We deliberately reduce the number of retries to avoid long delays
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 3)
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 8)
 	if err != nil {
 		return nil, err
 	}
