@@ -13,6 +13,8 @@ _We recommend you use native Steampipe tables when available, but this table is 
 * `AWS::S3::Bucket` will only include detailed information if an identifier is provided. There is no way to determine the region of a bucket from the list result, so full information cannot be automatically hydrated.
 * Global resources like `AWS::IAM::Role` will return duplicate results per region. Specify `region = 'us-east-1'` (or similar) in the where clause to avoid.
 
+For more information on other Cloud Control limitations and caveats, please see [A deep dive into AWS Cloud Control for asset inventory](https://steampipe.io/blog/aws-cloud-control).
+
 ## Examples
 
 ### List Lambda functions
