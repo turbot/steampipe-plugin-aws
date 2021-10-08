@@ -25,7 +25,7 @@ select
   properties ->> 'Runtime' as runtime,
   region
 from
-  aws_cloudcontrolapi_resource
+  aws_cloudcontrol_resource
 where
   type_name = 'AWS::Lambda::Function';
 ```
@@ -53,7 +53,7 @@ select
   region,
   account_id
 from
-  aws_cloudcontrolapi_resource
+  aws_cloudcontrol_resource
 where
   type_name = 'AWS::ElasticLoadBalancingV2::Listener'
   and resource_model = '{"LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/4e695b8755d7003c"}';
@@ -72,7 +72,7 @@ select
   properties ->> 'IsMultiRegionTrail' as is_multi_region_trail,
   region
 from
-  aws_cloudcontrolapi_resource
+  aws_cloudcontrol_resource
 where
   type_name = 'AWS::CloudTrail::Trail'
   and identifier = 'my-trail';
