@@ -1,3 +1,17 @@
+## v0.35.0 [2021-10-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudcontrol_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudcontrol_resource) ([#680](https://github.com/turbot/steampipe-plugin-aws/pull/680))
+  - [aws_ssoadmin_permission_set](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_permission_set) ([#659](https://github.com/turbot/steampipe-plugin-aws/pull/659))
+
+_Enhancements_
+
+- Updated: Parliament IAM permissions to the latest ([#676](https://github.com/turbot/steampipe-plugin-aws/pull/676))
+- Updated: Add additional optional key quals, filter support, and context cancellation handling to `aws_ec2_instance`, `aws_iam_policy`, `aws_rds_db_cluster_snapshot` tables ([#638](https://github.com/turbot/steampipe-plugin-aws/pull/638))
+- Recompiled plugin with [steampipe-plugin-sdk v1.6.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v162--2021-10-08)
+
 ## v0.34.0 [2021-09-30]
 
 _What's new?_
