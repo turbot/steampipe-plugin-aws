@@ -2,6 +2,7 @@
 
 _Bug fixes_
 
+- Fixed: Increase number of retries from 3->8 for Cloud Control service sessions to better handle throttling
 - Fixed: Examples for `aws_cloudcontrol_resource` table are now correct
 
 ## v0.35.0 [2021-10-08]
