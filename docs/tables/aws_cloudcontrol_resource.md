@@ -6,6 +6,13 @@ In order to list resources, the `type_name` column must be specified. Some resou
 
 In order to read a resource, the `type_name` and `identifier` columns must be specified. The identifier for each resource type is different, for more information on identifiers please see [Identifying resources](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-identifier.html).
 
+_We recommend you use native Steampipe tables when available, but this table is helpful to query uncommon resources not yet supported._
+
+## Known limitations
+
+* `AWS::S3::Bucket` will only include detailed information if an identifier is provided. There is no way to determine the region of a bucket from the list result, so full information cannot be automatically hydrated.
+* Global resources like `AWS::IAM::Role` will return duplicate results per region. Specify `region = 'us-east-1'` (or similar) in the where clause to avoid.
+
 ## Examples
 
 ### List Lambda functions
@@ -25,6 +32,8 @@ where
 
 ### List ELBv2 listeners for a load balancer
 
+Listeners are a sub-resource, so can only be listed if passed the `LoadBalancerArn` data.
+
 ```sql
 select
   identifier,
@@ -42,6 +51,8 @@ where
 
 ### Get details for a CloudTrail trail
 
+Get a single specific resource by setting the identifier.
+
 ```sql
 select
   identifier,
@@ -54,4 +65,22 @@ from
 where
   type_name = 'AWS::CloudTrail::Trail'
   and identifier = 'my-trail';
+```
+
+### List global resources using a single region
+
+Global resources (e.g. `AWS::IAM::Role`) are returned by each region endpoint.
+When working with a multi-region configuration in Steampipe this creates
+duplicate rows. To avoid the duplicates, you can specify a region qualifier.
+
+```sql
+select
+  properties ->> 'RoleName' as name
+from
+  aws_cloudcontrol_resource
+where
+  type_name = 'AWS::IAM::Role'
+  and region = 'us-east-1'
+order by
+  name;
 ```
