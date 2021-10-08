@@ -264,21 +264,24 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 // CloudControlService returns the service connection for AWS Cloud Control API service
 func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudControlService")
 	}
+
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("cloudcontrolapi-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*cloudcontrolapi.CloudControlApi), nil
 	}
+
 	// CloudControl returns GeneralServiceException, which appears to be retryable
 	// We deliberately reduce the number of retries to avoid long delays
-	// so it was not in cache - create service
 	sess, err := getSessionWithMaxRetries(ctx, d, region, 3)
 	if err != nil {
 		return nil, err
 	}
+
 	svc := cloudcontrolapi.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
