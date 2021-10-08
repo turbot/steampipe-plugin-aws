@@ -1,3 +1,9 @@
+## v0.35.1 [2021-10-08]
+
+_Bug fixes_
+
+- Fixed: Examples for `aws_cloudcontrol_resource` table are now correct
+
 ## v0.35.0 [2021-10-08]
 
 _What's new?_
