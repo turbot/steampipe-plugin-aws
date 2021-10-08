@@ -34,6 +34,15 @@ where
 
 Listeners are a sub-resource, so can only be listed if passed the `LoadBalancerArn` data.
 
+Warning: This does not work with multi-account in Steampipe. The query will be run
+against all accounts and Cloud Control returns a GeneralServiceException (rather than
+NotFound), making it difficult to handle.
+
+Warning: If using multi-region in Steampipe then you MUST specify the region in
+the query. Otherwise, the request will be tried against each region. This would
+be slow anyway, but because Cloud Control returns a GeneralServiceException (rather
+than NotFound), we cannot handle it automatically.
+
 ```sql
 select
   identifier,
@@ -41,12 +50,14 @@ select
   properties ->> 'Certificates' as certificates,
   properties ->> 'Port' as port,
   properties ->> 'Protocol' as protocol,
-  region
+  region,
+  account_id
 from
   aws_cloudcontrolapi_resource
 where
   type_name = 'AWS::ElasticLoadBalancingV2::Listener'
   and resource_model = '{"LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/4e695b8755d7003c"}';
+  and region = 'us-east-1'
 ```
 
 ### Get details for a CloudTrail trail
