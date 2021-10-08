@@ -77,7 +77,21 @@ func listCloudControlResources(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
 	resourceModel := d.KeyColumnQuals["resource_model"].GetStringValue()
-	input := cloudcontrolapi.ListResourcesInput{TypeName: types.String(typeName)}
+
+	// Set input to a lower number in case the get hydration calls a lot of APIs
+	input := cloudcontrolapi.ListResourcesInput{
+		TypeName:   types.String(typeName),
+		MaxResults: types.Int64(50),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
 
 	if len(resourceModel) > 0 {
 		input.ResourceModel = types.String(resourceModel)
@@ -157,10 +171,8 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Add any properties from the list not in the get
 	if resourceProperties != nil {
 		for k, v := range resourceProperties {
-			plugin.Logger(ctx).Warn("Key value", k, v)
 			_, ok := jsonMap[k]
 			if !ok {
-				plugin.Logger(ctx).Warn("Adding", k, v)
 				jsonMap[k] = v
 			}
 		}
