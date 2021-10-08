@@ -53,6 +53,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 				Name:        "properties",
 				Description: "Represents information about a provisioned resource.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudControlResource,
 			},
 		}),
 	}
@@ -122,8 +123,18 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
+	var identifier string
+	var resourceProperties map[string]interface{}
+
+	if h.Item != nil {
+		resource := h.Item.(*cloudControlResource)
+		identifier = *resource.Identifier
+		resourceProperties = resource.Properties
+	} else {
+		identifier = d.KeyColumnQuals["identifier"].GetStringValue()
+	}
+
 	typeName := d.KeyColumnQuals["type_name"].GetStringValue()
-	identifier := d.KeyColumnQuals["identifier"].GetStringValue()
 
 	input := &cloudcontrolapi.GetResourceInput{
 		Identifier: types.String(identifier),
@@ -143,10 +154,20 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 		panic(err)
 	}
 
+	// Add any properties from the list not in the get
+	if resourceProperties != nil {
+		for k, v := range resourceProperties {
+			plugin.Logger(ctx).Warn("Key value", k, v)
+			_, ok := jsonMap[k]
+			if !ok {
+				plugin.Logger(ctx).Warn("Adding", k, v)
+				jsonMap[k] = v
+			}
+		}
+	}
+
 	return &cloudControlResource{
 		Identifier: types.String(identifier),
 		Properties: jsonMap,
 	}, nil
-
-	//return jsonMap, nil
 }
