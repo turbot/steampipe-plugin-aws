@@ -139,7 +139,8 @@ func getCloudControlResource(ctx context.Context, d *plugin.QueryData, h *plugin
 		identifier = *resource.Identifier
 		resourceProperties := *resource.Properties
 
-		// S3 buckets are too expensive to hydrate
+		// S3 buckets are too expensive to hydrate, so just return the list
+		// properties
 		if typeName == "AWS::S3::Bucket" {
 			return &cloudControlResource{
 				Identifier: types.String(identifier),
