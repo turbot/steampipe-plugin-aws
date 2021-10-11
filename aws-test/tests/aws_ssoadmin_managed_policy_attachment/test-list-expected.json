@@ -1,0 +1,6 @@
+[
+  {
+    "managed_policy_arn": "arn:aws:iam::aws:policy/job-function/Billing",
+    "permission_set_arn": "{{ output.resource_arn.value }}"
+  }
+]
