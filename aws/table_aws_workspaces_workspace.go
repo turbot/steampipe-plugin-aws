@@ -187,7 +187,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	// Get call
 	data, err := svc.DescribeWorkspaces(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("DescribeWorkspaces", "ERROR", err)
+		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
 		return nil, err
 	}
 
