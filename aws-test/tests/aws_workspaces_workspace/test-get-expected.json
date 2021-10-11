@@ -1,0 +1,6 @@
+[
+	{
+		"state": "{{ output.state.value }}",
+		"workspace_id": "{{ output.id.value }}"
+	}
+]
