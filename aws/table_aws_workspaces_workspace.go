@@ -72,7 +72,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 			{
 				Name:        "ip_address",
 				Description: "The IP address of the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_IPADDR,
 			},
 			{
 				Name:        "root_volume_encryption_enabled",
