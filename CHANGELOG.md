@@ -1,3 +1,12 @@
+## v0.36.0 [2021-10-12]
+  
+_What's new?_
+
+- New tables added
+  - [aws_ssoadmin_managed_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_managed_policy_attachment) ([#664](https://github.com/turbot/steampipe-plugin-aws/pull/664))
+  - [aws_workspaces_workspace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_workspaces_workspace) ([#681](https://github.com/turbot/steampipe-plugin-aws/pull/681))
+
+
 ## v0.35.1 [2021-10-08]
 
 _Bug fixes_
