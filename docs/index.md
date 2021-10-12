@@ -6,13 +6,13 @@ brand_color: "#FF9900"
 display_name: "Amazon Web Services"
 short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
-og_description: "Query AWS with SQL! Open source CLI. No DB required." 
+og_description: "Query AWS with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
 ---
 
 # AWS + Steampipe
 
-[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis. 
+[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
 
 [Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
 
@@ -54,18 +54,26 @@ steampipe plugin install aws
 ```
 
 ### Credentials
+Steampipe requires AWS credentials to operate. Steampipe maps these credentials using `connection` blocks in the `aws.spc` file as described in [plugin configuration](#steampipe-plugin-configuration). It is helpful, but not required, to have the AWS CLI configured on the same machine/container/etc. as Steampipe.  Unless otherwise configured, Steampipe will use the AWS CLI's `[default]` profile.
 
-| Item | Description |
-| - | - |
-| Credentials | Specify a named profile from an AWS credential file with the `profile` argument. |
-| Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
-| Radius | Each connection represents a single AWS account. |
-| Resolution |  1. Credentials explicitly set in a steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the Default profile from the credential file.<br />5. EC2 Instance Role Credentials (if running on an ec2 instance) |
-| Region Resolution | 1. Regions set for the connection via the `regions` argument in the config file (`~/.steampipe/config/aws.spc`).<br /> 2. The region specified in the `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable<br />3. The region specified in the active profile (`AWS_PROFILE` or `default`). |
+#### Required AWS Permissions
+Grant the `ReadOnlyAccess` policy to your AWS user or role. Steampipe only requires read-only access to any AWS resources.
 
-### Configuration
+#### Credentials Resolution
+1. Credentials explicitly set in a [steampipe config file](#aws-credential-file) (`~/.steampipe/config/aws.spc`) or identified using `profile` in the `connection` block.
+2. Credentials specified in environment variables e.g. `AWS_ACCESS_KEY_ID`.
+3. Credentials in the [credential file](#aws-credential-file) (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.
+4. Credentials for the Default profile from the credential file.
+5. EC2 Instance Role Credentials (if running on an ec2 instance)
 
-Installing the latest aws plugin will create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`: 
+#### Region Resolution
+1. Regions set for the connection via the `regions` argument in the config file (`~/.steampipe/config/aws.spc`).
+2. The region specified in the `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable
+3. The region specified in the active profile (`AWS_PROFILE` or `default`).
+
+### Steampipe Plugin Configuration
+
+Installing the latest aws plugin will automatically create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`:
 ```hcl
 connection "aws" {
   plugin    = "aws"    
@@ -86,18 +94,12 @@ connection "aws" {
 }
 ```
 
- By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
+By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe.
 
-
-## Get Involved
-
-* Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
-
-
+Customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
 
 ## Multi-Region Connections
-By default, AWS connections behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
+By default, AWS connections in Steampipe behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
 ```hcl
 connection "aws" {
   plugin    = "aws"    
@@ -106,7 +108,7 @@ connection "aws" {
 ```
 
 The `region` argument supports wildcards:
-- All regions 
+- All regions
   ```hcl
   connection "aws" {
     plugin    = "aws"    
@@ -120,7 +122,7 @@ The `region` argument supports wildcards:
     regions   = ["us-gov*"] 
   }
   ```
-- All US and EU regions 
+- All US and EU regions
   ```hcl
   connection "aws" {
     plugin    = "aws"    
@@ -128,14 +130,11 @@ The `region` argument supports wildcards:
   }
   ```
 
-AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
+AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to connect to them.
 
+## Multiple Account Connections
 
-
-## Multi-Account Connections 
-
-
-You may create multiple aws connections:
+You specify multiple aws connections in `aws.spc`:
 ```hcl
 connection "aws_01" {
   plugin      = "aws" 
@@ -156,6 +155,47 @@ connection "aws_03" {
 }
 ```
 
+## Aggregator Connections
+Aggregator connections greatly simplify querying multiple accounts or subsets of accounts. More details can be found in the [announcement](https://steampipe.io/blog/release-0-7-0#connection-aggregators).  In the below example, we see that the `all_aws` connection aggregates all the specified AWS accounts into a single schema.  Connections can be specified using wildcards or by explicit lists.  The `aws_12` connection only pulls together two accounts.
+```hcl
+connection "all_aws" {
+  plugin      = "aws"
+  type        = "aggregator"
+  connections = ["aws*"]
+}
+
+connection "aws_12" {
+  plugin      = "aws"
+  type        = "aggregator"
+  connections = ["aws_01", "aws_02"]
+}
+
+connection "aws_01" {
+  plugin      = "aws" 
+  profile     = "aws_01"
+  regions     = ["us-east-1", "us-west-2"]
+}
+
+connection "aws_02" {
+  plugin      = "aws" 
+  profile     = "aws_02"
+  regions     = ["*"]
+}
+
+connection "aws_03" {
+  plugin      = "aws" 
+  profile     = "aws_03"
+  regions     = ["us-*"]
+}
+```
+
+### Aggregator Scaling Considerations
+**Aggregators are powerful, but they are not infinitely scalable.**  Like any other steampipe connection, they query APIs and are subject to API limits and throttling.  Consider as an example an aggregator that includes 3 AWS connections, where each connection queries 16 regions.  This means you essentially run the same list API calls 48 times!  When using aggregators, it is especially important to:
+- Query only what you need!  `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
+- Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options).  The default is currently 300 seconds (5 minutes).  Obviously, anytime steampipe can pull from the cache, its is faster and less impactful to the APIs.  If you don't need the most up-to-date results, increase the cache TTL!
+
+
+## Querying Accounts
 Each connection is implemented as a distinct [Postgres schema](https://www.postgresql.org/docs/current/ddl-schemas.html).  As such, you can use qualified table names to query a specific connection:
 
 ```sql
@@ -167,35 +207,10 @@ Alternatively, can use an unqualified name and it will be resolved according to 
 select * from aws_account
 ```
 
-
-You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
-
-```
-connection "aws_all" {
-  plugin      = "aws" 
-  type        = "aggregator"
-  connections = ["aws_01", "aws_02", "aws_03"]
-}
-```
-
-Querying tables from this connection will return results from the `aws_01`, `aws_02`, and `aws_03` connections:
+Querying tables from the `all_aws` connection will return results from the `aws_01`, `aws_02`, and `aws_03` connections:
 ```sql
 select * from aws_all.aws_account
 ```
-
-Steampipe supports the `*` wildcard in the connection names.  For example, to aggregate all the AWS plugin connections whose names begin with `aws_`:
-
-```hcl
-connection "aws_all" {
-  type        = "aggregator"
-  plugin      = "aws"  
-  connections = ["aws_*"]
-}
-```
-
-Aggregators are powerful, but they are not infinitely scalable.  Like any other steampipe connection, they query APIs and are subject to API limits and throttling.  Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions.  This means you essentially run the same list API calls 48 times!  When using aggregators, it is especially important to:
-- Query only what you need!  `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
-- Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options).  The default is currently 300 seconds (5 minutes).  Obviously, anytime steampipe can pull from the cache, its is faster and less impactful to the APIs.  If you don't need the most up-to-date results, increase the cache TTL!
 
 
 ## Configuring AWS Credentials
@@ -343,8 +358,8 @@ connection "aws_account_123456789012" {
 ```
 
 
-### IAM Access Key Pair Credentials 
-The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.  
+### IAM Access Key Pair Credentials
+The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.
 
 ```hcl
 connection "aws_account_x" {
@@ -382,3 +397,8 @@ connection "aws" {
   regions     = ["eu-west-1", "eu-west-2"]
 }
 ```
+
+## Get Involved
+
+* Open source: [steampipe-plugin-aws on Github](https://github.com/turbot/steampipe-plugin-aws)
+* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
