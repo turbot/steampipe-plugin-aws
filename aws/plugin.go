@@ -184,8 +184,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
 			"aws_lambda_function_metric_duration_daily":                    tableAwsLambdaFunctionMetricDurationDaily(ctx),
 			"aws_lambda_function_metric_errors_daily":                      tableAwsLambdaFunctionMetricErrorsDaily(ctx),
-			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_lambda_function_metric_invocations_daily":                 tableAwsLambdaFunctionMetricInvocationsDaily(ctx),
+			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
@@ -272,6 +272,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_rule_group":                                         tableAwsWafv2RuleGroup(ctx),
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
+			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
 		},
 	}
 
