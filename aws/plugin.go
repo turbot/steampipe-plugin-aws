@@ -172,6 +172,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_user":                                                 tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),
 			"aws_identitystore_group":                                      tableAwsIdentityStoreGroup(ctx),
+			"aws_identitystore_user":                                       tableAwsIdentityStoreUser(ctx),
 			"aws_inspector_assessment_target":                              tableAwsInspectorAssessmentTarget(ctx),
 			"aws_inspector_assessment_template":                            tableAwsInspectorAssessmentTemplate(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
