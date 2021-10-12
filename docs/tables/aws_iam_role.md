@@ -83,7 +83,7 @@ where
   );
 ```
 
-### List higher level permissions for role `AWSServiceRoleForRDS`
+### List higher-level permissions for any specific role
 ```sql
 select
   r.name,
