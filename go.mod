@@ -9,4 +9,5 @@ require (
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
 	github.com/turbot/go-kit v0.3.0
 	github.com/turbot/steampipe-plugin-sdk v1.6.2
+	go.uber.org/ratelimit v0.2.0
 )

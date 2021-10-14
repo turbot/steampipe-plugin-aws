@@ -84,6 +84,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 	"github.com/aws/aws-sdk-go/service/workspaces"
+	"go.uber.org/ratelimit"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -1612,6 +1613,33 @@ func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.Wo
 	return svc, nil
 }
 
+// SessionLimiter limits concurrent and per second API requests made on an AWS *session.Session session.
+func SessionLimiter(sess *session.Session, maxConcurrent, maxPerSecond *int) {
+	if maxConcurrent != nil && *maxConcurrent != 0 {
+		concurrentLimiter := make(concurrentLimiter, *maxConcurrent)
+		sess.Handlers.Validate.PushFront(concurrentLimiter.Take)
+		sess.Handlers.Complete.PushBack(concurrentLimiter.Done)
+	}
+
+	if maxPerSecond != nil && *maxPerSecond != 0 {
+		rl := ratelimit.New(*maxPerSecond)
+		sess.Handlers.Validate.PushFront(func(_ *request.Request) { rl.Take() })
+	}
+}
+
+// concurrentLimiter is a simple `chan int` which can be used to limit in flight requests.
+type concurrentLimiter chan int
+
+// Take is called before making a request, it is meant to be added as an AWS session.Session handler.
+func (c concurrentLimiter) Take(_ *request.Request) {
+	c <- 1
+}
+
+// Done is called after completing a request, it is meant to be added as an AWS session.Session handler.
+func (c concurrentLimiter) Done(_ *request.Request) {
+	<-c
+}
+
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	return getSessionWithMaxRetries(ctx, d, region, 9)
 }
@@ -1664,6 +1692,8 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	if err != nil {
 		return nil, err
 	}
+
+	SessionLimiter(sess, awsConfig.MaxConcurrent, awsConfig.MaxPerSecond)
 
 	// save session in cache
 	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
