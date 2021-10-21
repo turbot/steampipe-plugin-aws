@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "file_system_id": "{{ output.resource_id.value }}",
+    "name": "{{ output.resource_id.value }}"
+  }
+]
