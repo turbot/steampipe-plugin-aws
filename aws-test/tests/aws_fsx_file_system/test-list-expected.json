@@ -1,0 +1,6 @@
+[
+  {
+    "file_system_id": "{{ output.resource_id.value }}",
+    "title": "{{ output.resource_id.value }}"
+  }
+]
