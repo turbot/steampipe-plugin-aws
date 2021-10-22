@@ -152,6 +152,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),
 			"aws_eventbridge_rule":                                         tableAwsEventBridgeRule(ctx),
+			"aws_fsx_file_system":                                          tableAwsFsxFileSystem(ctx),
 			"aws_glacier_vault":                                            tableAwsGlacierVault(ctx),
 			"aws_glue_catalog_database":                                    tableAwsGlueCatalogDatabase(ctx),
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
