@@ -33,15 +33,20 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) for the EFS file system.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResourceARN"),
+			},
+			{
 				Name:        "file_system_type",
 				Description: "The type of Amazon FSx file system, which can be LUSTRE, WINDOWS, or ONTAP.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) for the EFS file system.",
+				Name:        "lifecycle",
+				Description: "The lifecycle status of the file system, following are the possible values AVAILABLE, CREATING, DELETING, FAILED, MISCONFIGURED, UPDATING.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ResourceARN"),
 			},
 			{
 				Name:        "creation_time",
@@ -62,11 +67,6 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 			{
 				Name:        "kms_key_id",
 				Description: "The ID of the Key Management Service (KMS) key used to encrypt the file system's.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "lifecycle",
-				Description: "The lifecycle status of the file system, following are the possible values AVAILABLE, CREATING, DELETING, FAILED, MISCONFIGURED, UPDATING.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
