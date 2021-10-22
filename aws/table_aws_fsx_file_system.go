@@ -23,16 +23,10 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 			Hydrate:           getFsxFileSystem,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listFsxFileSystem,
+			Hydrate: listFsxFileSystems,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
-			{
-				Name:        "name",
-				Description: "Name of the file system provided by the user.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getFsxFileSystemTurbotTitle),
-			},
 			{
 				Name:        "file_system_id",
 				Description: "The system-generated, unique 17-digit ID of the file system.",
@@ -163,7 +157,7 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := FsxService(ctx, d)
 	if err != nil {

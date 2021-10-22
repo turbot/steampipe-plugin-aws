@@ -8,7 +8,6 @@ Amazon FSx makes it easy and cost effective to launch, run, and scale feature-ri
 
 ```sql
 select
-  name,
   file_system_id,
   arn,
   dns_name,
@@ -20,7 +19,7 @@ from
   aws_fsx_file_system;
 ```
 
-### List file systems which are not encrypted at rest
+### List file systems which are encrypted
 
 ```sql
 select
