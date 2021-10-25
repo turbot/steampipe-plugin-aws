@@ -1708,7 +1708,6 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 	}
 
-	validPatterns := []string{}
 	invalidPatterns := []string{}
 	for _, namePattern := range regions {
 		validRegions := []string{}
@@ -1719,12 +1718,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 		if len(validRegions) == 0 {
 			invalidPatterns = append(invalidPatterns, namePattern)
-		} else {
-			validPatterns = append(validPatterns, namePattern)
 		}
 	}
 
-	if len(validPatterns) == 0 && len(invalidPatterns) != 0 {
+	if len(invalidPatterns) > 0 {
 		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
 	}
 
