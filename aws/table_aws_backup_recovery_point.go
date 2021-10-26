@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
@@ -130,7 +131,7 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupVaultName"),
+				Transform:   transform.From(recoveryPointTitle),
 			},
 			{
 				Name:        "akas",
@@ -187,7 +188,7 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	params := &backup.DescribeRecoveryPointInput{
-		BackupVaultName: aws.String(backupVaultName),
+		BackupVaultName:  aws.String(backupVaultName),
 		RecoveryPointArn: aws.String(recoveryPointArn),
 	}
 
@@ -198,4 +199,19 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	return detail, nil
+}
+
+//// TRANSFORM FUNCTION
+
+func recoveryPointTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	var arn string
+	switch item := d.HydrateItem.(type) {
+	case *backup.DescribeRecoveryPointOutput:
+		arn = *item.RecoveryPointArn
+	case *backup.RecoveryPointByBackupVault:
+		arn = *item.RecoveryPointArn
+	}
+
+	title := strings.Split(arn, "/")[1]
+	return title, nil
 }
