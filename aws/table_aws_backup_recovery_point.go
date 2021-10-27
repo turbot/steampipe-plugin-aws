@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
@@ -128,12 +127,6 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 
 			// Steampipe standard columns
 			{
-				Name:        "title",
-				Description: resourceInterfaceDescription("title"),
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(recoveryPointTitle),
-			},
-			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -199,19 +192,4 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	return detail, nil
-}
-
-//// TRANSFORM FUNCTION
-
-func recoveryPointTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	var arn string
-	switch item := d.HydrateItem.(type) {
-	case *backup.DescribeRecoveryPointOutput:
-		arn = *item.RecoveryPointArn
-	case *backup.RecoveryPointByBackupVault:
-		arn = *item.RecoveryPointArn
-	}
-
-	title := strings.Split(arn, "/")[1]
-	return title, nil
 }
