@@ -174,7 +174,8 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The metadata that you apply to the service to help you categorize and organize them.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getEcsServiceTags,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -188,6 +189,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsServiceTags,
 				Transform:   transform.From(getEcsServiceTurbotTags),
 			},
 			{
@@ -283,18 +285,46 @@ func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ec
 	return response, nil
 }
 
+// List api call is not returning the tags for the service, so we need to make a separate api call for getting the tag details
+func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := h.Item.(*ecs.Service)
+
+	if data.ServiceArn == nil {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := EcsService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getEcsServiceTags", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ecs.ListTagsForResourceInput{
+		ResourceArn: data.ServiceArn,
+	}
+
+	response, err := svc.ListTagsForResource(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getEcsServiceTags", err)
+		return nil, err
+	}
+
+	return response.Tags, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.(*ecs.Service)
+	tags := d.HydrateItem.([]*ecs.Tag)
 
-	if data.Tags == nil {
+	if len(tags) == 0{
 		return nil, nil
 	}
 
 	turbotTagsMap := map[string]string{}
-	for _, i := range data.Tags {
+	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 	return turbotTagsMap, nil
