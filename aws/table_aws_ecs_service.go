@@ -317,14 +317,14 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.([]*ecs.Tag)
+	tags := d.HydrateItem.([]*ecs.Tag)
 
-	if len(data) == 0{
+	if len(tags) == 0{
 		return nil, nil
 	}
 
 	turbotTagsMap := map[string]string{}
-	for _, i := range data {
+	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 	return turbotTagsMap, nil
