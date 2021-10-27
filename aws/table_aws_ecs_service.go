@@ -285,6 +285,7 @@ func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ec
 	return response, nil
 }
 
+// List api call is not returning the tags for the service, so we need to make a separate api call for getting the tag details
 func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*ecs.Service)
 
@@ -314,7 +315,7 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// TRANSFORM FUNCTIONS
 
-func getEcsServiceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{},
+func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
 	data := d.HydrateItem.([]*ecs.Tag)
 
