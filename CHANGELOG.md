@@ -1,3 +1,22 @@
+## v0.37.0 [2021-10-27]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_protected_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_protected_resource) ([#704](https://github.com/turbot/steampipe-plugin-aws/pull/704))
+  - [aws_backup_recovery_point](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_recovery_point) ([#705](https://github.com/turbot/steampipe-plugin-aws/pull/705))
+  - [aws_fsx_file_system](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_fsx_file_system) ([#693](https://github.com/turbot/steampipe-plugin-aws/pull/693))
+  - [aws_identitystore_user](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_identitystore_user) ([#675](https://github.com/turbot/steampipe-plugin-aws/pull/675))
+
+_Enhancements_
+
+- Updated: Recompiled plugin with [steampipe-plugin-sdk v1.7.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v170--2021-10-18) ([#695](https://github.com/turbot/steampipe-plugin-aws/pull/695))
+
+_Bug fixes_
+
+- While querying any table, if no region is specified in the Steampipe config file or in the AWS profile, or as an environment variable, we will now use the default AWS region(us-east-1) instead of throwing an error  ([#690](https://github.com/turbot/steampipe-plugin-aws/pull/690))
+- Fixed the `ecs_service` table to correctly return the tags instead of returning null ([#710](https://github.com/turbot/steampipe-plugin-aws/pull/710))
+
 ## v0.36.0 [2021-10-12]
   
 _What's new?_
