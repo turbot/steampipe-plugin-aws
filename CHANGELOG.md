@@ -14,7 +14,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- While querying any table, if no region is specified in the Steampipe config file or in the AWS profile, or as an environment variable, we will now use the default AWS region(us-east-1) instead of throwing an error ([#690](https://github.com/turbot/steampipe-plugin-aws/pull/690))
+- Queries for global tables, e.g., `aws_iam_user`, will no longer return an error if no regions are specified for a connection ([#690](https://github.com/turbot/steampipe-plugin-aws/pull/690))
 - Fixed the `ecs_service` table to correctly return the tags instead of returning `null` ([#710](https://github.com/turbot/steampipe-plugin-aws/pull/710))
 
 ## v0.36.0 [2021-10-12]
