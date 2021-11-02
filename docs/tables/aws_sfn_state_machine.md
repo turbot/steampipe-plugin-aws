@@ -1,4 +1,4 @@
-# Table: aws_sns_topic_subscription
+# Table: aws_sfn_state_machine
 
 AWS Step Functions makes it easy to coordinate the components of distributed applications as a series of steps in a visual workflow. You can quickly build and run state machines to execute the steps of your application in a reliable and scalable fashion.
 

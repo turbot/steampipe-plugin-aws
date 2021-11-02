@@ -17,10 +17,10 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist"}),
-			Hydrate:           getAwsStepFunctionsStateMachine,
+			Hydrate:           getStepFunctionsStateMachine,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsStepFunctionsStateManchines,
+			Hydrate: listStepFunctionsStateManchines,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -39,7 +39,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Name:        "status",
 				Description: "The current status of the state machine.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsStepFunctionsStateMachine,
+				Hydrate:     getStepFunctionsStateMachine,
 			},
 			{
 				Name:        "type",
@@ -55,25 +55,25 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Name:        "definition",
 				Description: "The Amazon States Language definition of the state machine.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsStepFunctionsStateMachine,
+				Hydrate:     getStepFunctionsStateMachine,
 			},
 			{
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of the IAM role used when creating this state machine.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsStepFunctionsStateMachine,
+				Hydrate:     getStepFunctionsStateMachine,
 			},
 			{
 				Name:        "logging_configuration",
 				Description: "The LoggingConfiguration data type is used to set CloudWatch Logs options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsStepFunctionsStateMachine,
+				Hydrate:     getStepFunctionsStateMachine,
 			},
 			{
 				Name:        "tracing_configuration",
 				Description: "Selects whether AWS X-Ray tracing is enabled.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsStepFunctionsStateMachine,
+				Hydrate:     getStepFunctionsStateMachine,
 			},
 
 			// Standard columns for all tables
@@ -87,7 +87,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("StateMachineArn").Transform(arnToAkas),
+				Transform:   transform.FromField("StateMachineArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -95,11 +95,11 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAwsStepFunctionsStateManchines", "connection_error", err)
+		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "connection_error", err)
 		return nil, err
 	}
 
@@ -113,18 +113,18 @@ func listAwsStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData
 		},
 	)
 	if err != nil {
-		plugin.Logger(ctx).Error("listAwsStepFunctionsStateManchines", "Error", err)
-		return nil, nil
+		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "Error", err)
+		return nil, err
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsStepFunctionsStateMachine")
+	logger.Trace("getStepFunctionsStateMachine")
 
 	var arn string
 	if h.Item != nil {
@@ -134,9 +134,9 @@ func getAwsStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Create Session
-	svc, err := StepFunctionService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
-		logger.Error("getAwsStepFunctionsStateMachine", "connection_error", err)
+		logger.Error("getStepFunctionsStateMachine", "connection_error", err)
 		return nil, err
 	}
 
@@ -148,7 +148,7 @@ func getAwsStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	data, err := svc.DescribeStateMachine(params)
 	if err != nil {
-		logger.Error("getAwsStepFunctionsStateMachine", "ERROR", err)
+		logger.Error("getStepFunctionsStateMachine", "ERROR", err)
 		return nil, err
 	}
 
