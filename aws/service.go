@@ -582,6 +582,20 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 		return nil, err
 	}
 	svc := ec2.New(sess)
+	// svc.Config.CredentialsChainVerboseErrors = aws.Bool(true)
+	// svc.Config.
+
+	// plugin.Logger(ctx).Info("Ec2Service", "############### Config.CredentialsChainVerboseErrors", svc.Config.CredentialsChainVerboseErrors)
+	// creds := svc.Config.Credentials
+	// _, err = creds.GetWithContext(ctx)
+	// if err != nil {
+	// 	plugin.Logger(ctx).Info("Ec2Service", "############### err", err)
+	// }
+	// creds1 := svc.Config.
+	// _, err = creds.GetWithContext(ctx)
+	// if err != nil {
+	// 	plugin.Logger(ctx).Info("Ec2Service", "############### err", err)
+	// }
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1692,10 +1706,64 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 		return nil, err
 	}
 
+	// Adding this check to avoid retrying in case aws sdk could resolve the credentials
+	valid, err := validateCredentials(ctx, region, d)
+	if !valid {
+		return nil, err
+	}
+
 	// save session in cache
 	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
 
 	return sess, nil
+}
+
+// Check for the AWS Plugin credential setup.
+// If sdk is unable to resolve/find any credentials for AWS. It throws NoCredentialProviders error.
+// In this case plugin should not retry and just through out the error
+func validateCredentials(ctx context.Context, region string, d *plugin.QueryData) (bool, error) {
+	awsConfig := GetConfig(d.Connection)
+
+	// session default configuration
+	sessionOptions := session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+		Config: aws.Config{
+			Region:     &region,
+			MaxRetries: aws.Int(1),
+		},
+	}
+
+	if awsConfig.Profile != nil {
+		sessionOptions.Profile = *awsConfig.Profile
+	}
+
+	if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
+		sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+		)
+
+		if awsConfig.SessionToken != nil {
+			sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
+				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+			)
+		}
+	}
+
+	sess, err := session.NewSessionWithOptions(sessionOptions)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = sess.Config.Credentials.GetWithContext(ctx)
+	if err != nil {
+		var awsErr awserr.Error
+		if errors.As(err, &awsErr) {
+			if awsErr.Code() == "NoCredentialProviders" {
+				return false, err
+			}
+		}
+	}
+	return true, nil
 }
 
 // GetDefaultAwsRegion returns the default region for AWS partiton
@@ -1792,28 +1860,6 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 	if req.Error != nil {
 		if strings.Contains(req.Error.Error(), "connection reset by peer") {
 			return true
-		}
-	}
-	var awsErr awserr.Error
-	if errors.As(req.Error, &awsErr) {
-
-		// 	> select * from aws_region
-		// Error: NoCredentialProviders: no valid providers in chain. Deprecated.
-		// For verbose messaging see aws.Config.CredentialsChainVerboseErrors
-
-		// AWS GO SDK throws this error in case it could not find any valid credentials from all the possible methods
-		// 1. Steampipe aws config
-		// 2. AWS Environment variables
-		// 3. AWS assume role credentials
-		// 4. AWS profile
-		// 5. AWS SSO credentials
-
-		// awsErr.OrigErr()="Put "http://169.254.169.254/latest/api/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-		// awsErr.OrigErr()="Get "http://169.254.169.254/latest/meta-data/iam/security-credentials/": dial tcp 169.254.169.254:80: connect: no route to host"
-
-		// If the error is because of invalid credentails - we should not retry
-		if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") {
-			return false
 		}
 	}
 
