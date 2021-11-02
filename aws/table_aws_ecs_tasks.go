@@ -243,7 +243,7 @@ func tableAwsEcsTasks(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getEcsTasksTags),
+				Transform:   transform.From(ecsTaskTags),
 			},
 			{
 				Name:        "akas",
@@ -379,7 +379,7 @@ func extractClusterName(ctx context.Context, d *transform.TransformData) (interf
 	return clusterName, nil
 }
 
-func getEcsTasksTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func ecsTaskTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	task := d.HydrateItem.(tasksInfo).Task
 
 	if task.Tags == nil {
