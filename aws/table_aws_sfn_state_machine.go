@@ -13,7 +13,7 @@ import (
 func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sfn_state_machine",
-		Description: "AWS Step function State Machine",
+		Description: "AWS Step Functions State Machine",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist"}),
