@@ -236,6 +236,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_securityhub_hub":                                          tableAwsSecurityHub(ctx),
 			"aws_securityhub_product":                                      tableAwsSecurityhubProduct(ctx),
 			"aws_securityhub_standards_subscription":                       tableAwsSecurityHubStandardsSubscription(ctx),
+			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
 			"aws_sns_topic":                                                tableAwsSnsTopic(ctx),
 			"aws_sns_topic_subscription":                                   tableAwsSnsTopicSubscription(ctx),
 			"aws_sqs_queue":                                                tableAwsSqsQueue(ctx),
