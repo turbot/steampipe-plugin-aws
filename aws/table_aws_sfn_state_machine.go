@@ -75,7 +75,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsStepFunctionsStateMachine,
 			},
-			
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -113,7 +113,7 @@ func listAwsStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData
 		},
 	)
 
-	return nil, nil
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
