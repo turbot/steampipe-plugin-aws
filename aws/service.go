@@ -1511,7 +1511,7 @@ func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdm
 	return svc, nil
 }
 
-// StepFunctionService returns the service connection for AWS State Function service
+// StepFunctionService returns the service connection for AWS Step Function service
 func StepFunctionService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
