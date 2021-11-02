@@ -16,7 +16,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		Description: "AWS Step Functions State Machine",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
 			Hydrate:           getStepFunctionsStateMachine,
 		},
 		List: &plugin.ListConfig{
@@ -70,6 +70,13 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 				Hydrate:     getStepFunctionsStateMachine,
 			},
 			{
+				Name:        "tags_src",
+				Description: "The list of tags associated with the state machine.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getStepFunctionStateMachineTags,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tracing_configuration",
 				Description: "Selects whether AWS X-Ray tracing is enabled.",
 				Type:        proto.ColumnType_JSON,
@@ -77,6 +84,13 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 			},
 
 			// Standard columns for all tables
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getStepFunctionStateMachineTags,
+				Transform:   transform.From(stateMachineTagsToTurbotTags),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -133,6 +147,10 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
+	if arn == "" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
@@ -153,4 +171,64 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	return data, nil
+}
+
+func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getBucketTagging")
+	stateMachineArn := getStateMachineArn(h.Item)
+
+	// Empty Check
+	if stateMachineArn == nil {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := StepFunctionsService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", "connection_error", err)
+		return nil, err
+	}
+
+	params := &sfn.ListTagsForResourceInput{
+		ResourceArn: stateMachineArn,
+	}
+
+	tags, err := svc.ListTagsForResource(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", err)
+		return nil, err
+	}
+
+	return tags.Tags, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func stateMachineTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("stateMachineTagsToTurbotTags")
+	tags := d.HydrateItem.([]*sfn.Tag)
+	if len(tags) != 0 {
+		return nil, nil
+	}
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
+}
+
+func getStateMachineArn(item interface{}) *string {
+	switch item := item.(type) {
+	case *sfn.StateMachineListItem:
+		return item.StateMachineArn
+	case *sfn.DescribeStateMachineOutput:
+		return item.StateMachineArn
+	}
+	return nil
 }
