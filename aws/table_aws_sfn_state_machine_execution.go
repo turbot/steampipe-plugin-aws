@@ -22,7 +22,7 @@ func tableAwsStepFunctionsStateMachineExecutions(_ context.Context) *plugin.Tabl
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
-			ParentHydrate: listAwsStepFunctionsStateManchines,
+			ParentHydrate: listStepFunctionsStateManchines,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -108,7 +108,7 @@ func tableAwsStepFunctionsStateMachineExecutions(_ context.Context) *plugin.Tabl
 
 func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
@@ -155,7 +155,7 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Create Session
-	svc, err := StepFunctionService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
 		logger.Error("getStepFunctionsStateMachineExecution", "connection_error", err)
 		return nil, err
