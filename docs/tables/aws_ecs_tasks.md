@@ -16,7 +16,6 @@ from
   aws_ecs_tasks;
 ```
 
-
 ### List task attachment details
 
 ```sql
