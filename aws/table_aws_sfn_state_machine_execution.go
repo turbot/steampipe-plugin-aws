@@ -11,7 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsStepFunctionsStateMachineExecutions(_ context.Context) *plugin.Table {
+func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sfn_state_machine_execution",
 		Description: "AWS Step Function State Machine Execution",
