@@ -112,6 +112,10 @@ func listAwsStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData
 			return !isLast
 		},
 	)
+	if err != nil {
+		plugin.Logger(ctx).Error("listAwsStepFunctionsStateManchines", "Error", err)
+		return nil, nil
+	}
 
 	return nil, err
 }
@@ -144,7 +148,7 @@ func getAwsStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	data, err := svc.DescribeStateMachine(params)
 	if err != nil {
-		logger.Debug("getAwsStepFunctionsStateMachine", "ERROR", err)
+		logger.Error("getAwsStepFunctionsStateMachine", "ERROR", err)
 		return nil, err
 	}
 
