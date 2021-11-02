@@ -135,6 +135,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ecs_cluster_metric_cpu_utilization_hourly":                tableAwsEcsClusterMetricCpuUtilizationHourly(ctx),
 			"aws_ecs_container_instance":                                   tableAwsEcsContainerInstance(ctx),
 			"aws_ecs_service":                                              tableAwsEcsService(ctx),
+			"aws_ecs_task":                                      	        tableAwsEcsTask(ctx),
 			"aws_ecs_task_definition":                                      tableAwsEcsTaskDefinition(ctx),
 			"aws_efs_access_point":                                         tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                                          tableAwsElasticFileSystem(ctx),

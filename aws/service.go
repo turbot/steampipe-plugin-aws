@@ -1511,14 +1511,14 @@ func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdm
 	return svc, nil
 }
 
-// StepFunctionService returns the service connection for AWS Step Function service
-func StepFunctionService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
+// StepFunctionsService returns the service connection for AWS Step Functions service
+func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed SSOAdminService")
+		return nil, fmt.Errorf("region must be passed StepFunctionsService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("stepfunction-%s", region)
+	serviceCacheKey := fmt.Sprintf("stepfunctions-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*sfn.SFN), nil
 	}
