@@ -249,7 +249,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TaskArn").Transform(arnToAkas),
+				Transform:   transform.FromField("TaskArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
