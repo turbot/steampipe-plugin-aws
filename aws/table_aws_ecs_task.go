@@ -13,10 +13,10 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsEcsTasks(_ context.Context) *plugin.Table {
+func tableAwsEcsTask(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ecs_tasks",
-		Description: "AWS ECS Tasks",
+		Name:        "aws_ecs_task",
+		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
 			Hydrate:           listEcsTasks,
 			ParentHydrate:     listEcsClusters,
