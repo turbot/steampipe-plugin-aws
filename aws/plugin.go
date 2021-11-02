@@ -136,6 +136,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ecs_container_instance":                                   tableAwsEcsContainerInstance(ctx),
 			"aws_ecs_service":                                              tableAwsEcsService(ctx),
 			"aws_ecs_task_definition":                                      tableAwsEcsTaskDefinition(ctx),
+			"aws_ecs_tasks":                                      			tableAwsEcsTasks(ctx),
 			"aws_efs_access_point":                                         tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                                          tableAwsElasticFileSystem(ctx),
 			"aws_efs_mount_target":                                         tableAwsEfsMountTarget(ctx),
