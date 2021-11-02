@@ -264,7 +264,7 @@ type tasksInfo struct {
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEcsTasks", "AWS_REGION", region)
 	equalQuals := d.KeyColumnQuals
 
 	// Create session
