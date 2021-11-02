@@ -61,7 +61,7 @@ order by
   r.name;
 ```
 
-### Find any roles that allow wildcard actions 
+### Find any roles that allow wildcard actions
 ```sql
 select
   r.name as role_name,
@@ -175,6 +175,7 @@ order by
 ```
 
 ### List role with wildcard principal in trust policy(maintenance-role) and role(admin-role) that have trust relationship with maintenance-role
+[Refer here](https://twitter.com/nathanwallace/status/1442574375857922048?s=20)
 ```sql
 select
   maintenance.name,
@@ -198,3 +199,17 @@ where
   -- admin role specifically allow maintenance role
   and admin_stmt -> 'Principal' -> 'AWS' ? maintenance.arn;
 ```
+
+### List the roles that might allow other roles/users to bypass their assigned IAM permissions.
+```sql
+select
+  r.name,
+  stmt
+from
+  aws_iam_role as r,
+  jsonb_array_elements(r.assume_role_policy_std -> 'Statement') as stmt,
+  jsonb_array_elements_text(stmt -> 'Principal' -> 'AWS') as trust
+where
+  trust = '*'
+  or trust like 'arn:aws:iam::%:role/%'
+  ```
