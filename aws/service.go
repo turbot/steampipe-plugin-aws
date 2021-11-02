@@ -76,6 +76,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -1505,6 +1506,29 @@ func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdm
 		return nil, err
 	}
 	svc := ssoadmin.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// StepFunctionsService returns the service connection for AWS Step Functions service
+func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed StepFunctionsService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("stepfunctions-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*sfn.SFN), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := sfn.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
