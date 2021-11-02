@@ -48,9 +48,8 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_date",
-				Description: "The Elasticsearch domain endpoint that use to submit index and search requests.",
+				Description: "The date the state machine is created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				// Transform:   transform.FromField("CreationDate").Transform(convertTimestamp),
 			},
 			{
 				Name:        "definition",
@@ -60,7 +59,7 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "role_arn",
-				Description: "The domain creation status.",
+				Description: "The Amazon Resource Name (ARN) of the IAM role used when creating this state machine.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsStepFunctionsStateMachine,
 			},
