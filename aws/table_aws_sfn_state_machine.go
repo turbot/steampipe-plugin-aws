@@ -207,10 +207,10 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 func stateMachineTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("stateMachineTagsToTurbotTags")
 	tags := d.HydrateItem.([]*sfn.Tag)
-	if len(tags) != 0 {
+
+	if tags == nil {
 		return nil, nil
 	}
-
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
 	if tags != nil {
