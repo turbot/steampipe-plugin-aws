@@ -582,20 +582,6 @@ func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 		return nil, err
 	}
 	svc := ec2.New(sess)
-	// svc.Config.CredentialsChainVerboseErrors = aws.Bool(true)
-	// svc.Config.
-
-	// plugin.Logger(ctx).Info("Ec2Service", "############### Config.CredentialsChainVerboseErrors", svc.Config.CredentialsChainVerboseErrors)
-	// creds := svc.Config.Credentials
-	// _, err = creds.GetWithContext(ctx)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Info("Ec2Service", "############### err", err)
-	// }
-	// creds1 := svc.Config.
-	// _, err = creds.GetWithContext(ctx)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Info("Ec2Service", "############### err", err)
-	// }
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
