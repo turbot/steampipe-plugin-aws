@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -18,16 +17,11 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task",
 		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
-			Hydrate:           listEcsTasks,
-			ParentHydrate:     listEcsClusters,
+			Hydrate:    listEcsTasks,
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:    "cluster_arn",
-					Require: plugin.Optional,
-				},
-				{
 					Name:    "cluster_name",
-					Require: plugin.Optional,
+					Require: plugin.Required,
 				},
 				{
 					Name:    "container_instance_arn",
@@ -53,7 +47,6 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Name:        "cluster_name",
 				Description: "A user-generated string that you use to identify your cluster.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(extractClusterName),
 			},
 			{
 				Name:        "desired_status",
@@ -257,14 +250,14 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 
 type tasksInfo struct {
 	ecs.Task
+	ClusterName string
 	ServiceName string
 }
 
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEcsTasks", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEcsTasks")
 	equalQuals := d.KeyColumnQuals
 
 	// Create session
@@ -272,25 +265,16 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	if err != nil {
 		return nil, err
 	}
-	
-	var cluster, serviceName string
 
-	if equalQuals["cluster_arn"] != nil {
-		cluster = equalQuals["cluster_arn"].GetStringValue()
-	} else if equalQuals["cluster_name"] != nil {
-		cluster = equalQuals["cluster_name"].GetStringValue()
-	} else if h.Item != nil {
-		cluster = *h.Item.(*ecs.Cluster).ClusterArn
-	}
+	var serviceName string
+	cluster := equalQuals["cluster_name"].GetStringValue()
 
 	// Prepare input parameters
 	input := ecs.ListTasksInput{
 		MaxResults: types.Int64(100),
+		Cluster: types.String(cluster),
 	}
 
-	if types.String(cluster) != nil {
-		input.Cluster = types.String(cluster)
-	}
 	if equalQuals["service_name"] != nil {
 		serviceName = equalQuals["service_name"].GetStringValue()
 		input.ServiceName = types.String(serviceName)
@@ -346,12 +330,9 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	for _, arn := range taskArns {
 		input := &ecs.DescribeTasksInput{
+			Cluster: types.String(cluster),
 			Tasks:   arn,
 			Include: []*string{aws.String("TAGS")},
-		}
-
-		if types.String(cluster) != nil {
-			input.Cluster = types.String(cluster)
 		}
 
 		result, err := svc.DescribeTasks(input)
@@ -362,7 +343,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		}
 
 		for _, task := range result.Tasks {
-			d.StreamListItem(ctx, tasksInfo{*task, serviceName})
+			d.StreamListItem(ctx, tasksInfo{*task, cluster, serviceName})
 		}
 
 	}
@@ -370,14 +351,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	return nil, nil
 }
 
-//// TRANSFORM FUNCTIONS
-
-func extractClusterName(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	task := d.HydrateItem.(tasksInfo).Task
-	clusterName := strings.Split(string(*task.ClusterArn), "/")[1]
-
-	return clusterName, nil
-}
+//// TRANSFORM FUNCTION
 
 func ecsTaskTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	task := d.HydrateItem.(tasksInfo).Task
