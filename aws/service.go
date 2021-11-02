@@ -1518,7 +1518,7 @@ func StepFunctionService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, er
 		return nil, fmt.Errorf("region must be passed SSOAdminService")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("steapfunction-%s", region)
+	serviceCacheKey := fmt.Sprintf("stepfunction-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*sfn.SFN), nil
 	}
