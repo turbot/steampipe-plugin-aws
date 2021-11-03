@@ -8,5 +8,5 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
 	github.com/turbot/go-kit v0.3.0
-	github.com/turbot/steampipe-plugin-sdk v1.7.0
+	github.com/turbot/steampipe-plugin-sdk v1.7.1
 )
