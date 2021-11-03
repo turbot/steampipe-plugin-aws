@@ -18,17 +18,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task",
 		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
-			Hydrate:           listEcsTasks,
-			ParentHydrate:     listEcsClusters,
+			Hydrate:       listEcsTasks,
+			ParentHydrate: listEcsClusters,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "cluster_arn",
-					Require: plugin.Optional,
-				},
-				{
-					Name:    "cluster_name",
-					Require: plugin.Optional,
-				},
 				{
 					Name:    "container_instance_arn",
 					Require: plugin.Optional,
@@ -50,6 +42,16 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "task_arn",
+				Description: "The Amazon Resource Name (ARN) of the task.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "container_instance_arn",
+				Description: "The ARN of the container instances that host the task.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "cluster_name",
 				Description: "A user-generated string that you use to identify your cluster.",
 				Type:        proto.ColumnType_STRING,
@@ -65,11 +67,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Description: "The infrastructure on which your task is running.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{
-				Name:        "task_arn",
-				Description: "The Amazon Resource Name (ARN) of the task.",
-				Type:        proto.ColumnType_STRING,
-			},
+
 			{
 				Name:        "availability_zone",
 				Description: "The availability zone of the task.",
@@ -96,14 +94,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "container_instance_arn",
-				Description: "The ARN of the container instances that host the task.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "cpu",
 				Description: "The number of CPU units used by the task as expressed in a task definition.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "created_at",
@@ -139,7 +132,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 			{
 				Name:        "memory",
 				Description: "The amount of memory (in MiB) used by the task as expressed in a task definition.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "platform_version",
@@ -263,8 +256,7 @@ type tasksInfo struct {
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEcsTasks", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listEcsTasks")
 	equalQuals := d.KeyColumnQuals
 
 	// Create session
@@ -272,25 +264,17 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	if err != nil {
 		return nil, err
 	}
-	
-	var cluster, serviceName string
 
-	if equalQuals["cluster_arn"] != nil {
-		cluster = equalQuals["cluster_arn"].GetStringValue()
-	} else if equalQuals["cluster_name"] != nil {
-		cluster = equalQuals["cluster_name"].GetStringValue()
-	} else if h.Item != nil {
-		cluster = *h.Item.(*ecs.Cluster).ClusterArn
-	}
+	var serviceName string
+
+	clusterArn := h.Item.(*ecs.Cluster).ClusterArn
 
 	// Prepare input parameters
 	input := ecs.ListTasksInput{
 		MaxResults: types.Int64(100),
+		Cluster:    clusterArn,
 	}
 
-	if types.String(cluster) != nil {
-		input.Cluster = types.String(cluster)
-	}
 	if equalQuals["service_name"] != nil {
 		serviceName = equalQuals["service_name"].GetStringValue()
 		input.ServiceName = types.String(serviceName)
@@ -346,12 +330,9 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	for _, arn := range taskArns {
 		input := &ecs.DescribeTasksInput{
+			Cluster: clusterArn,
 			Tasks:   arn,
 			Include: []*string{aws.String("TAGS")},
-		}
-
-		if types.String(cluster) != nil {
-			input.Cluster = types.String(cluster)
 		}
 
 		result, err := svc.DescribeTasks(input)
