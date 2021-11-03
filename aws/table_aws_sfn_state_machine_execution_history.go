@@ -220,7 +220,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(executionHistoryArn).Transform(transform.EnsureStringArray),
+				Transform:   transform.From(executionHistoryArn),
 			},
 		}),
 	}
@@ -350,7 +350,7 @@ func executionHistoryArn(ctx context.Context, d *transform.TransformData) (inter
 
 	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld
 	// For State Machine Execution, ARN format is arn:aws:states:us-east-1:632902152528:execution:HelloWorld:a44bc846-3601-fd75-63f7-60ac06a4ef97
-	arn := strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(*history.Id))
+	akas := []string{strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(*history.Id))}
 
-	return arn, nil
+	return akas, nil
 }
