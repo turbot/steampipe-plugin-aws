@@ -4,17 +4,15 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
-
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableAwsStepFunctionsStateMachineExecutions(_ context.Context) *plugin.Table {
+func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sfn_state_machine_execution",
-		Description: "AWS Step Function State Machine Execution",
+		Description: "AWS Step Functions State Machine Execution",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("execution_arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
@@ -113,17 +111,12 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
 	}
-
-	var arn string
-	if h.Item != nil {
-		arn = *h.Item.(*sfn.StateMachineListItem).StateMachineArn
-	} else {
-		arn = d.KeyColumnQuals["state_machine_arn"].GetStringValue()
-	}
+	
+	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 
 	err = svc.ListExecutionsPages(
 		&sfn.ListExecutionsInput{
-			StateMachineArn: types.String(arn),
+			StateMachineArn: arn,
 		},
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
@@ -135,17 +128,17 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 	
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "ListExecutionsPages_error", err)
-		return nil, nil
+		return nil, err
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsStepFunctionsStateMachine")
+	logger.Trace("getStepFunctionsStateMachineExecution")
 
 	var arn string
 	if h.Item != nil {
