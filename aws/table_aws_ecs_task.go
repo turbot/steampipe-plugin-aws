@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -17,12 +18,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task",
 		Description: "AWS ECS Task",
 		List: &plugin.ListConfig{
-			Hydrate:    listEcsTasks,
+			Hydrate:       listEcsTasks,
+			ParentHydrate: listEcsClusters,
 			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "cluster_name",
-					Require: plugin.Required,
-				},
 				{
 					Name:    "container_instance_arn",
 					Require: plugin.Optional,
@@ -44,9 +42,20 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "task_arn",
+				Description: "The Amazon Resource Name (ARN) of the task.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "container_instance_arn",
+				Description: "The ARN of the container instances that host the task.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "cluster_name",
 				Description: "A user-generated string that you use to identify your cluster.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(extractClusterName),
 			},
 			{
 				Name:        "desired_status",
@@ -58,11 +67,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Description: "The infrastructure on which your task is running.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{
-				Name:        "task_arn",
-				Description: "The Amazon Resource Name (ARN) of the task.",
-				Type:        proto.ColumnType_STRING,
-			},
+
 			{
 				Name:        "availability_zone",
 				Description: "The availability zone of the task.",
@@ -87,11 +92,6 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 				Name:        "connectivity_at",
 				Description: "The Unix timestamp for when the task last went into CONNECTED status.",
 				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "container_instance_arn",
-				Description: "The ARN of the container instances that host the task.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "cpu",
@@ -250,7 +250,6 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 
 type tasksInfo struct {
 	ecs.Task
-	ClusterName string
 	ServiceName string
 }
 
@@ -267,12 +266,13 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	var serviceName string
-	cluster := equalQuals["cluster_name"].GetStringValue()
+
+	clusterArn := h.Item.(*ecs.Cluster).ClusterArn
 
 	// Prepare input parameters
 	input := ecs.ListTasksInput{
 		MaxResults: types.Int64(100),
-		Cluster: types.String(cluster),
+		Cluster:    clusterArn,
 	}
 
 	if equalQuals["service_name"] != nil {
@@ -330,7 +330,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	for _, arn := range taskArns {
 		input := &ecs.DescribeTasksInput{
-			Cluster: types.String(cluster),
+			Cluster: clusterArn,
 			Tasks:   arn,
 			Include: []*string{aws.String("TAGS")},
 		}
@@ -343,7 +343,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		}
 
 		for _, task := range result.Tasks {
-			d.StreamListItem(ctx, tasksInfo{*task, cluster, serviceName})
+			d.StreamListItem(ctx, tasksInfo{*task, serviceName})
 		}
 
 	}
@@ -351,7 +351,14 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	return nil, nil
 }
 
-//// TRANSFORM FUNCTION
+//// TRANSFORM FUNCTIONS
+
+func extractClusterName(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	task := d.HydrateItem.(tasksInfo).Task
+	clusterName := strings.Split(string(*task.ClusterArn), "/")[1]
+
+	return clusterName, nil
+}
 
 func ecsTaskTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	task := d.HydrateItem.(tasksInfo).Task
