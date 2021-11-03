@@ -24,7 +24,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 			{
 				Name:        "id",
 				Description: "The id of the event.",
-				Type:        proto.ColumnType_INT,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "execution_arn",
@@ -34,7 +34,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 			{
 				Name:        "previous_event_id",
 				Description: "The id of the previous event.",
-				Type:        proto.ColumnType_INT,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "timestamp",
@@ -242,11 +242,23 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	stateMachineArn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 	var executions []sfn.ExecutionListItem
 
+	input := &sfn.ListExecutionsInput{
+		MaxResults:      types.Int64(100),
+		StateMachineArn: stateMachineArn,
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
+
 	// List call
 	err = svc.ListExecutionsPages(
-		&sfn.ListExecutionsInput{
-			StateMachineArn: stateMachineArn,
-		},
+		input,
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
 				executions = append(executions, *execution)
@@ -257,14 +269,14 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "ListExecutionsPages_error", err)
-		return nil, nil
+		return nil, err
 	}
 
 	var wg sync.WaitGroup
 	executionCh := make(chan []historyInfo, len(executions))
 	errorCh := make(chan error, len(executions))
 
-	// Iterating all the available evidence folder
+	// Iterating all the available executions
 	for _, item := range executions {
 		wg.Add(1)
 		go getRowDataForExecutionHistoryAsync(ctx, d, *item.ExecutionArn, &wg, executionCh, errorCh)
@@ -276,6 +288,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	close(errorCh)
 
 	for err := range errorCh {
+		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "getRowDataForExecutionHistoryAsync_error", err)
 		return nil, err
 	}
 
@@ -316,6 +329,7 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 
 	listHistory, err := svc.GetExecutionHistory(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "GetExecutionHistory_error", err)
 		return nil, err
 	}
 
@@ -323,5 +337,5 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		items = append(items, historyInfo{*event, arn})
 	}
 
-	return items, err
+	return items, nil
 }
