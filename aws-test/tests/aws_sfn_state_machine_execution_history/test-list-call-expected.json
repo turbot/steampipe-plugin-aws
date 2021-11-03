@@ -1,0 +1,10 @@
+[
+  {
+    "akas": [
+      "{{ output.akas.value }}"
+    ],
+    "execution_arn": "{{ output.execution_arn.value }}",
+    "id": "{{ output.id.value }}",
+    "type": "{{ output.type.value }}"
+  }
+]
