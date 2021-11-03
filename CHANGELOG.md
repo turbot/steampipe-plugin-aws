@@ -1,3 +1,17 @@
+## v0.38.0 [2021-11-03]
+
+_What's new?_
+
+- New tables added
+  - [aws_ecs_task](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecs_task) ([#715](https://github.com/turbot/steampipe-plugin-aws/pull/715))
+  - [aws_sfn_state_machine](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sfn_state_machine) ([#714](https://github.com/turbot/steampipe-plugin-aws/pull/714))
+  - [aws_sfn_state_machine_execution](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sfn_state_machine_execution) ([#724](https://github.com/turbot/steampipe-plugin-aws/pull/724))
+  - [aws_sfn_state_machine_execution_history](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sfn_state_machine_execution_history) ([#728](https://github.com/turbot/steampipe-plugin-aws/pull/728))
+
+_Enhancements_
+
+- Updated: Recompiled plugin with [steampipe-plugin-sdk v1.7.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v171--2021-11-01) ([#729](https://github.com/turbot/steampipe-plugin-aws/pull/729))
+
 ## v0.37.0 [2021-10-27]
 
 _What's new?_
