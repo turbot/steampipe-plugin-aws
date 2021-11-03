@@ -96,7 +96,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 			{
 				Name:        "cpu",
 				Description: "The number of CPU units used by the task as expressed in a task definition.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "created_at",
@@ -132,7 +132,7 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 			{
 				Name:        "memory",
 				Description: "The amount of memory (in MiB) used by the task as expressed in a task definition.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "platform_version",
