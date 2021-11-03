@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
-
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -114,11 +112,11 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		return nil, err
 	}
 	
-	arn := *h.Item.(*sfn.StateMachineListItem).StateMachineArn
+	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 
 	err = svc.ListExecutionsPages(
 		&sfn.ListExecutionsInput{
-			StateMachineArn: types.String(arn),
+			StateMachineArn: arn,
 		},
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
