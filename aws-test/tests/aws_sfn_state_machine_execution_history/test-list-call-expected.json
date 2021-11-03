@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.execution_arn.value }}"
+    ],
+    "execution_arn": "{{ output.execution_arn.value }}",
+    "type": "{{ output.type.value }}"
+  }
+]
