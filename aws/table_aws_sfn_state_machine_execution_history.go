@@ -3,6 +3,8 @@ package aws
 import (
 	"context"
 	"sync"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/go-kit/types"
@@ -218,7 +220,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ExecutionArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.From(executionHistoryArn).Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -338,4 +340,17 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	}
 
 	return items, nil
+}
+
+//// Transform Function
+
+func executionHistoryArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("executionHistoryArn")
+	history := d.HydrateItem.(historyInfo)
+
+	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld
+	// For State Machine Execution, ARN format is arn:aws:states:us-east-1:632902152528:execution:HelloWorld:a44bc846-3601-fd75-63f7-60ac06a4ef97
+	arn := strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(*history.Id))
+
+	return arn, nil
 }

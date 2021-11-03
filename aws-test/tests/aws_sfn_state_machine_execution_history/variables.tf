@@ -136,3 +136,8 @@ output "id" {
   depends_on = [null_resource.execution_history]
   value      = jsondecode(data.local_file.execution_history.content).events[0].id
 }
+
+output "akas" {
+  depends_on = [null_resource.execution_history]
+  value      = "${replace(jsondecode(data.local_file.execution.content).executionArn, "execution", "executionHistory")}:${tostring(jsondecode(data.local_file.execution_history.content).events[0].id)}"
+}

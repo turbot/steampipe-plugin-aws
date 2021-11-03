@@ -1,7 +1,7 @@
 [
   {
     "akas": [
-      "{{ output.execution_arn.value }}"
+      "{{ output.akas.value }}"
     ],
     "title": "{{ output.id.value }}"
   }
