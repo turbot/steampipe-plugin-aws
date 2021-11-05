@@ -1,3 +1,9 @@
+## v0.38.1 [2021-11-05]
+
+_Bug fixes_
+
+- Updated data type of the column `platform_version` from `int` to `string` in `aws_ssm_managed_instance` table ([#732](https://github.com/turbot/steampipe-plugin-aws/pull/732))
+
 ## v0.38.0 [2021-11-03]
 
 _What's new?_
