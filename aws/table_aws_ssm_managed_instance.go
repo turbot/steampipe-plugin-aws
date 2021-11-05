@@ -107,7 +107,7 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "platform_version",
 				Description: "The version of the OS platform running on your instance.",
-				Type:        proto.ColumnType_INT,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "registration_date",
