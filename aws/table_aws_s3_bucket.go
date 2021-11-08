@@ -581,8 +581,11 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if bucketTags != nil {
+		return bucketTags, nil
+	}
 
-	return bucketTags, nil
+	return nil, nil
 }
 
 func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -633,6 +636,10 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 
 func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")
+	// Check if the interface is nil
+	if d.Value == nil {
+		return nil, nil
+	}
 	tags := d.Value.([]*s3.Tag)
 
 	// Mapping the resource tags inside turbotTags
