@@ -120,7 +120,7 @@ func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		&input,
 		func(page *lambda.ListLayersOutput, lastPage bool) bool {
 			for _, layer := range page.Layers {
-				d.StreamLeafListItem(ctx, layer)
+				d.StreamListItem(ctx, layer)
 			}
 			return !lastPage
 		},
