@@ -52,7 +52,6 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				Description: "The description of the version.",
 				Type:        proto.ColumnType_STRING,
 			},
-			
 			{
 				Name:        "license_info",
 				Description: "The layer's open-source license.",
@@ -110,7 +109,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("LayerVersionArn").Transform(arnToAkas),
+				Transform:   transform.FromField("LayerVersionArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
