@@ -83,7 +83,7 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("LayerArn").Transform(arnToAkas),
+				Transform:   transform.FromField("LayerArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
