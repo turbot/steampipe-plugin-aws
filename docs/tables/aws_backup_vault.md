@@ -45,3 +45,14 @@ where
   and s ->> 'Effect' != 'Deny'
   and s ->> 'Action' like '%DeleteBackupVault%';
 ```
+
+### List policy details for backup vaults
+
+```sql
+select
+  name,
+  jsonb_pretty(policy) as policy,
+  jsonb_pretty(policy_std) as policy_std
+from
+  aws_backup_vault;
+```
