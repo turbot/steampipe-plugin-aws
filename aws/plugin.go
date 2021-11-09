@@ -191,6 +191,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_function_metric_duration_daily":                    tableAwsLambdaFunctionMetricDurationDaily(ctx),
 			"aws_lambda_function_metric_errors_daily":                      tableAwsLambdaFunctionMetricErrorsDaily(ctx),
 			"aws_lambda_function_metric_invocations_daily":                 tableAwsLambdaFunctionMetricInvocationsDaily(ctx),
+			"aws_lambda_layer":                                             tableAwsLambdaLayer(ctx),
 			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
