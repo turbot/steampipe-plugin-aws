@@ -107,8 +107,8 @@ from
 where
   log_group_name = 'cis/test-log-grp'
   and filter = '{$.eventName = "AuthorizeSecurityGroupIngress"}'
-  and region='us-east-1'
-  and timestamp >= now() - interval '2 hours'
+  and region = 'us-east-1'
+  and timestamp >= now() - interval '3 hours'
 ```
 
 ### List events containing either of the **eventName** in the pattern
@@ -125,8 +125,8 @@ from
   aws_cloudwatch_log_event
 where
   log_group_name = 'cis/test-log-grp'
-  and filter = '{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }'
-  and region='us-east-1'
+  and filter = '{($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}'
+  and region = 'us-east-1'
   and timestamp >= now() - interval '1 hour'
 
 ```
