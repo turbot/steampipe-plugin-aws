@@ -26,8 +26,9 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "last_updated_time",
-				Description: "Timestamp showing when this policy was last updated, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC.",
-				Type:        proto.ColumnType_INT,
+				Description: "Timestamp showing when this policy was last updated.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastUpdatedTime").Transform(convertTimestamp),
 			},
 			{
 				Name:        "policy",
