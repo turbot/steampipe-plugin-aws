@@ -73,6 +73,13 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsBackupVaultAccessPolicy,
 			},
 			{
+				Name:        "policy_std",
+				Description: "Contains the backup vault access policy document in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsBackupVaultAccessPolicy,
+				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "backup_vault_events",
 				Description: "An array of events that indicate the status of jobs to back up resources to the backup vault.",
 				Type:        proto.ColumnType_JSON,
