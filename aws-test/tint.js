@@ -384,7 +384,7 @@ const _runGraphqlQuery = function (test, query) {
   return new Promise((resolve, reject) => {
     try {
       var queryTmp = _renderToTmp(test, query.query);
-      var variablesTmp = _renderToTmp(test, query.variables, {});
+      // var variablesTmp = _renderToTmp(test, query.variables, {});
       var expectedTmp = _renderToTmp(test, query.expected);
     } catch (e) {
       console.log(chalk.red(`Template Error: ${e.sourcePath}`));
