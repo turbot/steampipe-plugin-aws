@@ -105,11 +105,15 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 					"Activity is only reported for the trailing 400 days. This period can be " +
 					"shorter if your Region began supporting these features within the last year. " +
 					"The role might have been used more than 400 days ago.",
+				Hydrate:   getIamRole,
+				Transform: transform.FromField("RoleLastUsed.LastUsedDate"),
 			},
 			{
 				Name:        "role_last_used_region",
 				Description: "Contains the region in which the IAM role was used.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:   	 getIamRole,
+				Transform:   transform.FromField("RoleLastUsed.Region"),
 			},
 			{
 				Name:        "tags_src",
