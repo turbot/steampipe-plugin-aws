@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -107,6 +108,17 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	params := &cloudfront.ListOriginRequestPoliciesInput{}
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 5 {
+				params.MaxItems = types.Int64(5)
+			} else {
+				params.MaxItems = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListOriginRequestPolicies(params)

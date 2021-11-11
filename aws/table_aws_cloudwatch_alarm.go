@@ -22,6 +22,16 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudWatchAlarms,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "state_value",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -204,12 +214,41 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	var input *cloudwatch.DescribeAlarmsInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.AlarmNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	}
+	if equalQuals["state_value"] != nil {
+		input.StateValue = aws.String(equalQuals["state_value"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 5 {
+				input.MaxRecords = aws.Int64(5)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeAlarmsPages(
-		&cloudwatch.DescribeAlarmsInput{},
+		input,
 		func(page *cloudwatch.DescribeAlarmsOutput, isLast bool) bool {
 			for _, alarms := range page.MetricAlarms {
 				d.StreamListItem(ctx, alarms)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

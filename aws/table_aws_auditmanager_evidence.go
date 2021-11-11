@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -178,12 +179,24 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
+	var input *auditmanager.GetEvidenceFoldersByAssessmentInput
+	input.AssessmentId = aws.String(assessmentID)
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.GetEvidenceFoldersByAssessmentPages(
-		&auditmanager.GetEvidenceFoldersByAssessmentInput{
-			AssessmentId: aws.String(assessmentID),
-		},
+		input,
 		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
 			for _, evidenceFolder := range page.EvidenceFolders {
 				evidenceFolders = append(evidenceFolders, *evidenceFolder)
@@ -214,6 +227,11 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	for item := range evidenceCh {
 		for _, data := range item {
 			d.StreamLeafListItem(ctx, evidenceInfo{data.Evidence, data.AssessmentID, data.ControlSetID})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 

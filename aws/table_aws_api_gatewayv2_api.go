@@ -86,9 +86,12 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create Session
 	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
+		logger.Trace("listAPIGatewayV2API", "connection error", err)
 		return nil, err
 	}
 

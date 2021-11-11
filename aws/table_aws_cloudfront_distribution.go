@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -236,12 +237,31 @@ func listAwsCloudFrontDistributions(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	var input *cloudfront.ListDistributionsInput
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 5 {
+				input.MaxItems = types.Int64(5)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListDistributionsPages(
-		&cloudfront.ListDistributionsInput{},
+		input,
 		func(page *cloudfront.ListDistributionsOutput, isLast bool) bool {
 			for _, distribution := range page.DistributionList.Items {
 				d.StreamListItem(ctx, distribution)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

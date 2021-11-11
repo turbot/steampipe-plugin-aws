@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -65,11 +66,30 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	var input *backup.ListProtectedResourcesInput
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListProtectedResourcesPages(
-		&backup.ListProtectedResourcesInput{},
+		input,
 		func(page *backup.ListProtectedResourcesOutput, lastPage bool) bool {
 			for _, resource := range page.Results {
 				d.StreamListItem(ctx, resource)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

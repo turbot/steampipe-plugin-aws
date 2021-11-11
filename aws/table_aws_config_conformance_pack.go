@@ -21,6 +21,12 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConformancePacks,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -94,12 +100,25 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
+	var input *configservice.DescribeConformancePacksInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ConformancePackNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	}
+
 	err = svc.DescribeConformancePacksPages(
-		&configservice.DescribeConformancePacksInput{},
+		input,
 		func(page *configservice.DescribeConformancePacksOutput, lastPage bool) bool {
 			if page.ConformancePackDetails != nil {
 				for _, ConformancePackDetails := range page.ConformancePackDetails {
 					d.StreamListItem(ctx, ConformancePackDetails)
+
+					// Context can be cancelled due to manual cancellation or the limit has been hit
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !lastPage

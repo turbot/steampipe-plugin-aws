@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -93,13 +94,32 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
+	var input *cloudfront.ListCloudFrontOriginAccessIdentitiesInput
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 5 {
+				input.MaxItems = types.Int64(5)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.ListCloudFrontOriginAccessIdentitiesPages(
-		&cloudfront.ListCloudFrontOriginAccessIdentitiesInput{},
+		input,
 		func(page *cloudfront.ListCloudFrontOriginAccessIdentitiesOutput, isLast bool) bool {
 			for _, identity := range page.CloudFrontOriginAccessIdentityList.Items {
 				d.StreamListItem(ctx, identity)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

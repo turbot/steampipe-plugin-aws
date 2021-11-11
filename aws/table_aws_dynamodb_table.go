@@ -24,6 +24,12 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamboDbTables,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -202,13 +208,39 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	var input *dynamodb.ListTablesInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ExclusiveStartTableName = types.String(equalQuals["name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = types.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.ListTablesPages(
-		&dynamodb.ListTablesInput{},
+		input,
 		func(page *dynamodb.ListTablesOutput, lastPage bool) bool {
 			for _, table := range page.TableNames {
 				d.StreamListItem(ctx, &dynamodb.TableDescription{
 					TableName: table,
 				})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

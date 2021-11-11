@@ -24,6 +24,12 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "cluster_name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -158,6 +164,25 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	pagesLeft := true
 	params := &dax.DescribeClustersInput{}
 
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["cluster_name"] != nil {
+		params.ClusterNames = []*string{aws.String(equalQuals["cluster_name"].GetStringValue())}
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 5 {
+				params.MaxResults = aws.Int64(5)
+			} else {
+				params.MaxResults = limit
+			}
+		}
+	}
+
 	for pagesLeft {
 		result, err := svc.DescribeClusters(params)
 		if err != nil {
@@ -166,6 +191,11 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 		for _, cluster := range result.Clusters {
 			d.StreamListItem(ctx, cluster)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 
 		if result.NextToken != nil {

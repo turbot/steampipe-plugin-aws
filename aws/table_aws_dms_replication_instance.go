@@ -24,6 +24,24 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDmsReplicationInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "replication_instance_identifier",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "replication_instance_class",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "engine_version",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -186,14 +204,66 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// Build the params
-	params := &databasemigrationservice.DescribeReplicationInstancesInput{}
+	input := &databasemigrationservice.DescribeReplicationInstancesInput{}
+
+	var filter []*databasemigrationservice.Filter
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["replication_instance_identifier"] != nil {
+		paramFilter := &databasemigrationservice.Filter{
+			Name: aws.String("replication-instance-id"),
+			Values: []*string{aws.String(equalQuals["replication_instance_identifier"].GetStringValue())},
+		 }
+		 filter = append(filter, paramFilter)
+	}
+	if equalQuals["arn"] != nil {
+		paramFilter := &databasemigrationservice.Filter{
+			Name: aws.String("replication-instance-arn"),
+			Values: []*string{aws.String(equalQuals["arn"].GetStringValue())},
+		 }
+		 filter = append(filter, paramFilter)
+	}
+	if equalQuals["replication_instance_class"] != nil {
+		paramFilter := &databasemigrationservice.Filter{
+			Name: aws.String("replication-instance-class"),
+			Values: []*string{aws.String(equalQuals["replication_instance_class"].GetStringValue())},
+		 }
+		 filter = append(filter, paramFilter)
+	}
+	if equalQuals["engine_version"] != nil {
+		paramFilter := &databasemigrationservice.Filter{
+			Name: aws.String("engine-version"),
+			Values: []*string{aws.String(equalQuals["engine_version"].GetStringValue())},
+		 }
+		 filter = append(filter, paramFilter)
+	}
+	input.Filters = filter
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 5 {
+				input.MaxRecords = aws.Int64(5)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.DescribeReplicationInstancesPages(
-		params,
+		input,
 		func(page *databasemigrationservice.DescribeReplicationInstancesOutput, isLast bool) bool {
 			for _, replicationInstance := range page.ReplicationInstances {
 				d.StreamListItem(ctx, replicationInstance)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

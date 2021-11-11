@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -23,6 +24,12 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAccessAnalyzers,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "type",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -100,18 +107,47 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create session
 	svc, err := AccessAnalyzerService(ctx, d)
 	if err != nil {
+		logger.Trace("listAccessAnalyzers", "connection error", err)
 		return nil, err
+	}
+
+	var input *accessanalyzer.ListAnalyzersInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["type"] != nil {
+		input.Type = types.String(equalQuals["type"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.ListAnalyzersPages(
-		&accessanalyzer.ListAnalyzersInput{},
+		input,
 		func(page *accessanalyzer.ListAnalyzersOutput, isLast bool) bool {
 			for _, analyzer := range page.Analyzers {
 				d.StreamListItem(ctx, analyzer)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

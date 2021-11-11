@@ -23,6 +23,12 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRules,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -121,11 +127,24 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	var input *configservice.DescribeConfigRulesInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ConfigRuleNames = []*string{aws.String(equalQuals["type"].GetStringValue())}
+	}
+
 	err = svc.DescribeConfigRulesPages(
-		&configservice.DescribeConfigRulesInput{},
+		input,
 		func(page *configservice.DescribeConfigRulesOutput, lastPage bool) bool {
 			for _, rule := range page.ConfigRules {
 				d.StreamListItem(ctx, rule)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

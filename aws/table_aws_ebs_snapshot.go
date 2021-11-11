@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -22,6 +23,44 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "description",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "encrypted",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "owner_alias",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "owner_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "snapshot_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "state",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "progress",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "volume_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "volume_size",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -146,15 +185,36 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	var input *ec2.DescribeSnapshotsInput
+
+	// Build filter for ebs snapshot
+	filters := buildEbsSnapshotFilter(d.KeyColumnQuals)
+	input.Filters = filters
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeSnapshotsPages(
-		&ec2.DescribeSnapshotsInput{
-			OwnerIds: []*string{aws.String("self")},
-		},
+		input,
 		func(page *ec2.DescribeSnapshotsOutput, isLast bool) bool {
 			for _, snapshot := range page.Snapshots {
 				d.StreamListItem(ctx, snapshot)
 
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -243,4 +303,47 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	snapshot := d.HydrateItem.(*ec2.Snapshot)
 	return ec2TagsToMap(snapshot.Tags)
+}
+
+//// UTILITY FUNCTION
+// build ebs snapshot list call input filter
+func buildEbsSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"description": "description",
+		"encrypted":   "encrypted",
+		"owner_alias": "owner-alias",
+		"snapshot_id": "snapshot-id",
+		"state":       "status",
+		"progress":    "progress",
+		"volume_id":   "volume-id",
+		"volume_size": "volume-size",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	ownerFilter := ec2.Filter{}
+	if equalQuals["owner_id"] != nil {
+		ownerFilter.Name = types.String("owner-id")
+		ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
+	} else {
+		ownerFilter.Name = types.String("owner-id")
+		ownerFilter.Values = []*string{types.String("self")}
+	}
+
+	filters = append(filters, &ownerFilter)
+	return filters
 }

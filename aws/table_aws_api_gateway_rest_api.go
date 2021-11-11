@@ -133,18 +133,40 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create service
 	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
+		logger.Trace("listRestAPI", "connection error", err)
 		return nil, err
+	}
+
+	var input *apigateway.GetRestApisInput
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = types.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.GetRestApisPages(
-		&apigateway.GetRestApisInput{},
+		input,
 		func(page *apigateway.GetRestApisOutput, lastPage bool) bool {
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

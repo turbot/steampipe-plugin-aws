@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -19,6 +20,24 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogMetricFilters,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "log_group_name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "metric_transformation_name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "metric_transformation_namespace",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -87,11 +106,46 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	var input *cloudwatchlogs.DescribeMetricFiltersInput
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.FilterNamePrefix = aws.String(equalQuals["name"].GetStringValue())
+	}
+	if equalQuals["log_group_name"] != nil {
+		input.LogGroupName = aws.String(equalQuals["log_group_name"].GetStringValue())
+	}
+	if equalQuals["metric_transformation_name"] != nil {
+		input.MetricName = aws.String(equalQuals["metric_transformation_name"].GetStringValue())
+	}
+	if equalQuals["metric_transformation_namespace"] != nil {
+		input.MetricNamespace = aws.String(equalQuals["metric_transformation_namespace"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = aws.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.DescribeMetricFiltersPages(
-		&cloudwatchlogs.DescribeMetricFiltersInput{},
+		input,
 		func(page *cloudwatchlogs.DescribeMetricFiltersOutput, isLast bool) bool {
 			for _, metricFilter := range page.MetricFilters {
 				d.StreamListItem(ctx, metricFilter)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
