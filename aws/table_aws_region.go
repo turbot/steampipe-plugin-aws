@@ -76,11 +76,13 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, defaultRegion)
 	if err != nil {
+		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
 	}
 
@@ -91,6 +93,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// execute list call
 	resp, err := svc.DescribeRegions(params)
 	if err != nil {
+		logger.Error("aws_region.listAwsRegions", "api.error", err)
 		return nil, err
 	}
 
