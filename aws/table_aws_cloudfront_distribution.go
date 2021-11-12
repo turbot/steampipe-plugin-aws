@@ -237,7 +237,8 @@ func listAwsCloudFrontDistributions(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	var input *cloudfront.ListDistributionsInput
+	input := &cloudfront.ListDistributionsInput{}
+	
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit

@@ -96,7 +96,7 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
-	var input *apigateway.GetUsagePlansInput
+	input := &apigateway.GetUsagePlansInput{}
 
 	// Limiting the results
 	limit := d.QueryContext.Limit

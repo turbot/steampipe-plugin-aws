@@ -87,7 +87,7 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	var input *dynamodb.ListGlobalTablesInput
+	input := &dynamodb.ListGlobalTablesInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

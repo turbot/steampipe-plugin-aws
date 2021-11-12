@@ -100,7 +100,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	var input *configservice.DescribeConformancePacksInput
+	input := &configservice.DescribeConformancePacksInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

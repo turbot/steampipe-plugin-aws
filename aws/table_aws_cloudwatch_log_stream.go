@@ -115,7 +115,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	var input *cloudwatchlogs.DescribeLogStreamsInput
+	input := &cloudwatchlogs.DescribeLogStreamsInput{}
 	input.LogGroupName = logGroup.LogGroupName
 
 	// Additonal Filter

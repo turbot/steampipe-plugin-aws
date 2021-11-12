@@ -106,7 +106,7 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	var input *cloudwatchlogs.DescribeMetricFiltersInput
+	input := &cloudwatchlogs.DescribeMetricFiltersInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

@@ -109,7 +109,7 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	var input *backup.ListBackupPlansInput
+	input := &backup.ListBackupPlansInput{}
 	input.IncludeDeleted = aws.Bool(true)
 
 	// Limiting the results

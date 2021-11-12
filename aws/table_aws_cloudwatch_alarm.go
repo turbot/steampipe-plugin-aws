@@ -214,7 +214,7 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	var input *cloudwatch.DescribeAlarmsInput
+	input := &cloudwatch.DescribeAlarmsInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

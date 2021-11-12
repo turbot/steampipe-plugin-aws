@@ -157,7 +157,7 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
-	var input *auditmanager.ListAssessmentsInput
+	input := &auditmanager.ListAssessmentsInput{}
 
 	// Limiting the results
 	limit := d.QueryContext.Limit

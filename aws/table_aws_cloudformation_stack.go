@@ -187,7 +187,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// We can not pass the MaxResult value in param so we can't limit the result per page
-	var input *cloudformation.DescribeStacksInput
+	input := &cloudformation.DescribeStacksInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

@@ -108,6 +108,7 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	params := &cloudfront.ListOriginRequestPoliciesInput{}
+
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *params.MaxItems {
@@ -127,6 +128,11 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 		}
 		for _, policy := range response.OriginRequestPolicyList.Items {
 			d.StreamListItem(ctx, policy)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 		if response.OriginRequestPolicyList.NextMarker != nil {
 			pagesLeft = true

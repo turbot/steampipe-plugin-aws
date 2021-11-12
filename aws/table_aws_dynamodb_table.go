@@ -208,7 +208,7 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	var input *dynamodb.ListTablesInput
+	input := &dynamodb.ListTablesInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

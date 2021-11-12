@@ -127,7 +127,7 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	var input *configservice.DescribeConfigRulesInput
+	input := &configservice.DescribeConfigRulesInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

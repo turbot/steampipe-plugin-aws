@@ -159,7 +159,7 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 	// Get assessment details
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
-	var input *auditmanager.GetEvidenceFoldersByAssessmentInput
+	input := &auditmanager.GetEvidenceFoldersByAssessmentInput{}
 
 	input.AssessmentId = &assessmentID
 	// Limiting the results

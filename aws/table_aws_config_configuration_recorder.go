@@ -96,7 +96,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	var input *configservice.DescribeConfigurationRecordersInput
+	input := &configservice.DescribeConfigurationRecordersInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

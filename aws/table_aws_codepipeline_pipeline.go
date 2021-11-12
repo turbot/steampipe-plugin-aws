@@ -127,7 +127,7 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	var input *codepipeline.ListPipelinesInput
+	input := &codepipeline.ListPipelinesInput{}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead

@@ -119,7 +119,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	var input *dynamodb.ListBackupsInput
+	input := &dynamodb.ListBackupsInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/backup"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -112,8 +113,22 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &backup.ListBackupVaultsInput{}
+
+	// Limiting the results per page
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListBackupVaultsPages(
-		&backup.ListBackupVaultsInput{},
+		input,
 		func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
 			for _, vault := range page.BackupVaultList {
 				d.StreamListItem(ctx, vault)

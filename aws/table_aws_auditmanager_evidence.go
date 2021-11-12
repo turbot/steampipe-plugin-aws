@@ -179,7 +179,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
-	var input *auditmanager.GetEvidenceFoldersByAssessmentInput
+	input := &auditmanager.GetEvidenceFoldersByAssessmentInput{}
 	input.AssessmentId = aws.String(assessmentID)
 
 	// Limiting the results

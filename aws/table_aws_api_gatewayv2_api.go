@@ -106,6 +106,11 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 		for _, apiGatewayV2Api := range result.Items {
 			d.StreamListItem(ctx, apiGatewayV2Api)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 
 		if result.NextToken != nil {

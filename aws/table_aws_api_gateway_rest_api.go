@@ -142,7 +142,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	var input *apigateway.GetRestApisInput
+	input := &apigateway.GetRestApisInput{}
 
 	// Limiting the results
 	limit := d.QueryContext.Limit

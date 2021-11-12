@@ -120,7 +120,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	var input *apigateway.GetApiKeysInput
+	input := &apigateway.GetApiKeysInput{}
 
 	// Additonal Filter
 	var equalQuals plugin.KeyColumnEqualsQualMap

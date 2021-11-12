@@ -99,7 +99,7 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	var input *cloudwatchlogs.DescribeLogGroupsInput
+	input := &cloudwatchlogs.DescribeLogGroupsInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

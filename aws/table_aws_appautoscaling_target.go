@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -96,7 +95,7 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// name := d.KeyColumnQuals["service_namespace"].GetStringValue()
+	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 
 	// Create Session
 	svc, err := ApplicationAutoScalingService(ctx, d)
@@ -105,20 +104,16 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
-	var input *applicationautoscaling.DescribeScalableTargetsInput
+	input := &applicationautoscaling.DescribeScalableTargetsInput{}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
-	if equalQuals["service_namespace"] != nil {
-		fmt.Errorf("service_namespace")
-		input.ServiceNamespace = types.String(equalQuals["service_namespace"].GetStringValue())
-	}
+	input.ServiceNamespace = types.String(name)
+
 	if equalQuals["resource_id"] != nil {
-		fmt.Errorf("service_namespace")
 		input.ResourceIds = []*string{types.String(equalQuals["resource_id"].GetStringValue())}
 	}
 	if equalQuals["scalable_dimension"] != nil {
-		fmt.Errorf("service_namespace")
 		input.ScalableDimension = types.String(equalQuals["scalable_dimension"].GetStringValue())
 	}
 

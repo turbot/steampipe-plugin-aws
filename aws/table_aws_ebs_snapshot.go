@@ -185,7 +185,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	var input *ec2.DescribeSnapshotsInput
+	input := &ec2.DescribeSnapshotsInput{}
 
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(d.KeyColumnQuals)

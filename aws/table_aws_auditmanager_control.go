@@ -141,7 +141,7 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
-	var input *auditmanager.ListControlsInput
+	input := &auditmanager.ListControlsInput{}
 	input.ControlType = aws.String("Standard")
 
 	// Limiting the results
