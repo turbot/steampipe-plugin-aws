@@ -1,3 +1,21 @@
+## v0.39.0 [2021-11-12]
+
+_What's new?_
+
+- New tables added
+  - [aws_eventbridge_bus](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eventbridge_bus) ([#737](https://github.com/turbot/steampipe-plugin-aws/pull/737))
+  - [aws_lambda_layer](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_layer) ([#740](https://github.com/turbot/steampipe-plugin-aws/pull/740))
+  - [aws_lambda_layer_version](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_lambda_layer_version) ([#743](https://github.com/turbot/steampipe-plugin-aws/pull/743))
+
+_Enhancements_
+
+- Updated: Add `policy_std` column to `aws_backup_vault` table ([#746](https://github.com/turbot/steampipe-plugin-aws/pull/746))
+- Updated: Increase the golangci-lint workflow timeout to 10 mins ([#750](https://github.com/turbot/steampipe-plugin-aws/pull/750))
+
+_Bug fixes_
+
+- Fixed: Queries will no longer hang if no credentials are provided or an invalid profile is specified ([#713](https://github.com/turbot/steampipe-plugin-aws/pull/713))
+
 ## v0.38.2 [2021-11-08]
 
 _Enhancements_
