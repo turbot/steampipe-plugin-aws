@@ -19,7 +19,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"backup_plan_id"}),
+			KeyColumns:        plugin.SingleColumn("backup_plan_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
 			Hydrate:           getAwsBackupPlan,
 		},
@@ -32,7 +32,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The display name of a saved backup plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "arn",
@@ -87,13 +87,13 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("BackupPlanArn").Transform(arnToAkas),
+				Transform:   transform.FromField("BackupPlanArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -108,9 +108,8 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	includeDeleted := true
 	err = svc.ListBackupPlansPages(
-		&backup.ListBackupPlansInput{IncludeDeleted: &includeDeleted},
+		&backup.ListBackupPlansInput{},
 		func(page *backup.ListBackupPlansOutput, lastPage bool) bool {
 			for _, plan := range page.BackupPlansList {
 				d.StreamListItem(ctx, plan)
@@ -136,6 +135,11 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = *plan.BackupPlanId
 	} else {
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
+	}
+
+	// check if id is empty
+	if id == "" {
+		return nil, nil
 	}
 
 	params := &backup.GetBackupPlanInput{
