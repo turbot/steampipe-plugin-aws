@@ -36,77 +36,67 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the delivery stream.",
 				Type:        pb.ColumnType_STRING,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN"),
+				Transform:   transform.FromField("DeliveryStreamARN"),
 			},
 			{
 				Name:        "delivery_stream_status",
 				Description: "The server-side encryption type used on the stream.",
 				Type:        pb.ColumnType_STRING,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamStatus"),
 			},
 			{
 				Name:        "delivery_stream_type",
 				Description: "The delivery stream type.",
 				Type:        pb.ColumnType_STRING,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamType"),
 			},
 			{
 				Name:        "version_id",
 				Description: "The version id of the stream. Each time the destination is updated for a delivery stream, the version ID is changed, and the current version ID is required when updating the destination",
 				Type:        pb.ColumnType_STRING,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.VersionId"),
 			},
 			{
 				Name:        "create_timestamp",
 				Description: "The date and time that the delivery stream was created.",
 				Type:        pb.ColumnType_TIMESTAMP,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.CreateTimestamp"),
 			},
 			{
 				Name:        "has_more_destinations",
 				Description: "Indicates whether there are more destinations available to list.",
 				Type:        pb.ColumnType_BOOL,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.HasMoreDestinations"),
 			},
 			{
 				Name:        "last_update_timestamp",
 				Description: "The date and time that the delivery stream was last updated.",
 				Type:        pb.ColumnType_TIMESTAMP,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.LastUpdateTimestamp"),
 			},
 			{
 				Name:        "delivery_stream_encryption_configuration",
 				Description: "Indicates the server-side encryption (SSE) status for the delivery stream.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamEncryptionConfiguration"),
 			},
 			{
 				Name:        "destinations",
 				Description: "The destinations for the stream.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.Destinations"),
 			},
 			{
 				Name:        "failure_description",
 				Description: "Provides details in case one of the following operations fails due to an error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,StopDeliveryStreamEncryption.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.FailureDescription"),
 			},
 			{
 				Name:        "source",
 				Description: "If the DeliveryStreamType parameter is KinesisStreamAsSource, a SourceDescription object describing the source Kinesis data stream.",
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.Source"),
 			},
 			{
 				Name:        "tags_src",
@@ -122,7 +112,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        pb.ColumnType_STRING,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamName"),
+				Transform:   transform.FromField("DeliveryStreamName"),
 			},
 			{
 				Name:        "tags",
@@ -136,7 +126,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamDescription.DeliveryStreamARN").Transform(arnToAkas),
+				Transform:   transform.FromField("DeliveryStreamARN").Transform(arnToAkas),
 			},
 		}),
 	}
@@ -202,7 +192,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 		logger.Debug("describeDeliveryStream__", "ERROR", err)
 		return nil, err
 	}
-	return data, nil
+	return data.DeliveryStreamDescription, nil
 }
 
 // API call for fetching tag list
