@@ -170,7 +170,7 @@ select * from aws_account
 
 You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
 
-```
+```hcl
 connection "aws_all" {
   plugin      = "aws" 
   type        = "aggregator"
