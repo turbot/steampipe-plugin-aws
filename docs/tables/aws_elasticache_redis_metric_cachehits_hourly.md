@@ -5,7 +5,6 @@ Amazon CloudWatch Metrics provide data about the performance of your systems.  T
 
 ## Examples
 
-
 ### Basic info
 
 ```sql
