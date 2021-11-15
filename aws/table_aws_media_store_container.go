@@ -221,8 +221,6 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	var arn string
 	if h.Item != nil {
 		arn = *h.Item.(*mediastore.Container).ARN
-	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
 	// Create Session
