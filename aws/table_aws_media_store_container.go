@@ -185,8 +185,6 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	var containerName string
 	if h.Item != nil {
 		containerName = *h.Item.(*mediastore.Container).Name
-	} else {
-		containerName = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
 	// Create Session
