@@ -1,3 +1,9 @@
+## v0.39.1 [2021-11-15]
+
+_Bug fixes_
+
+- Fixed: Queries will no longer panic when encountering an error due to invalid references in the `ShouldRetry` function ([#763](https://github.com/turbot/steampipe-plugin-aws/pull/763))
+
 ## v0.39.0 [2021-11-12]
 
 _What's new?_
