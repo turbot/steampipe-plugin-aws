@@ -18,6 +18,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
 			Hydrate:    describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
@@ -83,6 +84,20 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				Description: "The Region where Secrets Manager originated the secret.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeSecretsManagerSecret,
+			},
+			{
+				Name:        "policy",
+				Description: "A JSON-formatted string that describes the permissions that are associated with the attached secret.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecretsManagerSecretPolicy,
+				Transform:   transform.FromField("ResourcePolicy"),
+			},
+			{
+				Name:        "policy_std",
+				Description: "Contains the permissions that are associated with the attached secret in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecretsManagerSecretPolicy,
+				Transform:   transform.FromField("ResourcePolicy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
 				Name:        "replication_status",
@@ -167,7 +182,7 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 	return nil, err
 }
 
-//// HYDRATE FUNCTION
+//// HYDRATE FUNCTIONS
 
 func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("describeSecretsManagerSecret")
@@ -199,6 +214,38 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 	return op, nil
+}
+
+func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getSecretsManagerSecretPolicy")
+
+	var arn string
+	if h.Item != nil {
+		data := secretData(h.Item)
+		arn = data["ARN"]
+	}
+
+	// Create Session
+	svc, err := SecretsManagerService(ctx, d)
+	if err != nil {
+		logger.Error("getSecretsManagerSecretPolicy", "error_SecretsManagerService", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &secretsmanager.GetResourcePolicyInput{
+		SecretId: &arn,
+	}
+
+	// Get call
+	data, err := svc.GetResourcePolicy(params)
+	if err != nil {
+		logger.Error("getSecretsManagerSecretPolicy", "error_GetResourcePolicy", err)
+		return nil, err
+	}
+
+	return data, nil
 }
 
 //// TRANSFORM FUNCTION
