@@ -224,8 +224,6 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 	if h.Item != nil {
 		data := secretData(h.Item)
 		arn = data["ARN"]
-	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
 	// Create Session
