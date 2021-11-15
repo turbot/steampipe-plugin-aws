@@ -24,7 +24,6 @@ order by
 ```
 
 
-
 ### CacheHit sum below 10 
 
 ```sql
