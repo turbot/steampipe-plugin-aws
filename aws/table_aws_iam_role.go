@@ -112,7 +112,7 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Name:        "role_last_used_region",
 				Description: "Contains the region in which the IAM role was used.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:   	 getIamRole,
+				Hydrate:     getIamRole,
 				Transform:   transform.FromField("RoleLastUsed.Region"),
 			},
 			{
