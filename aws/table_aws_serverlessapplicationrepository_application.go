@@ -178,6 +178,10 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 		applicationId = d.KeyColumnQuals["application_id"].GetStringValue()
 	}
 
+	if applicationId == "" {
+		return nil, nil
+	}
+
 	// Create service
 	svc, err := ServerlessApplicationRepositoryService(ctx, d)
 	if err != nil {
@@ -207,8 +211,6 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	var applicationId string
 	if h.Item != nil {
 		applicationId = *serverlessApplicationRepositoryApplicationID(h.Item)
-	} else {
-		applicationId = d.KeyColumnQuals["application_id"].GetStringValue()
 	}
 
 	// Create service
