@@ -1829,8 +1829,10 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 				awsErr.OrigErr()="Get "http://169.254.169.254/latest/meta-data/iam/security-credentials/": dial tcp 169.254.169.254:80: connect: no route to host"
 				To reduce the time to fail, limit the number of retries for these errors specifically.
 			*/
-			if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") && req.RetryCount > 3 {
-				return false
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") && req.RetryCount > 3 {
+					return false
+				}
 			}
 		}
 	}
