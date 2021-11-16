@@ -126,13 +126,6 @@ resource "aws_security_group" "ssh-allowed" {
     }
 }
 
-#  aws_iam_service_linked_role is managed by AWS itself we can not create/modify/delete it.
-# https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html?icmpid=docs_iam_console#iam-term-service-linked-role
-
-# resource "aws_iam_service_linked_role" "elasticbeanstalk" {
-#    aws_service_name = "elasticbeanstalk.amazonaws.com"
-#    }
-
 resource "aws_elastic_beanstalk_application" "application_test" {
   name = var.resource_name
   appversion_lifecycle {
