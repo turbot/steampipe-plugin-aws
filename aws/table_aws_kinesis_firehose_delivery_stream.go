@@ -126,7 +126,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        pb.ColumnType_JSON,
 				Hydrate:     describeFirehoseDeliveryStream,
-				Transform:   transform.FromField("DeliveryStreamARN").Transform(arnToAkas),
+				Transform:   transform.FromField("DeliveryStreamARN").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -173,6 +173,11 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	} else {
 		quals := d.KeyColumnQuals
 		streamName = quals["delivery_stream_name"].GetStringValue()
+	}
+
+	// check if streamName is empty
+	if streamName == "" {
+		return nil, nil
 	}
 
 	// get service
