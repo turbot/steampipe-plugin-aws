@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
@@ -16,8 +17,9 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_alias",
 		Description: "AWS Lambda Alias",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"name", "function_name"}),
-			Hydrate:    getLambdaAlias,
+			KeyColumns:        plugin.AllColumns([]string{"name", "function_name"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			Hydrate:           getLambdaAlias,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -60,6 +62,21 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Alias.Description"),
 			},
+			{
+				Name:        "policy",
+				Description: "Contains the resource-based policy.",
+				Hydrate:     getLambdaAliasPolicy,
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "policy_std",
+				Description: "Contains the contents of the resource-based policy in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getLambdaAliasPolicy,
+				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -133,4 +150,35 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	return &aliasRowData{rowData, aws.String(functionName)}, nil
+}
+
+func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaAliasPolicy")
+
+	alias := h.Item.(*aliasRowData)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_LambdaService", err)
+		return nil, err
+	}
+
+	input := &lambda.GetPolicyInput{
+		FunctionName: aws.String(*alias.FunctionName),
+		Qualifier: aws.String(*alias.Alias.Name),
+	}
+
+	op, err := svc.GetPolicy(input)
+	if err != nil {
+		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_GetPolicy", err)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "ResourceNotFoundException" {
+				return lambda.GetPolicyOutput{}, nil
+			}
+		}
+		return nil, err
+	}
+
+	return op, nil
 }
