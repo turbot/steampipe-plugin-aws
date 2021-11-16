@@ -191,7 +191,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				pagesLeft = false
+				return nil, nil
 			}
 		}
 
