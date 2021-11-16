@@ -613,18 +613,15 @@ func EcrService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
 
 // EcrPublicService returns the service connection for AWS ECRPublic service
 func EcrPublicService(ctx context.Context, d *plugin.QueryData) (*ecrpublic.ECRPublic, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed EcrPublicService")
-	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("ecrpublic-%s", region)
+	serviceCacheKey := fmt.Sprintf("ecrpublic-%s", "region")
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ecrpublic.ECRPublic), nil
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, region)
+	// DescribeRepositories command is only supported in us-east-1
+	sess, err := getSession(ctx, d, "")
 	if err != nil {
 		return nil, err
 	}

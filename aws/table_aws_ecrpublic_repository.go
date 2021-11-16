@@ -25,7 +25,6 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
 		},
-		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
