@@ -15,6 +15,7 @@
         "PolicyARN": "{{ output.policy_arn.value }}",
         "PolicyName": "{{resourceName}}",
         "PolicyType": "SimpleScaling",
+        "PredictiveScalingConfiguration": null,
         "ScalingAdjustment": 4,
         "StepAdjustments": null,
         "TargetTrackingConfiguration": null
