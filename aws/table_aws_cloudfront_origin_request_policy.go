@@ -131,7 +131,7 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				pagesLeft = false
+				return nil, nil
 			}
 		}
 		if response.OriginRequestPolicyList.NextMarker != nil {
