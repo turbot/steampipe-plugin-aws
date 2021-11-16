@@ -19,8 +19,8 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("backup_plan_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			KeyColumns:        plugin.AllColumns([]string{"backup_plan_id", "region"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException"}),
 			Hydrate:           getAwsBackupPlan,
 		},
 		List: &plugin.ListConfig{
@@ -48,11 +48,6 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date",
 				Description: "The date and time a resource backup plan is created.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-			{
-				Name:        "deletion_date",
-				Description: "The date and time a backup plan is deleted.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -123,6 +118,8 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
+
 	// Create Session
 	svc, err := BackupService(ctx, d)
 	if err != nil {
@@ -135,11 +132,10 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = *plan.BackupPlanId
 	} else {
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
-	}
-
-	// check if id is empty
-	if id == "" {
-		return nil, nil
+		region := d.KeyColumnQuals["region"].GetStringValue()
+		if region != matrixRegion || id == "" || region == "" {
+			return nil, nil
+		}
 	}
 
 	params := &backup.GetBackupPlanInput{
@@ -150,7 +146,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "ResourceNotFoundException" {
-				return backup.GetBackupPlanOutput{}, nil
+				return nil, nil
 			}
 		}
 		return nil, err
