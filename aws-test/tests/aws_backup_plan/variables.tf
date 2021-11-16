@@ -67,4 +67,3 @@ output "id" {
 output "resource_aka" {
   value = aws_backup_plan.named_test_resource.arn
 }
- 
