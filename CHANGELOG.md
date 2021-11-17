@@ -1,3 +1,25 @@
+## v0.40.0 [2021-11-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_log_resource_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_log_resource_policy) ([#747](https://github.com/turbot/steampipe-plugin-aws/pull/747))
+  - [aws_media_store_container](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_media_store_container) ([#749](https://github.com/turbot/steampipe-plugin-aws/pull/749))
+
+_Enhancements_
+
+- Updated: Add `policy_std` column to the `aws_ecrpublic_repository` table ([#778](https://github.com/turbot/steampipe-plugin-aws/pull/778))
+- Updated: Add `policy_std` column to the `aws_ecr_repository table([#780](https://github.com/turbot/steampipe-plugin-aws/pull/780))
+- Updated: Add columns `policy` and `policy_std` to `aws_lambda_alias` table ([#774](https://github.com/turbot/steampipe-plugin-aws/pull/774))
+- Updated: Add columns `policy` and `policy_std` to `aws_lambda_version` table ([#776](https://github.com/turbot/steampipe-plugin-aws/pull/776))
+- Updated: Add columns `policy` and `policy_std` to `aws_secretsmanager_secret` table ([#745](https://github.com/turbot/steampipe-plugin-aws/pull/745))
+
+_Bug fixes_
+
+- Fixed: Handle exceptions in the get call of `aws_kinesis_firehose_delivery_stream` table ([#769](https://github.com/turbot/steampipe-plugin-aws/pull/769))
+- Fixed: Remove duplicate data from the `aws_backup_plan` table ([#767](https://github.com/turbot/steampipe-plugin-aws/pull/767))
+- Fixed: No such host error in the `aws_ecrpublic_repository` table ([#770](https://github.com/turbot/steampipe-plugin-aws/pull/770))
+
 ## v0.39.1 [2021-11-15]
 
 _Bug fixes_
