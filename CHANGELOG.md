@@ -9,7 +9,7 @@ _What's new?_
 _Enhancements_
 
 - Updated: Add `policy_std` column to the `aws_ecrpublic_repository` table ([#778](https://github.com/turbot/steampipe-plugin-aws/pull/778))
-- Updated: Add `policy_std` column to the `aws_ecr_repository table([#780](https://github.com/turbot/steampipe-plugin-aws/pull/780))
+- Updated: Add `policy_std` column to the `aws_ecr_repository` table ([#780](https://github.com/turbot/steampipe-plugin-aws/pull/780))
 - Updated: Add columns `policy` and `policy_std` to the `aws_lambda_alias` table ([#774](https://github.com/turbot/steampipe-plugin-aws/pull/774))
 - Updated: Add columns `policy` and `policy_std` to the `aws_lambda_version` table ([#776](https://github.com/turbot/steampipe-plugin-aws/pull/776))
 - Updated: Add columns `policy` and `policy_std` to the `aws_secretsmanager_secret` table ([#745](https://github.com/turbot/steampipe-plugin-aws/pull/745))
