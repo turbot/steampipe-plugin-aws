@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
@@ -16,8 +17,9 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_version",
 		Description: "AWS Lambda Version",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
-			Hydrate:    getFunctionVersion,
+			KeyColumns:        plugin.AllColumns([]string{"version", "function_name"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			Hydrate:           getFunctionVersion,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -118,6 +120,19 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VpcConfig.VpcId"),
 			},
 			{
+				Name:        "policy",
+				Description: "Contains the resource-based policy.",
+				Hydrate:     getFunctionVersionPolicy,
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "policy_std",
+				Description: "Contains the contents of the resource-based policy in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getFunctionVersionPolicy,
+				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "vpc_security_group_ids",
 				Description: "A list of VPC security groups IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
@@ -212,4 +227,35 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	return nil, nil
+}
+
+func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getFunctionVersionPolicy")
+
+	alias := h.Item.(*lambda.FunctionConfiguration)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_LambdaService", err)
+		return nil, err
+	}
+
+	input := &lambda.GetPolicyInput{
+		FunctionName: aws.String(*alias.FunctionName),
+		Qualifier: aws.String(*alias.Version),
+	}
+
+	op, err := svc.GetPolicy(input)
+	if err != nil {
+		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_GetPolicy", err)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "ResourceNotFoundException" {
+				return lambda.GetPolicyOutput{}, nil
+			}
+		}
+		return nil, err
+	}
+
+	return op, nil
 }

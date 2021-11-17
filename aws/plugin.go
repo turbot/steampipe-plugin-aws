@@ -196,6 +196,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_layer_version":                                     tableAwsLambdaLayerVersion(ctx),
 			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
+			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
