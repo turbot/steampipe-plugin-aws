@@ -10,15 +10,15 @@ _Enhancements_
 
 - Updated: Add `policy_std` column to the `aws_ecrpublic_repository` table ([#778](https://github.com/turbot/steampipe-plugin-aws/pull/778))
 - Updated: Add `policy_std` column to the `aws_ecr_repository table([#780](https://github.com/turbot/steampipe-plugin-aws/pull/780))
-- Updated: Add columns `policy` and `policy_std` to `aws_lambda_alias` table ([#774](https://github.com/turbot/steampipe-plugin-aws/pull/774))
-- Updated: Add columns `policy` and `policy_std` to `aws_lambda_version` table ([#776](https://github.com/turbot/steampipe-plugin-aws/pull/776))
-- Updated: Add columns `policy` and `policy_std` to `aws_secretsmanager_secret` table ([#745](https://github.com/turbot/steampipe-plugin-aws/pull/745))
+- Updated: Add columns `policy` and `policy_std` to the `aws_lambda_alias` table ([#774](https://github.com/turbot/steampipe-plugin-aws/pull/774))
+- Updated: Add columns `policy` and `policy_std` to the `aws_lambda_version` table ([#776](https://github.com/turbot/steampipe-plugin-aws/pull/776))
+- Updated: Add columns `policy` and `policy_std` to the `aws_secretsmanager_secret` table ([#745](https://github.com/turbot/steampipe-plugin-aws/pull/745))
 
 _Bug fixes_
 
-- Fixed: Handle exceptions in the get call of `aws_kinesis_firehose_delivery_stream` table ([#769](https://github.com/turbot/steampipe-plugin-aws/pull/769))
+- Fixed: `aws_kinesis_firehose_delivery_stream` table now includes better error handling ([#769](https://github.com/turbot/steampipe-plugin-aws/pull/769))
 - Fixed: Remove duplicate data from the `aws_backup_plan` table ([#767](https://github.com/turbot/steampipe-plugin-aws/pull/767))
-- Fixed: No such host error in the `aws_ecrpublic_repository` table ([#770](https://github.com/turbot/steampipe-plugin-aws/pull/770))
+- Fixed: `aws_ecrpublic_repository` table will now return an empty row instead of an error when we try to query for any region other than `us-east-1` ([#770](https://github.com/turbot/steampipe-plugin-aws/pull/770))
 
 ## v0.39.1 [2021-11-15]
 
