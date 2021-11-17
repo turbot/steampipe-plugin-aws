@@ -52,7 +52,7 @@ resource "aws_iam_instance_profile" "instance_profile" {
 }
 
 resource "aws_iam_role" "role" {
-  name = "test_role"
+  name = var.resource_name
   path = "/"
 
   assume_role_policy = <<EOF
@@ -126,21 +126,17 @@ resource "aws_security_group" "ssh-allowed" {
     }
 }
 
-resource "aws_iam_service_linked_role" "elasticbeanstalk" {
-   aws_service_name = "elasticbeanstalk.amazonaws.com"
-   }
-
 resource "aws_elastic_beanstalk_application" "application_test" {
   name = var.resource_name
   appversion_lifecycle {
-    service_role = "${aws_iam_service_linked_role.elasticbeanstalk.arn}"
+    service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/elasticbeanstalk.amazonaws.com/AWSServiceRoleForElasticBeanstalk"
   }
 }
 
 resource "aws_elastic_beanstalk_environment" "named_test_resource" {
   name                   = var.resource_name
   application            = "${aws_elastic_beanstalk_application.application_test.name}"
-  solution_stack_name    = "64bit Amazon Linux 2 v3.2.0 running Go 1"
+  solution_stack_name    = "64bit Amazon Linux 2 v3.4.2 running Go 1"
   wait_for_ready_timeout = "45m"
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
