@@ -67,6 +67,13 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("PolicyText"),
 			},
 			{
+				Name:        "policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Hydrate:     getAwsEcrpublicRepositoryPolicy,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PolicyText").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the repository.",
 				Type:        proto.ColumnType_JSON,
