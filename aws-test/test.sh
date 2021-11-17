@@ -144,6 +144,7 @@ run_test aws_lambda_alias
 run_test aws_lambda_function
 run_test aws_lambda_version
 run_test aws_macie2_classification_job
+run_test aws_media_store_container
 run_test aws_organizations_account
 run_test aws_rds_db_cluster
 run_test aws_rds_db_cluster_parameter_group

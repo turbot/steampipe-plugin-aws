@@ -1,6 +1,6 @@
 module github.com/turbot/steampipe-plugin-aws
 
-go 1.15
+go 1.17
 
 require (
 	github.com/aws/aws-sdk-go v1.40.57
@@ -8,5 +8,5 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
 	github.com/turbot/go-kit v0.3.0
-	github.com/turbot/steampipe-plugin-sdk v1.8.0
+	github.com/turbot/steampipe-plugin-sdk v1.8.1-beta.0
 )
