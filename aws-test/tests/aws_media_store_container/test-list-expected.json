@@ -1,0 +1,10 @@
+[
+  {
+    "arn": "{{ output.resource_arn.value }}",
+    "endpoint": "{{ output.endpoint.value }}",
+    "name": "{{ resourceName }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]
