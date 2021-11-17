@@ -28,6 +28,7 @@
           },
           "CompressionFormat": "UNCOMPRESSED",
           "DataFormatConversionConfiguration": null,
+          "DynamicPartitioningConfiguration": null,
           "EncryptionConfiguration": {
             "KMSEncryptionConfig": null,
             "NoEncryptionConfig": "NoEncryption"
