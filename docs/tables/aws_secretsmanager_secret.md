@@ -61,3 +61,14 @@ from
 where
   replication_status is null;
 ```
+
+### List policy details for the secrets
+
+```sql
+select
+  name,
+  jsonb_pretty(policy) as policy,
+  jsonb_pretty(policy_std) as policy_std
+from
+  aws_secretsmanager_secret;
+```

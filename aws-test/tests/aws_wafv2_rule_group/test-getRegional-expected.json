@@ -11,13 +11,16 @@
     "rules": [
       {
         "Action": {
-          "Allow": {},
+          "Allow": {
+            "CustomRequestHandling": null
+          },
           "Block": null,
           "Count": null
         },
         "Name": "rule-1",
         "OverrideAction": null,
         "Priority": 1,
+        "RuleLabels": null,
         "Statement": {
           "AndStatement": null,
           "ByteMatchStatement": null,
@@ -29,10 +32,12 @@
             "ForwardedIPConfig": null
           },
           "IPSetReferenceStatement": null,
+          "LabelMatchStatement": null,
           "ManagedRuleGroupStatement": null,
           "NotStatement": null,
           "OrStatement": null,
           "RateBasedStatement": null,
+          "RegexMatchStatement": null,
           "RegexPatternSetReferenceStatement": null,
           "RuleGroupReferenceStatement": null,
           "SizeConstraintStatement": null,
