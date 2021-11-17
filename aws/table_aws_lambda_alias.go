@@ -17,7 +17,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_alias",
 		Description: "AWS Lambda Alias",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "function_name"}),
+			KeyColumns:        plugin.AllColumns([]string{"name", "function_name", "region"}),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
 			Hydrate:           getLambdaAlias,
 		},
@@ -126,10 +126,16 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// HYDRATE FUNCTIONS
 
 func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("getLambdaAlias")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
+	region := d.KeyColumnQuals["region"].GetStringValue()
+
+	if name == "" || functionName == "" || region == "" || region != matrixRegion {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := LambdaService(ctx, d)
@@ -166,7 +172,7 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	input := &lambda.GetPolicyInput{
 		FunctionName: aws.String(*alias.FunctionName),
-		Qualifier: aws.String(*alias.Alias.Name),
+		Qualifier:    aws.String(*alias.Alias.Name),
 	}
 
 	op, err := svc.GetPolicy(input)
