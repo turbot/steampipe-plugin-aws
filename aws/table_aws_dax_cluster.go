@@ -23,7 +23,8 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 			Hydrate:           getDaxCluster,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDaxClusters,
+			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundFault"}),
+			Hydrate:           listDaxClusters,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
