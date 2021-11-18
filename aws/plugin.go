@@ -150,7 +150,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_parameter_group":                              tableAwsElastiCacheParameterGroup(ctx),
 			"aws_elasticache_replication_group":                            tableAwsElastiCacheReplicationGroup(ctx),
 			"aws_elasticache_subnet_group":                                 tableAwsElastiCacheSubnetGroup(ctx),
-			"aws_elasticache_redis_metric_cachehits_hourly":                tableAwsElasticacheRedisMetricCacheHitsHourly(ctx),
+			"aws_elasticache_redis_metric_cache_hits_hourly":                tableAwsElasticacheRedisMetricCacheHitsHourly(ctx),
 			"aws_elasticache_redis_metric_listbasedcmds_hourly":            tableAwsElasticacheRedisMetricListBasedCmdsHourly(ctx),
 			"aws_elasticache_redis_metric_gettypecmds_hourly":              tableAwsElasticacheRedisMetricGetTypeCmdsHourly(ctx),
 			"aws_elasticache_redis_metric_currconnections_hourly":          tableAwsElasticacheRedisMetricCurrConnectionsHourly(ctx),
