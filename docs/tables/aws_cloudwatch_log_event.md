@@ -7,7 +7,7 @@ This table lists events from a CloudWatch log group.
 **Important notes:**
 
 - You **_must_** specify `log_group_name` in a `where` clause in order to use this table.
-- This table supports optional quals. Queries with optional quals are optimised to used CloudWatch filters. Optional quals are supported for the following columns:
+- This table supports optional quals. Queries with optional quals are optimised to use CloudWatch filters. Optional quals are supported for the following columns:
   - `filter`
   - `log_stream_name`
   - `region`
@@ -72,7 +72,7 @@ from
   aws_cloudwatch_log_event
 where
   log_group_name = 'cis/test-log-grp'
-  and filter = '{$.eventName="DescribeVpcs"}'
+  and filter = '{$.eventName="DescribeVpcs"}';
 ```
 
 ### List events with filter pattern based on **errorCode**
@@ -89,7 +89,7 @@ from
   aws_cloudwatch_log_event
 where
   log_group_name = 'cis/test-log-grp'
-  and filter = '{ ($.errorCode = "*UnauthorizedOperation") || ($.errorCode = "AccessDenied*") }'
+  and filter = '{ ($.errorCode = "*UnauthorizedOperation") || ($.errorCode = "AccessDenied*") }';
 ```
 
 ### List events with specific time frame in hour(s)
@@ -108,7 +108,7 @@ where
   log_group_name = 'cis/test-log-grp'
   and filter = '{$.eventName = "AuthorizeSecurityGroupIngress"}'
   and region = 'us-east-1'
-  and timestamp >= now() - interval '3 hours'
+  and timestamp >= now() - interval '3 hours';
 ```
 
 ### List events containing either of the **eventName** in the pattern
@@ -127,8 +127,7 @@ where
   log_group_name = 'cis/test-log-grp'
   and filter = '{($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}'
   and region = 'us-east-1'
-  and timestamp >= now() - interval '1 hour'
-
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ### List events with specific attributes
@@ -146,5 +145,5 @@ from
 where
   log_group_name = 'cis/test-log-grp'
   and filter = '{$.userIdentity.sessionContext.sessionIssuer.userName="turbot_superuser"}'
-  and timestamp >= now() - interval '1 day'
+  and timestamp >= now() - interval '1 day';
 ```
