@@ -10,13 +10,13 @@ import (
 )
 
 //// TABLE DEFINITION
-func tableAwsElasticacheRedisMetricCacheHitsHourly(_ context.Context) *plugin.Table {
+func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_elasticache_redis_metric_cachehits_hourly",
-		Description: "AWS Elasticache Redis CacheHits metric (Hourly)",
+		Name:        "aws_elasticache_redis_metric_get_type_cmds_hourly",
+		Description: "AWS Elasticache Redis GetTypeCmds metric(Hourly)",
 		List: &plugin.ListConfig{
 			ParentHydrate: listElastiCacheClusters,
-			Hydrate:       listElastiCacheMetricCacheHitsHourly,
+			Hydrate:       listElastiCacheMetricGetTypeCmdsHourly,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
@@ -31,7 +31,7 @@ func tableAwsElasticacheRedisMetricCacheHitsHourly(_ context.Context) *plugin.Ta
 	}
 }
 
-func listElastiCacheMetricCacheHitsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheMetricGetTypeCmdsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	cacheClusterConfiguration := h.Item.(*elasticache.CacheCluster)
-	return listCWMetricStatistics(ctx, d, "Hourly", "AWS/ElastiCache", "CacheHits", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
+	return listCWMetricStatistics(ctx, d, "Hourly", "AWS/ElastiCache", "GetTypeCmds", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
 }

@@ -1,10 +1,8 @@
 # Table: aws_elasticache_redis_metric_currconnections_hourly
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_elasticache_redis_metric_currconnections_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
-
+Amazon CloudWatch Metrics provide data about the performance of your systems.The `aws_elasticache_redis_metric_currconnections_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
 
 ## Examples
-
 
 ### Basic info
 
@@ -23,8 +21,6 @@ order by
   cacheclusterid,
   timestamp;
 ```
-
-
 
 ### currconnections Over 100 average
 

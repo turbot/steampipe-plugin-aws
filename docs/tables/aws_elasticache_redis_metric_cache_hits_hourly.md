@@ -1,7 +1,6 @@
-# Table: aws_elasticache_redis_metric_cachehits_hourly
+# Table: aws_elasticache_redis_metric_cache_hits_hourly
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_elasticache_redis_metric_cachehits_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
-
+Amazon CloudWatch Metrics provide data about the performance of your systems.The `aws_elasticache_redis_metric_cache_hits_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
 
 ## Examples
 
@@ -17,7 +16,7 @@ select
   sum,
   sample_count
 from
-  aws_elasticache_redis_metric_cachehits_hourly
+  aws_elasticache_redis_metric_cache_hits_hourly
 order by
   cacheclusterid,
   timestamp;
@@ -34,7 +33,7 @@ select
   round(average::numeric,2) as average_cachehits,
   sample_count
 from
-  aws_elasticache_redis_metric_cachehits_hourly
+  aws_elasticache_redis_metric_cache_hits_hourly
 where sum < 10
 order by
   cacheclusterid,
@@ -52,7 +51,7 @@ select
   round(average::numeric,2) as avg_cachehits,
   sample_count
 from
-  aws_elasticache_redis_metric_cachehits_hourly
+  aws_elasticache_redis_metric_cache_hits_hourly
 where average < 100
 order by
   cacheclusterid,

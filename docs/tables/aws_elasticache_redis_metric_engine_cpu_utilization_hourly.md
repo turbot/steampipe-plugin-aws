@@ -1,10 +1,8 @@
-# Table: aws_elasticache_redis_metric_enginecpuutilization_hourly
+# Table: aws_elasticache_redis_metric_engine_cpu_utilization_hourly
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.  The `aws_elasticache_redis_metric_enginecpuutilization_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
-
+Amazon CloudWatch Metrics provide data about the performance of your systems.The `aws_elasticache_redis_metric_engine_cpu_utilization_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
 
 ## Examples
-
 
 ### Basic info
 
@@ -17,13 +15,11 @@ select
   average,
   sample_count
 from
-  aws_elasticache_redis_metric_enginecpuutilization_hourly
+  aws_elasticache_redis_metric_engine_cpu_utilization_hourly
 order by
   cacheclusterid,
   timestamp;
 ```
-
-
 
 ### CPU Over 80% average
 
@@ -36,7 +32,7 @@ select
   round(average::numeric,2) as avg_cpu,
   sample_count
 from
-  aws_elasticache_redis_metric_enginecpuutilization_hourly
+  aws_elasticache_redis_metric_engine_cpu_utilization_hourly
 where average > 80
 order by
   cacheclusterid,
@@ -54,7 +50,7 @@ select
   round(average::numeric,2) as avg_cpu,
   sample_count
 from
-  aws_elasticache_redis_metric_enginecpuutilization_hourly
+  aws_elasticache_redis_metric_engine_cpu_utilization_hourly
 where average < 2
 order by
   cacheclusterid,

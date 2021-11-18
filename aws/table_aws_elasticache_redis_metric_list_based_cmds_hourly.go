@@ -12,7 +12,7 @@ import (
 //// TABLE DEFINITION
 func tableAwsElasticacheRedisMetricListBasedCmdsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_elasticache_redis_metric_listbasedcmds_hourly",
+		Name:        "aws_elasticache_redis_metric_list_based_cmds_hourly",
 		Description: "AWS Elasticache Redis ListBasedCmds metric (Hourly)",
 		List: &plugin.ListConfig{
 			ParentHydrate: listElastiCacheClusters,
