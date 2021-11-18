@@ -22,7 +22,7 @@ func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{
-					Name:        "cacheclusterid",
+					Name:        "cache_cluster_id",
 					Description: "The cache cluster id",
 					Type:        proto.ColumnType_STRING,
 					Transform:   transform.FromField("DimensionValue"),
