@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -135,7 +136,7 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDaxClusterTags,
-				Transform:   transform.From(daxClusterTurbotData),
+				Transform:   transform.FromValue().Transform(daxClusterTurbotData),
 			},
 			{
 				Name:        "akas",
@@ -224,6 +225,9 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	clusterdata, err := svc.ListTags(params)
 	if err != nil {
+		if strings.Contains(err.Error(), "ClusterNotFoundFault") {
+			return nil, nil
+		}
 		return nil, err
 	}
 
