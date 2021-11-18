@@ -155,7 +155,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticache_redis_metric_gettypecmds_hourly":              tableAwsElasticacheRedisMetricGetTypeCmdsHourly(ctx),
 			"aws_elasticache_redis_metric_currconnections_hourly":          tableAwsElasticacheRedisMetricCurrConnectionsHourly(ctx),
 			"aws_elasticache_redis_metric_newconnections_hourly":           tableAwsElasticacheRedisMetricNewConnectionsHourly(ctx),
-			"aws_elasticache_redis_metric_enginecpuutilization_hourly":     tableAwsElasticacheRedisEngineCPUUtilizationHourly(ctx),
+			"aws_elasticache_redis_metric_engine_cpu_utilization_hourly":     tableAwsElasticacheRedisEngineCPUUtilizationHourly(ctx),
 			"aws_elasticsearch_domain":                                     tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster":                                              tableAwsEmrCluster(ctx),
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
