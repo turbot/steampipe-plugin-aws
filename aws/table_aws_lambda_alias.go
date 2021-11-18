@@ -133,7 +133,7 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
 	region := d.KeyColumnQuals["region"].GetStringValue()
 
-	if name == "" || functionName == "" || region == "" || region != matrixRegion {
+	if name == "" || functionName == "" || region != matrixRegion {
 		return nil, nil
 	}
 
