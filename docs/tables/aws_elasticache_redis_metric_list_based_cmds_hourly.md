@@ -1,6 +1,6 @@
 # Table: aws_elasticache_redis_metric_list_based_cmds_hourly
 
-Amazon CloudWatch Metrics provide data about the performance of your systems.The `aws_elasticache_redis_metric_list_based_cmds_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
+Amazon CloudWatch Metrics provide data about the performance of your systems. The `aws_elasticache_redis_metric_list_based_cmds_hourly` table provides metric statistics at 1 hour intervals for the most recent 60 days.
 
 ## Examples
 
@@ -8,7 +8,7 @@ Amazon CloudWatch Metrics provide data about the performance of your systems.The
 
 ```sql
 select
-  cacheclusterid,
+  cache_cluster_id,
   timestamp,
   minimum,
   maximum,
@@ -18,7 +18,7 @@ select
 from
   aws_elasticache_redis_metric_list_based_cmds_hourly
 order by
-  cacheclusterid,
+  cache_cluster_id,
   timestamp;
 ```
 
@@ -26,7 +26,7 @@ order by
 
 ```sql
 select
-  cacheclusterid,
+  cache_cluster_id,
   timestamp,
   round(minimum::numeric,2) as min_listbasedcmds,
   round(maximum::numeric,2) as max_listbasedcmds,
@@ -36,6 +36,6 @@ from
   aws_elasticache_redis_metric_list_based_cmds_hourly
 where sum > 100
 order by
-  cacheclusterid,
+  cache_cluster_id,
   timestamp;
 ```

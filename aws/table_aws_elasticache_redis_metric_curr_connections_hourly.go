@@ -12,7 +12,7 @@ import (
 //// TABLE DEFINITION
 func tableAwsElasticacheRedisMetricCurrConnectionsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_elasticache_redis_metric_currconnections_hourly",
+		Name:        "aws_elasticache_redis_metric_curr_connections_hourly",
 		Description: "AWS Elasticache Redis CurrConnections metric (Hourly)",
 		List: &plugin.ListConfig{
 			ParentHydrate: listElastiCacheClusters,
@@ -23,7 +23,7 @@ func tableAwsElasticacheRedisMetricCurrConnectionsHourly(_ context.Context) *plu
 			[]*plugin.Column{
 				{
 					Name:        "cache_cluster_id",
-					Description: "The cache cluster id",
+					Description: "The cache cluster id.",
 					Type:        proto.ColumnType_STRING,
 					Transform:   transform.FromField("DimensionValue"),
 				},
