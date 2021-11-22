@@ -136,7 +136,7 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDaxClusterTags,
-				Transform:   transform.FromValue().Transform(daxClusterTurbotData),
+				Transform:   transform.From(daxClusterTurbotData),
 			},
 			{
 				Name:        "akas",
@@ -163,6 +163,11 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for pagesLeft {
 		result, err := svc.DescribeClusters(params)
 		if err != nil {
+			// Dax Cluster is not available in all regions yet and throws exceptions for those regions
+			// https://aws.amazon.com/about-aws/whats-new/2018/04/amazon-dynamodb-accelerator-regional-expansion/
+			if strings.Contains(err.Error(), "InvalidParameterValueException") || strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			return nil, err
 		}
 
