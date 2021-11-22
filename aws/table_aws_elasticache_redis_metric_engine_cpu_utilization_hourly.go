@@ -23,7 +23,7 @@ func tableAwsElasticacheRedisEngineCPUUtilizationHourly(_ context.Context) *plug
 			[]*plugin.Column{
 				{
 					Name:        "cache_cluster_id",
-					Description: "The cache cluster id",
+					Description: "The cache cluster id.",
 					Type:        proto.ColumnType_STRING,
 					Transform:   transform.FromField("DimensionValue"),
 				},
