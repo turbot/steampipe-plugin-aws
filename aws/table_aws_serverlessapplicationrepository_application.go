@@ -17,7 +17,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		Name:        "aws_serverlessapplicationrepository_application",
 		Description: "AWS Serverless Application Repository Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"arn"}),
+			KeyColumns:        plugin.SingleColumn("arn"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "NotFoundException"}),
 			Hydrate:           getServerlessApplicationRepositoryApplication,
 		},
