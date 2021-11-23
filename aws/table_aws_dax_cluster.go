@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -23,7 +24,8 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 			Hydrate:           getDaxCluster,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDaxClusters,
+			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundFault"}),
+			Hydrate:           listDaxClusters,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -161,6 +163,11 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for pagesLeft {
 		result, err := svc.DescribeClusters(params)
 		if err != nil {
+			// Dax Cluster is not available in all regions yet and throws exceptions for those regions
+			// https://aws.amazon.com/about-aws/whats-new/2018/04/amazon-dynamodb-accelerator-regional-expansion/
+			if strings.Contains(err.Error(), "InvalidParameterValueException") || strings.Contains(err.Error(), "no such host") {
+				return nil, nil
+			}
 			return nil, err
 		}
 
@@ -223,6 +230,9 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	clusterdata, err := svc.ListTags(params)
 	if err != nil {
+		if strings.Contains(err.Error(), "ClusterNotFoundFault") {
+			return nil, nil
+		}
 		return nil, err
 	}
 
