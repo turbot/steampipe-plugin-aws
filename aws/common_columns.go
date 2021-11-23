@@ -103,7 +103,6 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if region == "" {
 		region = "global"
 	}
-	plugin.Logger(ctx).Trace("getCommonColumns", "region", region)
 
 	var commonColumnData *awsCommonColumnData
 	getCallerIdentityCached := plugin.HydrateFunc(getCallerIdentity).WithCache()
