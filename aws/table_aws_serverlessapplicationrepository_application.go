@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
@@ -16,8 +17,8 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		Name:        "aws_serverlessapplicationrepository_application",
 		Description: "AWS Serverless Application Repository Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"application_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException", "NotFoundException"}),
+			KeyColumns:        plugin.AllColumns([]string{"arn"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "NotFoundException"}),
 			Hydrate:           getServerlessApplicationRepositoryApplication,
 		},
 		List: &plugin.ListConfig{
@@ -31,9 +32,10 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "application_id",
+				Name:        "arn",
 				Description: "The application Amazon Resource Name (ARN).",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ApplicationId"),
 			},
 			{
 				Name:        "author",
@@ -171,14 +173,14 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	logger := plugin.Logger(ctx)
 	logger.Trace("getServerlessApplicationRepositoryApplication")
 
-	var applicationId string
+	var arn string
 	if h.Item != nil {
-		applicationId = *serverlessApplicationRepositoryApplicationID(h.Item)
+		arn = *serverlessApplicationRepositoryArn(h.Item)
 	} else {
-		applicationId = d.KeyColumnQuals["application_id"].GetStringValue()
+		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
-	if applicationId == "" {
+	if arn == "" {
 		return nil, nil
 	}
 
@@ -191,13 +193,19 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 
 	// Build the params
 	params := &serverlessapplicationrepository.GetApplicationInput{
-		ApplicationId: &applicationId,
+		ApplicationId: &arn,
 	}
 
 	// Get call
 	data, err := svc.GetApplication(params)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplication", "error_GetApplication", err)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "AccessDeniedException" {
+				return nil, errors.New("Unauthorized or InvalidFormat")
+			}
+		}
+		
 		return nil, err
 	}
 
@@ -208,9 +216,9 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	logger := plugin.Logger(ctx)
 	logger.Trace("getServerlessApplicationRepositoryApplicationPolicy")
 
-	var applicationId string
+	var arn string
 	if h.Item != nil {
-		applicationId = *serverlessApplicationRepositoryApplicationID(h.Item)
+		arn = *serverlessApplicationRepositoryArn(h.Item)
 	}
 
 	// Create service
@@ -222,7 +230,7 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 
 	// Build the params
 	params := &serverlessapplicationrepository.GetApplicationPolicyInput{
-		ApplicationId: &applicationId,
+		ApplicationId: &arn,
 	}
 
 	// Get call
@@ -240,7 +248,7 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	return data, nil
 }
 
-func serverlessApplicationRepositoryApplicationID(item interface{}) *string {
+func serverlessApplicationRepositoryArn(item interface{}) *string {
 	switch item := item.(type) {
 	case *serverlessapplicationrepository.ApplicationSummary:
 		return item.ApplicationId

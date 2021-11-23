@@ -1,3 +1,3 @@
-select application_id, author, description, name
+select arn, author, description, name
 from aws_serverlessapplicationrepository_application
 where name = '{{ output.name.value }}';

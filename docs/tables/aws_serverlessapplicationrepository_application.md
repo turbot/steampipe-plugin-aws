@@ -11,7 +11,7 @@ A serverless application is a combination of Lambda functions, event sources, an
 ```sql
 select
   name,
-  application_id,
+  arn,
   author,
   creation_time,
   description
@@ -25,7 +25,7 @@ from
 ```sql
 select
   name,
-  application_id,
+  arn,
   author,
   is_verified_author
 from

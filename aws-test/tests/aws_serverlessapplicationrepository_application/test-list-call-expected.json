@@ -1,6 +1,6 @@
 [
   {
-    "application_id": "{{ output.application_id.value }}",
+    "arn": "{{ output.arn.value }}",
     "author": "{{ output.author.value }}",
     "description": "{{ output.description.value }}",
     "name": "{{ output.name.value }}"

@@ -62,7 +62,7 @@ data "local_file" "input" {
   filename   = local.path
 }
 
-output "application_id" {
+output "arn" {
   depends_on = [null_resource.named_test_resource]
   value      = jsondecode(data.local_file.input.content).ApplicationId
 }
