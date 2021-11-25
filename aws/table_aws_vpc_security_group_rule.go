@@ -171,7 +171,6 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sgRule := h.Item.(*vpcSecurityGroupRulesRowData)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Error("getSecurityGroupRuleTurbotData", *sgRule.Permission.IpProtocol)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -197,7 +196,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 		hashCode = hashCode + "_" + *sgRule.PrefixListId.PrefixListId
 	}
 
-	// // generate aka for the rule
+	// generate aka for the rule
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *sgRule.Group.OwnerId + ":security-group/" + *sgRule.Group.GroupId + ":" + hashCode}
 
 	title := *sgRule.Group.GroupId + "_" + hashCode
