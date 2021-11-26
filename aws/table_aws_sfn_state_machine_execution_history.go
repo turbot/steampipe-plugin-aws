@@ -4,10 +4,9 @@ import (
 	"context"
 	"strconv"
 	"strings"
-	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -18,8 +17,14 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 		Name:        "aws_sfn_state_machine_execution_history",
 		Description: "AWS Step Functions State Machine Execution History",
 		List: &plugin.ListConfig{
-			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
-			ParentHydrate: listStepFunctionsStateManchines,
+			Hydrate:           listStepFunctionsStateMachineExecutionHistories,
+			ShouldIgnoreError: isNotFoundError([]string{"ExecutionDoesNotExist", "InvalidParameter", "InvalidArn"}),
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "execution_arn",
+					Require: plugin.Required,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -220,7 +225,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(executionHistoryArn),
+				Transform:   transform.From(executionHistoryAkas),
 			},
 		}),
 	}
@@ -240,30 +245,40 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
 	}
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
 
-	stateMachineArn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
-	var executions []sfn.ExecutionListItem
+	arn := d.KeyColumnQuals["execution_arn"].GetStringValue()
+	accountId := commonColumnData.AccountId
 
-	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(1000),
-		StateMachineArn: stateMachineArn,
+	// check if the arn is empty or it contains a valid accountId
+	if arn == "" || accountId != strings.Split(arn, ":")[4] {
+		return nil, nil
+	}
+
+	params := &sfn.GetExecutionHistoryInput{
+		ExecutionArn: aws.String(arn),
+		MaxResults:   aws.Int64(1000),
 	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+		if *limit < *params.MaxResults {
+			params.MaxResults = limit
 		}
 	}
 
-	// List call
-	err = svc.ListExecutionsPages(
-		input,
-		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
-			for _, execution := range page.Executions {
-				executions = append(executions, *execution)
+	err = svc.GetExecutionHistoryPages(
+		params,
+		func(page *sfn.GetExecutionHistoryOutput, isLast bool) bool {
+			for _, events := range page.Events {
+				d.StreamListItem(ctx, historyInfo{*events, arn})
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
@@ -278,77 +293,13 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-	executionCh := make(chan []historyInfo, len(executions))
-	errorCh := make(chan error, len(executions))
-
-	// Iterating all the available executions
-	for _, item := range executions {
-		wg.Add(1)
-		go getRowDataForExecutionHistoryAsync(ctx, d, *item.ExecutionArn, &wg, executionCh, errorCh)
-	}
-
-	// wait for all executions to be processed
-	wg.Wait()
-	close(executionCh)
-	close(errorCh)
-
-	for err := range errorCh {
-		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "getRowDataForExecutionHistoryAsync_error", err)
-		return nil, err
-	}
-
-	for item := range executionCh {
-		for _, data := range item {
-			d.StreamLeafListItem(ctx, historyInfo{data.HistoryEvent, data.ExecutionArn})
-		}
-	}
-
 	return nil, nil
-}
-
-func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData, arn string, wg *sync.WaitGroup, executionCh chan []historyInfo, errorCh chan error) {
-	defer wg.Done()
-
-	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
-	if err != nil {
-		errorCh <- err
-	} else if rowData != nil {
-		executionCh <- rowData
-	}
-}
-
-func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn string) ([]historyInfo, error) {
-	// Create session
-	svc, err := StepFunctionsService(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
-		return nil, err
-	}
-
-	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn: types.String(arn),
-	}
-
-	var items []historyInfo
-
-	listHistory, err := svc.GetExecutionHistory(params)
-	if err != nil {
-		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "GetExecutionHistory_error", err)
-		return nil, err
-	}
-
-	for _, event := range listHistory.Events {
-		items = append(items, historyInfo{*event, arn})
-	}
-
-	return items, nil
 }
 
 //// Transform Function
 
-func executionHistoryArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("executionHistoryArn")
+func executionHistoryAkas(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("executionHistoryAkas")
 	history := d.HydrateItem.(historyInfo)
 
 	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld
