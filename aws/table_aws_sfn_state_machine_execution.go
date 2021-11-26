@@ -2,7 +2,9 @@ package aws
 
 import (
 	"context"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -21,6 +23,12 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
 			ParentHydrate: listStepFunctionsStateManchines,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "status",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -111,23 +119,43 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
 	}
-	
+
 	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
+	input := &sfn.ListExecutionsInput{
+		StateMachineArn: arn,
+		MaxResults:      aws.Int64(1000),
+	}
+	if d.KeyColumnQuals["status"] != nil {
+		status := d.KeyColumnQuals["status"].GetStringValue()
+		input.StatusFilter = aws.String(status)
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
 
 	err = svc.ListExecutionsPages(
-		&sfn.ListExecutionsInput{
-			StateMachineArn: arn,
-		},
+		input,
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
 				d.StreamListItem(ctx, execution)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
 	)
-	
+
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "ListExecutionsPages_error", err)
+		if strings.Contains(err.Error(), "ValidationException") {
+			return nil, nil
+		}
 		return nil, err
 	}
 
