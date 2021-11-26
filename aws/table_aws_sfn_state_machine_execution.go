@@ -130,6 +130,8 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		input.StatusFilter = aws.String(status)
 	}
 
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {

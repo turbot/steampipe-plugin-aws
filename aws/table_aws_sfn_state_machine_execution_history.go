@@ -2,9 +2,9 @@ package aws
 
 import (
 	"context"
-	"sync"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/go-kit/types"
@@ -245,7 +245,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	var executions []sfn.ExecutionListItem
 
 	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(100),
+		MaxResults:      types.Int64(1000),
 		StateMachineArn: stateMachineArn,
 	}
 
@@ -264,6 +264,10 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
 				executions = append(executions, *execution)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -321,7 +325,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
 	}
-
 
 	params := &sfn.GetExecutionHistoryInput{
 		ExecutionArn: types.String(arn),

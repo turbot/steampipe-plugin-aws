@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -117,11 +118,28 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &sfn.ListStateMachinesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
+
 	err = svc.ListStateMachinesPages(
-		&sfn.ListStateMachinesInput{},
+		input,
 		func(page *sfn.ListStateMachinesOutput, isLast bool) bool {
 			for _, stateMachine := range page.StateMachines {
 				d.StreamListItem(ctx, stateMachine)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
