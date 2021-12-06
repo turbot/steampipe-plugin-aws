@@ -18,7 +18,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_managed_prefix_list",
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAction"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
 			Hydrate:           listManagedPrefixList,
 		},
 		GetMatrixItem: BuildRegionList,
@@ -105,9 +105,8 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	logger.Trace("listManagedPrefixList", "AWS_REGION", region)
 
-	ownerIds := d.KeyColumnQuals["owner_id"].GetStringValue()
-	prefixListIds := d.KeyColumnQuals["prefix_list_id"].GetStringValue()
-	prefixListNames := d.KeyColumnQuals["prefix_list_name"].GetStringValue()
+	equalQuals := d.KeyColumnQuals
+	filters := []*ec2.Filter{}
 
 	// Create Session
 	svc, err := Ec2Service(ctx, d, region)
@@ -117,21 +116,36 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	}
 
 	params := &ec2.DescribeManagedPrefixListsInput{
-		MaxResults: aws.Int64(1000),
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("owner-id"),
-				Values: []*string{aws.String(ownerIds)},
-			},
-			{
-				Name:   aws.String("prefix-list-id"),
-				Values: []*string{aws.String(prefixListIds)},
-			},
-			{
-				Name:   aws.String("prefix-list-name"),
-				Values: []*string{aws.String(prefixListNames)},
-			},
-		},
+		MaxResults: aws.Int64(100),
+	}
+
+	if equalQuals["owner_id"] != nil {
+		ownerIdFilter := ec2.Filter{
+			Name:   aws.String("owner-id"),
+			Values: []*string{aws.String(equalQuals["owner_id"].GetStringValue())},
+		}
+		filters = append(filters, &ownerIdFilter)
+	}
+
+	if equalQuals["prefix_list_id"] != nil {
+		prefixListIds := ec2.Filter{
+			Name:   aws.String("prefix-list-id"),
+			Values: []*string{aws.String(equalQuals["prefix_list_id"].GetStringValue())},
+		}
+		filters = append(filters, &prefixListIds)
+	}
+
+	if equalQuals["prefix_list_name"] != nil {
+		prefixListNameFilter := ec2.Filter{
+			Name:   aws.String("prefix-list-name"),
+			Values: []*string{aws.String(equalQuals["prefix_list_name"].GetStringValue())},
+		}
+		filters = append(filters, &prefixListNameFilter)
+	}
+
+	// Add filters as request parameter when at least one filter is present
+	if len(filters) > 0 {
+		params.Filters = filters
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -145,7 +159,7 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	// List call
 	err = svc.DescribeManagedPrefixListsPages(
-		&ec2.DescribeManagedPrefixListsInput{},
+		params,
 		func(page *ec2.DescribeManagedPrefixListsOutput, isLast bool) bool {
 			for _, prefixList := range page.PrefixLists {
 				d.StreamListItem(ctx, prefixList)
