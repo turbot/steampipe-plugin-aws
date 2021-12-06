@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableEc2AwsManagedPrefixList(_ context.Context) *plugin.Table {
+func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_managed_prefix_list",
 		Description: "AWS EC2 Managed Prefix List",
