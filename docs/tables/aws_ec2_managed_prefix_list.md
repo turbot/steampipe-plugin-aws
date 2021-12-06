@@ -13,9 +13,9 @@ There are two types of prefix lists:
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
-  prefix_list_arn,
+  name,
+  id,
+  arn,
   state,
   owner_id
 from
@@ -26,9 +26,9 @@ from
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
-  prefix_list_arn,
+  name,
+  id,
+  arn,
   state,
   owner_id
 from
@@ -41,8 +41,8 @@ where
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
+  name,
+  id,
   address_family
 from
   aws_ec2_managed_prefix_list
@@ -54,39 +54,39 @@ where
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
-  prefix_list_arn,
+  name,
+  id,
+  arn,
   state,
   owner_id
 from
   aws_ec2_managed_prefix_list
 where
-  prefix_list_id in ('pl-0a81b1c04d3d1485f', 'pl-4ca54025');
+  id in ('pl-03a3e735e3467c0c4', 'pl-4ca54025');
 ```
 
 ### List prefix lists by specific names
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
-  prefix_list_arn,
+  name,
+  id,
+  arn,
   state,
   owner_id
 from
   aws_ec2_managed_prefix_list
 where
-  prefix_list_name in ('testPrefix', 'com.amazonaws.us-east-2.dynamodb');
+  name in ('testPrefix', 'com.amazonaws.us-east-2.dynamodb');
 ```
 
 ### List prefix lists by a specific owner ID
 
 ```sql
 select
-  prefix_list_name,
-  prefix_list_id,
-  prefix_list_arn,
+  name,
+  id,
+  arn,
   state,
   owner_id
 from

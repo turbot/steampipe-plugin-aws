@@ -1,9 +1,9 @@
 [
   {
     "address_family": "{{ output.address_family.value }}",
-    "owner_id": "{{ output.owner_id.value }}",
-    "prefix_list_arn": "{{ output.arn.value }}",
-    "prefix_list_id": "{{ output.id.value }}",
-    "prefix_list_name": "{{ resourceName }}"
+    "arn": "{{ output.arn.value }}",
+    "id": "{{ output.id.value }}",
+    "name": "{{ resourceName }}",
+    "owner_id": "{{ output.owner_id.value }}"
   }
 ]

@@ -24,19 +24,22 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "prefix_list_name",
+				Name:        "name",
 				Description: "The name of the prefix list.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PrefixListName"),
 			},
 			{
-				Name:        "prefix_list_id",
+				Name:        "id",
 				Description: "The ID of the prefix list.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PrefixListId"),
 			},
 			{
-				Name:        "prefix_list_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) for the prefix list.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PrefixListArn"),
 			},
 			{
 				Name:        "state",
@@ -127,20 +130,20 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		filters = append(filters, &ownerIdFilter)
 	}
 
-	if equalQuals["prefix_list_id"] != nil {
-		prefixListIds := ec2.Filter{
+	if equalQuals["id"] != nil {
+		idFilter := ec2.Filter{
 			Name:   aws.String("prefix-list-id"),
-			Values: []*string{aws.String(equalQuals["prefix_list_id"].GetStringValue())},
+			Values: []*string{aws.String(equalQuals["id"].GetStringValue())},
 		}
-		filters = append(filters, &prefixListIds)
+		filters = append(filters, &idFilter)
 	}
 
-	if equalQuals["prefix_list_name"] != nil {
-		prefixListNameFilter := ec2.Filter{
+	if equalQuals["name"] != nil {
+		nameFilter := ec2.Filter{
 			Name:   aws.String("prefix-list-name"),
-			Values: []*string{aws.String(equalQuals["prefix_list_name"].GetStringValue())},
+			Values: []*string{aws.String(equalQuals["name"].GetStringValue())},
 		}
-		filters = append(filters, &prefixListNameFilter)
+		filters = append(filters, &nameFilter)
 	}
 
 	// Add filters as request parameter when at least one filter is present
@@ -161,8 +164,8 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	err = svc.DescribeManagedPrefixListsPages(
 		params,
 		func(page *ec2.DescribeManagedPrefixListsOutput, isLast bool) bool {
-			for _, prefixList := range page.PrefixLists {
-				d.StreamListItem(ctx, prefixList)
+			for _, prefix := range page.PrefixLists {
+				d.StreamListItem(ctx, prefix)
 			}
 			return !isLast
 		},
