@@ -67,6 +67,13 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("PolicyText"),
 			},
 			{
+				Name:        "policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Hydrate:     getAwsEcrpublicRepositoryPolicy,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PolicyText").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the repository.",
 				Type:        proto.ColumnType_JSON,
@@ -101,6 +108,14 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
+	// DescribeRepositories command is only supported in us-east-1
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region != "us-east-1" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
@@ -127,6 +142,14 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicRepository")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
+	// DescribeRepositories command is only supported in us-east-1
+	if region != "us-east-1" {
+		return nil, nil
+	}
 
 	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 

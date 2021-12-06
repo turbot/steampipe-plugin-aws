@@ -6,13 +6,13 @@ brand_color: "#FF9900"
 display_name: "Amazon Web Services"
 short_name: "aws"
 description: "Steampipe plugin for querying instances, buckets, databases and more from AWS."
-og_description: "Query AWS with SQL! Open source CLI. No DB required." 
+og_description: "Query AWS with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/aws-social-graphic.png"
 ---
 
 # AWS + Steampipe
 
-[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis. 
+[AWS](https://aws.amazon.com/) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
 
 [Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
 
@@ -65,21 +65,21 @@ steampipe plugin install aws
 
 ### Configuration
 
-Installing the latest aws plugin will create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`: 
+Installing the latest aws plugin will create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`:
 ```hcl
 connection "aws" {
-  plugin    = "aws"    
+  plugin    = "aws"
 
-  # You may connect to one or more regions. If `regions` is not specified, 
-  # Steampipe will use a single default region using the same resolution 
+  # You may connect to one or more regions. If `regions` is not specified,
+  # Steampipe will use a single default region using the same resolution
   # order as the aws cli:
   #  1. The `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable
   #  2. The region specified in the active profile (`AWS_PROFILE` or default)
   #regions     = ["us-east-1", "us-west-2"]
 
-  # If no credentials are specified, the plugin will use the AWS credentials 
-  # resolver to get the current credentials in the same manner as the CLI 
-  #  Alternatively, you may set static credentials with the `access_key`, 
+  # If no credentials are specified, the plugin will use the AWS credentials
+  # resolver to get the current credentials in the same manner as the CLI
+  #  Alternatively, you may set static credentials with the `access_key`,
   # `secret_key`, and `session_token` arguments, or select a named profile
   # from an AWS credential file with the `profile` argument:
   #profile     = "profile2"
@@ -92,7 +92,7 @@ connection "aws" {
 ## Get Involved
 
 * Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
+* Community: [Slack Channel](https://steampipe.io/community/join)
 
 
 
@@ -100,31 +100,31 @@ connection "aws" {
 By default, AWS connections behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
 ```hcl
 connection "aws" {
-  plugin    = "aws"    
+  plugin    = "aws"
   regions   = ["eu-west-1", "ca-central-1", "us-west-2", "ap-southeast-2", "sa-east-1", "ap-northeast-1", "eu-west-3", "ap-northeast-2", "us-east-1",  "eu-central-1", "us-west-1", "us-east-2", "ap-south-1", "eu-north-1",  "ap-southeast-1"]
 }
 ```
 
 The `region` argument supports wildcards:
-- All regions 
+- All regions
   ```hcl
   connection "aws" {
-    plugin    = "aws"    
-    regions   = ["*"] 
+    plugin    = "aws"
+    regions   = ["*"]
   }
   ```
 - All regions (gov-cloud)
   ```hcl
   connection "aws" {
-    plugin    = "aws"    
-    regions   = ["us-gov*"] 
+    plugin    = "aws"
+    regions   = ["us-gov*"]
   }
   ```
-- All US and EU regions 
+- All US and EU regions
   ```hcl
   connection "aws" {
-    plugin    = "aws"    
-    regions   = ["us-*", "eu-*"] 
+    plugin    = "aws"
+    regions   = ["us-*", "eu-*"]
   }
   ```
 
@@ -132,25 +132,25 @@ AWS multi-region connections are common, but be aware that performance may be im
 
 
 
-## Multi-Account Connections 
+## Multi-Account Connections
 
 
 You may create multiple aws connections:
 ```hcl
 connection "aws_01" {
-  plugin      = "aws" 
+  plugin      = "aws"
   profile     = "aws_01"
   regions     = ["us-east-1", "us-west-2"]
 }
 
 connection "aws_02" {
-  plugin      = "aws" 
+  plugin      = "aws"
   profile     = "aws_02"
   regions     = ["*"]
 }
 
 connection "aws_03" {
-  plugin      = "aws" 
+  plugin      = "aws"
   profile     = "aws_03"
   regions     = ["us-*"]
 }
@@ -170,9 +170,9 @@ select * from aws_account
 
 You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
 
-```
+```hcl
 connection "aws_all" {
-  plugin      = "aws" 
+  plugin      = "aws"
   type        = "aggregator"
   connections = ["aws_01", "aws_02", "aws_03"]
 }
@@ -188,7 +188,7 @@ Steampipe supports the `*` wildcard in the connection names.  For example, to ag
 ```hcl
 connection "aws_all" {
   type        = "aggregator"
-  plugin      = "aws"  
+  plugin      = "aws"
   connections = ["aws_*"]
 }
 ```
@@ -218,13 +218,13 @@ aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 #### aws.spc:
 ```hcl
 connection "aws_account_y" {
-  plugin      = "aws" 
+  plugin      = "aws"
   profile     = "profile_y"
   regions     = ["us-east-1", "us-west-2"]
 }
 
 connection "aws_account_z" {
-  plugin      = "aws" 
+  plugin      = "aws"
   profile     = "profile_z"
   regions     = ["ap-southeast-1", "ap-southeast-2"]
 }
@@ -241,8 +241,8 @@ Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/
 #### aws credential file:
 ```ini
 
-[aws_000000000000] 
-sso_start_url = https://d-9a672b0000.awsapps.com/start 
+[aws_000000000000]
+sso_start_url = https://d-9a672b0000.awsapps.com/start
 sso_region = us-east-2
 sso_account_id = 000000000000
 sso_role_name = SSO-ReadOnly
@@ -254,7 +254,7 @@ region = us-east-1
 
 ```hcl
 connection "aws_000000000000" {
-  plugin    = "aws"  
+  plugin    = "aws"
   profile   = "aws_000000000000"
   regions   = ["us-west-2", "us-east-1",  "us-west-1", "us-east-2"]
 }
@@ -299,7 +299,7 @@ Note that Steampipe cannot prompt you for your token currently, so you must auth
 
 #### aws credential file:
 ```bash
-[user_account]  
+[user_account]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
 mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
@@ -330,7 +330,7 @@ credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault
 [aws_account_123456789012]
 source_profile = vault_user_account
 role_arn =  arn:aws:iam::123456789012:role/my_role
-mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa 
+mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
 ```
 #### aws.spc:
 
@@ -343,14 +343,14 @@ connection "aws_account_123456789012" {
 ```
 
 
-### IAM Access Key Pair Credentials 
-The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.  
+### IAM Access Key Pair Credentials
+The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.
 
 ```hcl
 connection "aws_account_x" {
-  plugin      = "aws" 
+  plugin      = "aws"
   secret_key  = "gMCYsoGqjfThisISNotARealKeyVVhh"
-  access_key  = "ASIA3ODZSWFYSN2PFHPJ"  
+  access_key  = "ASIA3ODZSWFYSN2PFHPJ"
   regions     = ["us-east-1" , "us-west-2"]
 }
 ```
@@ -368,7 +368,7 @@ export AWS_ROLE_SESSION_NAME=steampipe@myaccount
 ```
 ```hcl
 connection "aws" {
-  plugin      = "aws" 
+  plugin      = "aws"
 }
 ```
 
@@ -378,7 +378,7 @@ If you are running Steampipe on a AWS EC2 instance, and that instance has an [in
 
 ```hcl
 connection "aws" {
-  plugin      = "aws" 
+  plugin      = "aws"
   regions     = ["eu-west-1", "eu-west-2"]
 }
 ```

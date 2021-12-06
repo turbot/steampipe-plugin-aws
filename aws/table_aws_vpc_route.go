@@ -31,7 +31,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
-				Description: "The ID of the route table conatining the route.",
+				Description: "The ID of the route table containing the route.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RouteTableID"),
 			},
