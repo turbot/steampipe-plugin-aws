@@ -92,5 +92,5 @@ select
 from
   aws_ec2_managed_prefix_list
 where
-  owner_id = '632902152528';
+  owner_id = '632901234528';
 ```
