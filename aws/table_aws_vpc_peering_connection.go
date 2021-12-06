@@ -167,7 +167,7 @@ func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := getRequestParameters(d)
+	params := getVpcPeeringConnectionRequestParameters(d)
 
 	// List call
 	err = svc.DescribeVpcPeeringConnectionsPages(
@@ -204,7 +204,7 @@ func vpcPeeringConnectionTags(_ context.Context, d *transform.TransformData) (in
 	return nil, nil
 }
 
-func getRequestParameters(d *plugin.QueryData) (*ec2.DescribeVpcPeeringConnectionsInput) {
+func getVpcPeeringConnectionRequestParameters(d *plugin.QueryData) (*ec2.DescribeVpcPeeringConnectionsInput) {
 	filters := []*ec2.Filter{}
 	equalQuals := d.KeyColumnQuals
 	params := &ec2.DescribeVpcPeeringConnectionsInput{
