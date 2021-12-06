@@ -18,8 +18,8 @@ func tableEc2AwsManagedPrefixList(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_managed_prefix_list",
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
-			Hydrate: 		   listManagedPrefixList,
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAction"}),
+			Hydrate:           listManagedPrefixList,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
