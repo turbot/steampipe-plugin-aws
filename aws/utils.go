@@ -156,7 +156,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
-	} else if utf8.Valid(data) == false {
+	} else if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
 	}
 	return data, nil
