@@ -51,7 +51,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connections by specific VPC IDs
+### List VPC peering connections by specific VPC peering connection IDs
 
 ```sql
 select
