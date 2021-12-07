@@ -96,7 +96,17 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connections by tag key
+### List tag names for VPC peering connections
+
+```sql
+select
+  id,
+  tags ->> 'Name' as name 
+from
+  aws_vpc_peering_connection;
+```
+
+### List VPC peering connections by key of a tag assigned to the resource
 
 ```sql
 select
@@ -109,7 +119,7 @@ where
   key = 'turbot:TurbotCreatedPeeringConnection';
 ```
 
-### List VPC peering connections by tag key value
+### List VPC peering connections by key/value combination of a tag assigned to the resource
 
 ```sql
 select
