@@ -84,3 +84,39 @@ select
 from
   aws_vpc_peering_connection;
 ```
+
+### List VPC peering connection tag information
+
+```sql
+select
+  id,
+  jsonb_pretty(tags) as tags,
+  jsonb_pretty(tags_src) as tags_src
+from
+  aws_vpc_peering_connection;
+```
+
+### List VPC peering connections by tag key
+
+```sql
+select
+  id,
+  jsonb_pretty(tags) as tags
+from
+  aws_vpc_peering_connection,
+  jsonb_each(tags)
+where
+  key = 'turbot:TurbotCreatedPeeringConnection';
+```
+
+### List VPC peering connections by tag key value
+
+```sql
+select
+  id,
+  jsonb_pretty(tags) as tags
+from
+  aws_vpc_peering_connection
+where
+  tags @> '{"Name": "vpc-0639e12347e5b6bfb <=> vpc-8e1234f5"}';
+```
