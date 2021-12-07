@@ -67,9 +67,9 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "compliance_by_config_rule",
-				Description: "The compliant status of the AWS Config rule.",
+				Description: "he compliance information of the config rule.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCompliantStatus,
+				Hydrate:     getComplianceByConfigRules,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -193,8 +193,8 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return op, nil
 }
 
-func getCompliantStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCompliantStatus")
+func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
 
 	// Create Session
 	svc, err := ConfigService(ctx, d)
