@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
@@ -151,8 +152,12 @@ func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}
 
 func base64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data, err := base64.StdEncoding.DecodeString(types.SafeString(d.Value))
+	// check if CorruptInputError or invalid UTF-8
+	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
+	} else if !utf8.Valid(data) {
+		return types.SafeString(d.Value), nil
 	}
 	return data, nil
 }
