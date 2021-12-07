@@ -47,7 +47,7 @@ where
 
 ### List complaince types by config rule
 
-```
+```sql
 select
   name as config_rule_name,
   compliance_status -> 'Compliance' -> 'ComplianceType' as compliance_type
