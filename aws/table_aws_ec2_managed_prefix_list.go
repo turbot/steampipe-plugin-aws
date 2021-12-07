@@ -68,7 +68,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "version",
-				Description: "The state message.",
+				Description: "The version of the prefix list.",
 				Type:        proto.ColumnType_INT,
 			},
 			{
