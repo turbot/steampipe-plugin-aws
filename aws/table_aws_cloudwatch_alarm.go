@@ -214,7 +214,9 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
-	input := &cloudwatch.DescribeAlarmsInput{}
+	input := &cloudwatch.DescribeAlarmsInput{
+		MaxRecords: aws.Int64(1000),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

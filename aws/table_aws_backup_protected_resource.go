@@ -66,7 +66,9 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	input := &backup.ListProtectedResourcesInput{}
+	input := &backup.ListProtectedResourcesInput{
+		MaxResults: aws.Int64(1000),
+	}
 
 	// Limiting the results
 	limit := d.QueryContext.Limit

@@ -163,7 +163,9 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	input := &backup.ListRecoveryPointsByBackupVaultInput{}
+	input := &backup.ListRecoveryPointsByBackupVaultInput{
+		MaxResults: aws.Int64(1000),
+	}
 	input.BackupVaultName = vault.BackupVaultName
 
 	// Additonal Filter

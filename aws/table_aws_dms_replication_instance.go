@@ -204,7 +204,9 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// Build the params
-	input := &databasemigrationservice.DescribeReplicationInstancesInput{}
+	input := &databasemigrationservice.DescribeReplicationInstancesInput{
+		MaxRecords: aws.Int64(100),
+	}
 
 	var filter []*databasemigrationservice.Filter
 

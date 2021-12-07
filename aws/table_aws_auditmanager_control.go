@@ -141,7 +141,9 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
-	input := &auditmanager.ListControlsInput{}
+	input := &auditmanager.ListControlsInput{
+		MaxResults: aws.Int64(1000),
+	}
 	input.ControlType = aws.String("Standard")
 
 	// Limiting the results

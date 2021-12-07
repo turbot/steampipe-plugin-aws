@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 )
 
@@ -104,7 +105,9 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
-	input := &applicationautoscaling.DescribeScalableTargetsInput{}
+	input := &applicationautoscaling.DescribeScalableTargetsInput{
+		MaxResults: aws.Int64(50),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

@@ -109,7 +109,9 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	input := &backup.ListBackupPlansInput{}
+	input := &backup.ListBackupPlansInput{
+		MaxResults: aws.Int64(1000),
+	}
 	input.IncludeDeleted = aws.Bool(true)
 
 	// Limiting the results

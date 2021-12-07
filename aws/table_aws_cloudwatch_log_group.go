@@ -99,7 +99,9 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	input := &cloudwatchlogs.DescribeLogGroupsInput{}
+	input := &cloudwatchlogs.DescribeLogGroupsInput{
+		Limit: aws.Int64(50),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

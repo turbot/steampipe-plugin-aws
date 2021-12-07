@@ -115,7 +115,9 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get backup plan details
 	plan := h.Item.(*backup.PlansListMember)
 
-	input := &backup.ListBackupSelectionsInput{}
+	input := &backup.ListBackupSelectionsInput{
+		MaxResults: aws.Int64(1000),
+	}
 	input.BackupPlanId = aws.String(*plan.BackupPlanId)
 
 	// Limiting the results per page

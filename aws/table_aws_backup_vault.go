@@ -113,7 +113,9 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	input := &backup.ListBackupVaultsInput{}
+	input := &backup.ListBackupVaultsInput{
+		MaxResults: aws.Int64(1000),
+	}
 
 	// Limiting the results per page
 	limit := d.QueryContext.Limit

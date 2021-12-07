@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 
 	"github.com/turbot/go-kit/types"
@@ -116,7 +117,9 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	var input *accessanalyzer.ListAnalyzersInput
+	input := &accessanalyzer.ListAnalyzersInput{
+		MaxResults: aws.Int64(1000),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

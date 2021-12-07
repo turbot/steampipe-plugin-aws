@@ -142,7 +142,9 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	input := &auditmanager.ListAssessmentFrameworksInput{}
+	input := &auditmanager.ListAssessmentFrameworksInput{
+		MaxResults: aws.Int64(1000),
+	}
 	input.FrameworkType = aws.String("Standard")
 
 	// Limiting the results

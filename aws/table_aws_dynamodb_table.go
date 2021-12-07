@@ -208,7 +208,9 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	input := &dynamodb.ListTablesInput{}
+	input := &dynamodb.ListTablesInput{
+		Limit: aws.Int64(100),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

@@ -120,7 +120,9 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	input := &apigateway.GetApiKeysInput{}
+	input := &apigateway.GetApiKeysInput{
+		Limit: aws.Int64(500),
+	}
 
 	// Additonal Filter
 	var equalQuals plugin.KeyColumnEqualsQualMap

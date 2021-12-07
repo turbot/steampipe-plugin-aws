@@ -163,7 +163,9 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	pagesLeft := true
-	params := &dax.DescribeClustersInput{}
+	params := &dax.DescribeClustersInput{
+		MaxResults: aws.Int64(100),
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

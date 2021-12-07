@@ -229,7 +229,9 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	input := &acm.ListCertificatesInput{}
+	input := &acm.ListCertificatesInput{
+		MaxItems: aws.Int64(1000),
+	}
 
 	// Additonal Filter
 	var equalQuals plugin.KeyColumnEqualsQualMap
