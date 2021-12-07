@@ -67,7 +67,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "compliance_by_config_rule",
-				Description: "he compliance information of the config rule.",
+				Description: "The compliance information of the config rule.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getComplianceByConfigRules,
 				Transform:   transform.FromValue(),
@@ -199,6 +199,7 @@ func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create Session
 	svc, err := ConfigService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
 		return nil, err
 	}
 	ruleName := h.Item.(*configservice.ConfigRule).ConfigRuleName
@@ -210,6 +211,7 @@ func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.DescribeComplianceByConfigRule(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
 		return nil, err
 	}
 
