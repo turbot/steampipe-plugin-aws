@@ -44,3 +44,14 @@ from
 where
   name Like '%s3-bucket%';
 ```
+
+### List complaince types by config rule
+
+```
+select
+  name as config_rule_name,
+  compliance_status -> 'Compliance' -> 'ComplianceType' as compliance_type
+from
+  aws_config_rule,
+  jsonb_array_elements(compliance_by_config_rule) as compliance_status;
+```
