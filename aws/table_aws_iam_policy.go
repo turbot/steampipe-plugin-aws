@@ -254,12 +254,12 @@ func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		PolicyArn: policy.Arn,
 	}
 
-	policyUsageData := []*iam.ListEntitiesForPolicyOutput{}
+	policyUsageData := &iam.ListEntitiesForPolicyOutput{}
 
 	err = svc.ListEntitiesForPolicyPages(
 		params,
 		func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
-			policyUsageData = append(policyUsageData, page)
+			policyUsageData = page
 			return !lastPage
 		},
 	)
