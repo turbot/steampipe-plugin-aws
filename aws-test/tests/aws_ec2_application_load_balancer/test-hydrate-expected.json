@@ -31,11 +31,19 @@
         "Value": "false"
       },
       {
+        "Key": "routing.http.xff_client_port.enabled",
+        "Value": "false"
+      },
+      {
         "Key": "routing.http.desync_mitigation_mode",
         "Value": "defensive"
       },
       {
         "Key": "waf.fail_open.enabled",
+        "Value": "false"
+      },
+      {
+        "Key": "routing.http.x_amzn_tls_version_and_cipher_suite.enabled",
         "Value": "false"
       }
     ],

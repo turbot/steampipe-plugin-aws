@@ -20,8 +20,8 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"backup_plan_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			KeyColumns:        plugin.SingleColumn("backup_plan_id"),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException"}),
 			Hydrate:           getAwsBackupPlan,
 		},
 		List: &plugin.ListConfig{
@@ -33,7 +33,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The display name of a saved backup plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "arn",
@@ -88,13 +88,13 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("BackupPlanArn").Transform(arnToAkas),
+				Transform:   transform.FromField("BackupPlanArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -158,6 +158,11 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
 	}
 
+	// check if id is empty
+	if id == "" {
+		return nil, nil
+	}
+
 	params := &backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(id),
 	}
@@ -166,7 +171,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "ResourceNotFoundException" {
-				return backup.GetBackupPlanOutput{}, nil
+				return nil, nil
 			}
 		}
 		return nil, err

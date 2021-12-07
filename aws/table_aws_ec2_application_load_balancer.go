@@ -20,7 +20,7 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Application Load Balancer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
 			Hydrate:           getEc2ApplicationLoadBalancer,
 		},
 		List: &plugin.ListConfig{
@@ -171,6 +171,11 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 
 func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	// check if arn is empty
+	if loadBalancerArn == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d)

@@ -6,13 +6,13 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "ap-southeast-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,7 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_s3_bucket" "firehose_bucket" {
-  bucket = "tf-firehose-bucket"
+  bucket = var.resource_name
   acl    = "private"
 }
 
