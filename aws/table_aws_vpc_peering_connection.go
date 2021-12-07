@@ -29,9 +29,15 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VpcPeeringConnectionId"),
 			},
 			{
+				Name:        "status_code",
+				Description: "The status of the VPC peering connection. Possible values include: 'pending-acceptance', 'failed', 'expired', 'provisioning', 'active', 'deleting', 'deleted' or 'rejected'.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Status.Code"),
+			},
+			{
 				Name:        "accepter_cidr_block",
 				Description: "The IPv4 CIDR block for the accepter VPC.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_CIDR,
 				Transform:   transform.FromField("AccepterVpcInfo.CidrBlock"),
 			},
 			{
@@ -60,7 +66,7 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 			{
 				Name:        "requester_cidr_block",
 				Description: "The IPv4 CIDR block for the requester VPC.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_CIDR,
 				Transform:   transform.FromField("RequesterVpcInfo.CidrBlock"),
 			},
 			{
@@ -80,12 +86,6 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 				Description: "The ID of the requester VPC.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RequesterVpcInfo.VpcId"),
-			},
-			{
-				Name:        "status_code",
-				Description: "The status of the VPC peering connection. Possible values include: 'pending-acceptance', 'failed', 'expired', 'provisioning', 'active', 'deleting', 'deleted' or 'rejected'.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Status.Code"),
 			},
 			{
 				Name:        "status_message",
