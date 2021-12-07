@@ -66,6 +66,13 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "compliance_by_config_rule",
+				Description: "The compliance information of the config rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getComplianceByConfigRules,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "input_parameters",
 				Description: "A string, in JSON format, that is passed to the AWS Config rule Lambda function.",
 				Type:        proto.ColumnType_JSON,
@@ -184,6 +191,31 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return op, nil
+}
+
+func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
+
+	// Create Session
+	svc, err := ConfigService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
+		return nil, err
+	}
+	ruleName := h.Item.(*configservice.ConfigRule).ConfigRuleName
+
+	// Build params
+	params := &configservice.DescribeComplianceByConfigRuleInput{
+		ConfigRuleNames: []*string{ruleName},
+	}
+
+	op, err := svc.DescribeComplianceByConfigRule(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
+		return nil, err
+	}
+
+	return op.ComplianceByConfigRules, nil
 }
 
 //// TRANSFORM FUNCTIONS
