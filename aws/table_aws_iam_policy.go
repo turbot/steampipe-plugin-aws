@@ -113,7 +113,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Name:        "policy_usage",
 				Description: "Lists all IAM users, groups, and roles that the specified managed policy is attached to.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:	 getPolicyUsage,
+				Hydrate:     getPolicyUsage,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -254,12 +254,21 @@ func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		PolicyArn: policy.Arn,
 	}
 
-	usage, err := svc.ListEntitiesForPolicy(params)
+	policyUsageData := []*iam.ListEntitiesForPolicyOutput{}
+
+	err = svc.ListEntitiesForPolicyPages(
+		params,
+		func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
+			policyUsageData = append(policyUsageData, page)
+			return !lastPage
+		},
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return usage, nil
+	return policyUsageData, nil
 }
 
 // isPolicyAwsManaged returns true if policy is aws managed
