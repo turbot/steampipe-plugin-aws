@@ -35,7 +35,7 @@ where
   status_code = 'pending-acceptance';
 ```
 
-### List requester VPC connection information
+### List requester VPC connection details
 
 ```sql
 select
@@ -51,7 +51,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List accepter VPC connection information
+### List accepter VPC connection details
 
 ```sql
 select
@@ -85,7 +85,7 @@ where
   id in ('pcx-0a0403619dd2f3b24', 'pcx-048825e2c43ffd99e');
 ```
 
-### List VPC peering connection with tag details
+### List VPC peering connections with tag details
 
 ```sql
 select
@@ -104,7 +104,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connection by specific tag's key assigned to the resource
+### List VPC peering connections by specific tag's key assigned to the resource
 
 ```sql
 select
