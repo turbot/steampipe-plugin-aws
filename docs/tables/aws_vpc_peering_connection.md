@@ -20,7 +20,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connections in pending acceptance state
+### List VPC peering connections by approval status state
 
 ```sql
 select
