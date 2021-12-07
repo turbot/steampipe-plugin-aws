@@ -20,7 +20,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connections by approval status state
+### List VPC peering connections by approval status
 
 ```sql
 select
@@ -85,7 +85,7 @@ from
   aws_vpc_peering_connection;
 ```
 
-### List VPC peering connection tag information
+### List VPC peering connection with tag details
 
 ```sql
 select
@@ -101,7 +101,7 @@ from
 ```sql
 select
   id,
-  tags ->> 'Name' as name 
+  tags ->> 'Name' as name
 from
   aws_vpc_peering_connection;
 ```
