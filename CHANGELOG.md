@@ -1,3 +1,23 @@
+## v0.42.0 [2021-12-08]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_managed_prefix_list](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_managed_prefix_list) ([#813](https://github.com/turbot/steampipe-plugin-aws/pull/813))
+  - [aws_vpc_peering_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_peering_connection) ([#814](https://github.com/turbot/steampipe-plugin-aws/pull/814))
+
+_Enhancements_
+
+- Added column `prefix_list_id` to `aws_vpc_security_group_rule` table ([#801](https://github.com/turbot/steampipe-plugin-aws/pull/801))
+- Added column `compliance_by_config_rule` to `aws_config_rule` table ([#817](https://github.com/turbot/steampipe-plugin-aws/pull/817))
+- Added additional optional key quals, filter support, and context cancellation handling in several tables ([754](https://github.com/turbot/steampipe-plugin-aws/pull/754))
+- `aws_rds_db_instance` table document now includes a sample query to list mysql instances with SSL disabled in an assigned parameter group ([#806](https://github.com/turbot/steampipe-plugin-aws/pull/806))
+- `README.md` and `docs/index.md` files now have updated Slack channel links
+
+_Bug fixes_
+
+- Fixed the `string field contains invalid UTF-8` error in the `aws_ec2_instance` table ([#812](https://github.com/turbot/steampipe-plugin-aws/pull/812))
+
 ## v0.41.0 [2021-11-23]
 
 _What's new?_
