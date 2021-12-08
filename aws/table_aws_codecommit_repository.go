@@ -128,6 +128,11 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 	for _, repository := range result.Repositories {
 		d.StreamListItem(ctx, repository)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

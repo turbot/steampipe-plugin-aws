@@ -189,6 +189,11 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	for _, stage := range op.Item {
 		d.StreamLeafListItem(ctx, &stageRowData{stage, restAPI.Id})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

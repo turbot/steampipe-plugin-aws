@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -23,6 +24,12 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIKeys,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "customer_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -104,18 +111,48 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create service
 	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
+		logger.Trace("listAPIKeys", "connection error", err)
 		return nil, err
+	}
+
+	input := &apigateway.GetApiKeysInput{
+		Limit: aws.Int64(500),
+	}
+
+	// Additonal Filter
+	var equalQuals plugin.KeyColumnEqualsQualMap
+	if equalQuals["customer_id"] != nil {
+		input.CustomerId = types.String(equalQuals["customer_id"].GetStringValue())
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = types.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.GetApiKeysPages(
-		&apigateway.GetApiKeysInput{},
+		input,
 		func(page *apigateway.GetApiKeysOutput, lastPage bool) bool {
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

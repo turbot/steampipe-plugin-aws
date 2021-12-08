@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -156,13 +157,33 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	input := &auditmanager.ListAssessmentsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.ListAssessmentsPages(
-		&auditmanager.ListAssessmentsInput{},
+		input,
 		func(page *auditmanager.ListAssessmentsOutput, isLast bool) bool {
 			for _, assessment := range page.AssessmentMetadata {
 				d.StreamListItem(ctx, assessment)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

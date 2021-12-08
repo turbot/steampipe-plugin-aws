@@ -26,6 +26,16 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
 			Hydrate:       listAwsAvailabilityZones,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "zone_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		Columns: []*plugin.Column{
 			{
@@ -108,7 +118,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	params := &ec2.DescribeAvailabilityZonesInput{
+	input := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
 		Filters: []*ec2.Filter{
 			{
@@ -118,8 +128,17 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 		},
 	}
 
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["zone_id"] != nil {
+		input.ZoneIds = []*string{aws.String(equalQuals["zone_id"].GetStringValue())}
+	}
+	if equalQuals["name"] != nil {
+		input.ZoneNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	}
+
 	// execute list call
-	resp, err := svc.DescribeAvailabilityZones(params)
+	resp, err := svc.DescribeAvailabilityZones(input)
 	if err != nil {
 		plugin.Logger(ctx).Error("getAwsAvailabilityZone", "region", *region.RegionName, "DescribeAvailabilityZones error", err)
 		return nil, err
@@ -127,6 +146,11 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	for _, zone := range resp.AvailabilityZones {
 		d.StreamLeafListItem(ctx, zone)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

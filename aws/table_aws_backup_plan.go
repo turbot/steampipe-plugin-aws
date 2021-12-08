@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/backup"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -108,12 +109,33 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	includeDeleted := true
+	input := &backup.ListBackupPlansInput{
+		MaxResults: aws.Int64(1000),
+	}
+	input.IncludeDeleted = aws.Bool(true)
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListBackupPlansPages(
-		&backup.ListBackupPlansInput{IncludeDeleted: &includeDeleted},
+		input,
 		func(page *backup.ListBackupPlansOutput, lastPage bool) bool {
 			for _, plan := range page.BackupPlansList {
 				d.StreamListItem(ctx, plan)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

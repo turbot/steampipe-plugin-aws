@@ -188,6 +188,11 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 		for _, integration := range result.Items {
 			d.StreamLeafListItem(ctx, integrationInfo{*integration, *api.ApiId})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

@@ -21,6 +21,12 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConfigurationRecorders,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -90,15 +96,27 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	input := &configservice.DescribeConfigurationRecordersInput{}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ConfigurationRecorderNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	}
+
 	// Pagination not supported as of date
-	op, err := svc.DescribeConfigurationRecorders(
-		&configservice.DescribeConfigurationRecordersInput{})
+	op, err := svc.DescribeConfigurationRecorders(input)
 	if err != nil {
 		return nil, err
 	}
 	if op.ConfigurationRecorders != nil {
 		for _, ConfigurationRecorders := range op.ConfigurationRecorders {
 			d.StreamListItem(ctx, ConfigurationRecorders)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
