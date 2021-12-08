@@ -90,6 +90,22 @@ func rowSourceFromIPPermission(group *ec2.SecurityGroup, permission *ec2.IpPermi
 				IPRange:         r,
 				Ipv6Range:       nil,
 				UserIDGroupPair: nil,
+				PrefixListId:    nil,
+				Type:            groupType,
+			})
+		}
+	}
+
+	// create 1 row per prefix-list Id
+	if permission.PrefixListIds != nil {
+		for _, r := range permission.PrefixListIds {
+			rowSource = append(rowSource, &vpcSecurityGroupRulesRowData{
+				Group:           group,
+				Permission:      permission,
+				IPRange:         nil,
+				Ipv6Range:       nil,
+				UserIDGroupPair: nil,
+				PrefixListId:    r,
 				Type:            groupType,
 			})
 		}
@@ -104,6 +120,7 @@ func rowSourceFromIPPermission(group *ec2.SecurityGroup, permission *ec2.IpPermi
 				IPRange:         nil,
 				Ipv6Range:       r,
 				UserIDGroupPair: nil,
+				PrefixListId:    nil,
 				Type:            groupType,
 			})
 		}
@@ -118,6 +135,7 @@ func rowSourceFromIPPermission(group *ec2.SecurityGroup, permission *ec2.IpPermi
 				IPRange:         nil,
 				Ipv6Range:       nil,
 				UserIDGroupPair: r,
+				PrefixListId:    nil,
 				Type:            groupType,
 			})
 		}
