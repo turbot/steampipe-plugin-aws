@@ -94,7 +94,9 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
-	input := &cloudfront.ListCloudFrontOriginAccessIdentitiesInput{}
+	input := &cloudfront.ListCloudFrontOriginAccessIdentitiesInput{
+		MaxItems: aws.Int64(1000),
+	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
