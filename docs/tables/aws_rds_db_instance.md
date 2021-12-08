@@ -99,9 +99,7 @@ from
   aws_rds_db_instance;
 ```
 
-### List DB instances with SSL disabled in assigned parameter group
-
-**Note**: Example is provided for SQL Server DB engine
+### List SQL Server DB instances with SSL disabled in assigned parameter group
 
 ```sql
 with db_parameter_group as (
