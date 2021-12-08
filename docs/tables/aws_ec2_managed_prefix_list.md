@@ -4,8 +4,8 @@ A prefix list is a set of one or more CIDR blocks. You can use prefix lists to m
 
 There are two types of prefix lists:
 
-* **Customer-managed prefix lists** — Sets of IP address ranges that you define and manage. You can share your prefix list with other AWS accounts, enabling those accounts to reference the prefix list in their own resources.
-* **AWS-managed prefix lists** — Sets of IP address ranges for AWS services. You cannot create, modify, share, or delete an AWS-managed prefix list.
+* **Customer-managed prefix lists** - Sets of IP address ranges that you define and manage. You can share your prefix list with other AWS accounts, enabling those accounts to reference the prefix list in their own resources.
+* **AWS-managed prefix lists** - Sets of IP address ranges for AWS services. You cannot create, modify, share, or delete an AWS-managed prefix list.
 
 ## Examples
 
