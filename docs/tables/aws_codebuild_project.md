@@ -72,7 +72,7 @@ where
   and logs_config -> 'S3Logs' ->> 'Status' = 'DISABLED';
 ```
 
-### List projects which are private
+### List private build projects
 
 ```sql
 select

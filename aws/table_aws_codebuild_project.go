@@ -135,7 +135,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "project_visibility",
-				Description: "The project builds are not visible to the public.",
+				Description: "Visibility of the build project.",
 				Hydrate:     getCodeBuildProject,
 				Type:        proto.ColumnType_STRING,
 			},
