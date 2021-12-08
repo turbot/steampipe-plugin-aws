@@ -247,6 +247,7 @@ func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// Create Session
 	svc, err := IAMService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("getPolicyUsage", "service_connection", err)
 		return nil, err
 	}
 
@@ -265,6 +266,7 @@ func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	)
 
 	if err != nil {
+		plugin.Logger(ctx).Error("getPolicyUsage", "ListEntitiesForPolicyPages", err)
 		return nil, err
 	}
 
