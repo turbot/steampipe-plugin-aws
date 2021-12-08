@@ -132,7 +132,7 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.ConfigRuleNames = []*string{aws.String(equalQuals["type"].GetStringValue())}
+		input.ConfigRuleNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
 	}
 
 	err = svc.DescribeConfigRulesPages(
