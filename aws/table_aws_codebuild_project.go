@@ -134,6 +134,12 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "project_visibility",
+				Description: "The project builds are not visible to the public.",
+				Hydrate:     getCodeBuildProject,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "secondary_artifacts",
 				Description: "An array of ProjectArtifacts objects.",
 				Hydrate:     getCodeBuildProject,
