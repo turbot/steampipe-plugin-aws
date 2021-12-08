@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -141,34 +140,14 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
-	input := &auditmanager.ListControlsInput{
-		MaxResults: aws.Int64(1000),
-	}
-	input.ControlType = aws.String("Standard")
-
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
-
 	// List all standard controls
 	err = svc.ListControlsPages(
-		input,
+		&auditmanager.ListControlsInput{
+			ControlType: aws.String("Standard"),
+		},
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
 				d.StreamListItem(ctx, items)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
 			}
 			return !lastPage
 		},
