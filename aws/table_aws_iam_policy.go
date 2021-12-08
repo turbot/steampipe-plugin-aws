@@ -247,26 +247,23 @@ func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// Create Session
 	svc, err := IAMService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPolicyUsage", "service_connection", err)
 		return nil, err
 	}
 
 	params := &iam.ListEntitiesForPolicyInput{
 		PolicyArn: policy.Arn,
 	}
-
-	policyUsageData := &iam.ListEntitiesForPolicyOutput{}
+	policyUsageData := []*iam.ListEntitiesForPolicyOutput{}
 
 	err = svc.ListEntitiesForPolicyPages(
 		params,
 		func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
-			policyUsageData = page
+			policyUsageData = append(policyUsageData, page)
 			return !lastPage
 		},
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("getPolicyUsage", "ListEntitiesForPolicyPages", err)
 		return nil, err
 	}
 
