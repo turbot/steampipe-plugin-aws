@@ -3,9 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/go-kit/types"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -118,6 +117,12 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("UserIDGroupPair.VpcPeeringConnectionId"),
 			},
 			{
+				Name:        "prefix_list_id",
+				Description: "The ID of the referenced prefix list.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PrefixListId.PrefixListId"),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -185,10 +190,10 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 		hashCode = hashCode + "_" + *sgRule.IPRange.CidrIp
 	} else if sgRule.Ipv6Range != nil && sgRule.Ipv6Range.CidrIpv6 != nil {
 		hashCode = hashCode + "_" + *sgRule.Ipv6Range.CidrIpv6
-	} else if sgRule.Group != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
+	} else if sgRule.Group != nil && sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
 		hashCode = hashCode + "_" + *sgRule.Group.GroupId
-	} else if sgRule.UserIDGroupPair != nil && *sgRule.UserIDGroupPair.GroupId == *sgRule.Group.GroupId {
-		hashCode = hashCode + "_" + *sgRule.UserIDGroupPair.GroupId
+	} else if sgRule.PrefixListId != nil && sgRule.PrefixListId.PrefixListId != nil {
+		hashCode = hashCode + "_" + *sgRule.PrefixListId.PrefixListId
 	}
 
 	// generate aka for the rule
@@ -211,6 +216,7 @@ type vpcSecurityGroupRulesRowData struct {
 	IPRange         *ec2.IpRange
 	Ipv6Range       *ec2.Ipv6Range
 	UserIDGroupPair *ec2.UserIdGroupPair
+	PrefixListId    *ec2.PrefixListId
 	Type            string
 }
 
