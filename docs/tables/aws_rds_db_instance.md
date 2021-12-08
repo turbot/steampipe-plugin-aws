@@ -29,7 +29,6 @@ where
   publicly_accessible;
 ```
 
-
 ### List DB instances which are not authenticated through IAM users and roles
 
 ```sql
@@ -41,7 +40,6 @@ from
 where
   not iam_database_authentication_enabled;
 ```
-
 
 ### Get VPC and subnet info for each DB instance
 
@@ -60,7 +58,6 @@ from
   cross join jsonb_array_elements(subnets) as sub;
 ```
 
-
 ### List DB instances with deletion protection disabled
 
 ```sql
@@ -76,7 +73,6 @@ where
   not deletion_protection;
 ```
 
-
 ### List DB instances with unecrypted storage
 
 ```sql
@@ -91,7 +87,6 @@ where
   not storage_encrypted;
 ```
 
-
 ### Get endpoint info for each DB instance
 
 ```sql
@@ -104,8 +99,9 @@ from
   aws_rds_db_instance;
 ```
 
+### List DB instances with SSL disabled in assigned parameter group
 
-### List mysql instances with SSL disabled in assigned parameter group
+**Note**: Example is provided for SQL Server DB engine
 
 ```sql
 with db_parameter_group as (
