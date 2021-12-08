@@ -48,7 +48,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "address_family",
-				Description: "The IP address version.",
+				Description: "The IP address version of the prefix list.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -63,7 +63,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "state_message",
-				Description: "The state message.",
+				Description: "The message regarding the current state of the prefix list.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
