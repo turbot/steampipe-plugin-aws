@@ -10,8 +10,9 @@ _Enhancements_
 
 - Added column `prefix_list_id` to `aws_vpc_security_group_rule` table ([#801](https://github.com/turbot/steampipe-plugin-aws/pull/801))
 - Added column `compliance_by_config_rule` to `aws_config_rule` table ([#817](https://github.com/turbot/steampipe-plugin-aws/pull/817))
+- Added column `project_visibility` to `aws_codebuild_project` table ([821](https://github.com/turbot/steampipe-plugin-aws/pull/821))
 - Added additional optional key quals, filter support, and context cancellation handling to `Access Analyzer`, `ACM`, `API Gateway`, `Application Auto Scaling`, `Audit manager`, `Backup`, `Cloud Control`, `CloudFormation`, `CloudFront`, `CloudWatch`, `CodeBuild`, `CodeCommit`, `CodePipeline`, `Config`, `DAX`, `Directory Service`, `DMS`, `DynamoDB` and `EBS` tables ([754](https://github.com/turbot/steampipe-plugin-aws/pull/754))
-- Added an example query for listing MySQL instances with SSL disabled in the `aws_rds_db_instance` table document ([#806](https://github.com/turbot/steampipe-plugin-aws/pull/806))
+- Added an example query for listing SQL server instances with SSL disabled in the `aws_rds_db_instance` table document ([#806](https://github.com/turbot/steampipe-plugin-aws/pull/806))
 - `README.md` and `docs/index.md` files now have updated Slack channel links
 
 _Bug fixes_
