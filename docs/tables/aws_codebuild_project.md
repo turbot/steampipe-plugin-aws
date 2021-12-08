@@ -71,3 +71,16 @@ where
   logs_config -> 'CloudWatchLogs' ->> 'Status' = 'DISABLED'
   and logs_config -> 'S3Logs' ->> 'Status' = 'DISABLED';
 ```
+
+### List private project builts
+
+```sql
+select
+  name,
+  arn,
+  project_visibility
+from
+  aws_codebuild_project
+where
+  project_visibility = 'PRIVATE';
+```
