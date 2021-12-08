@@ -105,7 +105,7 @@ from
 ```
 
 
-### List mysql instances with SSL disabled parameter group assigned
+### List mysql instances with SSL disabled in assigned parameter group
 
 ```sql
 with db_parameter_group as (
@@ -117,6 +117,7 @@ with db_parameter_group as (
     aws_rds_db_parameter_group,
     jsonb_array_elements(parameters) as pg
   where
+    -- The example is limited to SQL Server, this may change based on DB engine
     pg ->> 'ParameterName' like 'rds.force_ssl'
     and name not like 'default.%'
 ),
