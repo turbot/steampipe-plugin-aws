@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -111,10 +112,26 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// List call
-	params := &cloudfront.ListCachePoliciesInput{}
+	input := &cloudfront.ListCachePoliciesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 5 {
+				input.MaxItems = types.Int64(5)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.ListCachePolicies(params)
+		result, err := svc.ListCachePolicies(input)
 		if err != nil {
 			plugin.Logger(ctx).Error("listCloudFrontCachePolicies", "ListCachePolicies_error", err)
 			return nil, err
@@ -123,7 +140,7 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, policy)
 		}
 		if result.CachePolicyList.NextMarker != nil {
-			params.Marker = result.CachePolicyList.NextMarker
+			input.Marker = result.CachePolicyList.NextMarker
 		} else {
 			pagesLeft = false
 		}

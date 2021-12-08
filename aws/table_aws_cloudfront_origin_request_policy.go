@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -106,7 +107,21 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 	}
 
 	// List call
-	params := &cloudfront.ListOriginRequestPoliciesInput{}
+	params := &cloudfront.ListOriginRequestPoliciesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 5 {
+				params.MaxItems = types.Int64(5)
+			} else {
+				params.MaxItems = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListOriginRequestPolicies(params)
@@ -115,6 +130,11 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 		}
 		for _, policy := range response.OriginRequestPolicyList.Items {
 			d.StreamListItem(ctx, policy)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 		if response.OriginRequestPolicyList.NextMarker != nil {
 			pagesLeft = true

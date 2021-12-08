@@ -23,6 +23,12 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamboDbGlobalTables,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "global_table_name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -81,12 +87,40 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	tables, err := svc.ListGlobalTables(&dynamodb.ListGlobalTablesInput{})
+	input := &dynamodb.ListGlobalTablesInput{
+		Limit: aws.Int64(1000),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["global_table_name"] != nil {
+		input.ExclusiveStartGlobalTableName = types.String(equalQuals["global_table_name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = types.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
+	tables, err := svc.ListGlobalTables(input)
 
 	for _, globalTable := range tables.GlobalTables {
 		d.StreamListItem(ctx, &dynamodb.GlobalTableDescription{
 			GlobalTableName: globalTable.GlobalTableName,
 		})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			break
+		}
 	}
 
 	return nil, err

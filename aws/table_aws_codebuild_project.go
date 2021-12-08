@@ -219,6 +219,11 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 				d.StreamListItem(ctx, &codebuild.Project{
 					Name: result,
 				})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

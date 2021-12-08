@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -23,6 +24,12 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "directory_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -201,12 +208,19 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Build the params
-	params := &directoryservice.DescribeDirectoriesInput{}
+	input := &directoryservice.DescribeDirectoriesInput{}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["directory_id"] != nil {
+		input.DirectoryIds = []*string{aws.String(equalQuals["directory_id"].GetStringValue())}
+	}
+
 	pagesLeft := true
 
 	// List call
 	for pagesLeft {
-		result, err := svc.DescribeDirectories(params)
+		result, err := svc.DescribeDirectories(input)
 		if err != nil {
 			plugin.Logger(ctx).Error("DescribeDirectories", "list", err)
 			return nil, err
@@ -214,10 +228,15 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 		for _, directory := range result.DirectoryDescriptions {
 			d.StreamListItem(ctx, directory)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 
 		if result.NextToken != nil {
-			params.NextToken = result.NextToken
+			input.NextToken = result.NextToken
 		} else {
 			pagesLeft = false
 		}

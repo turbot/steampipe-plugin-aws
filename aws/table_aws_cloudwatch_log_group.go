@@ -22,6 +22,12 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -93,11 +99,39 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &cloudwatchlogs.DescribeLogGroupsInput{
+		Limit: aws.Int64(50),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.LogGroupNamePrefix = types.String(equalQuals["name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 5 {
+				input.Limit = types.Int64(5)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.DescribeLogGroupsPages(
-		&cloudwatchlogs.DescribeLogGroupsInput{},
+		input,
 		func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
 			for _, logGroup := range page.LogGroups {
 				d.StreamListItem(ctx, logGroup)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

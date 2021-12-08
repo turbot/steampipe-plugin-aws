@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -114,11 +115,33 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get backup plan details
 	plan := h.Item.(*backup.PlansListMember)
 
+	input := &backup.ListBackupSelectionsInput{
+		MaxResults: aws.Int64(1000),
+	}
+	input.BackupPlanId = aws.String(*plan.BackupPlanId)
+
+	// Limiting the results per page
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListBackupSelectionsPages(
-		&backup.ListBackupSelectionsInput{BackupPlanId: plan.BackupPlanId},
+		input,
 		func(page *backup.ListBackupSelectionsOutput, lastPage bool) bool {
 			for _, selection := range page.BackupSelectionsList {
 				d.StreamListItem(ctx, selection)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
