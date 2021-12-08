@@ -279,6 +279,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_internet_gateway":                                     tableAwsVpcInternetGateway(ctx),
 			"aws_vpc_nat_gateway":                                          tableAwsVpcNatGateway(ctx),
 			"aws_vpc_network_acl":                                          tableAwsVpcNetworkACL(ctx),
+			"aws_vpc_peering_connection":                                   tableAwsVpcPeeringConnection(ctx),
 			"aws_vpc_route":                                                tableAwsVpcRoute(ctx),
 			"aws_vpc_route_table":                                          tableAwsVpcRouteTable(ctx),
 			"aws_vpc_security_group":                                       tableAwsVpcSecurityGroup(ctx),
