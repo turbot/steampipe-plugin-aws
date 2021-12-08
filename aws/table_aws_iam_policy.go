@@ -110,6 +110,13 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("PolicyVersion.Document").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
+				Name:        "policy_usage",
+				Description: "Lists all IAM users, groups, and roles that the specified managed policy is attached to.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getPolicyUsage,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags attached with the IAM policy.",
 				Type:        proto.ColumnType_JSON,
@@ -231,6 +238,36 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return version, nil
+}
+
+func getPolicyUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getPolicyUsage")
+	policy := h.Item.(*iam.Policy)
+
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.ListEntitiesForPolicyInput{
+		PolicyArn: policy.Arn,
+	}
+	policyUsageData := []*iam.ListEntitiesForPolicyOutput{}
+
+	err = svc.ListEntitiesForPolicyPages(
+		params,
+		func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
+			policyUsageData = append(policyUsageData, page)
+			return !lastPage
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return policyUsageData, nil
 }
 
 // isPolicyAwsManaged returns true if policy is aws managed
