@@ -14,9 +14,7 @@ select
   timestamp,
   type
 from
-  aws_sfn_state_machine_execution_history
-where
-  execution_arn = 'arn:aws:states:us-east-1:53372495:execution:test:728691df-de37-2ea8-445';
+  aws_sfn_state_machine_execution_history;
 ```
 
 ### List execution started event details
@@ -31,6 +29,5 @@ select
 from
   aws_sfn_state_machine_execution_history
 where
-  type = 'ExecutionStarted' and 
-  execution_arn = 'arn:aws:states:us-east-1:53372495:execution:test:728691df-de37-2ea8-445';
+  type = 'ExecutionStarted';
 ```
