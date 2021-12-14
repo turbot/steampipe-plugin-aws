@@ -1,3 +1,9 @@
+## v0.42.1 [2021-12-14]
+
+_Bug fixes_
+
+- Queries no longer fail when using a wildcard in the `region` config argument due to the release of `ap-southeast-3` region
+
 ## v0.42.0 [2021-12-08]
 
 _What's new?_
