@@ -1,3 +1,9 @@
+## v0.42.2 [2021-12-14]
+
+_Bug fixes_
+
+- Fixed default max records parameter value and lower limit for `aws_cloudwatch_alarm` table
+
 ## v0.42.1 [2021-12-14]
 
 _Bug fixes_
