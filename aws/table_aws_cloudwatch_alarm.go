@@ -215,7 +215,7 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	input := &cloudwatch.DescribeAlarmsInput{
-		MaxRecords: aws.Int64(1000),
+		MaxRecords: aws.Int64(100),
 	}
 
 	// Additonal Filter
@@ -232,8 +232,8 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxRecords {
-			if *limit < 5 {
-				input.MaxRecords = aws.Int64(5)
+			if *limit < 1 {
+				input.MaxRecords = aws.Int64(1)
 			} else {
 				input.MaxRecords = limit
 			}
