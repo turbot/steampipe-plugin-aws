@@ -158,7 +158,7 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	input := &auditmanager.ListAssessmentsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int64(500),
 	}
 
 	// Limiting the results

@@ -120,7 +120,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	input := &dynamodb.ListBackupsInput{
-		Limit: aws.Int64(1000),
+		Limit: aws.Int64(100),
 	}
 
 	// Additonal Filter

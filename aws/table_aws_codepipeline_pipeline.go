@@ -128,7 +128,7 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	input := &codepipeline.ListPipelinesInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int64(2048),
 	}
 
 	// If the requested number of items is less than the paging max limit

@@ -118,7 +118,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	input := &accessanalyzer.ListAnalyzersInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int64(100),
 	}
 
 	// Additonal Filter

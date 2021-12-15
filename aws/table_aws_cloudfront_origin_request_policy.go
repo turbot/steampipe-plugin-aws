@@ -108,7 +108,7 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 
 	// List call
 	params := &cloudfront.ListOriginRequestPoliciesInput{
-		MaxItems: aws.Int64(1000),
+		MaxItems: aws.Int64(100),
 	}
 
 	limit := d.QueryContext.Limit

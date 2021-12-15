@@ -113,7 +113,7 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	input := &cloudfront.ListCachePoliciesInput{
-		MaxItems: aws.Int64(1000),
+		MaxItems: aws.Int64(100),
 	}
 
 	// If the requested number of items is less than the paging max limit
