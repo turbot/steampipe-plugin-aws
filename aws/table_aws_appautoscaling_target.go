@@ -124,8 +124,8 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
 			} else {
 				input.MaxResults = limit
 			}

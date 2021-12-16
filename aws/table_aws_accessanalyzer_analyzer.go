@@ -117,8 +117,10 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
 	input := &accessanalyzer.ListAnalyzersInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int64(1000),
 	}
 
 	// Additonal Filter
@@ -132,10 +134,10 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
 			} else {
-				input.MaxResults = limit
+			input.MaxResults = limit
 			}
 		}
 	}

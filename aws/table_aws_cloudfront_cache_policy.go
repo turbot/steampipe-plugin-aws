@@ -111,9 +111,11 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	// The maximum number for MaxItems parameter is not defined by the API
+	// We have set the MaxItems to 1000 based on our test
 	// List call
 	input := &cloudfront.ListCachePoliciesInput{
-		MaxItems: aws.Int64(100),
+		MaxItems: aws.Int64(1000),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -121,8 +123,8 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			if *limit < 5 {
-				input.MaxItems = types.Int64(5)
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
 			} else {
 				input.MaxItems = limit
 			}

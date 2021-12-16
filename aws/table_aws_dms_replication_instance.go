@@ -247,8 +247,8 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxRecords {
-			if *limit < 5 {
-				input.MaxRecords = aws.Int64(5)
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
 			} else {
 				input.MaxRecords = limit
 			}
