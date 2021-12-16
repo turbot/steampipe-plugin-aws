@@ -230,7 +230,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	input := &acm.ListCertificatesInput{
-		MaxItems: aws.Int64(100),
+		MaxItems: aws.Int64(1000),
 	}
 
 	// Additonal Filter
