@@ -20,6 +20,9 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamPolicies,
 			Hydrate:       listIamPolicyAttachments,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -28,10 +31,15 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "is_attached",
+				Description: "Specifies whether the policy is attached to at least one IAM user, group, or role.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("AttachmentCount").Transform(attachementCountToBool),
+			},
+			{
 				Name:        "policy_groups",
 				Description: "A list of IAM groups that the policy is attached to.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("PolicyGroups"),
 			},
 			{
 				Name:        "policy_roles",
@@ -48,10 +56,11 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 }
 
 type PolicyAttachment struct {
-	PolicyArn    string
-	PolicyGroups []*iam.PolicyGroup
-	PolicyRoles  []*iam.PolicyRole
-	PolicyUsers  []*iam.PolicyUser
+	PolicyArn       string
+	AttachmentCount *int64
+	PolicyGroups    []*iam.PolicyGroup
+	PolicyRoles     []*iam.PolicyRole
+	PolicyUsers     []*iam.PolicyUser
 }
 
 //// LIST FUNCTION
@@ -66,7 +75,7 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	params := &iam.ListEntitiesForPolicyInput{
 		PolicyArn: policy.Arn,
-		MaxItems:  types.Int64(100),
+		MaxItems:  types.Int64(1000),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -74,13 +83,18 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *params.MaxItems {
-			params.MaxItems = limit
+			if *limit < 1 {
+				params.MaxItems = types.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
 		}
 	}
 
 	// List call
 	err = svc.ListEntitiesForPolicyPages(params, func(page *iam.ListEntitiesForPolicyOutput, lastPage bool) bool {
-		d.StreamListItem(ctx, PolicyAttachment{*policy.Arn, page.PolicyGroups, page.PolicyRoles, page.PolicyUsers})
+		d.StreamListItem(ctx, PolicyAttachment{*policy.Arn, policy.AttachmentCount, page.PolicyGroups, page.PolicyRoles, page.PolicyUsers})
+
 		// Check if context has been cancelled or if the limit has been hit (if specified)
 		// if there is a limit, it will return the number of rows required to reach this limit
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
