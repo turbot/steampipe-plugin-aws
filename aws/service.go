@@ -1,11 +1,13 @@
 package aws
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"math"
 	"math/rand"
+	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -1754,7 +1756,11 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			)
 		}
 	}
+	validAwsCredActive := checkAWSCallerIdent(ctx, *awsConfig.Profile)
+	if validAwsCredActive != true && awsConfig.SessionToken == nil && (awsConfig.AccessKey == nil || awsConfig.SecretKey == nil) {
+		runAWSCLISSOLogin(ctx, *awsConfig.Profile)
 
+	}
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
 		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
@@ -1765,6 +1771,61 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
 
 	return sess, nil
+}
+
+// checkAWSCallerIdent returns boolean if currently logged in to AWS CLI
+func checkAWSCallerIdent(ctx context.Context, profile string) bool {
+	plugin.Logger(ctx).Trace("getSessionWithMaxRetries", "checkAWSCallerIdent", "Starting for "+profile)
+	commandInput := strings.Fields("aws sts get-caller-identity --profile " + profile)
+	plugin.Logger(ctx).Trace("getSessionWithMaxRetries", "checkAWSCallerIdent", "CommandInput was for "+strings.Join(commandInput, " "))
+	cmd := exec.Command(commandInput[0], commandInput[1:]...)
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+
+	if err := cmd.Run(); err != nil {
+		plugin.Logger(ctx).Trace("getSessionWithMaxRetries", "checkAWSCallerIdent", err)
+		return false
+	}
+	plugin.Logger(ctx).Trace("getSessionWithMaxRetries", "checkAWSCallerIdent", buf.String())
+	return true
+}
+
+// runAWSCLISSOLogin returns boolean if currently logged in to AWS CLI
+func runAWSCLISSOLogin(ctx context.Context, profile string) bool {
+	commandInput := strings.Fields("aws sso login --profile " + profile)
+	cmd := exec.Command(commandInput[0], commandInput[1:]...)
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	if err := cmd.Start(); err != nil {
+		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "runAWSCLISSOLogin", err)
+		return false
+	}
+	done := make(chan error)
+	go func() { done <- cmd.Wait() }()
+	// Start a timer
+	timeout := time.After(30 * time.Second)
+	// The select statement allows us to execute based on which channel
+	// we get a message from first.
+	select {
+	case <-timeout:
+		// Timeout happened first, kill the process and print a message.
+		err := cmd.Process.Kill()
+		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "runAWSCLISSOLogin", "Killed due to timeout!")
+		if err != nil {
+			return false
+		}
+		return false
+	case err := <-done:
+		// Command completed before timeout. Print output and error if it exists.
+		plugin.Logger(ctx).Trace("getSessionWithMaxRetries", "runAWSCLISSOLogin", buf.String())
+
+		if err != nil {
+			plugin.Logger(ctx).Error("getSessionWithMaxRetries", "runAWSCLISSOLogin", err)
+			return false
+		}
+		return true
+	}
+
 }
 
 // GetDefaultAwsRegion returns the default region for AWS partiton
@@ -1836,7 +1897,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
 func NewConnectionErrRetryer(maxRetries int, ctx context.Context) *ConnectionErrRetryer {
-	var minRetryDelay time.Duration = 25 * time.Millisecond
+	var minRetryDelay = 25 * time.Millisecond
 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
 		ctx: ctx,
