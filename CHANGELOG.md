@@ -1,3 +1,10 @@
+## v0.42.3 [2021-12-17]
+
+_Bug fixes_
+
+- Fixed the `aws_workspaces_workspace` table to return an empty row for unsupported regions instead of throwing an error ([#835](https://github.com/turbot/steampipe-plugin-aws/pull/835))
+- Fixed the `aws_ebs_snapshot` table to correctly return the snapshot details instead of returning an empty row ([#833](https://github.com/turbot/steampipe-plugin-aws/pull/833))
+
 ## v0.42.2 [2021-12-14]
 
 _Bug fixes_
@@ -55,8 +62,6 @@ _Bug fixes_
 - `aws_ec2_application_load_balancer` table will no longer return `ValidationError` in get call ([#792](https://github.com/turbot/steampipe-plugin-aws/pull/792))
 - `aws_dax_cluster` table will no longer return an error when we try to query for unsupported regions ([#787](https://github.com/turbot/steampipe-plugin-aws/pull/787))
 - `aws_lambda_alias` table will now need `name`, `function_name` and `region` to perform get call ([#781](https://github.com/turbot/steampipe-plugin-aws/pull/781))
-
-
 
 ## v0.40.0 [2021-11-17]
 
