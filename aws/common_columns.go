@@ -75,6 +75,13 @@ func commonAwsColumns() []*plugin.Column {
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
+		{
+			Name:        "account_profile",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS Profile ID  used for connection.",
+			Transform:   transform.FromCamel(),
+		},
 	}
 }
 
@@ -94,14 +101,20 @@ func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
 
 // struct to store the common column data
 type awsCommonColumnData struct {
-	Partition, Region, AccountId string
+	Partition, Region, AccountId, AccountProfile string
 }
 
-// get columns which are returned with all tables: region, partition and account
+// get columns which are returned with all tables: region, partition,profile and account
 func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
+	}
+
+	awsConfig := GetConfig(d.Connection)
+	accountProfile := *awsConfig.Profile
+	if accountProfile == "" {
+		accountProfile = "default"
 	}
 
 	var commonColumnData *awsCommonColumnData
@@ -114,9 +127,10 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	callerIdentity := getCallerIdentityData.(*sts.GetCallerIdentityOutput)
 	commonColumnData = &awsCommonColumnData{
 		// extract partition from arn
-		Partition: strings.Split(*callerIdentity.Arn, ":")[1],
-		AccountId: *callerIdentity.Account,
-		Region:    region,
+		Partition:      strings.Split(*callerIdentity.Arn, ":")[1],
+		AccountId:      *callerIdentity.Account,
+		Region:         region,
+		AccountProfile: accountProfile,
 	}
 
 	return commonColumnData, nil
