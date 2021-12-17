@@ -186,12 +186,15 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	input := &ec2.DescribeSnapshotsInput{
+		OwnerIds:   []*string{aws.String("self")},
 		MaxResults: aws.Int64(1000),
 	}
 
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(d.KeyColumnQuals)
-	input.Filters = filters
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
@@ -205,7 +208,6 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			}
 		}
 	}
-
 	// List call
 	err = svc.DescribeSnapshotsPages(
 		input,
@@ -337,15 +339,5 @@ func buildEbsSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 			filters = append(filters, &filter)
 		}
 	}
-	ownerFilter := ec2.Filter{}
-	if equalQuals["owner_id"] != nil {
-		ownerFilter.Name = types.String("owner-id")
-		ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
-	} else {
-		ownerFilter.Name = types.String("owner-id")
-		ownerFilter.Values = []*string{types.String("self")}
-	}
-
-	filters = append(filters, &ownerFilter)
 	return filters
 }
