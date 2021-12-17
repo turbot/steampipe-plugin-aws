@@ -151,10 +151,6 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create Session
 	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
-		// AWS workspaces is not available in every region yet. This section of code handles the errors that we get when the API call tries to use unsupported regions endpoint (it throws "no such host" error message)
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -168,6 +164,12 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 			return !isLast
 		},
 	)
+	if err != nil {
+		// AWS workspaces is not available in every region yet. This section of code handles the errors that we get when the API call tries to use unsupported regions endpoint (it throws "no such host" error message)
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
+	}
 	return nil, err
 }
 
