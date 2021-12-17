@@ -186,16 +186,16 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	input := &ec2.DescribeSnapshotsInput{
-		OwnerIds: []*string{aws.String("self")},
+		OwnerIds:   []*string{aws.String("self")},
 		MaxResults: aws.Int64(1000),
 	}
-   
+
 	// Build filter for ebs snapshot
 	filters := buildEbsSnapshotFilter(d.KeyColumnQuals)
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
-	
+
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
