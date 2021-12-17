@@ -10,6 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
+const keyProfile = "profile"
+
 // column definitions for the common columns
 func commonAwsRegionalColumns() []*plugin.Column {
 	return []*plugin.Column{
@@ -75,6 +77,13 @@ func commonAwsColumns() []*plugin.Column {
 			Description: "The AWS Account ID in which the resource is located.",
 			Transform:   transform.FromCamel(),
 		},
+		{
+			Name:        "profile",
+			Type:        proto.ColumnType_STRING,
+			Hydrate:     getCommonColumns,
+			Description: "The AWS Profile ID  used for connection.",
+			Transform:   transform.FromCamel(),
+		},
 	}
 }
 
@@ -94,12 +103,13 @@ func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
 
 // struct to store the common column data
 type awsCommonColumnData struct {
-	Partition, Region, AccountId string
+	Partition, Region, AccountId, Profile string
 }
 
 // get columns which are returned with all tables: region, partition and account
 func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
+	profile, err := d.ConnectionManager.Cache.Get(keyProfile)
 	if region == "" {
 		region = "global"
 	}
@@ -117,6 +127,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		Partition: strings.Split(*callerIdentity.Arn, ":")[1],
 		AccountId: *callerIdentity.Account,
 		Region:    region,
+		Profile:   profile,
 	}
 
 	return commonColumnData, nil
