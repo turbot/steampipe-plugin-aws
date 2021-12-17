@@ -3,7 +3,7 @@
 _Bug fixes_
 
 - Fixed the `aws_workspaces_workspace` table to return an empty row for unsupported regions instead of throwing an error ([#835](https://github.com/turbot/steampipe-plugin-aws/pull/835))
-- Fixed the `aws_ebs_snapshot` table to correctly return the snapshot details instead of returning an empty row ([#833](https://github.com/turbot/steampipe-plugin-aws/pull/833))
+- Querying the `aws_ebs_snapshot` table will now correctly return snapshot(s) details instead of an empty row ([#833](https://github.com/turbot/steampipe-plugin-aws/pull/833))
 
 ## v0.42.2 [2021-12-14]
 
