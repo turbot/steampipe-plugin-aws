@@ -1757,7 +1757,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 		}
 	}
 	validAwsCredActive := checkAWSCallerIdent(ctx, *awsConfig.Profile)
-	if validAwsCredActive != true && awsConfig.SessionToken == nil && (awsConfig.AccessKey == nil || awsConfig.SecretKey == nil) {
+	if !validAwsCredActive && awsConfig.SessionToken == nil && (awsConfig.AccessKey == nil || awsConfig.SecretKey == nil) {
 		runAWSCLISSOLogin(ctx, *awsConfig.Profile)
 
 	}
