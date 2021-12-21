@@ -137,7 +137,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			if *limit < 1 {
 				input.MaxResults = types.Int64(1)
 			} else {
-			input.MaxResults = limit
+				input.MaxResults = limit
 			}
 		}
 	}
