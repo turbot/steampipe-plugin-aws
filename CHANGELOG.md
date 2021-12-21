@@ -1,3 +1,13 @@
+## v0.43.0 [2021-12-21]
+
+_What's new?_
+
+_Bug fixes_
+
+- Fixed the `aws_workspaces_workspace` table to return an empty row for unsupported regions instead of throwing an error ([#835](https://github.com/turbot/steampipe-plugin-aws/pull/835))
+- Querying the `aws_ebs_snapshot` table will now correctly return snapshot(s) details instead of an empty row ([#842](https://github.com/turbot/steampipe-plugin-aws/pull/842))
+- Fixed the `aws_ec2_ami` and `aws_ec2_ami_shared` tables to correctly return a list of local AMI(s) owned by the local account having `self` in the `image_owner_alias` column
+
 ## v0.42.2 [2021-12-14]
 
 _Bug fixes_
