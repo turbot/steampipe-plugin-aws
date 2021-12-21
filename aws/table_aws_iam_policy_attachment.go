@@ -27,7 +27,7 @@ func tableAwsIamPolicyAttachment(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "policy_arn",
-				Description: "The Amazon Resource Name (ARN) specifying the iam policy.",
+				Description: "The Amazon Resource Name (ARN) specifying the IAM policy.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -100,7 +100,6 @@ func listIamPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugi
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return false
 		}
-
 		return !lastPage
 	},
 	)
