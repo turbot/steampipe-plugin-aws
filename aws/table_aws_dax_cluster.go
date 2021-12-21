@@ -178,8 +178,8 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *params.MaxResults {
-			if *limit < 5 {
-				params.MaxResults = aws.Int64(5)
+			if *limit < 20 {
+				params.MaxResults = aws.Int64(20)
 			} else {
 				params.MaxResults = limit
 			}

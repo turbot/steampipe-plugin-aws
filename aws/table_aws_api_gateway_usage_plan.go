@@ -104,8 +104,8 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.Limit {
-			if *limit < 5 {
-				input.Limit = types.Int64(5)
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
 			} else {
 				input.Limit = limit
 			}
