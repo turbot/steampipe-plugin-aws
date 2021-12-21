@@ -2,6 +2,13 @@
 
 _What's new?_
 
+- New tables added
+  - [aws_iam_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_policy_attachment) ([#824](https://github.com/turbot/steampipe-plugin-aws/pull/824))
+
+_Enhancements_
+
+- Updated default max records parameter value and lower limit for `Access Analyzer`, `ACM`, `API Gateway`, `Application Auto Scaling`, `Audit manager`, `Backup`, `Cloud Control`, `CloudFormation`, `CloudFront`, `CloudWatch`, `CodePipeline`, `Config`, `DAX`, `DMS` and `DynamoDB` tables ([#829](https://github.com/turbot/steampipe-plugin-aws/pull/829))
+
 _Bug fixes_
 
 - Fixed the `aws_workspaces_workspace` table to return an empty row for unsupported regions instead of throwing an error ([#835](https://github.com/turbot/steampipe-plugin-aws/pull/835))
