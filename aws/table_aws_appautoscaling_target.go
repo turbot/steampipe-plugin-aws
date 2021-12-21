@@ -105,8 +105,10 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
 	input := &applicationautoscaling.DescribeScalableTargetsInput{
-		MaxResults: aws.Int64(50),
+		MaxResults: aws.Int64(1000),
 	}
 
 	// Additonal Filter
