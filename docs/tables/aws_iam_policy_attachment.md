@@ -2,7 +2,7 @@
 
 This table provide information about the attached user(s), role(s), and group(s) to a Managed IAM Policy
 
-Note that the `is_attached` column will help to provide information for only the attached ones. You can greatly decrease your query time by using **where is_attached**.
+**Note:** Using `is_attached` column as filter, will help to reduce the query response time.
 
 ## Examples
 
