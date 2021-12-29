@@ -1720,7 +1720,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	}
 
 	// If seesion was not in cache - create a session and save to cache
-
+	var isSSO bool = false
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 
@@ -1739,6 +1739,10 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 
 	if awsConfig.Profile != nil {
 		sessionOptions.Profile = *awsConfig.Profile
+		// When profile is set but not access or secret key, logically this means it will be SSO login
+		if awsConfig.AccessKey == nil || awsConfig.SecretKey == nil {
+			isSSO = true
+		}
 	}
 
 	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
@@ -1756,10 +1760,13 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			)
 		}
 	}
-	validAwsCredActive := checkAWSCallerIdent(ctx, *awsConfig.Profile)
-	if !validAwsCredActive && awsConfig.SessionToken == nil && (awsConfig.AccessKey == nil || awsConfig.SecretKey == nil) {
-		runAWSCLISSOLogin(ctx, *awsConfig.Profile)
-
+	// If we are using SSO, check if credintals are valid, if not trigger aws sso login
+	// *awsConfig.Profile is a risk of being nil, however isSSO will be false in that case, so we are protected
+	if isSSO == true {
+		validAwsCredActive := checkAWSCallerIdent(ctx, *awsConfig.Profile)
+		if !validAwsCredActive && awsConfig.SessionToken == nil && (awsConfig.AccessKey == nil || awsConfig.SecretKey == nil) {
+			runAWSCLISSOLogin(ctx, *awsConfig.Profile)
+		}
 	}
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
