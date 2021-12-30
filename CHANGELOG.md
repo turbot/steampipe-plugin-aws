@@ -1,3 +1,21 @@
+## v0.43.0 [2021-12-21]
+
+_What's new?_
+
+- New tables added
+  - [aws_iam_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_policy_attachment) ([#824](https://github.com/turbot/steampipe-plugin-aws/pull/824))
+
+_Enhancements_
+
+- Updated default max records parameter value and lower limit for `Access Analyzer`, `ACM`, `API Gateway`, `Application Auto Scaling`, `Audit manager`, `Backup`, `Cloud Control`, `CloudFormation`, `CloudFront`, `CloudWatch`, `CodePipeline`, `Config`, `DAX`, `DMS` and `DynamoDB` tables ([#829](https://github.com/turbot/steampipe-plugin-aws/pull/829))
+
+_Bug fixes_
+
+- Fixed the `aws_workspaces_workspace` table to return an empty row for unsupported regions instead of throwing an error ([#835](https://github.com/turbot/steampipe-plugin-aws/pull/835))
+- Querying the `aws_ebs_snapshot` table will now correctly return snapshot(s) details instead of an empty row ([#842](https://github.com/turbot/steampipe-plugin-aws/pull/842))
+- The `image_owner_alias` column of `aws_ec2_ami_shared` table will now correctly display the AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner ([#841](https://github.com/turbot/steampipe-plugin-aws/pull/841))
+- The `image_owner_alias` column of `aws_ec2_ami` table is now set to `self` by default ([#841](https://github.com/turbot/steampipe-plugin-aws/pull/841))
+
 ## v0.42.2 [2021-12-14]
 
 _Bug fixes_

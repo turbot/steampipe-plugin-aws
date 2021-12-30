@@ -31,9 +31,6 @@
 - name: question
   description: Further information is requested
   color: d876e3
-- name: release
-  description: New version
-  color: 0EE607
 - name: stale
   description: No recent activity has been detected on this issue/PR and it will be closed
   color: eb7134
