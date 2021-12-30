@@ -42,5 +42,10 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 		return awsConfig{}
 	}
 	config, _ := connection.Config.(awsConfig)
+	if config.Profile == nil {
+		var tmpString string
+		tmpString = ""
+		config.Profile = &tmpString
+	}
 	return config
 }
