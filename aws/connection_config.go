@@ -43,8 +43,7 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 	}
 	config, _ := connection.Config.(awsConfig)
 	if config.Profile == nil {
-		var tmpString string
-		tmpString = ""
+		var tmpString string = ""
 		config.Profile = &tmpString
 	}
 	return config
