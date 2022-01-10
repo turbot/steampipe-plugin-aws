@@ -80,12 +80,32 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheParameterGroupsPages(
-		&elasticache.DescribeCacheParameterGroupsInput{},
+		input,
 		func(page *elasticache.DescribeCacheParameterGroupsOutput, isLast bool) bool {
 			for _, parameterGroup := range page.CacheParameterGroups {
 				d.StreamListItem(ctx, parameterGroup)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

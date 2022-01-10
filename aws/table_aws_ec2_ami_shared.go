@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
@@ -23,8 +24,25 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2Ami,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listAmisByOwner,
-			KeyColumns:        plugin.SingleColumn("owner_id"),
+			Hydrate: listAmisByOwner,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "owner_id", Require: plugin.Required},
+				{Name: "architecture", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional},
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_type", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional},
+				{Name: "kernel_id", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "platform", Require: plugin.Optional},
+				{Name: "ramdisk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "sriov_net_support", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+			},
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
 		},
 		GetMatrixItem: BuildRegionList,
@@ -194,11 +212,79 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	resp, err := svc.DescribeImages(&ec2.DescribeImagesInput{
+	input := &ec2.DescribeImagesInput{
 		Owners: []*string{aws.String(owner_id)},
-	})
+	}
+
+	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "SHARED_AMI")
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// There is no MaxResult property in param, through which we can limit the number of results
+	resp, err := svc.DescribeImages(input)
 	for _, image := range resp.Images {
 		d.StreamListItem(ctx, image)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
+}
+
+//// UTILITY FUNCTION
+// build amis list call input filter
+func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiType string) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"architecture":        "architecture",
+		"description":         "description",
+		"ena_support":         "ena-support",
+		"hypervisor":          "hypervisor",
+		"image_id ":           "image-id ",
+		"image_type":          "image-type",
+		"public":              "is-public",
+		"kernel_id":           "kernel-id",
+		"name":                "name",
+		"platform":            "platform",
+		"ramdisk_id":          "ramdisk-id",
+		"root_device_name":    "root-device-name",
+		"root_device_type":    "root-device-type",
+		"state":               "state",
+		"sriov_net_support":   "sriov-net-support",
+		"virtualization_type": "virtualization-type",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+
+	ownerFilter := ec2.Filter{}
+	if equalQuals["owner_id"].GetStringValue() != "SHARED_AMI" {
+		if equalQuals["owner_id"] != nil {
+			ownerFilter.Name = types.String("owner-id")
+			ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
+		} else {
+			ownerFilter.Name = types.String("owner-id")
+			ownerFilter.Values = []*string{types.String("self")}
+		}
+
+		filters = append(filters, &ownerFilter)
+	}
+	return filters
 }

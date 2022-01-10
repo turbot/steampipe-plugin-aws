@@ -24,6 +24,24 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Amis,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "architecture", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional},
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_type", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional},
+				{Name: "kernel_id", Require: plugin.Optional},
+				{Name: "platform", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "ramdisk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "sriov_net_support", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -197,11 +215,24 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	resp, err := svc.DescribeImages(&ec2.DescribeImagesInput{
+	input := &ec2.DescribeImagesInput{
 		Owners: []*string{aws.String("self")},
-	})
+	}
+
+	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "AMI")
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	resp, err := svc.DescribeImages(input)
 	for _, image := range resp.Images {
 		d.StreamListItem(ctx, image)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
 }

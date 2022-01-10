@@ -21,6 +21,9 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeBuses,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name_prefix", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -33,6 +36,12 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the account permitted to write events to the current account.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "name_prefix",
+				Description: "Specifying this limits the results to only those event buses with names that start with the specified prefix.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("name_prefix"),
 			},
 			{
 				Name:        "policy",
@@ -96,11 +105,20 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		Limit: aws.Int64(100),
 	}
 
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name_prefix"] != nil {
+		input.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.Limit {
-			input.Limit = limit
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
 		}
 	}
 
@@ -117,6 +135,10 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 				Arn:    bus.Arn,
 				Policy: bus.Policy,
 			})
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 
 		if response.NextToken == nil {

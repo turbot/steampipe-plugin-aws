@@ -73,7 +73,22 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// List call
-	params := &elbv2.DescribeSSLPoliciesInput{}
+	params := &elbv2.DescribeSSLPoliciesInput{
+		PageSize: aws.Int64(400),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.PageSize {
+			if *limit < 1 {
+				params.PageSize = aws.Int64(1)
+			} else {
+				params.PageSize = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.DescribeSSLPolicies(params)
@@ -83,6 +98,12 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		for _, sslPolicy := range response.SslPolicies {
 			d.StreamListItem(ctx, sslPolicy)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {
@@ -121,7 +142,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		Names: []*string{aws.String(name)},
 	}
 
-	if(matrixKeyRegion == regionName){
+	if matrixKeyRegion == regionName {
 		op, err := svc.DescribeSSLPolicies(params)
 		if err != nil {
 			return nil, err

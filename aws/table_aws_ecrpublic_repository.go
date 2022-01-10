@@ -24,6 +24,9 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "registry_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -122,13 +125,37 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &ecrpublic.DescribeRepositoriesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["registry_id"] != nil {
+		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeRepositoriesPages(
-		&ecrpublic.DescribeRepositoriesInput{},
+		input,
 		func(page *ecrpublic.DescribeRepositoriesOutput, isLast bool) bool {
 			for _, repository := range page.Repositories {
 				d.StreamListItem(ctx, repository)
 
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

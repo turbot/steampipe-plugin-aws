@@ -125,7 +125,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	// Additonal Filter
-	var equalQuals plugin.KeyColumnEqualsQualMap
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["customer_id"] != nil {
 		input.CustomerId = types.String(equalQuals["customer_id"].GetStringValue())
 	}

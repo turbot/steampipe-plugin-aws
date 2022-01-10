@@ -190,12 +190,32 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheClustersInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheClustersPages(
-		&elasticache.DescribeCacheClustersInput{},
+		input,
 		func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
 			for _, cacheCluster := range page.CacheClusters {
 				d.StreamListItem(ctx, cacheCluster)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

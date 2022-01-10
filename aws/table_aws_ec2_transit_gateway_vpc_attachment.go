@@ -21,6 +21,16 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "association_state", Require: plugin.Optional},
+				{Name: "association_transit_gateway_route_table_id", Require: plugin.Optional},
+				{Name: "resource_id", Require: plugin.Optional},
+				{Name: "resource_owner_id", Require: plugin.Optional},
+				{Name: "resource_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+				{Name: "transit_gateway_owner_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -119,12 +129,38 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 		return nil, err
 	}
 
+	input := &ec2.DescribeTransitGatewayAttachmentsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := buildEc2TransitGatewayVpcAttachmentFilter(d.KeyColumnQuals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTransitGatewayAttachmentsPages(
-		&ec2.DescribeTransitGatewayAttachmentsInput{},
+		input,
 		func(page *ec2.DescribeTransitGatewayAttachmentsOutput, isLast bool) bool {
 			for _, transitGatewayAttachment := range page.TransitGatewayAttachments {
 				d.StreamListItem(ctx, transitGatewayAttachment)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -200,4 +236,37 @@ func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.Transfo
 		}
 	}
 	return title, nil
+}
+
+//// UTILITY FUNCTION
+// build ebs volume list call input filter
+func buildEc2TransitGatewayVpcAttachmentFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"association_state":                          "association.state",
+		"association_transit_gateway_route_table_id": "association.transit-gateway-route-table-id",
+		"resource_id":                                "resource-id",
+		"resource_owner_id":                          "resource-owner-id",
+		"resource_type":                              "resource-type",
+		"state":                                      "state",
+		"transit_gateway_id":                         "transit-gateway-id",
+		"transit_gateway_owner_id":                   "transit-gateway-owner-id",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

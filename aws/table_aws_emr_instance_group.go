@@ -178,6 +178,11 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		func(page *emr.ListInstanceGroupsOutput, isLast bool) bool {
 			for _, instanceGroup := range page.InstanceGroups {
 				d.StreamListItem(ctx, instanceGroupDetails{*instanceGroup, *clusterID})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

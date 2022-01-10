@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -20,6 +21,9 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeRules,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name_prefix", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -64,6 +68,12 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 				Description: "The event pattern of the rule.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEventBridgeRule,
+			},
+			{
+				Name:        "name_prefix",
+				Description: "Specifying this limits the results to only those event rules with names that start with the specified prefix.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("name_prefix"),
 			},
 			{
 				Name:        "targets",
@@ -113,9 +123,30 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// List call
-	param := &eventbridge.ListRulesInput{}
+	input := &eventbridge.ListRulesInput{
+		// Default to the maximum allowed
+		Limit: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name_prefix"] != nil {
+		input.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	for {
-		response, err := svc.ListRules(&eventbridge.ListRulesInput{})
+		response, err := svc.ListRules(input)
 		if err != nil {
 			return nil, err
 		}
@@ -127,11 +158,16 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 				State:        rule.State,
 				EventBusName: rule.EventBusName,
 			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 		if response.NextToken == nil {
 			break
 		}
-		param.NextToken = response.NextToken
+		input.NextToken = response.NextToken
 	}
 
 	return nil, err

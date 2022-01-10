@@ -24,6 +24,10 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2KeyPairs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "key_pair_id", Require: plugin.Optional},
+				{Name: "key_fingerprint", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,7 +87,15 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	resp, err := svc.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+	input := &ec2.DescribeKeyPairsInput{}
+
+	filters := buildEc2KeyPairFilter(d.KeyColumnQuals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	resp, err := svc.DescribeKeyPairs(input)
 
 	for _, keyPair := range resp.KeyPairs {
 		d.StreamListItem(ctx, keyPair)
@@ -140,4 +152,31 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	keyPair := d.HydrateItem.(*ec2.KeyPairInfo)
 	return ec2TagsToMap(keyPair.Tags)
+}
+
+//// UTILITY FUNCTION
+// build ec2 key-pair list call input filter
+func buildEc2KeyPairFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"key_pair_id":     "key-pair-id",
+		"key_fingerprint": "fingerprint",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

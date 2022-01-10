@@ -24,6 +24,9 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEmrClusters,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "state", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -41,6 +44,12 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_arn",
 				Description: "The Amazon Resource Name of the cluster.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "state",
+				Description: "The current state of the cluster.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Status.State"),
 			},
 			{
 				Name:        "status",
@@ -237,12 +246,24 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	input := &emr.ListClustersInput{}
+
+	euqalQuals := d.KeyColumnQuals
+	if euqalQuals["state"] != nil {
+		input.ClusterStates = []*string{aws.String(euqalQuals["state"].GetStringValue())}
+	}
+	
 	// List call
 	err = svc.ListClustersPages(
-		&emr.ListClustersInput{},
+		input,
 		func(page *emr.ListClustersOutput, isLast bool) bool {
 			for _, cluster := range page.Clusters {
 				d.StreamListItem(ctx, cluster)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

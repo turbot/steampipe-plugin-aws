@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -23,6 +24,17 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "encrypted", Require: plugin.Optional},
+				{Name: "fast_restored", Require: plugin.Optional},
+				{Name: "multi_attach_enabled", Require: plugin.Optional},
+				{Name: "size", Require: plugin.Optional},
+				{Name: "snapshot_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "volume_id", Require: plugin.Optional},
+				{Name: "volume_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -159,13 +171,40 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
+	input := &ec2.DescribeVolumesInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	filters := buildEbsVolumeFilter(d.KeyColumnQuals)
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeVolumesPages(
-		&ec2.DescribeVolumesInput{},
+		input,
 		func(page *ec2.DescribeVolumesOutput, isLast bool) bool {
 			for _, volume := range page.Volumes {
 				d.StreamListItem(ctx, volume)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
+
 			return !isLast
 		},
 	)
@@ -295,4 +334,38 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 	}
 
 	return title, nil
+}
+
+//// UTILITY FUNCTION
+// build ebs volume list call input filter
+func buildEbsVolumeFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"availability_zone":    "availability-zone",
+		"encrypted":            "encrypted",
+		"fast_restored":        "fast-restored",
+		"multi_attach_enabled": "multi-attach-enabled",
+		"size":                 "size",
+		"snapshot_id":          "snapshot-id",
+		"state":                "status",
+		"volume_id":            "volume-id",
+		"volume_type":          "volume-type",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

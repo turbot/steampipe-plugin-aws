@@ -24,6 +24,19 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2CapacityReservations,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "instance_type", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "availability_zone_id", Require: plugin.Optional},
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "instance_platform", Require: plugin.Optional},
+				{Name: "tenancy", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "start_date", Require: plugin.Optional},
+				{Name: "end_date", Require: plugin.Optional},
+				{Name: "end_date_type", Require: plugin.Optional},
+				{Name: "instance_match_criteria", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -159,12 +172,38 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &ec2.DescribeCapacityReservationsInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	filters := buildEc2CapacityReservationFilter(d.KeyColumnQuals)
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCapacityReservationsPages(
-		&ec2.DescribeCapacityReservationsInput{},
+		input,
 		func(page *ec2.DescribeCapacityReservationsOutput, isLast bool) bool {
 			for _, reservation := range page.CapacityReservations {
 				d.StreamListItem(ctx, reservation)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -218,4 +257,40 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 	}
 
 	return turbotTagsMap, nil
+}
+
+//// UTILITY FUNCTION
+// build ec2 capacity reservation list call input filter
+func buildEc2CapacityReservationFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"instance_type":           "instance-type",
+		"owner_id":                "owner-id",
+		"availability_zone_id":    "availability-zone-id",
+		"availability_zone":       "availability-zone",
+		"instance_platform":       "instance-platform",
+		"tenancy":                 "tenancy",
+		"state":                   "state",
+		"start_date":              "start-date",
+		"end_date":                "end-date",
+		"end_date_type":           "end-date-type",
+		"instance_match_criteria": "instance_match_criteria",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

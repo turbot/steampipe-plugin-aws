@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -149,6 +150,18 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 
 	param := &eks.ListIdentityProviderConfigsInput{
 		ClusterName: cluster.Name,
+		MaxResults: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *param.MaxResults {
+			if *limit < 1 {
+				param.MaxResults = aws.Int64(1)
+			} else {
+				param.MaxResults = limit
+			}
+		}
 	}
 
 	err = svc.ListIdentityProviderConfigsPages(
@@ -158,6 +171,11 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 				d.StreamListItem(ctx, &IdentityProviderConfig{providerConfig.Name, providerConfig.Type, eks.OidcIdentityProviderConfig{
 					ClusterName: cluster.Name,
 				}})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return true
 		},

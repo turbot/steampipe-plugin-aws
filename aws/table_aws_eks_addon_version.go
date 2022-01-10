@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -18,6 +19,9 @@ func tableAwsEksAddonVersion(_ context.Context) *plugin.Table {
 		Description: "AWS EKS Addon Version",
 		List: &plugin.ListConfig{
 			Hydrate: listEksAddonVersions,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "addon_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -82,12 +86,37 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	input := &eks.DescribeAddonVersionsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["addon_name"] != nil {
+		input.AddonName = aws.String(equalQuals["addon_name"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.DescribeAddonVersionsPages(
-		&eks.DescribeAddonVersionsInput{},
+		input,
 		func(page *eks.DescribeAddonVersionsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				for _, version := range addon.AddonVersions {
 					d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
+
+					// Context can be cancelled due to manual cancellation or the limit has been hit
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return true

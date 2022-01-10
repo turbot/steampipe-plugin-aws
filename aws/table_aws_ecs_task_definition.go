@@ -25,6 +25,10 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsTaskDefinitions,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "family", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -217,9 +221,32 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &ecs.ListTaskDefinitionsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuala := d.KeyColumnQuals
+	if equalQuala["family"] != nil {
+		input.FamilyPrefix = aws.String(equalQuala["family"].GetStringValue())
+	}
+	if equalQuala["status"] != nil {
+		input.Status = aws.String(equalQuala["status"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListTaskDefinitionsPages(
-		&ecs.ListTaskDefinitionsInput{},
+		input,
 		func(page *ecs.ListTaskDefinitionsOutput, isLast bool) bool {
 			for _, result := range page.TaskDefinitionArns {
 				d.StreamListItem(ctx, &ecs.DescribeTaskDefinitionOutput{
@@ -227,6 +254,11 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 						TaskDefinitionArn: result,
 					},
 				})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

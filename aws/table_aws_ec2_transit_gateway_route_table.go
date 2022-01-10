@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -24,6 +25,12 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayRouteTable,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "default_association_route_table", Require: plugin.Optional},
+				{Name: "default_propagation_route_table", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -97,12 +104,52 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &ec2.DescribeTransitGatewayRouteTablesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := []*ec2.Filter{}
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["transit_gateway_id"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("transit-gateway-id"), Values: []*string{aws.String(equalQuals["transit_gateway_id"].GetStringValue())}})
+	}
+	if equalQuals["state"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("state"), Values: []*string{aws.String(equalQuals["state"].GetStringValue())}})
+	}
+	if equalQuals["default_association_route_table"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("default-association-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_association_route_table"].GetBoolValue()))}})
+	}
+	if equalQuals["default_propagation_route_table"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("default-propagation-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_propagation_route_table"].GetBoolValue()))}})
+	}
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTransitGatewayRouteTablesPages(
-		&ec2.DescribeTransitGatewayRouteTablesInput{},
+		input,
 		func(page *ec2.DescribeTransitGatewayRouteTablesOutput, isLast bool) bool {
 			for _, transitGatewayRouteTable := range page.TransitGatewayRouteTables {
 				d.StreamListItem(ctx, transitGatewayRouteTable)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
