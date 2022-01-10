@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -220,6 +221,13 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "AMI")
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["ena_support"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("ena-support"), Values: []*string{aws.String(fmt.Sprint(equalQuals["ena_support"].GetBoolValue()))}})
+	}
+	if equalQuals["public"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("is-public"), Values: []*string{aws.String(fmt.Sprint(equalQuals["public"].GetBoolValue()))}})
+	}
 
 	if len(filters) != 0 {
 		input.Filters = filters

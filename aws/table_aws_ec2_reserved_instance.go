@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -185,6 +186,8 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	input := &ec2.DescribeReservedInstancesInput{}
 
+	filters := buildEc2ReservedInstanceFilter(d.KeyColumnQuals)
+
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["offering_class"] != nil {
 		input.OfferingClass = aws.String(equalQuals["offering_class"].GetStringValue())
@@ -192,8 +195,15 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if equalQuals["offering_type"] != nil {
 		input.OfferingType = aws.String(equalQuals["offering_type"].GetStringValue())
 	}
-
-	filters := buildEc2ReservedInstanceFilter(d.KeyColumnQuals)
+	if equalQuals["duration"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("duration"), Values: []*string{aws.String(fmt.Sprint(equalQuals["duration"].GetInt64Value()))}})
+	}
+	if equalQuals["fixed_price"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("fixed-price"), Values: []*string{aws.String(fmt.Sprint(equalQuals["fixed_price"].GetDoubleValue()))}})
+	}
+	if equalQuals["usage_price"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("usage-price"), Values: []*string{aws.String(fmt.Sprint(equalQuals["usage_price"].GetDoubleValue()))}})
+	}
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -311,16 +321,13 @@ func buildEc2ReservedInstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
-		"availability_zone":    "availability-zone",
-		"duration":             "duration",
-		"end_time":             "end",
-		"fixed_price":          "fixed-price",
-		"instance_type":        "instance-type",
-		"scope":                "scope",
-		"product_description":  "product-description",
-		"start_time":           "start",
-		"instance_state":       "state",
-		"usage_price":          "usage-price",
+		"availability_zone":   "availability-zone",
+		"end_time":            "end",
+		"instance_type":       "instance-type",
+		"scope":               "scope",
+		"product_description": "product-description",
+		"start_time":          "start",
+		"instance_state":      "state",
 	}
 
 	for columnName, filterName := range filterQuals {

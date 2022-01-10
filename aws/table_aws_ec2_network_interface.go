@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -263,6 +264,18 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	filters := buildec2NetworkInterfaceFilter(d.KeyColumnQuals)
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["delete_on_instance_termination"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("attachment.delete-on-termination"), Values: []*string{aws.String(fmt.Sprint(equalQuals["delete_on_instance_termination"].GetBoolValue()))}})
+	}
+	if equalQuals["source_dest_check"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("source-dest-check"), Values: []*string{aws.String(fmt.Sprint(equalQuals["source_dest_check"].GetBoolValue()))}})
+	}
+	if equalQuals["requester_managed"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("requester-managed"), Values: []*string{aws.String(fmt.Sprint(equalQuals["requester_managed"].GetBoolValue()))}})
+	}
+	
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
@@ -365,27 +378,24 @@ func buildec2NetworkInterfaceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
-		"association_id":                 "association.association-id",
-		"association_allocation_id":      "association.allocation-id",
-		"association_ip_owner_id":        "association.ip-owner-id",
-		"association_public_ip":          "association.public-ip",
-		"association_public_dns_name":    "association.public-dns-name",
-		"attachment_id":                  "attachment.attachment-id",
-		"attachment_time":                "attachment.attach-time",
-		"delete_on_instance_termination": "attachment.delete-on-termination",
-		"attached_instance_id":           "attachment.instance-id",
-		"attached_instance_owner_id":     "attachment.instance-owner-id",
-		"attachment_status":              "attachment.status",
-		"availability_zone":              "availability-zone",
-		"description":                    "description",
-		"mac_address":                    "mac-address",
-		"owner_id":                       "owner-id",
-		"private_ip_address":             "private-ip-address",
-		"private_dns_name":               "private-dns-name",
-		"requester_id":                   "requester-id",
-		"requester_managed":              "requester-managed",
-		"source_dest_check":              "source-dest-check",
-		"status":                         "status",
+		"association_id":              "association.association-id",
+		"association_allocation_id":   "association.allocation-id",
+		"association_ip_owner_id":     "association.ip-owner-id",
+		"association_public_ip":       "association.public-ip",
+		"association_public_dns_name": "association.public-dns-name",
+		"attachment_id":               "attachment.attachment-id",
+		"attachment_time":             "attachment.attach-time",
+		"attached_instance_id":        "attachment.instance-id",
+		"attached_instance_owner_id":  "attachment.instance-owner-id",
+		"attachment_status":           "attachment.status",
+		"availability_zone":           "availability-zone",
+		"description":                 "description",
+		"mac_address":                 "mac-address",
+		"owner_id":                    "owner-id",
+		"private_ip_address":          "private-ip-address",
+		"private_dns_name":            "private-dns-name",
+		"requester_id":                "requester-id",
+		"status":                      "status",
 	}
 
 	for columnName, filterName := range filterQuals {

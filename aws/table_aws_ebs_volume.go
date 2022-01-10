@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -176,6 +177,19 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	filters := buildEbsVolumeFilter(d.KeyColumnQuals)
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["encrypted"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("encrypted"), Values: []*string{aws.String(fmt.Sprint(equalQuals["encrypted"].GetBoolValue()))}})
+	}
+	if equalQuals["fast_restored"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("fast-restored"), Values: []*string{aws.String(fmt.Sprint(equalQuals["fast_restored"].GetBoolValue()))}})
+	}
+	if equalQuals["multi_attach_enabled"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("multi-attach-enabled"), Values: []*string{aws.String(fmt.Sprint(equalQuals["multi_attach_enabled"].GetBoolValue()))}})
+	}
+	if equalQuals["size"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("size"), Values: []*string{aws.String(fmt.Sprint(equalQuals["size"].GetInt64Value()))}})
+	}
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -342,15 +356,11 @@ func buildEbsVolumeFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filte
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
-		"availability_zone":    "availability-zone",
-		"encrypted":            "encrypted",
-		"fast_restored":        "fast-restored",
-		"multi_attach_enabled": "multi-attach-enabled",
-		"size":                 "size",
-		"snapshot_id":          "snapshot-id",
-		"state":                "status",
-		"volume_id":            "volume-id",
-		"volume_type":          "volume-type",
+		"availability_zone": "availability-zone",
+		"snapshot_id":       "snapshot-id",
+		"state":             "status",
+		"volume_id":         "volume-id",
+		"volume_type":       "volume-type",
 	}
 
 	for columnName, filterName := range filterQuals {

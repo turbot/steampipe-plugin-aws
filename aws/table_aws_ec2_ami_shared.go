@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -217,6 +218,13 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "SHARED_AMI")
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["ena_support"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("ena-support"), Values: []*string{aws.String(fmt.Sprint(equalQuals["ena_support"].GetBoolValue()))}})
+	}
+	if equalQuals["public"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("is-public"), Values: []*string{aws.String(fmt.Sprint(equalQuals["public"].GetBoolValue()))}})
+	}
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -243,11 +251,9 @@ func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiT
 	filterQuals := map[string]string{
 		"architecture":        "architecture",
 		"description":         "description",
-		"ena_support":         "ena-support",
 		"hypervisor":          "hypervisor",
 		"image_id ":           "image-id ",
 		"image_type":          "image-type",
-		"public":              "is-public",
 		"kernel_id":           "kernel-id",
 		"name":                "name",
 		"platform":            "platform",
