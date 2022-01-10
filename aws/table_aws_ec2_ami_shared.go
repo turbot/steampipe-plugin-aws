@@ -245,6 +245,25 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return nil, err
 }
 
+func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	image := h.Item.(*ec2.Image)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	if image.ImageOwnerAlias == nil && commonColumnData.AccountId != *image.OwnerId {
+		return *image.OwnerId, nil
+	} else if image.ImageOwnerAlias == nil {
+		return "self", nil
+	} else {
+		return *image.ImageOwnerAlias, nil
+	}
+}
+
 //// UTILITY FUNCTION
 // build amis list call input filter
 func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiType string) []*ec2.Filter {
@@ -295,24 +314,4 @@ func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiT
 		filters = append(filters, &ownerFilter)
 	}
 	return filters
-}
-
-func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	image := h.Item.(*ec2.Image)
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-
-	if image.ImageOwnerAlias == nil && commonColumnData.AccountId != *image.OwnerId {
-		return *image.OwnerId, nil
-	} else if image.ImageOwnerAlias == nil {
-		return "self", nil
-	} else {
-		return *image.ImageOwnerAlias, nil
-	}
-
 }
