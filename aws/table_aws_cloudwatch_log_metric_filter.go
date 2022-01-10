@@ -130,8 +130,8 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.Limit {
-			if *limit < 5 {
-				input.Limit = aws.Int64(5)
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
 			} else {
 				input.Limit = limit
 			}

@@ -100,6 +100,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Name:        "image_owner_alias",
 				Description: "The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner.",
 				Type:        proto.ColumnType_STRING,
+				Default:     "self",
 			},
 			{
 				Name:        "kernel_id",

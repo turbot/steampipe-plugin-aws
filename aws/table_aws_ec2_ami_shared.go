@@ -102,6 +102,8 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Name:        "image_owner_alias",
 				Description: "The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getImageOwnerAlias,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "kernel_id",
@@ -293,4 +295,24 @@ func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiT
 		filters = append(filters, &ownerFilter)
 	}
 	return filters
+}
+
+func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	image := h.Item.(*ec2.Image)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	if image.ImageOwnerAlias == nil && commonColumnData.AccountId != *image.OwnerId {
+		return *image.OwnerId, nil
+	} else if image.ImageOwnerAlias == nil {
+		return "self", nil
+	} else {
+		return *image.ImageOwnerAlias, nil
+	}
+
 }

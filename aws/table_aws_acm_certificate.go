@@ -243,8 +243,8 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			if *limit < 5 {
-				input.MaxItems = types.Int64(5)
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
 			} else {
 				input.MaxItems = limit
 			}
