@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -30,10 +31,10 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				{Name: "owner_id", Require: plugin.Required},
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
-				{Name: "ena_support", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
 				{Name: "image_type", Require: plugin.Optional},
-				{Name: "public", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
 				{Name: "platform", Require: plugin.Optional},
@@ -219,14 +220,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		Owners: []*string{aws.String(owner_id)},
 	}
 
-	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "SHARED_AMI")
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["ena_support"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("ena-support"), Values: []*string{aws.String(fmt.Sprint(equalQuals["ena_support"].GetBoolValue()))}})
-	}
-	if equalQuals["public"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("is-public"), Values: []*string{aws.String(fmt.Sprint(equalQuals["public"].GetBoolValue()))}})
-	}
+	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI")
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -266,18 +260,20 @@ func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// UTILITY FUNCTION
 // build amis list call input filter
-func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiType string) []*ec2.Filter {
+func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
 		"architecture":        "architecture",
 		"description":         "description",
+		"ena_support":         "ena-support",
 		"hypervisor":          "hypervisor",
 		"image_id ":           "image-id ",
 		"image_type":          "image-type",
 		"kernel_id":           "kernel-id",
 		"name":                "name",
 		"platform":            "platform",
+		"public":              "is-public",
 		"ramdisk_id":          "ramdisk-id",
 		"root_device_name":    "root-device-name",
 		"root_device_type":    "root-device-type",
@@ -286,26 +282,35 @@ func buildAmisByOwnerFilterFilter(equalQuals plugin.KeyColumnEqualsQualMap, amiT
 		"virtualization_type": "virtualization-type",
 	}
 
+	columnsBool := []string{"ena_support", "public"}
+
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: types.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					v := value.([]*string)
+					filter.Values = v
+				}
 			}
 			filters = append(filters, &filter)
 		}
 	}
 
 	ownerFilter := ec2.Filter{}
-	if equalQuals["owner_id"].GetStringValue() != "SHARED_AMI" {
-		if equalQuals["owner_id"] != nil {
+	if amiType != "SHARED_AMI" {
+		if quals["owner_id"] != nil {
 			ownerFilter.Name = types.String("owner-id")
-			ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
+			ownerFilter.Values = []*string{types.String(getQualsValueByColumn(quals, "owner_id", "string").(string))}
 		} else {
 			ownerFilter.Name = types.String("owner-id")
 			ownerFilter.Values = []*string{types.String("self")}

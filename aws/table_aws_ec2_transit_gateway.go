@@ -175,7 +175,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		MaxResults: aws.Int64(1000),
 	}
 
-	filters := buildEc2TransitGatewayFilter(d.KeyColumnQuals)
+	filters := buildEc2TransitGatewayFilter(d.Quals)
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["amazon_side_asn"] != nil {
@@ -265,7 +265,7 @@ func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformDa
 
 //// UTILITY FUNCTION
 // build ebs volume list call input filter
-func buildEc2TransitGatewayFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -281,15 +281,17 @@ func buildEc2TransitGatewayFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*e
 	}
 
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: aws.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
 			}
 			filters = append(filters, &filter)
 		}

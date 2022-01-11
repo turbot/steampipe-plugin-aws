@@ -89,7 +89,7 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	input := &ec2.DescribeKeyPairsInput{}
 
-	filters := buildEc2KeyPairFilter(d.KeyColumnQuals)
+	filters := buildEc2KeyPairFilter(d.Quals)
 
 	if len(filters) > 0 {
 		input.Filters = filters
@@ -99,6 +99,11 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	for _, keyPair := range resp.KeyPairs {
 		d.StreamListItem(ctx, keyPair)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
 }
@@ -156,7 +161,7 @@ func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (int
 
 //// UTILITY FUNCTION
 // build ec2 key-pair list call input filter
-func buildEc2KeyPairFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -165,15 +170,17 @@ func buildEc2KeyPairFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filt
 	}
 
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: aws.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
 			}
 			filters = append(filters, &filter)
 		}

@@ -176,7 +176,7 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 		MaxResults: aws.Int64(500),
 	}
 
-	filters := buildEc2CapacityReservationFilter(d.KeyColumnQuals)
+	filters := buildEc2CapacityReservationFilter(d.Quals)
 	if len(filters) != 0 {
 		input.Filters = filters
 	}
@@ -261,7 +261,7 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 
 //// UTILITY FUNCTION
 // build ec2 capacity reservation list call input filter
-func buildEc2CapacityReservationFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -279,15 +279,17 @@ func buildEc2CapacityReservationFilter(equalQuals plugin.KeyColumnEqualsQualMap)
 	}
 
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: aws.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				valSlice := value.([]*string)
+				filter.Values = valSlice
 			}
 			filters = append(filters, &filter)
 		}

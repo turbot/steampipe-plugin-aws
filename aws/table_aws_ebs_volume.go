@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -27,9 +28,9 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 			Hydrate: listEBSVolume,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
-				{Name: "encrypted", Require: plugin.Optional},
-				{Name: "fast_restored", Require: plugin.Optional},
-				{Name: "multi_attach_enabled", Require: plugin.Optional},
+				{Name: "encrypted", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "fast_restored", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "multi_attach_enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "size", Require: plugin.Optional},
 				{Name: "snapshot_id", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},
@@ -176,20 +177,7 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		MaxResults: aws.Int64(500),
 	}
 
-	filters := buildEbsVolumeFilter(d.KeyColumnQuals)
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["encrypted"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("encrypted"), Values: []*string{aws.String(fmt.Sprint(equalQuals["encrypted"].GetBoolValue()))}})
-	}
-	if equalQuals["fast_restored"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("fast-restored"), Values: []*string{aws.String(fmt.Sprint(equalQuals["fast_restored"].GetBoolValue()))}})
-	}
-	if equalQuals["multi_attach_enabled"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("multi-attach-enabled"), Values: []*string{aws.String(fmt.Sprint(equalQuals["multi_attach_enabled"].GetBoolValue()))}})
-	}
-	if equalQuals["size"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("size"), Values: []*string{aws.String(fmt.Sprint(equalQuals["size"].GetInt64Value()))}})
-	}
+	filters := buildEbsVolumeFilter(d.Quals)
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -352,27 +340,44 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 
 //// UTILITY FUNCTION
 // build ebs volume list call input filter
-func buildEbsVolumeFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
-		"availability_zone": "availability-zone",
-		"snapshot_id":       "snapshot-id",
-		"state":             "status",
-		"volume_id":         "volume-id",
-		"volume_type":       "volume-type",
+		"availability_zone":    "availability-zone",
+		"encrypted":            "encrypted",
+		"fast_restored":        "fast-restored",
+		"multi_attach_enabled": "multi-attach-enabled",
+		"size":                 "size",
+		"snapshot_id":          "snapshot-id",
+		"state":                "status",
+		"volume_id":            "volume-id",
+		"volume_type":          "volume-type",
 	}
 
+	columnsBool := []string{"encrypted", "fast_restored", "multi_attach_enabled"}
+	columnsInt := []string{"size"}
+
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: types.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
+				value := getQualsValueByColumn(quals, columnName, "int64")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					valSlice := value.([]*string)
+					filter.Values = valSlice
+				}
 			}
 			filters = append(filters, &filter)
 		}

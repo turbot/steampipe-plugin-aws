@@ -109,7 +109,7 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 	pendingState := "pending"
 	filterValue := []*string{&blackholeState, &pendingState, &activeState}
 
-	filters := buildEc2TransitGatewayRouteFilter(d.KeyColumnQuals)
+	filters := buildEc2TransitGatewayRouteFilter(d.Quals)
 	filters = append(filters, &ec2.Filter{Name: &filterName, Values: filterValue})
 
 	input.Filters = filters
@@ -167,7 +167,7 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 
 //// UTILITY FUNCTION
 // build ec2 transit gateway route list call input filter
-func buildEc2TransitGatewayRouteFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -177,15 +177,17 @@ func buildEc2TransitGatewayRouteFilter(equalQuals plugin.KeyColumnEqualsQualMap)
 	}
 
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: aws.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
 			}
 			filters = append(filters, &filter)
 		}

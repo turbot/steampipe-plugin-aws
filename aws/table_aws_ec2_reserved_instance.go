@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -186,7 +187,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	input := &ec2.DescribeReservedInstancesInput{}
 
-	filters := buildEc2ReservedInstanceFilter(d.KeyColumnQuals)
+	filters := buildEc2ReservedInstanceFilter(d.Quals)
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["offering_class"] != nil {
@@ -194,15 +195,6 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 	if equalQuals["offering_type"] != nil {
 		input.OfferingType = aws.String(equalQuals["offering_type"].GetStringValue())
-	}
-	if equalQuals["duration"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("duration"), Values: []*string{aws.String(fmt.Sprint(equalQuals["duration"].GetInt64Value()))}})
-	}
-	if equalQuals["fixed_price"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("fixed-price"), Values: []*string{aws.String(fmt.Sprint(equalQuals["fixed_price"].GetDoubleValue()))}})
-	}
-	if equalQuals["usage_price"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("usage-price"), Values: []*string{aws.String(fmt.Sprint(equalQuals["usage_price"].GetDoubleValue()))}})
 	}
 
 	if len(filters) != 0 {
@@ -317,29 +309,45 @@ func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformD
 
 //// UTILITY FUNCTION
 // build ec2 reserved instance list call input filter
-func buildEc2ReservedInstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
 		"availability_zone":   "availability-zone",
+		"duration":            "duration",
 		"end_time":            "end",
+		"fixed_price":         "fixed-price",
 		"instance_type":       "instance-type",
 		"scope":               "scope",
 		"product_description": "product-description",
 		"start_time":          "start",
+		"usage_price":         "usage-price",
 		"instance_state":      "state",
 	}
 
+	columnsDouble := []string{"fixed_price", "usage_price"}
+	columnsInt := []string{"duration"}
+
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := ec2.Filter{
 				Name: aws.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{aws.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			if strings.Contains(fmt.Sprint(columnsDouble), columnName) { //check Double columns
+				value := getQualsValueByColumn(quals, columnName, "double")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
+				value := getQualsValueByColumn(quals, columnName, "int64")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					v := value.([]*string)
+					filter.Values = v
+				}
 			}
 			filters = append(filters, &filter)
 		}

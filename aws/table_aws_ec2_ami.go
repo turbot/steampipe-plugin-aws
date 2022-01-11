@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -28,10 +27,10 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "architecture", Require: plugin.Optional},
 				{Name: "description", Require: plugin.Optional},
-				{Name: "ena_support", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "hypervisor", Require: plugin.Optional},
 				{Name: "image_type", Require: plugin.Optional},
-				{Name: "public", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "kernel_id", Require: plugin.Optional},
 				{Name: "platform", Require: plugin.Optional},
 				{Name: "name", Require: plugin.Optional},
@@ -221,14 +220,7 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		Owners: []*string{aws.String("self")},
 	}
 
-	filters := buildAmisByOwnerFilterFilter(d.KeyColumnQuals, "AMI")
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["ena_support"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("ena-support"), Values: []*string{aws.String(fmt.Sprint(equalQuals["ena_support"].GetBoolValue()))}})
-	}
-	if equalQuals["public"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("is-public"), Values: []*string{aws.String(fmt.Sprint(equalQuals["public"].GetBoolValue()))}})
-	}
+	filters := buildAmisWithOwnerFilter(d.Quals, "AMI")
 
 	if len(filters) != 0 {
 		input.Filters = filters
