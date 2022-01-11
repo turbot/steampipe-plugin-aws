@@ -94,6 +94,9 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
+
+	// The maximum number for MaxItems parameter is not defined by the API
+	// We have set the MaxItems to 1000 based on our test
 	input := &cloudfront.ListCloudFrontOriginAccessIdentitiesInput{
 		MaxItems: aws.Int64(1000),
 	}
@@ -103,8 +106,8 @@ func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryDa
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			if *limit < 5 {
-				input.MaxItems = types.Int64(5)
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
 			} else {
 				input.MaxItems = limit
 			}

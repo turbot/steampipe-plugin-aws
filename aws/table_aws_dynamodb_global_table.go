@@ -88,7 +88,7 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	input := &dynamodb.ListGlobalTablesInput{
-		Limit: aws.Int64(1000),
+		Limit: aws.Int64(100),
 	}
 
 	// Additonal Filter
@@ -102,8 +102,8 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.Limit {
-			if *limit < 5 {
-				input.Limit = types.Int64(5)
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
 			} else {
 				input.Limit = limit
 			}

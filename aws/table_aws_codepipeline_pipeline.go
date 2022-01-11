@@ -136,8 +136,8 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
 			} else {
 				input.MaxResults = limit
 			}

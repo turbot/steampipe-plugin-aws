@@ -106,6 +106,8 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
 	// List call
 	params := &cloudfront.ListOriginRequestPoliciesInput{
 		MaxItems: aws.Int64(1000),
@@ -114,8 +116,8 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *params.MaxItems {
-			if *limit < 5 {
-				params.MaxItems = types.Int64(5)
+			if *limit < 1 {
+				params.MaxItems = types.Int64(1)
 			} else {
 				params.MaxItems = limit
 			}
