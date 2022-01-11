@@ -4,7 +4,9 @@ import (
 	"context"
 	"strings"
 
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
 var permissionsData ParliamentPermissions
@@ -15,48 +17,48 @@ func tableAwsIamAction(_ context.Context) *plugin.Table {
 	permissionsData = getParliamentIamPermissions()
 
 	return &plugin.Table{
-		// Name:        "aws_iam_action",
-		// Description: "AWS IAM Action",
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns: plugin.SingleColumn("action"),
-		// 	Hydrate:    getIamAction,
-		// },
-		// List: &plugin.ListConfig{
-		// 	Hydrate: listIamActions,
-		// },
-		// Columns: []*plugin.Column{
-		// 	// "Key" Columns
-		// 	{
-		// 		Name:        "action",
-		// 		Description: "The action for this permission.",
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Transform:   transform.FromGo(),
-		// 	},
-		// 	{
-		// 		Name:        "prefix",
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Description: "The prefix for this action.",
-		// 		Transform:   transform.FromGo(),
-		// 	},
-		// 	{
-		// 		Name:        "privilege",
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Description: "The privilege for this action.",
-		// 		Transform:   transform.FromGo(),
-		// 	},
-		// 	{
-		// 		Name:        "access_level",
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Description: "The access level for this action.",
-		// 		Transform:   transform.FromGo(),
-		// 	},
-		// 	{
-		// 		Name:        "description",
-		// 		Type:        proto.ColumnType_STRING,
-		// 		Description: "The description for this action.",
-		// 		Transform:   transform.FromGo(),
-		// 	},
-		// },
+		Name:        "aws_iam_action",
+		Description: "AWS IAM Action",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("action"),
+			Hydrate:    getIamAction,
+		},
+		List: &plugin.ListConfig{
+			Hydrate: listIamActions,
+		},
+		Columns: []*plugin.Column{
+			// "Key" Columns
+			{
+				Name:        "action",
+				Description: "The action for this permission.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "prefix",
+				Type:        proto.ColumnType_STRING,
+				Description: "The prefix for this action.",
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "privilege",
+				Type:        proto.ColumnType_STRING,
+				Description: "The privilege for this action.",
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "access_level",
+				Type:        proto.ColumnType_STRING,
+				Description: "The access level for this action.",
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "description",
+				Type:        proto.ColumnType_STRING,
+				Description: "The description for this action.",
+				Transform:   transform.FromGo(),
+			},
+		},
 	}
 }
 
