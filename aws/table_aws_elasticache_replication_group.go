@@ -171,12 +171,32 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	input := &elasticache.DescribeReplicationGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeReplicationGroupsPages(
-		&elasticache.DescribeReplicationGroupsInput{},
+		input,
 		func(page *elasticache.DescribeReplicationGroupsOutput, isLast bool) bool {
 			for _, replicationGroup := range page.ReplicationGroups {
 				d.StreamListItem(ctx, replicationGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

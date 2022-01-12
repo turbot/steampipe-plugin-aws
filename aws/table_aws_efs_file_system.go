@@ -25,6 +25,9 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticFileSystem,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_token", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -158,12 +161,37 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	input := &efs.DescribeFileSystemsInput{
+		MaxItems: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["creation_token"] != nil {
+		input.CreationToken = aws.String(equalQuals["creation_token"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeFileSystemsPages(
-		&efs.DescribeFileSystemsInput{},
+		input,
 		func(page *efs.DescribeFileSystemsOutput, isLast bool) bool {
 			for _, fileSystem := range page.FileSystems {
 				d.StreamListItem(ctx, fileSystem)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

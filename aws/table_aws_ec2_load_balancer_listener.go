@@ -122,14 +122,33 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
+	input := &elbv2.DescribeListenersInput{
+		LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
+		PageSize:        aws.Int64(400),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.PageSize {
+			if *limit < 1 {
+				input.PageSize = aws.Int64(1)
+			} else {
+				input.PageSize = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeListenersPages(
-		&elbv2.DescribeListenersInput{
-			LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
-		},
+		input,
 		func(page *elbv2.DescribeListenersOutput, isLast bool) bool {
 			for _, listener := range page.Listeners {
 				d.StreamLeafListItem(ctx, listener)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

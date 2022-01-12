@@ -80,12 +80,32 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheSubnetGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheSubnetGroupsPages(
-		&elasticache.DescribeCacheSubnetGroupsInput{},
+		input,
 		func(page *elasticache.DescribeCacheSubnetGroupsOutput, isLast bool) bool {
 			for _, cacheSubnetGroup := range page.CacheSubnetGroups {
 				d.StreamListItem(ctx, cacheSubnetGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

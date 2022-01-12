@@ -210,23 +210,39 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	// First get all the types of
-	params := &ec2.DescribeInstanceTypeOfferingsInput{
+	// First get all the types of instance
+	input := &ec2.DescribeInstanceTypeOfferingsInput{
 		LocationType: aws.String("region"),
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("location"),
-				Values: []*string{aws.String(region)},
-			},
-		},
+		MaxResults:   aws.Int64(1000),
+	}
+
+	var filters []*ec2.Filter
+	filters = append(filters, &ec2.Filter{Name: aws.String("location"), Values: []*string{&region}})
+	input.Filters = filters
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.DescribeInstanceTypeOfferingsPages(
-		params,
+		input,
 		func(page *ec2.DescribeInstanceTypeOfferingsOutput, isLast bool) bool {
 			for _, instanceTypeOffering := range page.InstanceTypeOfferings {
 				d.StreamListItem(ctx, instanceTypeOffering)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

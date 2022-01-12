@@ -20,6 +20,11 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
 			Hydrate:           listManagedPrefixList,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "id", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -156,7 +161,11 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *params.MaxResults {
-			params.MaxResults = limit
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
 		}
 	}
 
@@ -166,6 +175,11 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		func(page *ec2.DescribeManagedPrefixListsOutput, isLast bool) bool {
 			for _, prefix := range page.PrefixLists {
 				d.StreamListItem(ctx, prefix)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

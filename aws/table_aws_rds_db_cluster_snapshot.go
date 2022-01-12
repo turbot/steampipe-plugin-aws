@@ -209,7 +209,7 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 			}
 		}
 	}
-	filters := buildRdsDbClusterSnapshotFilter(d.KeyColumnQuals)
+	filters := buildRdsDbClusterSnapshotFilter(d.Quals)
 
 	if len(filters) != 0 {
 		input.SetFilters(filters)
@@ -299,7 +299,7 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 //// UTILITY FUNCTIONS
 
 // build snapshots list call input filter
-func buildRdsDbClusterSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*rds.Filter {
+func buildRdsDbClusterSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 	filters := make([]*rds.Filter, 0)
 	filterQuals := map[string]string{
 		"db_cluster_identifier":          "db-cluster-id",
@@ -309,15 +309,17 @@ func buildRdsDbClusterSnapshotFilter(equalQuals plugin.KeyColumnEqualsQualMap) [
 	}
 
 	for columnName, filterName := range filterQuals {
-		if equalQuals[columnName] != nil {
+		if quals[columnName] != nil {
 			filter := rds.Filter{
 				Name: types.String(filterName),
 			}
-			value := equalQuals[columnName]
-			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
 			}
 			filters = append(filters, &filter)
 		}

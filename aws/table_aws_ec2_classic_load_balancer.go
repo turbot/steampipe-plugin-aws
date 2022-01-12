@@ -268,12 +268,33 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elb.DescribeLoadBalancersInput{
+		PageSize: aws.Int64(400),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.PageSize {
+			if *limit < 1 {
+				input.PageSize = aws.Int64(1)
+			} else {
+				input.PageSize = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elb.DescribeLoadBalancersInput{},
+		input,
 		func(page *elb.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, classicLoadBalancer := range page.LoadBalancerDescriptions {
 				d.StreamListItem(ctx, classicLoadBalancer)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
