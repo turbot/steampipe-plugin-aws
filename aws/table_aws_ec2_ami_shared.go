@@ -221,7 +221,6 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI", ctx, d, h)
-	plugin.Logger(ctx).Info("Ec2 Shared AMI filter =====>>", len(filters))
 
 	if len(filters) != 0 {
 		input.Filters = filters
