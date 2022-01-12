@@ -206,7 +206,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2Amis", "AWS_REGION", region)
 
@@ -216,12 +216,9 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	input := &ec2.DescribeImagesInput{
-		Owners: []*string{aws.String("self")},
-	}
+	input := &ec2.DescribeImagesInput{}
 
-	filters := buildAmisWithOwnerFilter(d.Quals, "AMI")
-
+	filters := buildAmisWithOwnerFilter(d.Quals, "AMI", ctx, d, h)
 	if len(filters) != 0 {
 		input.Filters = filters
 	}

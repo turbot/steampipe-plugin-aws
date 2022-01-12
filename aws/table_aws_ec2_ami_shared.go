@@ -204,7 +204,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAmisByOwner", "AWS_REGION", region)
 
@@ -220,7 +220,8 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		Owners: []*string{aws.String(owner_id)},
 	}
 
-	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI")
+	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI", ctx, d, h)
+	plugin.Logger(ctx).Info("Ec2 Shared AMI filter =====>>", len(filters))
 
 	if len(filters) != 0 {
 		input.Filters = filters
@@ -260,7 +261,7 @@ func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// UTILITY FUNCTION
 // Build AMI's list call input filter
-func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string) []*ec2.Filter {
+func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
 	filterQuals := map[string]string{
@@ -312,8 +313,15 @@ func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string) []*
 			ownerFilter.Name = types.String("owner-id")
 			ownerFilter.Values = []*string{types.String(getQualsValueByColumn(quals, "owner_id", "string").(string))}
 		} else {
+			// Use this section later and compare the results
+			getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+			c, err := getCommonColumnsCached(ctx, d, h)
+			if err != nil {
+				return filters
+			}
+			commonColumnData := c.(*awsCommonColumnData)
 			ownerFilter.Name = types.String("owner-id")
-			ownerFilter.Values = []*string{types.String("self")}
+			ownerFilter.Values = []*string{aws.String(commonColumnData.AccountId)}
 		}
 
 		filters = append(filters, &ownerFilter)
