@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-aws
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.40.57
+	github.com/aws/aws-sdk-go v1.42.25
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
@@ -43,7 +43,7 @@ require (
 	github.com/stevenle/topsort v0.0.0-20130922064739-8130c1d7596b // indirect
 	github.com/tkrajina/go-reflector v0.5.4 // indirect
 	github.com/zclconf/go-cty v1.8.2 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/sys v0.0.0-20211102061401-a2f17f7b995c // indirect
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
