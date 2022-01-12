@@ -22,7 +22,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeBuses,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "name_prefix", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
@@ -36,12 +36,6 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the account permitted to write events to the current account.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "name_prefix",
-				Description: "Specifying this limits the results to only those event buses with names that start with the specified prefix.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("name_prefix"),
 			},
 			{
 				Name:        "policy",
@@ -106,8 +100,8 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	equalQuals := d.KeyColumnQuals
-	if equalQuals["name_prefix"] != nil {
-		input.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
+	if equalQuals["name"] != nil {
+		input.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

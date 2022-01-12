@@ -73,7 +73,8 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 				Name:        "name_prefix",
 				Description: "Specifying this limits the results to only those event rules with names that start with the specified prefix.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("name_prefix"),
+				Hydrate:     getNamePrefixValue,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "targets",
@@ -257,6 +258,14 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	return op, nil
+}
+
+func getNamePrefixValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if d.KeyColumnQuals["name_prefix"].GetStringValue() != "" {
+		return d.KeyColumnQuals["name_prefix"].GetStringValue(), nil
+	} else {
+		return h.Item.(*eventbridge.DescribeRuleOutput).Name, nil
+	}
 }
 
 //// TRANSFORM FUNCTIONS
