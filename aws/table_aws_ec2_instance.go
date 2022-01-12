@@ -662,7 +662,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 
 //// UTILITY FUNCTIONS
 
-// build ec2 instance list call input filter
+// Build ec2 instance list call input filter
 func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

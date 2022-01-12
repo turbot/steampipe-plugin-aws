@@ -146,7 +146,7 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 			for _, transitGatewayRouteTable := range page.TransitGatewayRouteTables {
 				d.StreamListItem(ctx, transitGatewayRouteTable)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

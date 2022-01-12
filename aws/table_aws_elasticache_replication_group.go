@@ -193,7 +193,7 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 			for _, replicationGroup := range page.ReplicationGroups {
 				d.StreamListItem(ctx, replicationGroup)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

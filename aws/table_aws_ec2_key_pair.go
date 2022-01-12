@@ -100,7 +100,7 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for _, keyPair := range resp.KeyPairs {
 		d.StreamListItem(ctx, keyPair)
 
-		// Context can be cancelled due to manual cancellation or the limit has been hit
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
@@ -160,7 +160,7 @@ func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (int
 }
 
 //// UTILITY FUNCTION
-// build ec2 key-pair list call input filter
+// Build ec2 key-pair list call input filter
 func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

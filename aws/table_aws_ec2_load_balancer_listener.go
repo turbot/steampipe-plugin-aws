@@ -124,7 +124,7 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 
 	input := &elbv2.DescribeListenersInput{
 		LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
-		PageSize: aws.Int64(400),
+		PageSize:        aws.Int64(400),
 	}
 
 	limit := d.QueryContext.Limit
@@ -145,7 +145,7 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 			for _, listener := range page.Listeners {
 				d.StreamLeafListItem(ctx, listener)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

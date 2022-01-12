@@ -200,7 +200,7 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 			for _, reservation := range page.CapacityReservations {
 				d.StreamListItem(ctx, reservation)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}
@@ -260,7 +260,7 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 }
 
 //// UTILITY FUNCTION
-// build ec2 capacity reservation list call input filter
+// Build ec2 capacity reservation list call input filter
 func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

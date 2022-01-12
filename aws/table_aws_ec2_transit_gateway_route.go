@@ -137,7 +137,7 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 			TransitGatewayRouteTableId: *routeTableId,
 		})
 
-		// Context can be cancelled due to manual cancellation or the limit has been hit
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
@@ -166,7 +166,7 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 }
 
 //// UTILITY FUNCTION
-// build ec2 transit gateway route list call input filter
+// Build ec2 transit gateway route list call input filter
 func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

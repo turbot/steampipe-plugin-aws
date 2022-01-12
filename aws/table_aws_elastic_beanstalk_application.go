@@ -119,7 +119,7 @@ func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryDat
 	for _, application := range op.Applications {
 		d.StreamListItem(ctx, application)
 
-		// Context can be cancelled due to manual cancellation or the limit has been hit
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}

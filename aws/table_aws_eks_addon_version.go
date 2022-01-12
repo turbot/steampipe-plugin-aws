@@ -113,7 +113,7 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 				for _, version := range addon.AddonVersions {
 					d.StreamListItem(ctx, addonVersion{addon.AddonName, version.AddonVersion, version.Architecture, version.Compatibilities, addon.Type})
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
 					if d.QueryStatus.RowsRemaining(ctx) == 0 {
 						return false
 					}

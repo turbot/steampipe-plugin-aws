@@ -188,7 +188,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			for _, fileSystem := range page.FileSystems {
 				d.StreamListItem(ctx, fileSystem)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

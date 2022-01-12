@@ -210,7 +210,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 	for _, reservedInstance := range result.ReservedInstances {
 		d.StreamListItem(ctx, reservedInstance)
 
-		// Context can be cancelled due to manual cancellation or the limit has been hit
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
@@ -308,7 +308,7 @@ func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformD
 }
 
 //// UTILITY FUNCTION
-// build ec2 reserved instance list call input filter
+// Build ec2 reserved instance list call input filter
 func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

@@ -157,7 +157,7 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 			for _, transitGatewayAttachment := range page.TransitGatewayAttachments {
 				d.StreamListItem(ctx, transitGatewayAttachment)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}
@@ -239,7 +239,7 @@ func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.Transfo
 }
 
 //// UTILITY FUNCTION
-// build ebs volume list call input filter
+// Build ec2 transit gateway VPC attachment list call input filter
 func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

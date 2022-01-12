@@ -201,7 +201,7 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 			for _, volume := range page.Volumes {
 				d.StreamListItem(ctx, volume)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}
@@ -339,7 +339,7 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 }
 
 //// UTILITY FUNCTION
-// build ebs volume list call input filter
+// Build ebs volume list call input filter
 func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

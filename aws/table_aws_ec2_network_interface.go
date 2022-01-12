@@ -363,7 +363,7 @@ func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformD
 }
 
 //// UTILITY FUNCTION
-// build ec2 network interface list call input filter
+// Build ec2 network interface list call input filter
 func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 

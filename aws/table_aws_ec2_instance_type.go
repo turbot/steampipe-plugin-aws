@@ -210,7 +210,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	// First get all the types of
+	// First get all the types of instance
 	input := &ec2.DescribeInstanceTypeOfferingsInput{
 		LocationType: aws.String("region"),
 		MaxResults:   aws.Int64(1000),
@@ -239,7 +239,7 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 			for _, instanceTypeOffering := range page.InstanceTypeOfferings {
 				d.StreamListItem(ctx, instanceTypeOffering)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

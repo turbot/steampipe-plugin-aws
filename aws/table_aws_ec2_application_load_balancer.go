@@ -164,12 +164,12 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 
 	input := &elbv2.DescribeLoadBalancersInput{}
 
-	// Additonal Filter
+	// Additional Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
-	} else { 
-		// If the names will be provided in param then page limit can not be set, api throws error 
+	} else {
+		// If the names will be provided in param then page limit cannot be set, API throws an error
 		// ValidationError: Pagination is not supported when specifying load balancers
 		input.PageSize = aws.Int64(400)
 		// Limiting the results
@@ -198,7 +198,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 				if strings.ToLower(*applicationLoadBalancer.Type) == "application" {
 					d.StreamListItem(ctx, applicationLoadBalancer)
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
 					if d.QueryStatus.RowsRemaining(ctx) == 0 {
 						return false
 					}

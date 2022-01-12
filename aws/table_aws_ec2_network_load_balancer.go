@@ -24,7 +24,7 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2NetworkLoadBalancer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2NetworkLoadBalancers,
+			Hydrate:           listEc2NetworkLoadBalancers,
 			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -163,8 +163,8 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
-	} else { 
-		// If the names will be provided in param then page limit can not be set, api throws error 
+	} else {
+		// If the names will be provided in param then page limit can not be set, api throws error
 		// ValidationError: Pagination is not supported when specifying load balancers
 		input.PageSize = aws.Int64(400)
 		// Limiting the results
@@ -189,7 +189,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 				if strings.ToLower(*networkLoadBalancer.Type) == "network" {
 					d.StreamListItem(ctx, networkLoadBalancer)
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
 					if d.QueryStatus.RowsRemaining(ctx) == 0 {
 						return false
 					}

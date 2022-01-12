@@ -22,7 +22,7 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 			Hydrate:           getEfsAccessPoint,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEfsAccessPoints,
+			Hydrate:           listEfsAccessPoints,
 			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "file_system_id", Require: plugin.Optional},
@@ -141,7 +141,7 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			for _, accessPoint := range page.AccessPoints {
 				d.StreamListItem(ctx, accessPoint)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

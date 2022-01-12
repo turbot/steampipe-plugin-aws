@@ -24,7 +24,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2TargetGroups,
+			Hydrate:           listEc2TargetGroups,
 			ShouldIgnoreError: isNotFoundError([]string{"TargetGroupNotFound"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},
@@ -168,7 +168,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		PageSize: aws.Int64(400),
 	}
 
-	// Additonal Filter
+	// Additional Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["target_group_name"] != nil {
 		input.Names = []*string{aws.String(equalQuals["target_group_name"].GetStringValue())}
@@ -193,7 +193,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			for _, targetGroup := range page.TargetGroups {
 				d.StreamListItem(ctx, targetGroup)
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}

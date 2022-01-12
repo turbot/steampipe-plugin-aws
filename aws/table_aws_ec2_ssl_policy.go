@@ -99,7 +99,7 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		for _, sslPolicy := range response.SslPolicies {
 			d.StreamListItem(ctx, sslPolicy)
 
-			// Context can be cancelled due to manual cancellation or the limit has been hit
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}

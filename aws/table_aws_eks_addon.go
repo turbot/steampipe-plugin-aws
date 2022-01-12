@@ -144,7 +144,7 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 					ClusterName: &clusterName,
 				})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}
