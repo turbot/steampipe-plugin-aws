@@ -1,3 +1,10 @@
+## v0.44.0 [2022-01-12]
+
+_Enhancements_
+
+- Recompiled plugin with [aws-sdk-go-v1.42.25](https://github.com/aws/aws-sdk-go/blob/main/CHANGELOG.md#release-v14225-2021-12-21) ([#851](https://github.com/turbot/steampipe-plugin-aws/pull/851))
+- Added additional optional key quals, filter support, and context cancellation handling to `ACM`, `API Gateway`, `EBS`, `EC2`, `ECR`, `ECS`, `EFS`, `EKS`, `Elastic Beanstalk`, `ElastiCache`, `Elasticsearch`, `EMR`, `EventBridge` and `RDS` tables ([#850](https://github.com/turbot/steampipe-plugin-aws/pull/850))
+
 ## v0.43.0 [2021-12-21]
 
 _What's new?_
@@ -73,8 +80,6 @@ _Bug fixes_
 - `aws_ec2_application_load_balancer` table will no longer return `ValidationError` in get call ([#792](https://github.com/turbot/steampipe-plugin-aws/pull/792))
 - `aws_dax_cluster` table will no longer return an error when we try to query for unsupported regions ([#787](https://github.com/turbot/steampipe-plugin-aws/pull/787))
 - `aws_lambda_alias` table will now need `name`, `function_name` and `region` to perform get call ([#781](https://github.com/turbot/steampipe-plugin-aws/pull/781))
-
-
 
 ## v0.40.0 [2021-11-17]
 
