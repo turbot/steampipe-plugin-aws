@@ -11,34 +11,34 @@ import (
 )
 
 func tableAwsVpcSecurityGroupRules(_ context.Context) *plugin.Table {
-    return &plugin.Table{
-        Name:        "aws_vpc_security_group_rules",
-        Description: "AWS VPC Security Group Rules",
-        List: &plugin.ListConfig{
-            Hydrate:       listSecurityGroupRules1,
-        },
-        GetMatrixItem: BuildRegionList,
-        Columns: awsRegionalColumns([]*plugin.Column{
+	return &plugin.Table{
+		Name:        "aws_vpc_security_group_rules",
+		Description: "AWS VPC Security Group Rules",
+		List: &plugin.ListConfig{
+			Hydrate: listSecurityGroupRules1,
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-                Name:        "security_group_rule_id",
-                Description: "The ID of the security group rule.",
-                Type:        proto.ColumnType_STRING,
-            },
-            {
-                Name:        "group_id",
-                Description: "The ID of the security group.",
-                Type:        proto.ColumnType_STRING,
-            },
+				Name:        "security_group_rule_id",
+				Description: "The ID of the security group rule.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
-                Name:        "group_owner_id",
-                Description: "The ID of the Amazon Web Services account that owns the security group.",
-                Type:        proto.ColumnType_STRING,
-            },
+				Name:        "group_id",
+				Description: "The ID of the security group.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
-                Name:        "is_egress",
-                Description: "Indicates whether the security group rule is an outbound rule.",
-                Type:        proto.ColumnType_BOOL,
-            },
+				Name:        "group_owner_id",
+				Description: "The ID of the Amazon Web Services account that owns the security group.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "is_egress",
+				Description: "Indicates whether the security group rule is an outbound rule.",
+				Type:        proto.ColumnType_BOOL,
+			},
 			{
 				Name:        "ip_protocol",
 				Description: "The IP protocol name (tcp, udp, icmp, icmpv6) or number [see Protocol Numbers ](http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml). Use -1 to specify all protocols.",
@@ -129,34 +129,34 @@ func tableAwsVpcSecurityGroupRules(_ context.Context) *plugin.Table {
 				Hydrate:     getSecurityGroupRulesTurbotData,
 				Transform:   transform.FromField("Akas"),
 			},
-        }),
-    }
+		}),
+	}
 }
 
 //// LIST FUNCTION
 
 func listSecurityGroupRules1(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-    region := d.KeyColumnQualString(matrixKeyRegion)
-    plugin.Logger(ctx).Trace("listVpcSecurityGroupRules", "AWS_REGION", region)
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	plugin.Logger(ctx).Trace("listVpcSecurityGroupRules", "AWS_REGION", region)
 
-    // Create session
-    svc, err := Ec2Service(ctx, d, region)
-    if err != nil {
-        return nil, err
-    }
+	// Create session
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
 
-    // List call
-    err = svc.DescribeSecurityGroupRulesPages(
-        &ec2.DescribeSecurityGroupRulesInput{},
-        func(page *ec2.DescribeSecurityGroupRulesOutput, isLast bool) bool {
-            for _, securityGroupRule := range page.SecurityGroupRules {
-                d.StreamListItem(ctx, securityGroupRule)
-            }
-            return !isLast
-        },
-    )
+	// List call
+	err = svc.DescribeSecurityGroupRulesPages(
+		&ec2.DescribeSecurityGroupRulesInput{},
+		func(page *ec2.DescribeSecurityGroupRulesOutput, isLast bool) bool {
+			for _, securityGroupRule := range page.SecurityGroupRules {
+				d.StreamListItem(ctx, securityGroupRule)
+			}
+			return !isLast
+		},
+	)
 
-    return nil, err
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -202,7 +202,7 @@ func getSecurityGroupRulesTurbotData(ctx context.Context, d *plugin.QueryData, h
 	title := *sgRule.SecurityGroupRuleId + "_" + hashCode
 
 	turbotData := map[string]interface{}{
-		"Arn": arn,
+		"Arn":   arn,
 		"Akas":  akas,
 		"Title": title,
 	}
