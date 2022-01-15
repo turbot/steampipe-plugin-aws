@@ -1,0 +1,6 @@
+[
+  {
+    "group_id": "{{ output.resource_id.value }}",
+    "security_group_rule_id": "{{ output.ingress_sgr_id.value }}"
+  }
+]

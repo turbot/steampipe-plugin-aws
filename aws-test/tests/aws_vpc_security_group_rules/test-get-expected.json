@@ -1,0 +1,15 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "Test Security Group.",
+    "group_id": "{{ output.resource_id.value }}",
+    "security_group_rule_id": "{{ output.ingress_sgr_id.value }}",
+    "group_owner_id": "{{ output.account_id.value }}",
+    "tags": [
+      {
+        "Key": "name",
+        "Value": "{{resourceName}}"
+      }
+    ]
+  }
+]
