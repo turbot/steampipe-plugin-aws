@@ -263,12 +263,12 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 	filterCriteria := &macie2.ListJobsFilterCriteria{}
 
 	filterQuals := map[string]string{
-		"name":       "ListJobsFilterKeyName",
-		"job_type":   "ListJobsFilterKeyJobType",
-		"job_status": "ListJobsFilterKeyJobStatus",
+		"name":       "name",
+		"job_type":   "jobType",
+		"job_status": "jobStatus",
 	}
 
-	for columnName, _ := range filterQuals {
+	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
 			for _, q := range quals[columnName].Quals {
 				value := getQualsValueByColumn(quals, columnName, "string")
@@ -284,7 +284,7 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 					filter.Values = value.([]*string)
 				}
 
-				if columnName == "name" {
+				if filterName == "name" {
 					filter.Key = aws.String(macie2.ListJobsFilterKeyName)
 					switch q.Operator {
 					case "<>":
@@ -293,7 +293,7 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 						filterCriteria.Includes = append(filterCriteria.Includes, filter)
 					}
 				}
-				if columnName == "job_type" {
+				if filterName == "jobType" {
 					filter.Key = aws.String(macie2.ListJobsFilterKeyJobType)
 					switch q.Operator {
 					case "<>":
@@ -302,7 +302,7 @@ func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) 
 						filterCriteria.Includes = append(filterCriteria.Includes, filter)
 					}
 				}
-				if columnName == "job_status" {
+				if filterName == "jobStatus" {
 					filter.Key = aws.String(macie2.ListJobsFilterKeyJobStatus)
 					switch q.Operator {
 					case "<>":
