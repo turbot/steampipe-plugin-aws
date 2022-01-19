@@ -175,11 +175,34 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 
+	input := &lambda.ListVersionsByFunctionInput{
+		FunctionName: function.FunctionName,
+		MaxItems:     aws.Int64(50),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListVersionsByFunctionPages(
-		&lambda.ListVersionsByFunctionInput{FunctionName: function.FunctionName},
+		input,
 		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
 			for _, version := range page.Versions {
 				d.StreamLeafListItem(ctx, version)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -243,7 +266,7 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	input := &lambda.GetPolicyInput{
 		FunctionName: aws.String(*alias.FunctionName),
-		Qualifier: aws.String(*alias.Version),
+		Qualifier:    aws.String(*alias.Version),
 	}
 
 	op, err := svc.GetPolicy(input)

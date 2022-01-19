@@ -24,6 +24,9 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaAliases,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "function_version", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,8 +113,30 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 
+	input := &lambda.ListAliasesInput{
+		FunctionName: function.FunctionName,
+		MaxItems:     aws.Int64(10000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["function_version"] != nil {
+		input.FunctionVersion = aws.String(equalQuals["function_version"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListAliasesPages(
-		&lambda.ListAliasesInput{FunctionName: function.FunctionName},
+		input,
 		func(page *lambda.ListAliasesOutput, lastPage bool) bool {
 			for _, alias := range page.Aliases {
 				d.StreamLeafListItem(ctx, &aliasRowData{alias, function.FunctionName})

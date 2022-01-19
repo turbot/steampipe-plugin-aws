@@ -151,9 +151,25 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	input := &kinesis.ListStreamsInput{
+		Limit: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListStreamsPages(
-		&kinesis.ListStreamsInput{},
+		input,
 		func(page *kinesis.ListStreamsOutput, _ bool) bool {
 			for _, streams := range page.StreamNames {
 				d.StreamListItem(ctx, &kinesis.DescribeStreamOutput{
@@ -161,6 +177,11 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 						StreamName: streams,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return *page.HasMoreStreams
 		},

@@ -124,12 +124,26 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	var findingIds [][]*string
 
+	input := &guardduty.ListFindingsInput{
+		DetectorId: aws.String(detectorId),
+		MaxResults: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+	
 	// execute list call
 	err = svc.ListFindingsPages(
-		&guardduty.ListFindingsInput{
-			DetectorId: aws.String(detectorId),
-			MaxResults: aws.Int64(50),
-		},
+		input,
 		func(page *guardduty.ListFindingsOutput, isLast bool) bool {
 			if len(page.FindingIds) != 0 {
 				findingIds = append(findingIds, page.FindingIds)

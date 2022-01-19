@@ -95,13 +95,33 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &glue.GetDatabasesInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.GetDatabasesPages(
-		&glue.GetDatabasesInput{},
+		input,
 		func(page *glue.GetDatabasesOutput, isLast bool) bool {
 			for _, database := range page.DatabaseList {
 				d.StreamListItem(ctx, database)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

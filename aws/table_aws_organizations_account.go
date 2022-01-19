@@ -100,13 +100,32 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := &organizations.ListAccountsInput{}
+	params := &organizations.ListAccountsInput{
+		MaxResults: aws.Int64(20),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
+	}
 
 	err = svc.ListAccountsPages(
 		params,
 		func(page *organizations.ListAccountsOutput, isLast bool) bool {
 			for _, account := range page.Accounts {
 				d.StreamListItem(ctx, account)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

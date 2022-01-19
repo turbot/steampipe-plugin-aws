@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -131,7 +132,21 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 
 	// List call
 	pagesLeft := true
-	params := &kinesisanalyticsv2.ListApplicationsInput{}
+	params := &kinesisanalyticsv2.ListApplicationsInput{
+		Limit: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
 
 	for pagesLeft {
 		result, err := svc.ListApplications(params)
@@ -141,6 +156,11 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 
 		for _, application := range result.ApplicationSummaries {
 			d.StreamListItem(ctx, application)
+			
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

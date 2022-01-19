@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 )
 
@@ -70,6 +71,19 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	params := &iam.ListAccessKeysInput{
 		UserName: user.UserName,
+		MaxItems: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = aws.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
 	}
 
 	// List IAM user access keys
@@ -78,6 +92,11 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		func(page *iam.ListAccessKeysOutput, isLast bool) bool {
 			for _, key := range page.AccessKeyMetadata {
 				d.StreamListItem(ctx, key)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

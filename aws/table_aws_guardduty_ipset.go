@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -105,9 +106,26 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
+	input := &guardduty.ListIPSetsInput{
+		DetectorId: &id,
+		MaxResults: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListIPSetsPages(
-		&guardduty.ListIPSetsInput{DetectorId: &id},
+		input,
 		func(page *guardduty.ListIPSetsOutput, isLast bool) bool {
 			for _, parameter := range page.IpSetIds {
 				d.StreamLeafListItem(ctx, ipsetInfo{
@@ -115,6 +133,10 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 					DetectorID: id,
 				})
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

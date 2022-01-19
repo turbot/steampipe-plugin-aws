@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -106,15 +107,25 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
+	input := &guardduty.ListThreatIntelSetsInput{
+		DetectorId: &detectorID,
+		MaxResults: aws.Int64(50),
+	}
+
 	// List call
 	err = svc.ListThreatIntelSetsPages(
-		&guardduty.ListThreatIntelSetsInput{DetectorId: &detectorID},
+		input,
 		func(page *guardduty.ListThreatIntelSetsOutput, isLast bool) bool {
 			for _, result := range page.ThreatIntelSetIds {
 				d.StreamLeafListItem(ctx, threatIntelSetInfo{
 					ThreatIntelSetID: *result,
 					DetectorID:       detectorID,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

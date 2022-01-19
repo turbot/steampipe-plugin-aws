@@ -27,6 +27,9 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path_prefix", Require: plugin.Optional},
+			},
 		},
 		HydrateDependencies: []plugin.HydrateDependencies{
 			{
@@ -49,6 +52,13 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 			{
 				Name:        "path",
 				Description: "The path to the user.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "path_prefix",
+				Description: "The path to the user.",
+				Hydrate:     getUserPathPrefix,
+				Transform:   transform.FromValue(),
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -159,11 +169,37 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
+	input := &iam.ListUsersInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path_prefix"] != nil {
+		input.PathPrefix = aws.String(equalQual["path_prefix"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListUsersPages(
-		&iam.ListUsersInput{},
+		input,
 		func(page *iam.ListUsersOutput, lastPage bool) bool {
 			for _, user := range page.Users {
 				d.StreamListItem(ctx, user)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -425,6 +461,13 @@ func getUserInlinePolicy(policyName *string, userName *string, svc *iam.IAM) (ma
 	}
 
 	return userPolicy, nil
+}
+
+func getUserPathPrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if d.KeyColumnQuals["path_prefix"] != nil {
+		return d.KeyColumnQuals["path_prefix"].GetStringValue(), nil
+	}
+	return *h.Item.(*iam.User).Path, nil
 }
 
 //// TRANSFORM FUNCTION

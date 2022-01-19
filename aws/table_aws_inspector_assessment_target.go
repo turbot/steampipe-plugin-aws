@@ -17,8 +17,8 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_inspector_assessment_target",
 		Description: "AWS Inspector Assessment Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getInspectorAssessmentTarget,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getInspectorAssessmentTarget,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTargets,
@@ -82,14 +82,35 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	input := &inspector.ListAssessmentTargetsInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListAssessmentTargetsPages(
-		&inspector.ListAssessmentTargetsInput{},
+		input,
 		func(page *inspector.ListAssessmentTargetsOutput, isLast bool) bool {
 			for _, assessmentTarget := range page.AssessmentTargetArns {
 				d.StreamListItem(ctx, &inspector.AssessmentTarget{
 					Arn: assessmentTarget,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

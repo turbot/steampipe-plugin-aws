@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -136,15 +138,37 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 	accountID := commonColumnData.AccountId
+	maxLimit := "10"
+
+	input := &glacier.ListVaultsInput{
+		AccountId: aws.String(accountID),
+		Limit:     &maxLimit,
+	}
+	n, _ := strconv.ParseInt(maxLimit, 10, 64)
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < n {
+			if *limit < 1 {
+				input.Limit = aws.String("1")
+			} else {
+				input.Limit = aws.String(fmt.Sprint(*limit))
+			}
+		}
+	}
 
 	// List call
 	err = svc.ListVaultsPages(
-		&glacier.ListVaultsInput{
-			AccountId: aws.String(accountID),
-		},
+		input,
 		func(page *glacier.ListVaultsOutput, isLast bool) bool {
 			for _, vaults := range page.VaultList {
 				d.StreamListItem(ctx, vaults)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

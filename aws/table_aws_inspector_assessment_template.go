@@ -23,6 +23,10 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTemplates,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "assessment_target_arn", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -127,14 +131,50 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	input := &inspector.ListAssessmentTemplatesInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.Filter = &inspector.AssessmentTemplateFilter{
+			NamePattern: aws.String(equalQuals["name"].GetStringValue()),
+		}
+	}
+
+	if equalQuals["assessment_target_arn"] != nil {
+		if equalQuals["assessment_target_arn"].GetStringValue() != "" {
+			input.AssessmentTargetArns = []*string{aws.String(equalQuals["assessment_target_arn"].GetStringValue())}
+		} else {
+			input.AssessmentTargetArns = getListValues(equalQuals["assessment_target_arn"].GetListValue())
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListAssessmentTemplatesPages(
-		&inspector.ListAssessmentTemplatesInput{},
+		input,
 		func(page *inspector.ListAssessmentTemplatesOutput, isLast bool) bool {
 			for _, assessmentTemplate := range page.AssessmentTemplateArns {
 				d.StreamListItem(ctx, &inspector.AssessmentTemplate{
 					Arn: assessmentTemplate,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

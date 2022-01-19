@@ -23,6 +23,9 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "stream_name_prefix", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -36,6 +39,13 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the stream.",
 				Type:        pb.ColumnType_STRING,
 				Transform:   transform.FromField("StreamARN"),
+			},
+			{
+				Name:        "stream_name_prefix",
+				Description: "The name prefix of the stream.",
+				Type:        pb.ColumnType_STRING,
+				Hydrate:     getVideoStreamNamePrefix,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "status",
@@ -107,9 +117,33 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &kinesisvideo.ListStreamsInput{
+		MaxResults: aws.Int64(10000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["stream_name_prefix"] != nil {
+		input.StreamNameCondition = &kinesisvideo.StreamNameCondition{
+			ComparisonOperator: aws.String("BEGINS_WITH"), // Currently we can specify only BEGINS_WITH operator
+			ComparisonValue:    aws.String(equalQuals["stream_name_prefix"].GetStringValue()),
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListStreamsPages(
-		&kinesisvideo.ListStreamsInput{},
+		input,
 		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
 			for _, stream := range page.StreamInfoList {
 				d.StreamListItem(ctx, stream)
@@ -180,4 +214,13 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 	return op, nil
+}
+
+func getVideoStreamNamePrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := h.Item.(*kinesisvideo.StreamInfo)
+
+	if d.KeyColumnQuals["stream_name_prefix"] != nil {
+		return d.KeyColumnQuals["stream_name_prefix"].GetStringValue(), nil
+	}
+	return data.StreamName, nil
 }

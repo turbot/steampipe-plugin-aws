@@ -29,6 +29,9 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path_prefix", Require: plugin.Optional},
+			},
 		},
 		HydrateDependencies: []plugin.HydrateDependencies{
 			{
@@ -82,6 +85,13 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Name:        "path",
 				Description: "The path to the role.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "path_prefix",
+				Description: "The path prefix of the role.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getRolePathPrefix,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "permissions_boundary_arn",
@@ -191,11 +201,38 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
+	input := &iam.ListRolesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path_prefix"] != nil {
+		input.PathPrefix = aws.String(equalQual["path_prefix"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListRolesPages(
-		&iam.ListRolesInput{},
+		input,
 		func(page *iam.ListRolesOutput, lastPage bool) bool {
+
 			for _, role := range page.Roles {
 				d.StreamListItem(ctx, role)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -419,4 +456,11 @@ func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interf
 		}
 	}
 	return turbotTagsMap, nil
+}
+
+func getRolePathPrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if d.KeyColumnQuals["path_prefix"] != nil {
+		return d.KeyColumnQuals["path_prefix"].GetStringValue(), nil
+	}
+	return *h.Item.(*iam.Role).Path, nil
 }

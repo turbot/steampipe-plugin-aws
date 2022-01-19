@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/turbot/go-kit/types"
@@ -21,8 +22,8 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 			Hydrate:           getLambdaLayerVersion,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listLambdaLayerVersions,
-			ParentHydrate:     listLambdaLayers,
+			Hydrate:       listLambdaLayerVersions,
+			ParentHydrate: listLambdaLayers,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -146,7 +147,11 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			input.MaxItems = limit
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
 		}
 	}
 
@@ -163,6 +168,11 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 					LicenseInfo:             version.LicenseInfo,
 					Version:                 version.Version,
 				}})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

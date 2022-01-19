@@ -24,6 +24,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "db_cluster_identifier", Require: plugin.Optional},
+				{Name: "resource_id", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -429,12 +434,39 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &rds.DescribeDBInstancesInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
+	filters := buildRdsDbInstanceFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
 	err = svc.DescribeDBInstancesPages(
-		&rds.DescribeDBInstancesInput{},
+		input,
 		func(page *rds.DescribeDBInstancesOutput, isLast bool) bool {
 			for _, dbInstance := range page.DBInstances {
 				d.StreamListItem(ctx, dbInstance)
+
+				// Check if context has been cancelled or if the limit has been hit (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -481,4 +513,36 @@ func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// build snapshots list call input filter
+func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
+	filters := make([]*rds.Filter, 0)
+	// In filter param the 'db-instance-id' key is not woring properly, throwing error
+	// InvalidParameterValue: The parameter Filter: db-instance-id is not a valid identifier.
+	filterQuals := map[string]string{
+		"db_cluster_identifier": "db-cluster-id",
+		"resource_id":           "dbi-resource-id",
+		"engine":                "engine",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := rds.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }
