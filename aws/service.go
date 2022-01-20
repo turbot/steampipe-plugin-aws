@@ -1883,9 +1883,7 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 				// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
 				// https://aws.amazon.com/about-aws/whats-new/2020/04/aws-well-architected-tool-available-additional-regions/
 				if strings.Contains(awsErr.OrigErr().Error(), "https://wellarchitected") && strings.Contains(awsErr.OrigErr().Error(), "no such host") {
-					errMsg := strings.Split(awsErr.OrigErr().Error(), ":")[1]
-					unsupportedRegion := strings.Split(errMsg, ".")[1]
-					panic(": AWS Well-Architected Tool is not supported in " + unsupportedRegion + " region")
+					return false
 				}
 			}
 		}
