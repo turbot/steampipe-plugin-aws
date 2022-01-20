@@ -234,7 +234,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// Additonal Filter
-	var equalQuals plugin.KeyColumnEqualsQualMap
+	equalQuals := d.KeyColumnQuals
 	if equalQuals["status"] != nil {
 		input.CertificateStatuses = []*string{types.String(equalQuals["status"].GetStringValue())}
 	}

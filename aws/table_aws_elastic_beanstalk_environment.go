@@ -23,6 +23,10 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticBeanstalkEnvironments,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "environment_id", Require: plugin.Optional},
+				{Name: "application_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -176,7 +180,28 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 	}
 
 	pagesLeft := true
-	params := &elasticbeanstalk.DescribeEnvironmentsInput{}
+	params := &elasticbeanstalk.DescribeEnvironmentsInput{
+		MaxRecords: aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["application_name"] != nil {
+		params.ApplicationName = aws.String(equalQuals["application_name"].GetStringValue())
+	}
+	if equalQuals["environment_id"] != nil {
+		params.EnvironmentIds = []*string{aws.String(equalQuals["environment_id"].GetStringValue())}
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxRecords {
+			if *limit < 1 {
+				params.MaxRecords = aws.Int64(1)
+			} else {
+				params.MaxRecords = limit
+			}
+		}
+	}
 
 	for pagesLeft {
 		result, err := svc.DescribeEnvironments(params)
@@ -186,6 +211,11 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 
 		for _, environments := range result.Environments {
 			d.StreamListItem(ctx, environments)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

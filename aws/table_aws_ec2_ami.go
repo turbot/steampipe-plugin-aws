@@ -24,6 +24,24 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Amis,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "architecture", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_type", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "kernel_id", Require: plugin.Optional},
+				{Name: "platform", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "ramdisk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "sriov_net_support", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -188,7 +206,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listEc2Amis", "AWS_REGION", region)
 
@@ -198,11 +216,21 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-	resp, err := svc.DescribeImages(&ec2.DescribeImagesInput{
-		Owners: []*string{aws.String("self")},
-	})
+	input := &ec2.DescribeImagesInput{}
+
+	filters := buildAmisWithOwnerFilter(d.Quals, "AMI", ctx, d, h)
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	resp, err := svc.DescribeImages(input)
 	for _, image := range resp.Images {
 		d.StreamListItem(ctx, image)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
 }

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -24,6 +25,18 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGateways,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "propagation_default_route_table_id", Require: plugin.Optional},
+				{Name: "amazon_side_asn", Require: plugin.Optional},
+				{Name: "association_default_route_table_id", Require: plugin.Optional},
+				{Name: "auto_accept_shared_attachments", Require: plugin.Optional},
+				{Name: "default_route_table_association", Require: plugin.Optional},
+				{Name: "default_route_table_propagation", Require: plugin.Optional},
+				{Name: "dns_support", Require: plugin.Optional},
+				{Name: "vpn_ecmp_support", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -158,12 +171,43 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &ec2.DescribeTransitGatewaysInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := buildEc2TransitGatewayFilter(d.Quals)
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["amazon_side_asn"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("options.amazon-side-asn"), Values: []*string{aws.String(fmt.Sprint(equalQuals["amazon_side_asn"].GetInt64Value()))}})
+	}
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTransitGatewaysPages(
-		&ec2.DescribeTransitGatewaysInput{},
+		input,
 		func(page *ec2.DescribeTransitGatewaysOutput, isLast bool) bool {
 			for _, transitGateway := range page.TransitGateways {
 				d.StreamListItem(ctx, transitGateway)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -217,4 +261,40 @@ func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformDa
 		}
 	}
 	return title, nil
+}
+
+//// UTILITY FUNCTION
+// Build ec2 transit gateway list call input filter
+func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"propagation_default_route_table_id": "options.propagation-default-route-table-id",
+		"association_default_route_table_id": "options.association-default-route-table-id",
+		"auto_accept_shared_attachments":     "options.auto-accept-shared-attachments",
+		"default_route_table_association":    "options.default-route-table-association",
+		"default_route_table_propagation":    "options.default-route-table-propagation",
+		"dns_support":                        "options.dns-support",
+		"vpn_ecmp_support":                   "options.vpn-ecmp-support",
+		"owner_id":                           "owner-id",
+		"state":                              "state",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

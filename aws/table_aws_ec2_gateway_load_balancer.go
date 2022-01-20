@@ -25,6 +25,9 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2GatewayLoadBalancers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "arn", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -145,14 +148,40 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elbv2.DescribeLoadBalancersInput{
+		PageSize: aws.Int64(400),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["arn"] != nil {
+		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetJsonbValue())}
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.PageSize {
+			if *limit < 1 {
+				input.PageSize = aws.Int64(1)
+			} else {
+				input.PageSize = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elbv2.DescribeLoadBalancersInput{},
+		input,
 		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, gatewayLoadBalancer := range page.LoadBalancers {
 				// Filtering the response to return only gateway load balancers
 				if strings.ToLower(*gatewayLoadBalancer.Type) == "gateway" {
 					d.StreamListItem(ctx, gatewayLoadBalancer)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !isLast

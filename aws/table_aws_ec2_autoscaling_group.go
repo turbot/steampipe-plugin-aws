@@ -267,12 +267,33 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
+	input := &autoscaling.DescribeAutoScalingGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 1 {
+				input.MaxRecords = aws.Int64(1)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeAutoScalingGroupsPages(
-		&autoscaling.DescribeAutoScalingGroupsInput{},
+		input,
 		func(page *autoscaling.DescribeAutoScalingGroupsOutput, isLast bool) bool {
 			for _, autoscalingGroup := range page.AutoScalingGroups {
 				d.StreamListItem(ctx, autoscalingGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

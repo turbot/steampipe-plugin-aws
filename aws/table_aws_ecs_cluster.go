@@ -145,14 +145,34 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	input := &ecs.ListClustersInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListClustersPages(
-		&ecs.ListClustersInput{},
+		input,
 		func(page *ecs.ListClustersOutput, isLast bool) bool {
 			for _, results := range page.ClusterArns {
 				d.StreamListItem(ctx, &ecs.Cluster{
 					ClusterArn: results,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

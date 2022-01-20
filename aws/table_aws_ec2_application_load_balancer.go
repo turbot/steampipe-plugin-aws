@@ -24,7 +24,18 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2ApplicationLoadBalancer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2ApplicationLoadBalancers,
+			Hydrate:           listEc2ApplicationLoadBalancers,
+			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "arn",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -151,14 +162,46 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &elbv2.DescribeLoadBalancersInput{}
+
+	// Additional Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	} else {
+		// If the names will be provided in param then page limit cannot be set, API throws an error
+		// ValidationError: Pagination is not supported when specifying load balancers
+		input.PageSize = aws.Int64(400)
+		// Limiting the results
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < *input.PageSize {
+				if *limit < 1 {
+					input.PageSize = aws.Int64(1)
+				} else {
+					input.PageSize = limit
+				}
+			}
+		}
+	}
+
+	if equalQuals["arn"] != nil {
+		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetStringValue())}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elbv2.DescribeLoadBalancersInput{},
+		input,
 		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, applicationLoadBalancer := range page.LoadBalancers {
 				// Filtering the response to return only application load balancers
 				if strings.ToLower(*applicationLoadBalancer.Type) == "application" {
 					d.StreamListItem(ctx, applicationLoadBalancer)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !isLast

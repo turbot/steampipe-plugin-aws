@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -24,6 +26,29 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkInterfaces,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "association_id", Require: plugin.Optional},
+				{Name: "association_allocation_id", Require: plugin.Optional},
+				{Name: "association_ip_owner_id", Require: plugin.Optional},
+				{Name: "association_public_ip", Require: plugin.Optional},
+				{Name: "association_public_dns_name", Require: plugin.Optional},
+				{Name: "attachment_id", Require: plugin.Optional},
+				{Name: "attachment_time", Require: plugin.Optional},
+				{Name: "delete_on_instance_termination", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "attached_instance_id", Require: plugin.Optional},
+				{Name: "attached_instance_owner_id", Require: plugin.Optional},
+				{Name: "attachment_status", Require: plugin.Optional},
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "mac_address", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "private_ip_address", Require: plugin.Optional},
+				{Name: "private_dns_name", Require: plugin.Optional},
+				{Name: "requester_id", Require: plugin.Optional},
+				{Name: "requester_managed", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "source_dest_check", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -235,12 +260,38 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &ec2.DescribeNetworkInterfacesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := buildec2NetworkInterfaceFilter(d.Quals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeNetworkInterfacesPages(
-		&ec2.DescribeNetworkInterfacesInput{},
+		input,
 		func(page *ec2.DescribeNetworkInterfacesOutput, isLast bool) bool {
 			for _, networkInterface := range page.NetworkInterfaces {
 				d.StreamListItem(ctx, networkInterface)
+
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -309,4 +360,62 @@ func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformD
 		}
 	}
 	return turbotTags, nil
+}
+
+//// UTILITY FUNCTION
+// Build ec2 network interface list call input filter
+func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"association_id":                 "association.association-id",
+		"association_allocation_id":      "association.allocation-id",
+		"association_ip_owner_id":        "association.ip-owner-id",
+		"association_public_ip":          "association.public-ip",
+		"association_public_dns_name":    "association.public-dns-name",
+		"attachment_id":                  "attachment.attachment-id",
+		"attachment_time":                "attachment.attach-time",
+		"attached_instance_id":           "attachment.instance-id",
+		"attached_instance_owner_id":     "attachment.instance-owner-id",
+		"attachment_status":              "attachment.status",
+		"availability_zone":              "availability-zone",
+		"delete_on_instance_termination": "attachment.delete-on-termination",
+		"description":                    "description",
+		"mac_address":                    "mac-address",
+		"owner_id":                       "owner-id",
+		"private_ip_address":             "private-ip-address",
+		"private_dns_name":               "private-dns-name",
+		"source_dest_check":              "source-dest-check",
+		"requester_id":                   "requester-id",
+		"requester_managed":              "requester-managed",
+		"status":                         "status",
+	}
+
+	columnsBool := []string{"delete_on_instance_termination", "source_dest_check", "requester_managed"}
+	columnIpAddr := []string{"association_ip_owner_id", "association_public_ip", "private_ip_address"}
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else if strings.Contains(fmt.Sprint(columnIpAddr), columnName) {
+				value := getQualsValueByColumn(quals, columnName, "ipaddr")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					v := value.([]*string)
+					filter.Values = v
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

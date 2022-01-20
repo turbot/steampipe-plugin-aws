@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
@@ -194,4 +195,35 @@ func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	}
 
 	return nil, nil
+}
+
+func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string, dataType string) interface{} {
+	var value interface{}
+	for _, q := range equalQuals[columnName].Quals {
+		if dataType == "string" {
+			if q.Value.GetStringValue() != "" {
+				value = q.Value.GetStringValue()
+			} else {
+				value = getListValues(q.Value.GetListValue())
+			}
+		}
+		if dataType == "boolean" {
+			switch q.Operator {
+			case "<>":
+				value = "false"
+			case "=":
+				value = "true"
+			}
+		}
+		if dataType == "int64" {
+			value = q.Value.GetInt64Value()
+		}
+		if dataType == "double" {
+			value = q.Value.GetDoubleValue()
+		}
+		if dataType == "ipaddr" {
+			value = q.Value.GetInetValue().Addr
+		}
+	}
+	return value
 }
