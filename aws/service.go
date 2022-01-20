@@ -1879,7 +1879,7 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 					return false
 				}
 
-				// AWS Well-Architected Tool is not supported in all region yet. For unsupported regions API throws err
+				// AWS Well-Architected Tool is not supported in all region yet. For unsupported regions It throws err
 				// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
 				// https://aws.amazon.com/about-aws/whats-new/2020/04/aws-well-architected-tool-available-additional-regions/
 				if strings.Contains(awsErr.OrigErr().Error(), "https://wellarchitected") && strings.Contains(awsErr.OrigErr().Error(), "no such host") {
