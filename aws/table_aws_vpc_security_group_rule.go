@@ -410,7 +410,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 
 func setRuleType(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	value := d.Value.(*bool)
-	if *value == false {
+	if !*value {
 		return "ingress", nil
 	}
 	return "egress", nil
