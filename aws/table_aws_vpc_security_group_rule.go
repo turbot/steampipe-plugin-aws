@@ -40,7 +40,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				Name:        "group_name",
 				Description: "The name of the security group to which rule belongs. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getVpcSecurityGroupDetails,
+				Hydrate:     getSecurityGroupDetails,
 			},
 			{
 				Name:        "group_id",
@@ -62,7 +62,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				Name:        "vpc_id",
 				Description: "The ID of the VPC for the security group. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getVpcSecurityGroupDetails,
+				Hydrate:     getSecurityGroupDetails,
 			},
 			{
 				Name:        "owner_id",
@@ -113,19 +113,19 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_group_id",
-				Description: "The ID of the security group that references this user ID group pair. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_group_id column instead.",
+				Description: "The ID of the referenced security group. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_group_id column instead.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.GroupId"),
 			},
 			{
 				Name:        "referenced_group_id",
-				Description: "The ID of the security group that references this user ID group pair.",
+				Description: "The ID of the referenced security group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.GroupId"),
 			},
 			{
 				Name:        "pair_group_name",
-				Description: "The name of the security group that references this user ID group pair. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
+				Description: "The name of the referenced security group. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getPairGroupDetails,
 				Transform:   transform.FromField("GroupName"),
@@ -214,6 +214,7 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Additonal Filter
+	// As per API Docs MaxResults value can be between 5 and 1000
 	input := &ec2.DescribeSecurityGroupRulesInput{
 		MaxResults: aws.Int64(1000),
 	}
@@ -330,8 +331,8 @@ func getPairGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return nil, nil
 }
 
-func getVpcSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcSecurityGroupDetails")
+func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getSecurityGroupDetails")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	sgRule := h.Item.(*ec2.SecurityGroupRule)
@@ -350,7 +351,7 @@ func getVpcSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plu
 	// Get call
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getVpcSecurityGroupDetails", "ERROR", err)
+		plugin.Logger(ctx).Debug("getSecurityGroupDetails", "ERROR", err)
 		return nil, err
 	}
 
