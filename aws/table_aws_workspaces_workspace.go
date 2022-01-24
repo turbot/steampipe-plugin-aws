@@ -209,7 +209,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 
-	if data.Workspaces != nil && len(data.Workspaces) > 0 {
+	if len(data.Workspaces) > 0 {
 		return data.Workspaces[0], nil
 	}
 
