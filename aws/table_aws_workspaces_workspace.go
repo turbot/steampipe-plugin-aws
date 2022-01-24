@@ -169,8 +169,10 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		if strings.Contains(err.Error(), "no such host") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("listWorkspaces", "list", err)
+		return nil, err
 	}
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -179,6 +181,11 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	plugin.Logger(ctx).Trace("getWorkspace")
 
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
+
+	// check if workspace id is empty
+	if WorkspaceId == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := WorkspacesService(ctx, d)
@@ -194,11 +201,15 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	// Get call
 	data, err := svc.DescribeWorkspaces(params)
 	if err != nil {
+		// AWS workspaces is not available in every region yet. This section of code handles the errors that we get when the API call tries to use unsupported regions endpoint (it throws "no such host" error message)
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
 		return nil, err
 	}
 
-	if data.Workspaces != nil {
+	if data.Workspaces != nil && len(data.Workspaces) > 0 {
 		return data.Workspaces[0], nil
 	}
 
