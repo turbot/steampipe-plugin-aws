@@ -127,8 +127,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				Name:        "pair_group_name",
 				Description: "The name of the referenced security group. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getPairGroupDetails,
-				Transform:   transform.FromField("GroupName"),
+				Hydrate:     getSecurityGroupDetails,
 			},
 			{
 				Name:        "pair_peering_status",
@@ -199,6 +198,11 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type groupDetail struct {
+	GroupName     string
+	PairGroupName string
 }
 
 //// LIST FUNCTION
@@ -297,68 +301,50 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return nil, nil
 }
 
-func getPairGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPairGroupDetails")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	sgRule := h.Item.(*ec2.SecurityGroupRule)
-
-	if sgRule.ReferencedGroupInfo == nil {
-		return nil, nil
-	}
-
-	// get service
-	svc, err := Ec2Service(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(*sgRule.ReferencedGroupInfo.GroupId)},
-	}
-
-	// Get call
-	op, err := svc.DescribeSecurityGroups(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("getPairGroupDetails", "ERROR", err)
-		return nil, err
-	}
-
-	if op.SecurityGroups != nil && len(op.SecurityGroups) > 0 {
-		return op.SecurityGroups[0], nil
-	}
-	return nil, nil
-}
-
 func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSecurityGroupDetails")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	sgRule := h.Item.(*ec2.SecurityGroupRule)
 
+	// Build the params
+	params := &ec2.DescribeSecurityGroupsInput{}
+	if sgRule.ReferencedGroupInfo == nil {
+		params = &ec2.DescribeSecurityGroupsInput{
+			GroupIds: []*string{aws.String(*sgRule.GroupId)},
+		}
+	} else {
+		params = &ec2.DescribeSecurityGroupsInput{
+			GroupIds: []*string{aws.String(*sgRule.ReferencedGroupInfo.GroupId), aws.String(*sgRule.GroupId)},
+		}
+	}
+
 	// get service
 	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the params
-	params := &ec2.DescribeSecurityGroupsInput{
-		GroupIds: []*string{aws.String(*sgRule.GroupId)},
-	}
-
-	// Get call
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityGroupDetails", "ERROR", err)
+		plugin.Logger(ctx).Error("getSecurityGroupDetails", "ERROR", err)
 		return nil, err
 	}
 
-	if op.SecurityGroups != nil && len(op.SecurityGroups) > 0 {
-		return op.SecurityGroups[0], nil
+	var group groupDetail
+	if len(op.SecurityGroups) == 1 {
+		group.GroupName = *op.SecurityGroups[0].GroupName
+	} else if len(op.SecurityGroups) > 1 {
+		if *sgRule.GroupId == *op.SecurityGroups[0].GroupId {
+			group.GroupName = *op.SecurityGroups[0].GroupName
+			group.PairGroupName = *op.SecurityGroups[1].GroupName
+		} else {
+			group.PairGroupName = *op.SecurityGroups[0].GroupName
+			group.GroupName = *op.SecurityGroups[1].GroupName
+		}
 	}
-	return nil, nil
+
+	return group, nil
 }
 
 func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
