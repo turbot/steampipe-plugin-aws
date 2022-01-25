@@ -308,15 +308,11 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 	sgRule := h.Item.(*ec2.SecurityGroupRule)
 
 	// Build the params
-	params := &ec2.DescribeSecurityGroupsInput{}
-	if sgRule.ReferencedGroupInfo == nil {
-		params = &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(*sgRule.GroupId)},
-		}
-	} else {
-		params = &ec2.DescribeSecurityGroupsInput{
-			GroupIds: []*string{aws.String(*sgRule.ReferencedGroupInfo.GroupId), aws.String(*sgRule.GroupId)},
-		}
+	params := &ec2.DescribeSecurityGroupsInput{
+		GroupIds: []*string{aws.String(*sgRule.GroupId)},
+	}
+	if sgRule.ReferencedGroupInfo != nil {
+		params.GroupIds = append(params.GroupIds, aws.String(*sgRule.ReferencedGroupInfo.GroupId))
 	}
 
 	// get service
