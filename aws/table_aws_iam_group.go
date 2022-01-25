@@ -29,7 +29,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "path_prefix", Require: plugin.Optional},
+				{Name: "path", Require: plugin.Optional},
 			},
 		},
 		HydrateDependencies: []plugin.HydrateDependencies{
@@ -58,13 +58,6 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the group.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "path_prefix",
-				Description: "The path prefix of the group.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getGroupPathPrefix,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "create_date",
@@ -132,8 +125,8 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	}
 
 	equalQual := d.KeyColumnQuals
-	if equalQual["path_prefix"] != nil {
-		input.PathPrefix = aws.String(equalQual["path_prefix"].GetStringValue())
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -355,11 +348,4 @@ func getGroupInlinePolicy(policyName *string, groupName *string, svc *iam.IAM) (
 	}
 
 	return groupPolicy, nil
-}
-
-func getGroupPathPrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.KeyColumnQuals["path_prefix"] != nil {
-		return d.KeyColumnQuals["path_prefix"].GetStringValue(), nil
-	}
-	return *h.Item.(*iam.Group).Path, nil
 }

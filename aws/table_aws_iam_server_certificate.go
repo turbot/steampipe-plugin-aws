@@ -19,6 +19,9 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Server Certificate",
 		List: &plugin.ListConfig{
 			Hydrate: listIamServerCertificates,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path", Require: plugin.Optional},
+			},
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getIamServerCertificate,
@@ -118,6 +121,11 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 		MaxItems: aws.Int64(1000),
 	}
 
+	equalQual := d.KeyColumnQuals
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+	
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {

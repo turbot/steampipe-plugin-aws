@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -23,6 +25,9 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listAwsGuardDutyIPSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -104,6 +109,21 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the api call with given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
+				return nil, nil
+			}
+		}
 	}
 
 	input := &guardduty.ListIPSetsInput{

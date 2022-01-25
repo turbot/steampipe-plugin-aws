@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -30,6 +32,9 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyThreatIntelSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,6 +110,20 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the api call with given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorID {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorID) {
+				return nil, nil
+			}
+		}
 	}
 
 	input := &guardduty.ListThreatIntelSetsInput{

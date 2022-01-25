@@ -28,7 +28,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "path_prefix", Require: plugin.Optional},
+				{Name: "path", Require: plugin.Optional},
 			},
 		},
 		HydrateDependencies: []plugin.HydrateDependencies{
@@ -52,13 +52,6 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 			{
 				Name:        "path",
 				Description: "The path to the user.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "path_prefix",
-				Description: "The path to the user.",
-				Hydrate:     getUserPathPrefix,
-				Transform:   transform.FromValue(),
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -174,8 +167,8 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	}
 
 	equalQual := d.KeyColumnQuals
-	if equalQual["path_prefix"] != nil {
-		input.PathPrefix = aws.String(equalQual["path_prefix"].GetStringValue())
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -461,13 +454,6 @@ func getUserInlinePolicy(policyName *string, userName *string, svc *iam.IAM) (ma
 	}
 
 	return userPolicy, nil
-}
-
-func getUserPathPrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.KeyColumnQuals["path_prefix"] != nil {
-		return d.KeyColumnQuals["path_prefix"].GetStringValue(), nil
-	}
-	return *h.Item.(*iam.User).Path, nil
 }
 
 //// TRANSFORM FUNCTION

@@ -85,6 +85,12 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 	input := &inspector.ListAssessmentTargetsInput{
 		MaxResults: aws.Int64(500),
 	}
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		if equalQuals["name"].GetStringValue() != "" {
+			input.Filter = &inspector.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
+		}
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit

@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -18,6 +20,9 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listUserAccessKeys,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "user_name", Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -62,6 +67,20 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listUserAccessKeys")
 	user := h.Item.(*iam.User)
+
+	// Minimize the api call with given detector_id
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["user_name"] != nil {
+		if equalQuals["user_name"].GetStringValue() != "" {
+			if equalQuals["user_name"].GetStringValue() != "" && equalQuals["user_name"].GetStringValue() != *user.UserName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["user_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["user_name"].GetListValue())), *user.UserName) {
+				return nil, nil
+			}
+		}
+	}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)

@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -144,12 +143,11 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		AccountId: aws.String(accountID),
 		Limit:     &maxLimit,
 	}
-	n, _ := strconv.ParseInt(maxLimit, 10, 64)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < n {
+		if *limit < 10 {
 			if *limit < 1 {
 				input.Limit = aws.String("1")
 			} else {
