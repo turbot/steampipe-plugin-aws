@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -26,6 +28,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 			Hydrate:       listLambdaAliases,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "function_version", Require: plugin.Optional},
+				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
@@ -113,12 +116,25 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 
+	equalQuals := d.KeyColumnQuals
+	// Minimize the api call with given function name
+	if equalQuals["function_name"] != nil {
+		if equalQuals["function_name"].GetStringValue() != "" {
+			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["function_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["function_name"].GetListValue())), *function.FunctionName) {
+				return nil, nil
+			}
+		}
+	}
+
 	input := &lambda.ListAliasesInput{
 		FunctionName: function.FunctionName,
 		MaxItems:     aws.Int64(10000),
 	}
 
-	equalQuals := d.KeyColumnQuals
 	if equalQuals["function_version"] != nil {
 		input.FunctionVersion = aws.String(equalQuals["function_version"].GetStringValue())
 	}

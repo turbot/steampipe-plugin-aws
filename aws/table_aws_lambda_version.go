@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -24,6 +26,9 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaVersions,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "function_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -174,6 +179,19 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	function := h.Item.(*lambda.FunctionConfiguration)
+	equalQuals := d.KeyColumnQuals
+	// Minimize the api call with given layer name
+	if equalQuals["function_name"] != nil {
+		if equalQuals["function_name"].GetStringValue() != "" {
+			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["function_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["function_name"].GetListValue())), *function.FunctionName) {
+				return nil, nil
+			}
+		}
+	}
 
 	input := &lambda.ListVersionsByFunctionInput{
 		FunctionName: function.FunctionName,

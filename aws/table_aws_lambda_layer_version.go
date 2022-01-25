@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -24,6 +26,9 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate:       listLambdaLayerVersions,
 			ParentHydrate: listLambdaLayers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "layer_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -135,6 +140,20 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	layerName := h.Item.(*lambda.LayersListItem).LayerName
+
+	equalQuals := d.KeyColumnQuals
+	// Minimize the api call with given layer name
+	if equalQuals["layer_name"] != nil {
+		if equalQuals["layer_name"].GetStringValue() != "" {
+			if equalQuals["layer_name"].GetStringValue() != "" && equalQuals["layer_name"].GetStringValue() != *layerName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["layer_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["layer_name"].GetListValue())), *layerName) {
+				return nil, nil
+			}
+		}
+	}
 
 	// Set MaxItems to the maximum number allowed
 	input := lambda.ListLayerVersionsInput{
