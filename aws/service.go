@@ -1686,8 +1686,7 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 }
 
 // WorkspacesService returns the service connection for AWS Workspaces service
-func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func WorkspacesService(ctx context.Context, d *plugin.QueryData, region string) (*workspaces.WorkSpaces, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed WorkspacesService")
 	}
@@ -1876,11 +1875,6 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 			*/
 			if awsErr.OrigErr() != nil {
 				if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") && req.RetryCount > 3 {
-					return false
-				}
-				// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-				// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-				if strings.Contains(awsErr.OrigErr().Error(), "https://workspaces") && strings.Contains(awsErr.OrigErr().Error(), "no such host") {
 					return false
 				}
 			}

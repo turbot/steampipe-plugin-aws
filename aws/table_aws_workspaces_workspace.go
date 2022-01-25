@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -145,11 +146,19 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listWorkspaces")
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
+	validRegions := SupportedRegionsForWorkspaces(ctx, d, h)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -165,13 +174,10 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		},
 	)
 	if err != nil {
-		// AWS workspaces is not available in every region yet. This section of code handles the errors that we get when the API call tries to use unsupported regions endpoint (it throws "no such host" error message)
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("listWorkspaces", "list", err)
 		return nil, err
 	}
+
 	return nil, nil
 }
 
@@ -179,6 +185,15 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getWorkspace")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
+	validRegions := SupportedRegionsForWorkspaces(ctx, d, h)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
 
@@ -188,7 +203,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create service
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -201,10 +216,6 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	// Get call
 	data, err := svc.DescribeWorkspaces(params)
 	if err != nil {
-		// AWS workspaces is not available in every region yet. This section of code handles the errors that we get when the API call tries to use unsupported regions endpoint (it throws "no such host" error message)
-		if strings.Contains(err.Error(), "no such host") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
 		return nil, err
 	}
@@ -218,10 +229,12 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listWorkspacesTags")
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -256,6 +269,25 @@ func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	arn := "arn:" + commonColumnData.Partition + ":workspaces:" + region + ":" + commonColumnData.AccountId + ":workspace/" + *workspaceId
 
 	return arn, nil
+}
+
+func SupportedRegionsForWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) []string {
+	// cache matrix
+	cacheKey := "Workspaces"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]string)
+	}
+	var validRegions []string
+	regions := endpoints.AwsPartition().Services()[endpoints.WorkspacesServiceID].Regions()
+
+	for rs := range regions {
+		validRegions = append(validRegions, rs)
+	}
+
+	// set cache
+	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, validRegions)
+
+	return validRegions
 }
 
 //// TRANSFORM FUNCTION
