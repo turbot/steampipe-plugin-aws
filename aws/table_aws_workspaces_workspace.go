@@ -272,7 +272,7 @@ func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func SupportedRegionsForWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) []string {
-	// cache matrix
+	// cache valid regions for workspaces
 	cacheKey := "Workspaces"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
