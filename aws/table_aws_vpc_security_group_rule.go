@@ -294,7 +294,7 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
-	if op.SecurityGroupRules != nil && len(op.SecurityGroupRules) > 0 {
+	if len(op.SecurityGroupRules) > 0 {
 		return op.SecurityGroupRules[0], nil
 	}
 
