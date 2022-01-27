@@ -23,9 +23,6 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "stream_name_prefix", Require: plugin.Optional},
-			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -119,14 +116,6 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	input := &kinesisvideo.ListStreamsInput{
 		MaxResults: aws.Int64(10000),
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["stream_name_prefix"] != nil {
-		input.StreamNameCondition = &kinesisvideo.StreamNameCondition{
-			ComparisonOperator: aws.String("BEGINS_WITH"), // Currently we can specify only BEGINS_WITH operator
-			ComparisonValue:    aws.String(equalQuals["stream_name_prefix"].GetStringValue()),
-		}
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

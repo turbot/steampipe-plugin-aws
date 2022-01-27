@@ -428,12 +428,9 @@ func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (i
 
 //// UTILITY FUNCTIONS
 
-// build db cluster list call input filter
+// build rdds db cluster list call input filter
 func buildRdsDbClusterFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 	filters := make([]*rds.Filter, 0)
-	// The filter key 'db-cluster-id' is throwing an error like 
-	// InvalidParameterValue: The parameter Filter: db-cluster-id is not a valid identifier. Identifiers must begin with a letter; 
-	// must contain only ASCII letters, digits, and hyphens; and must not end with a hyphen or contain two consecutive hyphens.
 	filterQuals := map[string]string{
 		"clone_group_id": "clone-group-id",
 		"engine":         "engine",

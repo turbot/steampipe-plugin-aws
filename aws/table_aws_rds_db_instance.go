@@ -517,11 +517,9 @@ func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (
 
 //// UTILITY FUNCTIONS
 
-// build snapshots list call input filter
+// build rds db instance list call input filter
 func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 	filters := make([]*rds.Filter, 0)
-	// In filter param the 'db-instance-id' key is not woring properly, throwing error
-	// InvalidParameterValue: The parameter Filter: db-instance-id is not a valid identifier.
 	filterQuals := map[string]string{
 		"db_cluster_identifier": "db-cluster-id",
 		"resource_id":           "dbi-resource-id",
