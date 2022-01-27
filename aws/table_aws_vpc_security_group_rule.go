@@ -38,7 +38,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "group_name",
-				Description: "The name of the security group to which rule belongs. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The name of the security group to which rule belongs.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSecurityGroupDetails,
 			},
@@ -60,13 +60,13 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "vpc_id",
-				Description: "The ID of the VPC for the security group. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The ID of the VPC for the security group.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSecurityGroupDetails,
 			},
 			{
 				Name:        "owner_id",
-				Description: "The AWS account ID of the owner of the security group to which rule belongs. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the group_owner_id column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the group_owner_id column instead. The AWS account ID of the owner of the security group to which rule belongs.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("GroupOwnerId"),
 			},
@@ -97,7 +97,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "cidr_ip",
-				Description: "The IPv4 CIDR range. It can be either a CIDR range or a source security group, not both. A single IPv4 address is denoted by /32 prefix length. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the cidr_ipv4 column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the cidr_ipv4 column instead. The IPv4 CIDR range. It can be either a CIDR range or a source security group, not both. A single IPv4 address is denoted by /32 prefix length.",
 				Type:        proto.ColumnType_CIDR,
 				Transform:   transform.FromField("CidrIpv4"),
 			},
@@ -113,7 +113,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_group_id",
-				Description: "The ID of the referenced security group. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_group_id column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_group_id column instead. The ID of the referenced security group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.GroupId"),
 			},
@@ -125,13 +125,13 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_group_name",
-				Description: "The name of the referenced security group. [DEPRECATED] This column has been deprecated and will be removed in a future release.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The name of the referenced security group.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSecurityGroupDetails,
 			},
 			{
 				Name:        "pair_peering_status",
-				Description: "The status of a VPC peering connection, if applicable. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_peering_status column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_peering_status column instead. The status of a VPC peering connection, if applicable.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.PeeringStatus"),
 			},
@@ -143,7 +143,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_user_id",
-				Description: "The ID of an AWS account. For a referenced security group in another VPC, the account ID of the referenced security group is returned in the response. If the referenced security group is deleted, this value is not returned. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_user_id column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_user_id column instead. The ID of an AWS account. For a referenced security group in another VPC, the account ID of the referenced security group is returned in the response. If the referenced security group is deleted, this value is not returned.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.UserId"),
 			},
@@ -155,7 +155,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_vpc_id",
-				Description: "The ID of the VPC for the referenced security group, if applicable. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_vpc_id column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_vpc_id column instead. The ID of the VPC for the referenced security group, if applicable.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.VpcId"),
 			},
@@ -167,7 +167,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pair_vpc_peering_connection_id",
-				Description: "The ID of the VPC peering connection, if applicable. [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_vpc_peering_connection_id column instead.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the referenced_vpc_peering_connection_id column instead. The ID of the VPC peering connection, if applicable.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ReferencedGroupInfo.VpcPeeringConnectionId"),
 			},
@@ -203,6 +203,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 type groupDetail struct {
 	GroupName     string
 	PairGroupName string
+	VpcId         string
 }
 
 //// LIST FUNCTION
@@ -330,13 +331,16 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 	var group groupDetail
 	if len(op.SecurityGroups) == 1 {
 		group.GroupName = *op.SecurityGroups[0].GroupName
+		group.VpcId = *op.SecurityGroups[0].VpcId
 	} else if len(op.SecurityGroups) > 1 {
 		if *sgRule.GroupId == *op.SecurityGroups[0].GroupId {
 			group.GroupName = *op.SecurityGroups[0].GroupName
+			group.VpcId = *op.SecurityGroups[0].VpcId
 			group.PairGroupName = *op.SecurityGroups[1].GroupName
 		} else {
 			group.PairGroupName = *op.SecurityGroups[0].GroupName
 			group.GroupName = *op.SecurityGroups[1].GroupName
+			group.VpcId = *op.SecurityGroups[1].VpcId
 		}
 	}
 
