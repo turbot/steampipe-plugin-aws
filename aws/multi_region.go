@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"strings"
 
