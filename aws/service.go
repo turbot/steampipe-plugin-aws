@@ -1686,7 +1686,8 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 }
 
 // WorkspacesService returns the service connection for AWS Workspaces service
-func WorkspacesService(ctx context.Context, d *plugin.QueryData, region string) (*workspaces.WorkSpaces, error) {
+func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed WorkspacesService")
 	}

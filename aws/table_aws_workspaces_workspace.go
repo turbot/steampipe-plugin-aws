@@ -159,7 +159,7 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d, region)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create service
-	svc, err := WorkspacesService(ctx, d, region)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,12 +231,11 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listWorkspacesTags")
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d, region)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
