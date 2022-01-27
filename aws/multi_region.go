@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/connection"
@@ -185,4 +186,23 @@ func unique(stringSlice []string) []string {
 		}
 	}
 	return list
+}
+
+func SupportedRegionsForService(_ context.Context, d *plugin.QueryData, serviceId string) []string {
+	// cache serviceId
+	cacheKey := serviceId
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]string)
+	}
+	var validRegions []string
+	regions := endpoints.AwsPartition().Services()[serviceId].Regions()
+
+	for rs := range regions {
+		validRegions = append(validRegions, rs)
+	}
+
+	// set cache
+	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, validRegions)
+
+	return validRegions
 }

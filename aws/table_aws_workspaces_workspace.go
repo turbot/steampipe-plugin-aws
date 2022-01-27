@@ -152,7 +152,8 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
 	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	validRegions := SupportedRegionsForWorkspaces(ctx, d, h)
+	serviceId := endpoints.WorkspacesServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
@@ -190,7 +191,8 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
 	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	validRegions := SupportedRegionsForWorkspaces(ctx, d, h)
+	serviceId := endpoints.WorkspacesServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
@@ -269,25 +271,6 @@ func getWorkspaceArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	arn := "arn:" + commonColumnData.Partition + ":workspaces:" + region + ":" + commonColumnData.AccountId + ":workspace/" + *workspaceId
 
 	return arn, nil
-}
-
-func SupportedRegionsForWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) []string {
-	// cache valid regions for workspaces
-	cacheKey := "Workspaces"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string)
-	}
-	var validRegions []string
-	regions := endpoints.AwsPartition().Services()[endpoints.WorkspacesServiceID].Regions()
-
-	for rs := range regions {
-		validRegions = append(validRegions, rs)
-	}
-
-	// set cache
-	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, validRegions)
-
-	return validRegions
 }
 
 //// TRANSFORM FUNCTION
