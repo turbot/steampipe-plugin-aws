@@ -38,13 +38,6 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("StreamARN"),
 			},
 			{
-				Name:        "stream_name_prefix",
-				Description: "The name prefix of the stream.",
-				Type:        pb.ColumnType_STRING,
-				Hydrate:     getVideoStreamNamePrefix,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "status",
 				Description: "The status of the stream.",
 				Type:        pb.ColumnType_STRING,
@@ -203,13 +196,4 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 	return op, nil
-}
-
-func getVideoStreamNamePrefix(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*kinesisvideo.StreamInfo)
-
-	if d.KeyColumnQuals["stream_name_prefix"] != nil {
-		return d.KeyColumnQuals["stream_name_prefix"].GetStringValue(), nil
-	}
-	return data.StreamName, nil
 }
