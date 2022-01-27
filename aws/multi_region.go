@@ -189,14 +189,13 @@ func unique(stringSlice []string) []string {
 }
 
 func SupportedRegionsForService(_ context.Context, d *plugin.QueryData, serviceId string) []string {
-	// cache serviceId
-	cacheKey := serviceId
+	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
 	}
+
 	var validRegions []string
 	regions := endpoints.AwsPartition().Services()[serviceId].Regions()
-
 	for rs := range regions {
 		validRegions = append(validRegions, rs)
 	}
