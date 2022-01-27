@@ -113,7 +113,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	equalQuals := d.KeyColumnQuals
 
-	// Minimize the api call with given detector_id
+	// Minimize the API call with the given detector_id
 	if equalQuals["detector_id"] != nil {
 		if equalQuals["detector_id"].GetStringValue() != "" {
 			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {

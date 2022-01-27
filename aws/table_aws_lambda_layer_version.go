@@ -142,7 +142,7 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	layerName := h.Item.(*lambda.LayersListItem).LayerName
 
 	equalQuals := d.KeyColumnQuals
-	// Minimize the api call with given layer name
+	// Minimize the API call with the given layer name
 	if equalQuals["layer_name"] != nil {
 		if equalQuals["layer_name"].GetStringValue() != "" {
 			if equalQuals["layer_name"].GetStringValue() != "" && equalQuals["layer_name"].GetStringValue() != *layerName {

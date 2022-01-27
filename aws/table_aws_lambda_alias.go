@@ -117,7 +117,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	function := h.Item.(*lambda.FunctionConfiguration)
 
 	equalQuals := d.KeyColumnQuals
-	// Minimize the api call with given function name
+	// Minimize the API call with the given function name
 	if equalQuals["function_name"] != nil {
 		if equalQuals["function_name"].GetStringValue() != "" {
 			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {

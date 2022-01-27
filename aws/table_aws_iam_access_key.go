@@ -68,7 +68,7 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("listUserAccessKeys")
 	user := h.Item.(*iam.User)
 
-	// Minimize the api call with given user_name
+	// Minimize the API call with the given user_name
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["user_name"] != nil {
 		if equalQuals["user_name"].GetStringValue() != "" {
