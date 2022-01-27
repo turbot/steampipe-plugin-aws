@@ -54,7 +54,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "type",
-				Description: "Type of the rule ( ingress | egress). [DEPRECATED] This column has been deprecated and will be removed in a future release. Please use the is_egress column instead.",
+				Description: "Type of the rule ( ingress | egress).",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("IsEgress").Transform(setRuleType),
 			},
