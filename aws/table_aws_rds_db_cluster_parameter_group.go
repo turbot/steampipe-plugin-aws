@@ -100,12 +100,33 @@ func listRDSDBClusterParameterGroups(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &rds.DescribeDBClusterParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeDBClusterParameterGroupsPages(
-		&rds.DescribeDBClusterParameterGroupsInput{},
+		input,
 		func(page *rds.DescribeDBClusterParameterGroupsOutput, isLast bool) bool {
 			for _, dbClusterParameterGroup := range page.DBClusterParameterGroups {
 				d.StreamListItem(ctx, dbClusterParameterGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

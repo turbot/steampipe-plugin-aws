@@ -2,7 +2,10 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -22,6 +25,9 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listAwsGuardDutyIPSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,9 +111,41 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the API call with the given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != id {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), id) {
+				return nil, nil
+			}
+		}
+	}
+
+	input := &guardduty.ListIPSetsInput{
+		DetectorId: &id,
+		MaxResults: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListIPSetsPages(
-		&guardduty.ListIPSetsInput{DetectorId: &id},
+		input,
 		func(page *guardduty.ListIPSetsOutput, isLast bool) bool {
 			for _, parameter := range page.IpSetIds {
 				d.StreamLeafListItem(ctx, ipsetInfo{
@@ -115,6 +153,10 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 					DetectorID: id,
 				})
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -108,12 +108,33 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &rds.DescribeEventSubscriptionsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeEventSubscriptionsPages(
-		&rds.DescribeEventSubscriptionsInput{},
+		input,
 		func(page *rds.DescribeEventSubscriptionsOutput, isLast bool) bool {
 			for _, eventSubscription := range page.EventSubscriptionsList {
 				d.StreamListItem(ctx, eventSubscription)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -153,6 +174,6 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 func convertStringToRFC3339Timestamp(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*rds.EventSubscription)
 	parsedTime := strings.Replace(*data.SubscriptionCreationTime, " ", "T", 1)
-	
+
 	return parsedTime, nil
 }

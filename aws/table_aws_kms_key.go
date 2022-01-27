@@ -184,11 +184,32 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	input := &kms.ListKeysInput{
+		Limit: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.ListKeysPages(
-		&kms.ListKeysInput{},
+		input,
 		func(page *kms.ListKeysOutput, lastPage bool) bool {
 			for _, key := range page.Keys {
 				d.StreamListItem(ctx, key)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

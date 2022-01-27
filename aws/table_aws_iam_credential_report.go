@@ -241,6 +241,11 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	for _, row := range rows {
 		row.GeneratedTime = resp.GeneratedTime
 		d.StreamListItem(ctx, row)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			break
+		}
 	}
 
 	return nil, nil

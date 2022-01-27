@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -24,6 +26,9 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaVersions,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "function_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -174,12 +179,48 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	function := h.Item.(*lambda.FunctionConfiguration)
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given function name
+	if equalQuals["function_name"] != nil {
+		if equalQuals["function_name"].GetStringValue() != "" {
+			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["function_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["function_name"].GetListValue())), *function.FunctionName) {
+				return nil, nil
+			}
+		}
+	}
+
+	input := &lambda.ListVersionsByFunctionInput{
+		FunctionName: function.FunctionName,
+		MaxItems:     aws.Int64(50),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
 
 	err = svc.ListVersionsByFunctionPages(
-		&lambda.ListVersionsByFunctionInput{FunctionName: function.FunctionName},
+		input,
 		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
 			for _, version := range page.Versions {
 				d.StreamLeafListItem(ctx, version)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -243,7 +284,7 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	input := &lambda.GetPolicyInput{
 		FunctionName: aws.String(*alias.FunctionName),
-		Qualifier: aws.String(*alias.Version),
+		Qualifier:    aws.String(*alias.Version),
 	}
 
 	op, err := svc.GetPolicy(input)

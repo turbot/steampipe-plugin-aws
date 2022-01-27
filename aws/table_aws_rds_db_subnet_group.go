@@ -96,7 +96,7 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
+	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
 
 	// Create Session
 	svc, err := RDSService(ctx, d)
@@ -104,12 +104,34 @@ plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
 		return nil, err
 	}
 
+	input := &rds.DescribeDBSubnetGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeDBSubnetGroupsPages(
-		&rds.DescribeDBSubnetGroupsInput{},
+		input,
 		func(page *rds.DescribeDBSubnetGroupsOutput, isLast bool) bool {
 			for _, dbSubnetGroup := range page.DBSubnetGroups {
 				d.StreamListItem(ctx, dbSubnetGroup)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
