@@ -1,3 +1,40 @@
+## v0.45.0 [2022-01-28]
+
+_Enhancements_
+
+- Added additional optional key quals, filter support, and context cancellation handling to `FSx`, `Glacier`, `GuardDuty`, `IAM`, `Identity Store`, `Inspector`, `Kinesis`, `KMS`, `Lambda`, `ElastiCache`, `Macie` and `RDS` tables ([#856](https://github.com/turbot/steampipe-plugin-aws/pull/856))
+- Added the following columns to the `aws_vpc_security_group_rule` table ([#860](https://github.com/turbot/steampipe-plugin-aws/pull/860))
+  - cidr_ipv4
+  - description
+  - group_owner_id
+  - is_egress
+  - referenced_group_id
+  - referenced_peering_status
+  - referenced_user_id
+  - referenced_vpc_id
+  - referenced_vpc_peering_connection_id
+  - security_group_rule_id
+- Added `assignment_status` column to `aws_iam_virtual_mfa_device` table ([#856](https://github.com/turbot/steampipe-plugin-aws/pull/856))
+- Recompiled plugin with [steampipe-plugin-sdk v1.8.3](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v183--2021-12-23) ([#865](https://github.com/turbot/steampipe-plugin-aws/pull/865))
+
+_Bug fixes_
+
+- Fixed the `aws_workspaces_workspace` table to skip the unsupported regions ([#862](https://github.com/turbot/steampipe-plugin-aws/pull/862))
+
+_Deprecated_
+
+- The following columns of `aws_vpc_security_group_rule` table have been deprecated to stay consistent with the API response data. These columns will be removed in the next major version. We recommend updating any scripts or workflows that use these deprecated columns to use the equivalent new columns in the table instead.
+  - cidr_ip (replaced by cidr_ipv4)
+  - group_name
+  - owner_id (replaced by group_owner_id)
+  - pair_group_id (replaced by referenced_group_id)
+  - pair_group_name
+  - pair_peering_status (replaced by referenced_peering_status)
+  - pair_user_id (replaced by referenced_user_id)
+  - pair_vpc_id (replaced by referenced_vpc_id)
+  - pair_vpc_peering_connection_id (replaced by referenced_vpc_peering_connection_id)
+  - vpc_id
+
 ## v0.44.0 [2022-01-12]
 
 _Enhancements_
