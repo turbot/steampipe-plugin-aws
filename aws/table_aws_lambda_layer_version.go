@@ -51,7 +51,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_date",
 				Description: "The date that the version was created, in ISO 8601 format.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "description",

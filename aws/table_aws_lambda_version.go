@@ -81,7 +81,7 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_modified",
 				Description: "The date and time that the function was last updated, in ISO-8601 format.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "last_update_status",
