@@ -2,6 +2,7 @@
 
 _Enhancements_
 
+- Added additional optional key quals, filter support, and context cancellation handling to `FSx`, `Glacier`, `GuardDuty`, `IAM`, `Identity Store`, `Inspector`, `Kinesis`, `KMS`, `Lambda`, `ElastiCache`, `Macie` and `RDS` tables ([#856](https://github.com/turbot/steampipe-plugin-aws/pull/856))
 - Added the following columns to the `aws_vpc_security_group_rule` table ([#860](https://github.com/turbot/steampipe-plugin-aws/pull/860))
   - cidr_ipv4
   - description
@@ -13,10 +14,8 @@ _Enhancements_
   - referenced_vpc_id
   - referenced_vpc_peering_connection_id
   - security_group_rule_id
-
 - Added `assignment_status` column to `aws_iam_virtual_mfa_device` table ([#856](https://github.com/turbot/steampipe-plugin-aws/pull/856))
 - Recompiled plugin with [steampipe-plugin-sdk v1.8.3](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v183--2021-12-23) ([#865](https://github.com/turbot/steampipe-plugin-aws/pull/865))
-- Added additional optional key quals, filter support, and context cancellation handling to `FSx`, `Glacier`, `GuardDuty`, `IAM`, `Identity Store`, `Inspector`, `Kinesis`, `KMS`, `Lambda`, `ElastiCache`, `Macie` and `RDS` tables ([#856](https://github.com/turbot/steampipe-plugin-aws/pull/856))
 
 _Bug fixes_
 
