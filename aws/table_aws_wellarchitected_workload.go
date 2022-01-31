@@ -2,8 +2,11 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -195,7 +198,22 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		},
 	)
 
-	return nil, err
+	if err != nil {
+		var awsErr awserr.Error
+		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
+		if errors.As(err, &awsErr) {
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
+					return nil, nil
+				}
+			}
+		}
+		logger.Error("listWellArchitectedWorkloads", "list", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -224,7 +242,17 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetWorkload(params)
 	if err != nil {
-		logger.Debug("getWellArchitectedWorkload", "ERROR", err)
+		var awsErr awserr.Error
+		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
+		if errors.As(err, &awsErr) {
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
+					return nil, nil
+				}
+			}
+		}
+		logger.Error("getWellArchitectedWorkload", "get", err)
 		return nil, err
 	}
 
