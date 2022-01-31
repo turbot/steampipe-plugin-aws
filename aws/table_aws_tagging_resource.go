@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -94,12 +95,33 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	input := &resourcegroupstaggingapi.GetResourcesInput{
+		ResourcesPerPage: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.ResourcesPerPage {
+			if *limit < 1 {
+				input.ResourcesPerPage = aws.Int64(1)
+			} else {
+				input.ResourcesPerPage = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.GetResourcesPages(
-		&resourcegroupstaggingapi.GetResourcesInput{},
+		input,
 		func(page *resourcegroupstaggingapi.GetResourcesOutput, isLast bool) bool {
 			for _, resource := range page.ResourceTagMappingList {
 				d.StreamListItem(ctx, resource)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -89,11 +90,32 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
+	input := &securityhub.DescribeStandardsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.DescribeStandardsPages(
-		&securityhub.DescribeStandardsInput{},
+		input,
 		func(page *securityhub.DescribeStandardsOutput, isLast bool) bool {
 			for _, standards := range page.Standards {
 				d.StreamListItem(ctx, standards)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/helpers"
@@ -140,13 +141,37 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: &hostedZoneID,
+		MaxItems:     aws.String("100"),
+	}
+
+	// We can't add any other property in optional quals because we need to specify the source record set details not the current one
+
+	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
+	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 100 to max and 1 to min
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *aws.Int64(100) {
+			if *limit < 1 {
+				input.MaxItems = aws.String("1")
+			} else {
+				input.MaxItems = aws.String(fmt.Sprint(*limit))
+			}
+		}
+	}
+
 	err = svc.ListResourceRecordSetsPages(
-		&route53.ListResourceRecordSetsInput{
-			HostedZoneId: &hostedZoneID,
-		},
+		input,
 		func(page *route53.ListResourceRecordSetsOutput, isLast bool) bool {
 			for _, record := range page.ResourceRecordSets {
 				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

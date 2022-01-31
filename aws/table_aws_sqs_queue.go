@@ -153,8 +153,25 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+
+	input := &sqs.ListQueuesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListQueuesPages(
-		&sqs.ListQueuesInput{},
+		input,
 		func(page *sqs.ListQueuesOutput, lastPage bool) bool {
 			for _, queueURL := range page.QueueUrls {
 				d.StreamListItem(ctx, &sqs.GetQueueAttributesOutput{
@@ -162,6 +179,11 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 						"QueueUrl": queueURL,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

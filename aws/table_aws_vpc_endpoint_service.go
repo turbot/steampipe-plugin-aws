@@ -122,7 +122,21 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	pagesLeft := true
-	params := &ec2.DescribeVpcEndpointServicesInput{}
+	params := &ec2.DescribeVpcEndpointServicesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
+	}
 
 	// List call
 	for pagesLeft {
@@ -134,6 +148,11 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 		for _, endpointService := range result.ServiceDetails {
 			d.StreamListItem(ctx, endpointService)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

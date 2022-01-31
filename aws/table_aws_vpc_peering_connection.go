@@ -19,6 +19,17 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 		Description: "AWS VPC Peering Connection",
 		List: &plugin.ListConfig{
 			Hydrate: listVpcPeeringConnections,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "accepter_cidr_block", Require: plugin.Optional},
+				{Name: "accepter_owner_id", Require: plugin.Optional},
+				{Name: "accepter_vpc_id", Require: plugin.Optional},
+				{Name: "expiration_time", Require: plugin.Optional},
+				{Name: "requester_cidr_block", Require: plugin.Optional},
+				{Name: "requester_owner_id", Require: plugin.Optional},
+				{Name: "requester_vpc_id", Require: plugin.Optional},
+				{Name: "status_message", Require: plugin.Optional},
+				{Name: "id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -167,14 +178,51 @@ func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := getVpcPeeringConnectionRequestParameters(d)
+	input := &ec2.DescribeVpcPeeringConnectionsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "accepter_cidr_block", FilterName: "accepter-vpc-info.cidr-block", ColumnType: "cidr"},
+		{ColumnName: "accepter_owner_id", FilterName: "accepter-vpc-info.owner-id", ColumnType: "string"},
+		{ColumnName: "accepter_vpc_id", FilterName: "accepter-vpc-info.vpc-id", ColumnType: "string"},
+		{ColumnName: "expiration_time", FilterName: "expiration-time", ColumnType: "time"},
+		{ColumnName: "requester_cidr_block", FilterName: "requester-vpc-info.cidr-block", ColumnType: "cidr"},
+		{ColumnName: "requester_owner_id", FilterName: "requester-vpc-info.owner-id", ColumnType: "string"},
+		{ColumnName: "requester_vpc_id", FilterName: "requester-vpc-info.vpc-id", ColumnType: "string"},
+		{ColumnName: "status_code", FilterName: "status-code", ColumnType: "string"},
+		{ColumnName: "status_message", FilterName: "status-message", ColumnType: "string"},
+		{ColumnName: "id", FilterName: "vpc-peering-connection-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.DescribeVpcPeeringConnectionsPages(
-		params,
+		input,
 		func(page *ec2.DescribeVpcPeeringConnectionsOutput, isLast bool) bool {
 			for _, connection := range page.VpcPeeringConnections {
 				d.StreamListItem(ctx, connection)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -202,108 +250,4 @@ func vpcPeeringConnectionTags(_ context.Context, d *transform.TransformData) (in
 		return turbotTagsMap, nil
 	}
 	return nil, nil
-}
-
-func getVpcPeeringConnectionRequestParameters(d *plugin.QueryData) (*ec2.DescribeVpcPeeringConnectionsInput) {
-	filters := []*ec2.Filter{}
-	equalQuals := d.KeyColumnQuals
-	params := &ec2.DescribeVpcPeeringConnectionsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	if equalQuals["accepter_cidr_block"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("accepter-vpc-info.cidr-block"),
-			Values: []*string{aws.String(equalQuals["accepter_cidr_block"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["accepter_owner_id"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("accepter-vpc-info.owner-id"),
-			Values: []*string{aws.String(equalQuals["accepter_owner_id"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["accepter_vpc_id"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("accepter-vpc-info.vpc-id"),
-			Values: []*string{aws.String(equalQuals["accepter_vpc_id"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["expiration_time"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("expiration-time"),
-			Values: []*string{aws.String(equalQuals["expiration_time"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["requester_cidr_block"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("requester-vpc-info.cidr-block"),
-			Values: []*string{aws.String(equalQuals["requester_cidr_block"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["requester_owner_id"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("requester-vpc-info.owner-id"),
-			Values: []*string{aws.String(equalQuals["requester_owner_id"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["requester_vpc_id"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("requester-vpc-info.vpc-id"),
-			Values: []*string{aws.String(equalQuals["requester_vpc_id"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["status_code"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("status-code"),
-			Values: []*string{aws.String(equalQuals["status_code"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["status_message"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("status-message"),
-			Values: []*string{aws.String(equalQuals["status_message"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	if equalQuals["id"] != nil {
-		filter := ec2.Filter{
-			Name:   aws.String("vpc-peering-connection-id"),
-			Values: []*string{aws.String(equalQuals["id"].GetStringValue())},
-		}
-		filters = append(filters, &filter)
-	}
-
-	// Add filters as request parameter when at least one filter is present
-	if len(filters) > 0 {
-		params.Filters = filters
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			params.MaxResults = limit
-		}
-	}
-
-	return params;
 }

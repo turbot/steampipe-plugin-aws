@@ -181,7 +181,21 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	pagesLeft := true
 	params := &wafv2.ListWebACLsInput{
 		Scope: scope,
+		Limit: aws.Int64(100),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
+
 	for pagesLeft {
 		response, err := svc.ListWebACLs(params)
 		if err != nil {
@@ -190,6 +204,11 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 		for _, webAcl := range response.WebACLs {
 			d.StreamListItem(ctx, webAcl)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {

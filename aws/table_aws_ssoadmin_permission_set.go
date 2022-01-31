@@ -112,10 +112,25 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	input := &ssoadmin.ListPermissionSetsInput{
+		InstanceArn: aws.String(instanceArn),
+		MaxResults:  aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListPermissionSetsPages(
-		&ssoadmin.ListPermissionSetsInput{
-			InstanceArn: aws.String(instanceArn),
-		},
+		input,
 		func(page *ssoadmin.ListPermissionSetsOutput, isLast bool) bool {
 			for _, arn := range page.PermissionSets {
 				item := &PermissionSetItem{
@@ -123,6 +138,11 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 					PermissionSetArn: arn,
 				}
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

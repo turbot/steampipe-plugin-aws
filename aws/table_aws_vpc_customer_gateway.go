@@ -21,6 +21,12 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "ip_address", Require: plugin.Optional},
+				{Name: "bgp_asn", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -99,10 +105,29 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &ec2.DescribeCustomerGatewaysInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "ip_address", FilterName: "ip-address", ColumnType: "ipaddr"},
+		{ColumnName: "bgp_asn", FilterName: "bgp-asn", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "type", FilterName: "type", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeCustomerGateways(&ec2.DescribeCustomerGatewaysInput{})
+	resp, err := svc.DescribeCustomerGateways(input)
 	for _, customerGateway := range resp.CustomerGateways {
 		d.StreamListItem(ctx, customerGateway)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

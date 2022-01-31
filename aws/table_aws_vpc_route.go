@@ -155,6 +155,11 @@ func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	for _, route := range routeTable.Routes {
 		d.StreamLeafListItem(ctx, &routeTableRoute{routeTable.RouteTableId, route})
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

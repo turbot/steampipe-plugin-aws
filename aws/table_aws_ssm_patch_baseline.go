@@ -26,6 +26,10 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: describePatchBaselines,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "operating_system", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -171,12 +175,27 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Build the params
 	// Adding a filter to filter out all the predefined patch baseline, that does not belongs to the user or account
 	params := &ssm.DescribePatchBaselinesInput{
-		Filters: []*ssm.PatchOrchestratorFilter{
-			{
-				Key:    aws.String("OWNER"),
-				Values: []*string{aws.String("Self")},
-			},
-		},
+		MaxResults: aws.Int64(100),
+	}
+
+	ownerFilter := &ssm.PatchOrchestratorFilter{
+		Key:    aws.String("OWNER"),
+		Values: []*string{aws.String("Self")},
+	}
+
+	filters := append(buildSsmPatchBaselineFilter(d.Quals), ownerFilter)
+	params.Filters = filters
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
@@ -288,4 +307,34 @@ func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return []string{aka}, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm patch baseline list call input filter
+func buildSsmPatchBaselineFilter(quals plugin.KeyColumnQualMap) []*ssm.PatchOrchestratorFilter {
+	filters := make([]*ssm.PatchOrchestratorFilter, 0)
+
+	filterQuals := map[string]string{
+		"name":             "NAME_PREFIX",
+		"operating_system": "OPERATING_SYSTEM",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.PatchOrchestratorFilter{
+				Key: aws.String(filterName),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{&val}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

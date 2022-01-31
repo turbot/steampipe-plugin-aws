@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -217,12 +218,54 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 		if dataType == "int64" {
 			value = q.Value.GetInt64Value()
+			if q.Value.GetInt64Value() == 0 {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := strconv.FormatInt(value.GetInt64Value(), 10)
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
 		}
 		if dataType == "double" {
 			value = q.Value.GetDoubleValue()
+			if q.Value.GetDoubleValue() == 0 {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := strconv.FormatFloat(value.GetDoubleValue(), 'f', 4, 64)
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+
 		}
 		if dataType == "ipaddr" {
 			value = q.Value.GetInetValue().Addr
+			if q.Value.GetInetValue().Addr == "" {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := value.GetInetValue().Addr
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+		}
+		if dataType == "cidr" {
+			value = q.Value.GetInetValue().Cidr
+			if q.Value.GetInetValue().Addr == "" {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := value.GetInetValue().Cidr
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+		}
+		if dataType == "time" {
+			value = getListValues(q.Value.GetListValue())
+			if len(getListValues(q.Value.GetListValue())) == 0 {
+				value = q.Value.GetTimestampValue().AsTime()
+			}
 		}
 	}
 	return value

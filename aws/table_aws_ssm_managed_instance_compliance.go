@@ -18,9 +18,12 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_managed_instance_compliance",
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
-			KeyColumns:        plugin.SingleColumn("resource_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
 			Hydrate:           listSsmManagedInstanceCompliances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "resource_id", Require: plugin.Required},
+				{Name: "resource_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,6 +108,27 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	// Build the params
 	params := &ssm.ListComplianceItemsInput{
 		ResourceIds: []*string{aws.String(instanceId)},
+		MaxResults:  aws.Int64(50),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["resource_type"] != nil {
+		if equalQuals["resource_type"].GetStringValue() != "" {
+			params.ResourceTypes = []*string{aws.String(equalQuals["resource_type"].GetStringValue())}
+		} else {
+			params.ResourceTypes = getListValues(equalQuals["resource_type"].GetListValue())
+		}
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
@@ -113,6 +137,11 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 		func(page *ssm.ListComplianceItemsOutput, isLast bool) bool {
 			for _, item := range page.ComplianceItems {
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

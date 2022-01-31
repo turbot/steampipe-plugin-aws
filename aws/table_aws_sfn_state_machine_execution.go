@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -21,6 +22,9 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,
 			ParentHydrate: listStepFunctionsStateManchines,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -111,21 +115,43 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
 	}
-	
+
 	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 
+	input := &sfn.ListExecutionsInput{
+		StateMachineArn: arn,
+		MaxResults:      aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["status"] != nil {
+		input.StatusFilter = aws.String(equalQuals["status"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
+
 	err = svc.ListExecutionsPages(
-		&sfn.ListExecutionsInput{
-			StateMachineArn: arn,
-		},
+		input,
 		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
 			for _, execution := range page.Executions {
 				d.StreamListItem(ctx, execution)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
 	)
-	
+
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "ListExecutionsPages_error", err)
 		return nil, err

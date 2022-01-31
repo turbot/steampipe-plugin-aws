@@ -23,6 +23,15 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnConnections,
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "customer_gateway_configuration", Require: plugin.Optional},
+				{Name: "customer_gateway_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+				{Name: "vpn_gateway_id", Require: plugin.Optional},
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -131,10 +140,31 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	input := &ec2.DescribeVpnConnectionsInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "customer_gateway_configuration", FilterName: "customer-gateway-configuration", ColumnType: "string"},
+		{ColumnName: "customer_gateway_id", FilterName: "customer-gateway-id", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "type", FilterName: "type", ColumnType: "string"},
+		{ColumnName: "vpn_gateway_id", FilterName: "vpn-gateway-id", ColumnType: "string"},
+		{ColumnName: "transit_gateway_id", FilterName: "transit-gateway-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeVpnConnections(&ec2.DescribeVpnConnectionsInput{})
+	resp, err := svc.DescribeVpnConnections(input)
 	for _, vpnConnection := range resp.VpnConnections {
 		d.StreamListItem(ctx, vpnConnection)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

@@ -23,6 +23,11 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "default_code_repository", Require: plugin.Optional},
+				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},
+				{Name: "notebook_instance_status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -182,12 +187,53 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &sagemaker.ListNotebookInstancesInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["default_code_repository"] != nil {
+		value, ok := getQualsValueByColumn(d.Quals, "default_code_repository", "string").(string)
+		if ok {
+			input.DefaultCodeRepositoryContains = aws.String(value)
+		}
+	}
+	if equalQuals["notebook_instance_lifecycle_config_name"] != nil {
+		value, ok := getQualsValueByColumn(d.Quals, "notebook_instance_lifecycle_config_name", "string").(string)
+		if ok {
+			input.NotebookInstanceLifecycleConfigNameContains = aws.String(value)
+		}
+	}
+	if equalQuals["notebook_instance_status"] != nil {
+		value, ok := getQualsValueByColumn(d.Quals, "notebook_instance_status", "string").(string)
+		if ok {
+			input.StatusEquals = aws.String(value)
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListNotebookInstancesPages(
-		&sagemaker.ListNotebookInstancesInput{},
+		input,
 		func(page *sagemaker.ListNotebookInstancesOutput, isLast bool) bool {
 			for _, notebookInstance := range page.NotebookInstances {
 				d.StreamListItem(ctx, notebookInstance)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

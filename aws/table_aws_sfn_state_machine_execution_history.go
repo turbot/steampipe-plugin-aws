@@ -245,7 +245,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	var executions []sfn.ExecutionListItem
 
 	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(100),
+		MaxResults:      types.Int64(1000),
 		StateMachineArn: stateMachineArn,
 	}
 
@@ -297,6 +297,11 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	for item := range executionCh {
 		for _, data := range item {
 			d.StreamLeafListItem(ctx, historyInfo{data.HistoryEvent, data.ExecutionArn})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 

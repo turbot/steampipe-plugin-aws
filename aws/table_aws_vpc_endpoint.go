@@ -21,6 +21,11 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpoints,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "service_name", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -144,11 +149,42 @@ func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
+	input := &ec2.DescribeVpcEndpointsInput{
+		MaxResults: aws.Int64(1000),
+	}
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "service_name", FilterName: "service-name", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "vpc-endpoint-state", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.DescribeVpcEndpointsPages(
-		&ec2.DescribeVpcEndpointsInput{},
+		input,
 		func(page *ec2.DescribeVpcEndpointsOutput, lastPage bool) bool {
 			for _, item := range page.VpcEndpoints {
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
