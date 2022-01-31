@@ -1,16 +1,18 @@
 # Table: aws_vpc_security_group_rule
 
-Security group rules defines the inbound and outbound traffic to the instances.
+Security group rules define the inbound and outbound traffic to the instances.
 
 ## Examples
 
-## List of security groups whose inbound access is open to the internet
+## List inbound security group rules open to the Internet
 
 ```sql
 select
   security_group_rule_id,
   group_id,
-  type
+  ip_protocol,
+  from_port,
+  to_port
 from
   aws_vpc_security_group_rule
 where
@@ -18,8 +20,7 @@ where
   and not is_egress;
 ```
 
-
-## List of security groups whose SSH and RDP access is not restricted from the internet
+## List ingress security group rules that open SSH and RDP access from the Internet
 
 ```sql
 select
@@ -48,4 +49,23 @@ where
       and to_port >= 3389
     )
   );
+```
+
+### List security group rules with additional security group details
+
+```sql
+select
+  r.security_group_rule_id,
+  r.ip_protocol,
+  r.from_port,
+  r.to_port,
+  r.cidr_ipv4,
+  r.group_id,
+  sg.group_name,
+  sg.vpc_id 
+from
+  aws_vpc_security_group_rule as r,
+  aws_vpc_security_group as sg 
+where
+  r.group_id = sg.group_id;
 ```
