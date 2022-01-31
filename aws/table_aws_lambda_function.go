@@ -76,7 +76,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_modified",
 				Description: "The date and time that the function was last updated.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Configuration.LastModified", "LastModified"),
 			},
 			{
