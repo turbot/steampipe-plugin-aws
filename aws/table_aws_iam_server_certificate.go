@@ -19,6 +19,9 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Server Certificate",
 		List: &plugin.ListConfig{
 			Hydrate: listIamServerCertificates,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path", Require: plugin.Optional},
+			},
 		},
 		Get: &plugin.GetConfig{
 			Hydrate:    getIamServerCertificate,
@@ -114,13 +117,39 @@ func listIamServerCertificates(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
+	input := &iam.ListServerCertificatesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+	
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListServerCertificatesPages(
-		&iam.ListServerCertificatesInput{},
+		input,
 		func(page *iam.ListServerCertificatesOutput, lastPage bool) bool {
 			for _, certificate := range page.ServerCertificateMetadataList {
 				d.StreamListItem(ctx, &iam.ServerCertificate{
 					ServerCertificateMetadata: certificate,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

@@ -23,6 +23,9 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFirehoseDeliveryStreams,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "delivery_stream_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -142,7 +145,27 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	// List call
-	param := &firehose.ListDeliveryStreamsInput{}
+	param := &firehose.ListDeliveryStreamsInput{
+		Limit: aws.Int64(10000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["delivery_stream_type"] != nil {
+		param.DeliveryStreamType = aws.String(equalQuals["delivery_stream_type"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *param.Limit {
+			if *limit < 1 {
+				param.Limit = aws.Int64(1)
+			} else {
+				param.Limit = limit
+			}
+		}
+	}
+
 	for {
 		response, err := svc.ListDeliveryStreams(param)
 		if err != nil {
@@ -152,6 +175,11 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 			d.StreamListItem(ctx, &firehose.DeliveryStreamDescription{
 				DeliveryStreamName: stream,
 			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 		if !*response.HasMoreDeliveryStreams {
 			break

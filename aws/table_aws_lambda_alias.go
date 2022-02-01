@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -24,6 +26,10 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
 			Hydrate:       listLambdaAliases,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "function_version", Require: plugin.Optional},
+				{Name: "function_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,8 +116,43 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given function name
+	if equalQuals["function_name"] != nil {
+		if equalQuals["function_name"].GetStringValue() != "" {
+			if equalQuals["function_name"].GetStringValue() != "" && equalQuals["function_name"].GetStringValue() != *function.FunctionName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["function_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["function_name"].GetListValue())), *function.FunctionName) {
+				return nil, nil
+			}
+		}
+	}
+
+	input := &lambda.ListAliasesInput{
+		FunctionName: function.FunctionName,
+		MaxItems:     aws.Int64(10000),
+	}
+
+	if equalQuals["function_version"] != nil {
+		input.FunctionVersion = aws.String(equalQuals["function_version"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListAliasesPages(
-		&lambda.ListAliasesInput{FunctionName: function.FunctionName},
+		input,
 		func(page *lambda.ListAliasesOutput, lastPage bool) bool {
 			for _, alias := range page.Aliases {
 				d.StreamLeafListItem(ctx, &aliasRowData{alias, function.FunctionName})

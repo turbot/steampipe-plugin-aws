@@ -100,12 +100,34 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &rds.DescribeDBParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeDBParameterGroupsPages(
-		&rds.DescribeDBParameterGroupsInput{},
+		input,
 		func(page *rds.DescribeDBParameterGroupsOutput, isLast bool) bool {
 			for _, dbParameterGroup := range page.DBParameterGroups {
 				d.StreamListItem(ctx, dbParameterGroup)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

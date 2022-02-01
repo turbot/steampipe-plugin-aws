@@ -76,7 +76,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_modified",
 				Description: "The date and time that the function was last updated.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Configuration.LastModified", "LastModified"),
 			},
 			{
@@ -232,8 +232,24 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &lambda.ListFunctionsInput{
+		MaxItems: aws.Int64(10000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListFunctionsPages(
-		&lambda.ListFunctionsInput{},
+		input,
 		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
 			for _, function := range page.Functions {
 				d.StreamListItem(ctx, function)

@@ -107,9 +107,25 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &kinesisvideo.ListStreamsInput{
+		MaxResults: aws.Int64(10000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListStreamsPages(
-		&kinesisvideo.ListStreamsInput{},
+		input,
 		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
 			for _, stream := range page.StreamInfoList {
 				d.StreamListItem(ctx, stream)

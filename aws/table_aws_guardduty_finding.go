@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -24,6 +26,11 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyFindings,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+				{Name: "id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -121,15 +128,48 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	detectorId := h.Item.(detectorInfo).DetectorID
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the API call with the given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorId {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorId) {
+				return nil, nil
+			}
+		}
+	}
 
 	var findingIds [][]*string
 
+	input := &guardduty.ListFindingsInput{
+		DetectorId: aws.String(detectorId),
+		MaxResults: aws.Int64(50),
+	}
+
+	filterCriteria := buildGuarddutyFindingFilterCriteria(d.Quals, ctx)
+	if filterCriteria != nil {
+		input.FindingCriteria = filterCriteria
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// execute list call
 	err = svc.ListFindingsPages(
-		&guardduty.ListFindingsInput{
-			DetectorId: aws.String(detectorId),
-			MaxResults: aws.Int64(50),
-		},
+		input,
 		func(page *guardduty.ListFindingsOutput, isLast bool) bool {
 			if len(page.FindingIds) != 0 {
 				findingIds = append(findingIds, page.FindingIds)
@@ -157,4 +197,51 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return nil, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build guardduty finding filter param
+func buildGuarddutyFindingFilterCriteria(quals plugin.KeyColumnQualMap, ctx context.Context) *guardduty.FindingCriteria {
+
+	type FilterKeyMap struct {
+		ColumnName string
+		FilterName string
+		ColumnType string
+	}
+
+	filterCtiteria := make(map[string]*guardduty.Condition)
+	filterQuals := []FilterKeyMap{
+		{"id", "id", "string"},
+		{"type", "type", "string"},
+	}
+
+	filterValue := &guardduty.Condition{}
+
+	for _, filterMap := range filterQuals {
+		if quals[filterMap.ColumnName] != nil {
+			for _, q := range quals[filterMap.ColumnName].Quals {
+				value := getQualsValueByColumn(quals, filterMap.ColumnName, "string")
+				val, ok := value.(string)
+				switch q.Operator {
+				case "=":
+					if ok {
+						filterValue.Equals = []*string{aws.String(val)}
+					} else {
+						filterValue.Equals = value.([]*string)
+					}
+					filterCtiteria[filterMap.FilterName] = filterValue
+				case "<>":
+					if ok {
+						filterValue.NotEquals = []*string{aws.String(val)}
+					} else {
+						filterValue.NotEquals = value.([]*string)
+					}
+					filterCtiteria[filterMap.FilterName] = filterValue
+				}
+
+			}
+		}
+	}
+	return &guardduty.FindingCriteria{Criterion: filterCtiteria}
 }

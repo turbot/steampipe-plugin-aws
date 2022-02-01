@@ -2,11 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 )
 
@@ -17,6 +20,9 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listIamUsers,
 			Hydrate:       listUserAccessKeys,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "user_name", Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -62,6 +68,20 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("listUserAccessKeys")
 	user := h.Item.(*iam.User)
 
+	// Minimize the API call with the given user_name
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["user_name"] != nil {
+		if equalQuals["user_name"].GetStringValue() != "" {
+			if equalQuals["user_name"].GetStringValue() != "" && equalQuals["user_name"].GetStringValue() != *user.UserName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["user_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["user_name"].GetListValue())), *user.UserName) {
+				return nil, nil
+			}
+		}
+	}
+
 	// Create Session
 	svc, err := IAMService(ctx, d)
 	if err != nil {
@@ -70,6 +90,19 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	params := &iam.ListAccessKeysInput{
 		UserName: user.UserName,
+		MaxItems: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = aws.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
 	}
 
 	// List IAM user access keys
@@ -78,6 +111,11 @@ func listUserAccessKeys(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		func(page *iam.ListAccessKeysOutput, isLast bool) bool {
 			for _, key := range page.AccessKeyMetadata {
 				d.StreamListItem(ctx, key)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

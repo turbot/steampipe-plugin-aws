@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -118,7 +118,7 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	// Set MaxResults to the maximum number allowed
 	input := mediastore.ListContainersInput{
-		MaxResults: types.Int64(100),
+		MaxResults: aws.Int64(100),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -126,7 +126,11 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
 		}
 	}
 
@@ -135,6 +139,11 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 		func(page *mediastore.ListContainersOutput, lastPage bool) bool {
 			for _, container := range page.Containers {
 				d.StreamListItem(ctx, container)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -268,7 +277,7 @@ func containerTurbotTags(ctx context.Context, d *transform.TransformData) (inter
 				turbotTagsMap[*i.Key] = *i.Value
 			}
 		}
-		
+
 		return turbotTagsMap, nil
 	}
 

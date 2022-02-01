@@ -84,6 +84,19 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 				AttributeValue: aws.String(name),
 			},
 		},
+		MaxResults: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	err = svc.ListGroupsPages(
@@ -95,6 +108,11 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 					Group:           group,
 				}
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

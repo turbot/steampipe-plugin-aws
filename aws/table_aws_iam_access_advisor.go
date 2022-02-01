@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -107,8 +108,22 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	logger.Debug("listAccessAdvisor generateResp", "jobId", *generateResp.JobId, "resp", *generateResp)
 
 	params := &iam.GetServiceLastAccessedDetailsInput{
-		JobId: generateResp.JobId,
+		JobId:    generateResp.JobId,
+		MaxItems: aws.Int64(1000),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = aws.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
+	}
+
 	retryNumber := 0
 	for {
 		resp, err := svc.GetServiceLastAccessedDetails(params)
@@ -138,6 +153,11 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 				TotalAuthenticatedEntities: serviceLastAccessed.TotalAuthenticatedEntities,
 				TrackedActionsLastAccessed: serviceLastAccessed.TrackedActionsLastAccessed,
 			})
+			
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 		if !*resp.IsTruncated {
 			break
