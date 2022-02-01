@@ -138,7 +138,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListHostedZones.html
-	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 100 to max and 1 to min
+	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
 	input := &route53.ListHostedZonesInput{
 		MaxItems: aws.String("1000"),
 	}
