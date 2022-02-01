@@ -20,6 +20,9 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3AccessPoints,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "bucket_name", Require: plugin.Optional},
+			},
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
