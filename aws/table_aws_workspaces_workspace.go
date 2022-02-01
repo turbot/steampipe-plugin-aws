@@ -25,6 +25,11 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspaces,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "bundle_id", Require: plugin.Optional},
+				{Name: "directory_id", Require: plugin.Optional},
+				{Name: "user_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -164,12 +169,50 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 		return nil, err
 	}
 
+	input := &workspaces.DescribeWorkspacesInput{
+		Limit: aws.Int64(25),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["bundle_id"] != nil {
+		if equalQuals["bundle_id"].GetStringValue() != "" {
+			input.BundleId = aws.String(equalQuals["bundle_id"].GetStringValue())
+		}
+	}
+	if equalQuals["directory_id"] != nil {
+		if equalQuals["directory_id"].GetStringValue() != "" {
+			input.DirectoryId = aws.String(equalQuals["directory_id"].GetStringValue())
+		}
+	}
+	if equalQuals["user_name"] != nil {
+		if equalQuals["user_name"].GetStringValue() != "" {
+			input.UserName = aws.String(equalQuals["user_name"].GetStringValue())
+		}
+	}
+
 	// List call
 	err = svc.DescribeWorkspacesPages(
-		&workspaces.DescribeWorkspacesInput{},
+		input,
 		func(page *workspaces.DescribeWorkspacesOutput, isLast bool) bool {
 			for _, Workspace := range page.Workspaces {
 				d.StreamListItem(ctx, Workspace)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
