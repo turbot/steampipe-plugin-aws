@@ -2,9 +2,9 @@ package aws
 
 import (
 	"context"
-	"sync"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/go-kit/types"
@@ -326,7 +326,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
 	}
-
 
 	params := &sfn.GetExecutionHistoryInput{
 		ExecutionArn: types.String(arn),

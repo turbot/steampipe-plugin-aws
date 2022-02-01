@@ -195,7 +195,6 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 	err = svc.DescribeMaintenanceWindowsPages(
 		input,
 		func(page *ssm.DescribeMaintenanceWindowsOutput, isLast bool) bool {
-			plugin.Logger(ctx).Info("Result Length ==========>>>>>>>", len(page.WindowIdentities))
 			for _, parameter := range page.WindowIdentities {
 				d.StreamListItem(ctx, parameter)
 

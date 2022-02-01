@@ -256,13 +256,19 @@ func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["cluster_identifier"] != nil {
-		input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
+		if equalQuals["cluster_identifier"].GetStringValue() != "" {
+			input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
+		}
 	}
 	if equalQuals["owner_account"] != nil {
-		input.OwnerAccount = aws.String(equalQuals["owner_account"].GetStringValue())
+		if equalQuals["owner_account"].GetStringValue() != "" {
+			input.OwnerAccount = aws.String(equalQuals["owner_account"].GetStringValue())
+		}
 	}
 	if equalQuals["snapshot_type"] != nil {
-		input.SnapshotType = aws.String(equalQuals["snapshot_type"].GetStringValue())
+		if equalQuals["snapshot_type"].GetStringValue() != "" {
+			input.SnapshotType = aws.String(equalQuals["snapshot_type"].GetStringValue())
+		}
 	}
 	if equalQuals["snapshot_create_time"] != nil {
 		input.StartTime = aws.Time(equalQuals["snapshot_create_time"].GetTimestampValue().AsTime())

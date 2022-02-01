@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
@@ -118,12 +120,25 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 
 	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given layer name
+	if equalQuals["state_machine_arn"] != nil {
+		if equalQuals["state_machine_arn"].GetStringValue() != "" {
+			if equalQuals["state_machine_arn"].GetStringValue() != "" && equalQuals["state_machine_arn"].GetStringValue() != *arn {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["state_machine_arn"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["state_machine_arn"].GetListValue())), *arn) {
+				return nil, nil
+			}
+		}
+	}
+
 	input := &sfn.ListExecutionsInput{
 		StateMachineArn: arn,
 		MaxResults:      aws.Int64(1000),
 	}
 
-	equalQuals := d.KeyColumnQuals
 	if equalQuals["status"] != nil {
 		input.StatusFilter = aws.String(equalQuals["status"].GetStringValue())
 	}

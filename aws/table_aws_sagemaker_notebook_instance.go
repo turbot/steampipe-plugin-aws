@@ -193,22 +193,20 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["default_code_repository"] != nil {
-		value, ok := getQualsValueByColumn(d.Quals, "default_code_repository", "string").(string)
-		if ok {
-			input.DefaultCodeRepositoryContains = aws.String(value)
+		if equalQuals["default_code_repository"].GetStringValue() != "" {
+			input.DefaultCodeRepositoryContains = aws.String(equalQuals["default_code_repository"].GetStringValue())
 		}
 	}
 	if equalQuals["notebook_instance_lifecycle_config_name"] != nil {
-		value, ok := getQualsValueByColumn(d.Quals, "notebook_instance_lifecycle_config_name", "string").(string)
-		if ok {
-			input.NotebookInstanceLifecycleConfigNameContains = aws.String(value)
+		if equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue() != "" {
+			input.NotebookInstanceLifecycleConfigNameContains = aws.String(equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue())
 		}
 	}
 	if equalQuals["notebook_instance_status"] != nil {
-		value, ok := getQualsValueByColumn(d.Quals, "notebook_instance_status", "string").(string)
-		if ok {
-			input.StatusEquals = aws.String(value)
+		if equalQuals["notebook_instance_status"].GetStringValue() != "" {
+			input.StatusEquals = aws.String(equalQuals["notebook_instance_status"].GetStringValue())
 		}
+
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

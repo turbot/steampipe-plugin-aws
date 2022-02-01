@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -110,6 +111,20 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given layer name
+	if equalQuals["instance_arn"] != nil {
+		if equalQuals["instance_arn"].GetStringValue() != "" {
+			if equalQuals["instance_arn"].GetStringValue() != "" && equalQuals["instance_arn"].GetStringValue() != instanceArn {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["instance_arn"].GetListValue())) > 0 {
+			if !helpers.StringSliceContains(aws.StringValueSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
+				return nil, nil
+			}
+		}
 	}
 
 	input := &ssoadmin.ListPermissionSetsInput{
