@@ -201,12 +201,6 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 	}
 }
 
-type groupDetail struct {
-	GroupName     string
-	PairGroupName string
-	VpcId         string
-}
-
 //// LIST FUNCTION
 
 func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
