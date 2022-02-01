@@ -128,7 +128,8 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				Name:        "pair_group_name",
 				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The name of the referenced security group.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getPairedSecurityGroupDetails,
+				Hydrate:     getReferencedSecurityGroupDetails,
+				Transform:   transform.FromField("GroupName"),
 			},
 			{
 				Name:        "pair_peering_status",
@@ -316,7 +317,7 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
-		// Handle NotFound error for InvalidGroup
+		// Unlikely, but handle any NotFound errors
 		if strings.Contains(err.Error(), "InvalidGroup.NotFound") {
 			return nil, nil
 		}
@@ -331,8 +332,8 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 	return nil, nil
 }
 
-func getPairedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPairedSecurityGroupDetails")
+func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getReferencedSecurityGroupDetails")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	sgRule := h.Item.(*ec2.SecurityGroupRule)
@@ -354,11 +355,12 @@ func getPairedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *
 
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
-		// Handle NotFound error for InvalidGroup
+		// If the referenced security group is in another account, a NotFound error
+		// will be returned
 		if strings.Contains(err.Error(), "InvalidGroup.NotFound") {
+			plugin.Logger(ctx).Error("getReferencedSecurityGroupDetails", "ERROR", err)
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getPairedSecurityGroupDetails", "ERROR", err)
 		return nil, err
 	}
 
@@ -381,7 +383,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// To create uninque aka
+	// Create a unique AKA
 	hashCode := "_" + *sgRule.IpProtocol
 	if *sgRule.IsEgress {
 		hashCode = "ingress" + hashCode
