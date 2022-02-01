@@ -146,8 +146,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		MaxItems:     aws.String("100"),
 	}
 
-	// We can't add any other property in optional quals because we need to specify the source record set details not the current one
-
+	// We can't use any other columns as optional quals because we need to specify the source record set details not the current one
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
 	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 100 to max and 1 to min
 	// Reduce the basic request limit down if the user has only requested a small number of rows
