@@ -26,6 +26,7 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 			ParentHydrate: listStepFunctionsStateManchines,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "status", Require: plugin.Optional},
+				{Name: "state_machine_arn", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
