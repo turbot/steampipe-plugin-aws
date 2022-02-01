@@ -162,7 +162,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
-	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 100 to max and 1 to min
+	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
