@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -324,6 +325,10 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	op, err := svc.DescribeSecurityGroups(params)
 	if err != nil {
+		// Handle NotFound error for InvalidGroup
+		if strings.Contains(err.Error(), "InvalidGroup.NotFound") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("getSecurityGroupDetails", "ERROR", err)
 		return nil, err
 	}
