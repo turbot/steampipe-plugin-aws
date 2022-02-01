@@ -18,6 +18,9 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listSsoAdminInstances,
 			Hydrate:       listSsoAdminPermissionSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "instance_arn", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
