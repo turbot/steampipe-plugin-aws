@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
@@ -17,6 +18,9 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listSsoAdminInstances,
 			Hydrate:       listSsoAdminPermissionSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "instance_arn", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -112,10 +116,39 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given layer name
+	if equalQuals["instance_arn"] != nil {
+		if equalQuals["instance_arn"].GetStringValue() != "" {
+			if equalQuals["instance_arn"].GetStringValue() != "" && equalQuals["instance_arn"].GetStringValue() != instanceArn {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["instance_arn"].GetListValue())) > 0 {
+			if !helpers.StringSliceContains(aws.StringValueSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
+				return nil, nil
+			}
+		}
+	}
+
+	input := &ssoadmin.ListPermissionSetsInput{
+		InstanceArn: aws.String(instanceArn),
+		MaxResults:  aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListPermissionSetsPages(
-		&ssoadmin.ListPermissionSetsInput{
-			InstanceArn: aws.String(instanceArn),
-		},
+		input,
 		func(page *ssoadmin.ListPermissionSetsOutput, isLast bool) bool {
 			for _, arn := range page.PermissionSets {
 				item := &PermissionSetItem{
@@ -123,6 +156,11 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 					PermissionSetArn: arn,
 				}
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

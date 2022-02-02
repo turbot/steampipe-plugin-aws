@@ -21,6 +21,16 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEips,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "association_id", Require: plugin.Optional},
+				{Name: "domain", Require: plugin.Optional},
+				{Name: "instance_id", Require: plugin.Optional},
+				{Name: "network_border_group", Require: plugin.Optional},
+				{Name: "network_interface_id", Require: plugin.Optional},
+				{Name: "network_interface_owner_id", Require: plugin.Optional},
+				{Name: "private_ip_address", Require: plugin.Optional},
+				{Name: "public_ip", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -139,10 +149,33 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	input := &ec2.DescribeAddressesInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "association_id", FilterName: "association-id", ColumnType: "string"},
+		{ColumnName: "domain", FilterName: "domain", ColumnType: "string"},
+		{ColumnName: "instance_id", FilterName: "instance-id", ColumnType: "string"},
+		{ColumnName: "network_border_group", FilterName: "network-border-group", ColumnType: "string"},
+		{ColumnName: "network_interface_id", FilterName: "network-interface-id", ColumnType: "string"},
+		{ColumnName: "network_interface_owner_id", FilterName: "network-interface-owner-id", ColumnType: "string"},
+		{ColumnName: "private_ip_address", FilterName: "private-ip-address", ColumnType: "ipaddr"},
+		{ColumnName: "public_ip", FilterName: "public-ip", ColumnType: "ipaddr"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeAddresses(&ec2.DescribeAddressesInput{})
+	resp, err := svc.DescribeAddresses(input)
 	for _, address := range resp.Addresses {
 		d.StreamListItem(ctx, address)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

@@ -146,7 +146,21 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	pagesLeft := true
 	params := &wafv2.ListIPSetsInput{
 		Scope: scope,
+		Limit: aws.Int64(100),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
+
 	for pagesLeft {
 		response, err := svc.ListIPSets(params)
 		if err != nil {
@@ -155,6 +169,11 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		for _, ipSets := range response.IPSets {
 			d.StreamListItem(ctx, ipSets)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {

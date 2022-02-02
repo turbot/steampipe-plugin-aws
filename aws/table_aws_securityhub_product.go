@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
@@ -101,12 +102,33 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &securityhub.DescribeProductsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeProductsPages(
-		&securityhub.DescribeProductsInput{},
+		input,
 		func(page *securityhub.DescribeProductsOutput, isLast bool) bool {
 			for _, product := range page.Products {
 				d.StreamListItem(ctx, product)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

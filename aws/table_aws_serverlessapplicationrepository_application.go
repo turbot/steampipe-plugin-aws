@@ -145,7 +145,11 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			input.MaxItems = limit
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
 		}
 	}
 

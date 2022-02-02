@@ -21,6 +21,11 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerTrainingJobs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+				{Name: "last_modified_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+				{Name: "training_job_status", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -297,12 +302,63 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &sagemaker.ListTrainingJobsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["training_job_status"] != nil {
+		input.StatusEquals = aws.String(equalQuals["training_job_status"].GetStringValue())
+	}
+
+	quals := d.Quals
+	if quals["creation_time"] != nil {
+		for _, q := range quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.CreationTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	if quals["last_modified_time"] != nil {
+		for _, q := range quals["last_modified_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.LastModifiedTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.LastModifiedTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListTrainingJobsPages(
-		&sagemaker.ListTrainingJobsInput{},
+		input,
 		func(page *sagemaker.ListTrainingJobsOutput, isLast bool) bool {
 			for _, job := range page.TrainingJobSummaries {
 				d.StreamListItem(ctx, job)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
@@ -18,6 +19,15 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Managed Instance",
 		List: &plugin.ListConfig{
 			Hydrate: listSsmManagedInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "instance_id", Require: plugin.Optional},
+				{Name: "agent_version", Require: plugin.Optional},
+				{Name: "ping_status", Require: plugin.Optional},
+				{Name: "platform_type", Require: plugin.Optional},
+				{Name: "activation_id", Require: plugin.Optional},
+				{Name: "resource_type", Require: plugin.Optional},
+				{Name: "association_status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -149,12 +159,38 @@ func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &ssm.DescribeInstanceInformationInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	filters := buildSsmManagedInstanceFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeInstanceInformationPages(
-		&ssm.DescribeInstanceInformationInput{},
+		input,
 		func(page *ssm.DescribeInstanceInformationOutput, isLast bool) bool {
 			for _, managedInstance := range page.InstanceInformationList {
 				d.StreamListItem(ctx, managedInstance)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -180,4 +216,39 @@ func getSsmManagedInstanceARN(ctx context.Context, d *plugin.QueryData, h *plugi
 	arn := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.InstanceId
 
 	return arn, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm managed instance list call input filter
+func buildSsmManagedInstanceFilter(quals plugin.KeyColumnQualMap) []*ssm.InstanceInformationStringFilter {
+	filters := make([]*ssm.InstanceInformationStringFilter, 0)
+
+	filterQuals := map[string]string{
+		"instance_id":        "InstanceIds",
+		"agent_version":      "AgentVersion",
+		"ping_status":        "PingStatus",
+		"platform_type":      "PlatformTypes",
+		"activation_id":      "ActivationIds",
+		"resource_type":      "ResourceType",
+		"association_status": "AssociationStatus",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.InstanceInformationStringFilter{
+				Key: aws.String(filterName),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{&val}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

@@ -21,6 +21,11 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNatGateways,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "state", Require: plugin.Optional},
+				{Name: "subnet_id", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -123,12 +128,44 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &ec2.DescribeNatGatewaysInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "subnet_id", FilterName: "subnet-id", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filter = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeNatGatewaysPages(
-		&ec2.DescribeNatGatewaysInput{},
+		input,
 		func(page *ec2.DescribeNatGatewaysOutput, isLast bool) bool {
 			for _, securityGroup := range page.NatGateways {
 				d.StreamListItem(ctx, securityGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

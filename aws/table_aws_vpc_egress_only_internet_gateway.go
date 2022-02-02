@@ -76,14 +76,36 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &ec2.DescribeEgressOnlyInternetGatewaysInput{
+		MaxResults: aws.Int64(255),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeEgressOnlyInternetGatewaysPages(
-		&ec2.DescribeEgressOnlyInternetGatewaysInput{},
+		input,
 		func(page *ec2.DescribeEgressOnlyInternetGatewaysOutput, isLast bool) bool {
 			for _, egressOnlyInternetGateway := range page.EgressOnlyInternetGateways {
 				d.StreamListItem(ctx, egressOnlyInternetGateway)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
+			
 		},
 	)
 

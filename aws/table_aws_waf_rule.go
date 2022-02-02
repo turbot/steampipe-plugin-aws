@@ -92,7 +92,18 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// List call
-	params := &waf.ListRulesInput{}
+	params := &waf.ListRulesInput{Limit: aws.Int64(100)}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	// Minimunm limit is 0
+	// https://docs.aws.amazon.com/waf/latest/APIReference/API_waf_ListRules.html
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			params.Limit = limit
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListRules(params)
@@ -101,6 +112,11 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		}
 		for _, rule := range response.Rules {
 			d.StreamListItem(ctx, rule)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 		if response.NextMarker != nil {
 			pagesLeft = true

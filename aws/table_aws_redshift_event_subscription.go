@@ -117,13 +117,33 @@ func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &redshift.DescribeEventSubscriptionsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeEventSubscriptionsPages(
-		&redshift.DescribeEventSubscriptionsInput{},
+		input,
 		func(page *redshift.DescribeEventSubscriptionsOutput, isLast bool) bool {
 			for _, parameter := range page.EventSubscriptionsList {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

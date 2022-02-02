@@ -26,6 +26,9 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedWorkloads,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "workload_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -188,11 +191,39 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &wellarchitected.ListWorkloadsInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["workload_name"] != nil {
+		if equalQuals["workload_name"].GetStringValue() != "" {
+			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListWorkloadsPages(
-		&wellarchitected.ListWorkloadsInput{},
+		input,
 		func(page *wellarchitected.ListWorkloadsOutput, lastPage bool) bool {
 			for _, Workload := range page.WorkloadSummaries {
 				d.StreamListItem(ctx, Workload)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

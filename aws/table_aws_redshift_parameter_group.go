@@ -91,13 +91,33 @@ func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	input := &redshift.DescribeClusterParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeClusterParameterGroupsPages(
-		&redshift.DescribeClusterParameterGroupsInput{},
+		input,
 		func(page *redshift.DescribeClusterParameterGroupsOutput, isLast bool) bool {
 			for _, parameter := range page.ParameterGroups {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
