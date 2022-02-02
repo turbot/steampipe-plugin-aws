@@ -1,3 +1,16 @@
+## v0.46.0 [2022-02-02]
+
+_Enhancements_
+
+- Added additional optional key quals, filter support, and context cancellation handling to `Redshift`, `Route 53`, `S3`, `SageMaker`, `Secrets Manager`, `Security Hub`, `Serverless Application Repository`, `Step Functions`, `SNS`, `SSM`, `SSO`, `VPC`, `WAF` and `Well-Architected` tables ([#873](https://github.com/turbot/steampipe-plugin-aws/pull/873))
+
+_Bug fixes_
+
+- Fixed the `aws_dax_cluster` table to skip unsupported regions ([#869](https://github.com/turbot/steampipe-plugin-aws/pull/869))
+- Fixed the `aws_wellarchitected_workload` table to skip unsupported regions ([#859](https://github.com/turbot/steampipe-plugin-aws/pull/859))
+- Fixed the `aws_vpc_security_group_rule` table to set the `pair_group_name` column to `nil` for cross-account referenced security group rules instead of returning an error ([#875](https://github.com/turbot/steampipe-plugin-aws/pull/875))
+- Updated the column type of `created_date` and `last_modified` columns to `TIMESTAMP` in all Lambda tables ([#871](https://github.com/turbot/steampipe-plugin-aws/pull/871))
+
 ## v0.45.0 [2022-01-28]
 
 _Enhancements_
