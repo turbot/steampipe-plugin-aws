@@ -51,14 +51,21 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "dimensions",
+				Description: "The dimensions for the metric.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "dimension_name",
 				Description: "The dimension name for the metric.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("dimension_name"),
 			},
 			{
 				Name:        "dimension_value",
 				Description: "The dimension value for the metric.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("dimension_value"),
 			},
 
 			// Steampipe standard columns
@@ -70,13 +77,6 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-type MetricDetails struct {
-	MetricName     string
-	Namespace      string
-	DimensionName  string
-	DimensionValue string
 }
 
 //// LIST FUNCTION
@@ -119,21 +119,13 @@ func listCloudWatchMetric(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	err = svc.ListMetricsPages(
 		input,
 		func(page *cloudwatch.ListMetricsOutput, isLast bool) bool {
-			for _, metricDetail := range page.Metrics {
-				for _, dimension := range metricDetail.Dimensions {
-					d.StreamListItem(ctx, &MetricDetails{
-						MetricName:     *metricDetail.MetricName,
-						Namespace:      *metricDetail.Namespace,
-						DimensionName:  *dimension.Name,
-						DimensionValue: *dimension.Value,
-					})
+			for _, metric := range page.Metrics {
+				d.StreamListItem(ctx, metric)
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
 				}
-
 			}
 			return !isLast
 		},
