@@ -80,6 +80,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go/service/servicequotas"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -1487,6 +1488,28 @@ func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
 		return nil, err
 	}
 	svc := sns.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
+func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ServiceQuotasService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("servicequotas-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*servicequotas.ServiceQuotas), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := servicequotas.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
