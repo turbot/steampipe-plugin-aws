@@ -53,7 +53,7 @@ func getIAMPolicyCanonicalise(ctx context.Context, d *plugin.QueryData, _ *plugi
 	plugin.Logger(ctx).Trace("getIAMPolicyCanonicalise")
 
 	policy := d.KeyColumnQuals["policy"].GetStringValue()
-
+	plugin.Logger(ctx).Error("getIAMPolicyCanonicalise", "policy", policy)
 	d.StreamListItem(ctx, policy)
 
 	return nil, nil
