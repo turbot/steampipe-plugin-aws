@@ -6,7 +6,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
 
@@ -20,36 +19,29 @@ func tableAwsIamPolicyCanonicalise(_ context.Context) *plugin.Table {
 			Hydrate: getIAMPolicyCanonicalise,
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:    "policy_arn",
+					Name:    "policy",
 					Require: plugin.Required,
 				},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
-				Name:        "policy_name",
-				Description: "The name of the policy.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "policy_arn",
-				Description: "The arn of the policy.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Arn"),
-			},
-			{
 				Name:        "policy",
 				Description: "Contains the details about the policy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "policy_jsonb",
+				Description: "Contains the details about the policy in jsonb format.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getPolicyVersion,
-				Transform:   transform.FromField("PolicyVersion.Document").Transform(transform.UnmarshalYAML),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "policy_std",
 				Description: "Contains the policy in a canonical form for easier searching.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getPolicyVersion,
-				Transform:   transform.FromField("PolicyVersion.Document").Transform(unescape).Transform(policyToCanonical),
+				Transform:   transform.FromValue().Transform(unescape).Transform(policyToCanonical),
 			},
 		}),
 	}
@@ -60,24 +52,9 @@ func tableAwsIamPolicyCanonicalise(_ context.Context) *plugin.Table {
 func getIAMPolicyCanonicalise(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIAMPolicyCanonicalise")
 
-	arn := d.KeyColumnQuals["policy_arn"].GetStringValue()
+	policy := d.KeyColumnQuals["policy"].GetStringValue()
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	params := &iam.GetPolicyInput{
-		PolicyArn: &arn,
-	}
-
-	op, err := svc.GetPolicy(params)
-	if err != nil {
-		return nil, err
-	}
-
-	d.StreamListItem(ctx, op.Policy)
+	d.StreamListItem(ctx, policy)
 
 	return nil, nil
 }
