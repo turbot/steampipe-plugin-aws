@@ -17,7 +17,7 @@ func tableAwsCloudWatchMetric(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudwatch_metric",
 		Description: "AWS CloudWatch Metric",
 		List: &plugin.ListConfig{
-			Hydrate: listCloudWatchMetric,
+			Hydrate: listCloudWatchMetrics,
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -82,7 +82,7 @@ type MetricDetails struct {
 
 //// LIST FUNCTION
 
-func listCloudWatchMetric(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
