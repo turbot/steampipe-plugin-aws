@@ -33,6 +33,13 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The ARN of the crawler.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlueCrawlerArn,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "database_name",
 				Description: "The name of the database in which the crawler's output is stored.",
 				Type:        proto.ColumnType_STRING,
@@ -136,8 +143,8 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getGlueCrawlerAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getGlueCrawlerArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -223,8 +230,8 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return data.Crawler, nil
 }
 
-func getGlueCrawlerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCrawlerAkas")
+func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlueCrawlerArn")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(*glue.Crawler)
 
@@ -237,7 +244,7 @@ func getGlueCrawlerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// arn format - https://docs.aws.amazon.com/glue/latest/dg/glue-specifying-resource-arns.html
-	aka := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":crawler/" + *data.Name
+	arn := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":crawler/" + *data.Name
 
-	return []string{aka}, nil
+	return arn, nil
 }
