@@ -35,7 +35,7 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 			{
 				Name:        "arn",
 				Description: "The ARN of the crawler.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getGlueCrawlerArn,
 				Transform:   transform.FromValue(),
 			},
