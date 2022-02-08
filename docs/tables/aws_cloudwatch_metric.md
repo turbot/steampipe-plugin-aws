@@ -10,7 +10,8 @@ Metrics are data about the performance of your systems. By default, many service
 select
   name,
   namespace,
-  dimensions
+  dimension_name,
+  dimension_value
 from
   aws_cloudwatch_metric;
 ```
@@ -21,7 +22,8 @@ from
 select
   name,
   namespace,
-  dimensions
+  dimension_name,
+  dimension_value
 from
   aws_cloudwatch_metric
 where
@@ -34,22 +36,20 @@ where
 select
   name,
   namespace,
-  dimensions
+  dimension_name,
+  dimension_value
 from
   aws_cloudwatch_metric
 where
   name = 'VolumeReadOps';
 ```
 
-### List metric based on single dimension name and dimension value
-
-**Note: We can not filter metric based on multiple dimension name and dimension value**
+### List metric based on dimension name and dimension value
 
 ```sql
 select
   name,
   namespace,
-  dimensions,
   dimension_name,
   dimension_value
 from
