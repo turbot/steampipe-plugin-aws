@@ -39,7 +39,7 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "state",
-				Description: "Indicates whether the crawler is running, or whether a run is pending.",
+				Description: "Indicates whether the crawler is running or pending.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
