@@ -1,6 +1,6 @@
 # Table: aws_servicequotas_service_quota_change_request
 
-Service Quotas is an AWS service that helps you manage your quotas for many AWS services, from one location. Along with looking up the quota values, you can also request a quota increase from the Service Quotas console.
+For adjustable quotas, you can request a quota increase. Smaller increases are automatically approved, and larger requests are submitted to AWS Support. You can track your request case in the AWS Support console. Requests to increase service quotas do not receive priority support.
 
 ## Examples
 
@@ -22,14 +22,14 @@ from
 
 ```sql
 select
+  id,
+  case_id,
+  status,
   quota_name,
   quota_code,
-  quota_arn,
-  service_name,
-  service_code,
-  value
+  desired_value
 from
-  aws_servicequotas_service_quota
+  aws_servicequotas_service_quota_change_request
 where
   status = 'DENIED';
 ```
