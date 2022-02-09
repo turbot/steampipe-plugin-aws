@@ -1,0 +1,6 @@
+[
+	{
+		"quota_arn": "{{ output.resource_aka.value }}",
+		"quota_name": "{{ output.quota_name.value }}"
+	}
+]

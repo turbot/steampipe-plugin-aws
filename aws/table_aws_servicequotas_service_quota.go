@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
@@ -17,18 +18,18 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 		Name:        "aws_servicequotas_service_quota",
 		Description: "AWS ServiceQuotas Service Quota",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"service_code", "quota_code"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
+			KeyColumns:        plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
+			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
 			Hydrate:           getServiceQuota,
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listServiceQuotasServices,
-			Hydrate:       listServiceQuotas,
+			Hydrate:           listServiceQuotas,
+			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItem: BuildServiceQuotasServicesRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "quota_name",
@@ -86,12 +87,26 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "tags_src",
+				Description: "The list of tags associated with the service quota.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getServiceQuotaTags,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "usage_metric",
 				Description: "Information about the measurement.",
 				Type:        proto.ColumnType_JSON,
 			},
 
 			// Steampipe standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getServiceQuotaTags,
+				Transform:   transform.From(serviceQuotaTagsToTurbotTags),
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -102,8 +117,7 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getServiceQuotasServiceQuotaArn,
-				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("QuotaArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -115,20 +129,22 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	plugin.Logger(ctx).Trace("listServiceQuotas")
 
 	// Create Session
-	svc, err := ServiceQuotasService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	service := h.Item.(*servicequotas.ServiceInfo)
+
+	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
 	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
 
-	if serviceCode != "" && serviceCode != *service.ServiceCode {
+	// Filter the serviceCode if user provided value for it
+	if serviceCode != "" && serviceCode != matrixServiceCode {
 		return nil, nil
 	}
 
 	input := &servicequotas.ListServiceQuotasInput{
 		MaxResults:  aws.Int64(100),
-		ServiceCode: service.ServiceCode,
+		ServiceCode: aws.String(matrixServiceCode),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -173,14 +189,20 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	quotaCode := d.KeyColumnQuals["quota_code"].GetStringValue()
 	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
+	region := d.KeyColumnQuals["region"].GetStringValue()
 
-	// check if quotaCode or serviceCode is empty
-	if quotaCode == "" || serviceCode == "" {
+	// check if quotaCode or serviceCode or region is empty
+	if quotaCode == "" || serviceCode == "" || region == "" {
+		return nil, nil
+	}
+	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
+	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
+	if serviceCode != matrixServiceCode || region != matrixRegion {
 		return nil, nil
 	}
 
 	// Create service
-	svc, err := ServiceQuotasService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -194,27 +216,58 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	// Get call
 	data, err := svc.GetServiceQuota(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
+		plugin.Logger(ctx).Error("getServiceQuota", "get", err)
 		return nil, err
 	}
 
 	return data.Quota, nil
 }
 
-// https://docs.aws.amazon.com/servicequotas/latest/userguide/identity-access-management.html
-func getServiceQuotasServiceQuotaArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getServiceQuotasServiceQuotaArn")
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func getServiceQuotaTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getServiceQuotaTags")
+
 	quota := h.Item.(*servicequotas.ServiceQuota)
 
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
+	// Create service
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	commonColumnData := commonData.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":servicequotas:" + region + ":" + commonColumnData.AccountId + ":" + *quota.ServiceCode + "/" + *quota.QuotaCode
+	// Build the params
+	params := &servicequotas.ListTagsForResourceInput{
+		ResourceARN: quota.QuotaArn,
+	}
 
-	return arn, nil
+	data, err := svc.ListTagsForResource(params)
+	if err != nil {
+		if strings.Contains(err.Error(), "NoSuchResourceException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getServiceQuotaTags", "error", err)
+		return nil, err
+	}
+
+	return data.Tags, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func serviceQuotaTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("serviceQuotaTagsToTurbotTags")
+	tags := d.HydrateItem.([]*servicequotas.Tag)
+
+	if tags == nil {
+		return nil, nil
+	}
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
