@@ -1,3 +1,12 @@
+## v0.47.0 [2022-02-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_glue_crawler](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_crawler) ([#882](https://github.com/turbot/steampipe-plugin-aws/pull/882))
+  - [aws_servicequotas_default_service_quota](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_default_service_quota) ([#887](https://github.com/turbot/steampipe-plugin-aws/pull/887))
+  - [aws_servicequotas_service_quota](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_service_quota) ([#884](https://github.com/turbot/steampipe-plugin-aws/pull/884))
+
 ## v0.46.0 [2022-02-02]
 
 _Enhancements_
