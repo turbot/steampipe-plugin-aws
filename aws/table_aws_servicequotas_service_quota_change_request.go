@@ -104,7 +104,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 			},
 			{
 				Name:        "tags_src",
-				Description: "The list of tags associated with the service quota.",
+				Description: "The list of tags associated with the change request.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getServiceQuotaChangeRequestTags,
 				Transform:   transform.FromValue(),
