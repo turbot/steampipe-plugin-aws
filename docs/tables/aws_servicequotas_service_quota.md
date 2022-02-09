@@ -29,7 +29,7 @@ select
   service_code,
   value
 from
-  aws_servicequotas_service_quota;
+  aws_servicequotas_service_quota
 where
   global_quota;
 ```
