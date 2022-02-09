@@ -18,7 +18,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 		Name:        "aws_servicequotas_service_quota_change_request",
 		Description: "AWS ServiceQuotas Service Quota Change Request",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "service_code"}),
+			KeyColumns:        plugin.SingleColumn("id"),
 			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
 			Hydrate:           getServiceQuotaChangeRequest,
 		},
@@ -30,7 +30,7 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildServiceQuotasServicesRegionList,
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -146,24 +146,15 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
-	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
-	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
-	status := d.KeyColumnQuals["status"].GetStringValue()
-
-	// Filter the serviceCode if user provided value for it
-	if serviceCode != "" && serviceCode != matrixServiceCode {
-		return nil, nil
-	}
-
 	input := &servicequotas.ListRequestedServiceQuotaChangeHistoryInput{
 		MaxResults: aws.Int64(100),
 	}
 
-	if serviceCode != "" {
-		input.ServiceCode = aws.String(serviceCode)
+	if d.KeyColumnQuals["service_code"] != nil {
+		input.ServiceCode = aws.String(d.KeyColumnQuals["service_code"].GetStringValue())
 	}
-	if status != "" {
-		input.Status = aws.String(status)
+	if d.KeyColumnQuals["status"] != nil {
+		input.Status = aws.String(d.KeyColumnQuals["status"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -207,16 +198,9 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	plugin.Logger(ctx).Trace("getServiceQuotaChangeRequest")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
-	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
 
-	// check if id or serviceCode is empty
-	if id == "" || serviceCode == "" {
-		return nil, nil
-	}
-
-	// Filter the serviceCode with the provided value
-	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
-	if serviceCode != matrixServiceCode {
+	// check if id is empty
+	if id == "" {
 		return nil, nil
 	}
 
