@@ -195,6 +195,8 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if quotaCode == "" || serviceCode == "" || region == "" {
 		return nil, nil
 	}
+
+	// Filter the serviceCode and region with the provided value
 	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
 	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 	if serviceCode != matrixServiceCode || region != matrixRegion {
