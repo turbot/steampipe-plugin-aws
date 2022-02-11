@@ -356,6 +356,10 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 // Inline policies in canonical form
 func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
+	if reflect.ValueOf(d.HydrateItem).IsZero() {
+		return nil, nil
+	}
+
 	inlinePolicies := d.HydrateItem.([]map[string]interface{})
 
 	var inlinePoliciesStd []map[string]interface{}

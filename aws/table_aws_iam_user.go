@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -16,17 +17,18 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIamUser(_ context.Context) *plugin.Table {
+func tableAwsIamUser(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
 			Hydrate:           getIamUser,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIamUsers,
+			Hydrate:           listIamUsers,
+			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
@@ -35,6 +37,32 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 			{
 				Func:    getAwsIamUserInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:              getAwsIamUserData,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamUserAttachedPolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamUserGroups,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamUserMfaDevices,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              listAwsIamUserInlinePolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamUserInlinePolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -254,7 +282,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	PermissionsBoundaryArn := ""
 	PermissionsBoundaryType := ""
 
-	if userData.User.Tags != nil {
+	if userData.User != nil && userData.User.Tags != nil {
 		tags = userData.User.Tags
 		turbotTags = map[string]string{}
 		for _, t := range userData.User.Tags {
@@ -262,7 +290,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 	}
 
-	if userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
+	if userData.User != nil && userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
 		v := userData.User.PermissionsBoundary
 		PermissionsBoundaryArn = *v.PermissionsBoundaryArn
 		PermissionsBoundaryType = *v.PermissionsBoundaryType
@@ -375,6 +403,12 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
+
+	if reflect.ValueOf(h.HydrateResults["listAwsIamUserInlinePolicies"]).IsZero() {
+		return nil, nil
+	}
+
+	var userPolicies []map[string]interface{}
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
 
 	// Create Session
@@ -402,8 +436,6 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 		// return the first error
 		return nil, err
 	}
-
-	var userPolicies []map[string]interface{}
 
 	for userPolicy := range policyCh {
 		userPolicies = append(userPolicies, userPolicy)

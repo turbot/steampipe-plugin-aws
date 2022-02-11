@@ -47,7 +47,8 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listKmsKeys,
+			Hydrate:           listKmsKeys,
+			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

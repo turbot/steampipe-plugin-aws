@@ -14,12 +14,13 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsAccount(_ context.Context) *plugin.Table {
+func tableAwsAccount(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_account",
 		Description: "AWS Account",
 		List: &plugin.ListConfig{
-			Hydrate: listAccountAlias,
+			Hydrate:           listAccountAlias,
+			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
