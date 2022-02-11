@@ -127,7 +127,6 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 				passedRepositoryNames += 25
 			} else {
 				names = repositoryNames[passedRepositoryNames:]
-				passedRepositoryNames = len(repositoryNames)
 				nameLeft = false
 			}
 		}
