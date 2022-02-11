@@ -244,6 +244,11 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	for _, trail := range resp.TrailList {
 		d.StreamListItem(ctx, trail)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

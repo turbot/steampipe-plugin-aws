@@ -129,6 +129,11 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
 			for _, stream := range page.StreamInfoList {
 				d.StreamListItem(ctx, stream)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
