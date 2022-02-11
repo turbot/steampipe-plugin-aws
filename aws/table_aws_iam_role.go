@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -18,17 +19,18 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIamRole(_ context.Context) *plugin.Table {
+func tableAwsIamRole(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
 			Hydrate:           getIamRole,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listIamRoles,
+			Hydrate:           listIamRoles,
+			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
@@ -37,6 +39,28 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 			{
 				Func:    getAwsIamRoleInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
+			},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:              getIamRole,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamInstanceProfileData,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamRoleAttachedPolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              listAwsIamRoleInlinePolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			},
+			{
+				Func:              getAwsIamRoleInlinePolicies,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -356,6 +380,9 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsIamRoleInlinePolicies")
 	role := h.Item.(*iam.Role)
+	if reflect.ValueOf(h.HydrateResults["listAwsIamRoleInlinePolicies"]).IsZero() {
+		return nil, nil
+	}
 	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
 	// Create Session
@@ -439,6 +466,9 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	if reflect.ValueOf(d.HydrateItem).IsZero() {
+		return nil, nil
+	}
 	data := d.HydrateItem.(*iam.Role)
 	var turbotTagsMap map[string]string
 
