@@ -15,14 +15,36 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsKmsKey(_ context.Context) *plugin.Table {
+func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_kms_key",
 		Description: "AWS KMS Key",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
+			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter", "AccessDeniedException"}),
 			Hydrate:           getKmsKey,
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func:              getAwsKmsKeyData,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			},
+			{
+				Func:              getAwsKmsKeyPolicy,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			},
+			{
+				Func:              getAwsKmsKeyRotationStatus,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			},
+			{
+				Func:              getAwsKmsKeyTagging,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			},
+			{
+				Func:              getAwsKmsKeyAliases,
+				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,

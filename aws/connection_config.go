@@ -6,11 +6,12 @@ import (
 )
 
 type awsConfig struct {
-	Regions      []string `cty:"regions"`
-	Profile      *string  `cty:"profile"`
-	AccessKey    *string  `cty:"access_key"`
-	SecretKey    *string  `cty:"secret_key"`
-	SessionToken *string  `cty:"session_token"`
+	Regions                  []string `cty:"regions"`
+	Profile                  *string  `cty:"profile"`
+	AccessKey                *string  `cty:"access_key"`
+	SecretKey                *string  `cty:"secret_key"`
+	SessionToken             *string  `cty:"session_token"`
+	IgnoreAccessDeniedErrors *string  `cty:"ignore_access_denied_errors"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -29,6 +30,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"session_token": {
 		Type: schema.TypeString,
+	},
+	"ignore_access_denied_errors": {
+		Type: schema.TypeBool,
 	},
 }
 
