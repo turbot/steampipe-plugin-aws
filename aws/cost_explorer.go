@@ -148,6 +148,10 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		// stream the results...
 		for _, row := range buildCEMetricRows(ctx, output, d.KeyColumnQuals) {
 			d.StreamListItem(ctx, row)
+
+			if d.QueryStatus.RowsRemaining(ctx) == 0{
+				return nil, nil
+			}
 		}
 
 		// get more pages if there are any...

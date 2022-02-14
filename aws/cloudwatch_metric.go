@@ -188,6 +188,10 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 			Sum:            datapoint.Sum,
 			Unit:           datapoint.Unit,
 		})
+
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil
