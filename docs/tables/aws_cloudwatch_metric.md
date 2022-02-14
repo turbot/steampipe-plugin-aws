@@ -16,7 +16,7 @@ from
   aws_cloudwatch_metric;
 ```
 
-### List metric by namespace
+### List metric by EBS namespace
 
 ```sql
 select
@@ -30,7 +30,7 @@ where
   namespace = 'AWS/EBS';
 ```
 
-### List metric by metric name
+### List metric details for metric name VolumeReadOps
 
 ```sql
 select
@@ -44,7 +44,7 @@ where
   name = 'VolumeReadOps';
 ```
 
-### List metric based on dimension name and dimension value
+### List metric for a redshift cluster
 
 ```sql
 select
