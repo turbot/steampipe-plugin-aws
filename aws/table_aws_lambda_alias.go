@@ -156,6 +156,11 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		func(page *lambda.ListAliasesOutput, lastPage bool) bool {
 			for _, alias := range page.Aliases {
 				d.StreamLeafListItem(ctx, &aliasRowData{alias, function.FunctionName})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

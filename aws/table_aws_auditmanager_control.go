@@ -148,6 +148,11 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
 				d.StreamListItem(ctx, items)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

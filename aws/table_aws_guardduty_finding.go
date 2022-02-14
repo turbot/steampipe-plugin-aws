@@ -193,6 +193,11 @@ func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 		for _, finding := range result.Findings {
 			d.StreamListItem(ctx, FindingInfo{*finding, detectorId})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 

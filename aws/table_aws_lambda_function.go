@@ -253,6 +253,11 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
 			for _, function := range page.Functions {
 				d.StreamListItem(ctx, function)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

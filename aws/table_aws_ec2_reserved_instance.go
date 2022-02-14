@@ -26,7 +26,6 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ReservedInstances,
-
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},

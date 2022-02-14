@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -214,12 +215,28 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	// Get cluster details
 	cluster := h.Item.(*ecs.Cluster)
 
+	input := &ecs.ListServicesInput{
+		Cluster:    cluster.ClusterArn,
+		MaxResults: aws.Int64(100),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List all available ECS services
 	var serviceNames [][]*string
 	err = svc.ListServicesPages(
-		&ecs.ListServicesInput{
-			Cluster: cluster.ClusterArn,
-		},
+		input,
 		func(page *ecs.ListServicesOutput, isLast bool) bool {
 			if len(page.ServiceArns) != 0 {
 				// Create a chunk of array of size 10
@@ -256,6 +273,11 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for result := range serviceCh {
 		for _, service := range result.Services {
 			d.StreamListItem(ctx, service)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 	return nil, nil
@@ -319,7 +341,7 @@ func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (int
 	error) {
 	tags := d.HydrateItem.([]*ecs.Tag)
 
-	if len(tags) == 0{
+	if len(tags) == 0 {
 		return nil, nil
 	}
 

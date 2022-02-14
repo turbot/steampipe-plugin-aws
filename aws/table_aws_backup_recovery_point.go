@@ -196,12 +196,12 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 		input,
 		func(page *backup.ListRecoveryPointsByBackupVaultOutput, lastPage bool) bool {
 			for _, point := range page.RecoveryPoints {
+				d.StreamListItem(ctx, point)
 
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return false
 				}
-				d.StreamListItem(ctx, point)
 			}
 			return !lastPage
 		},
