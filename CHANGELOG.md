@@ -1,3 +1,44 @@
+## v0.48.0 [2022-02-14]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_metric](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_metric) ([#880](https://github.com/turbot/steampipe-plugin-aws/pull/880))
+
+_Enhancements_
+
+- Added context cancellation handling to the following tables ([#896](https://github.com/turbot/steampipe-plugin-aws/pull/896))
+  - aws_auditmanager_control
+  - aws_auditmanager_framework
+  - aws_backup_recovery_point
+  - aws_backup_vault
+  - aws_cloudfront_cache_policy
+  - aws_cloudtrail_trail
+  - aws_cloudtrail_trail_event
+  - aws_cloudwatch_log_event
+  - aws_cloudwatch_log_resource_policy
+  - aws_ec2_reserved_instance
+  - aws_guardduty_finding
+  - aws_iam_action
+  - aws_kinesis_video_stream
+  - aws_lambda_alias
+  - aws_lambda_function
+  - aws_serverlessapplicationrepository_application
+  - aws_ssm_patch_baseline
+  - aws_vpc_security_group_rule
+
+- Updated default max records parameter value and lower limit for the following tables ([#896](https://github.com/turbot/steampipe-plugin-aws/pull/896))
+  - aws_api_gateway_api_authorizer
+  - aws_api_gatewayv2_stage
+  - aws_config_conformance_pack
+  - aws_directory_service_directory
+  - aws_ecs_container_instance
+  - aws_ecs_service
+
+_Bug fixes_
+
+- Fixed the `aws_codecommit_repository` table to correctly list out all the repositories ([#894](https://github.com/turbot/steampipe-plugin-aws/pull/894))
+
 ## v0.47.0 [2022-02-09]
 
 _What's new?_
