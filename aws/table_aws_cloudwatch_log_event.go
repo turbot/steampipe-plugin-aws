@@ -121,6 +121,11 @@ func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin
 		func(page *cloudwatchlogs.FilterLogEventsOutput, _ bool) bool {
 			for _, logEvent := range page.Events {
 				d.StreamListItem(ctx, logEvent)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			// Abort if we've been cancelled, which probably means we've reached the requested limit
 			select {
