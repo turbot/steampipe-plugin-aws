@@ -66,6 +66,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudwatch_log_metric_filter":                             tableAwsCloudwatchLogMetricFilter(ctx),
 			"aws_cloudwatch_log_resource_policy":                           tableAwsCloudwatchLogResourcePolicy(ctx),
 			"aws_cloudwatch_log_stream":                                    tableAwsCloudwatchLogStream(ctx),
+			"aws_cloudwatch_metric":                                        tableAwsCloudWatchMetric(ctx),
 			"aws_codebuild_project":                                        tableAwsCodeBuildProject(ctx),
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
