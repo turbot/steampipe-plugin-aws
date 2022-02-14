@@ -116,22 +116,38 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	// Build params
-	params := &codecommit.BatchGetRepositoriesInput{
-		RepositoryNames: repositoryNames,
-	}
+	passedRepositoryNames := 0
+	nameLeft := true
+	for nameLeft {
+		// BatchGetRepositories api can take maximum 25 number of repository name at a time.
+		var names []*string
+		if len(repositoryNames) > passedRepositoryNames {
+			if (len(repositoryNames) - passedRepositoryNames) >= 25 {
+				names = repositoryNames[passedRepositoryNames : passedRepositoryNames+25]
+				passedRepositoryNames += 25
+			} else {
+				names = repositoryNames[passedRepositoryNames:]
+				nameLeft = false
+			}
+		}
 
-	// Get details for all available repositories
-	result, err := svc.BatchGetRepositories(params)
-	if err != nil {
-		return nil, err
-	}
-	for _, repository := range result.Repositories {
-		d.StreamListItem(ctx, repository)
+		// Build params
+		params := &codecommit.BatchGetRepositoriesInput{
+			RepositoryNames: names,
+		}
 
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil, nil
+		// Get details for all available repositories
+		result, err := svc.BatchGetRepositories(params)
+		if err != nil {
+			return nil, err
+		}
+		for _, repository := range result.Repositories {
+			d.StreamListItem(ctx, repository)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
