@@ -37,7 +37,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `aws_codecommit_repository` table to correctly list out all the repositories for a region ([#894](https://github.com/turbot/steampipe-plugin-aws/pull/894))
+- Fixed the `aws_codecommit_repository` table to correctly list out all the repositories ([#894](https://github.com/turbot/steampipe-plugin-aws/pull/894))
 
 ## v0.47.0 [2022-02-09]
 
