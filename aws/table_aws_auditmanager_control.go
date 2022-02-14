@@ -140,27 +140,12 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
-	input := &auditmanager.ListControlsInput{
-		ControlType: aws.String("Standard"),
-		MaxResults: aws.Int64(1000),
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
-
 	// List all standard controls
 	err = svc.ListControlsPages(
-		input,
+		&auditmanager.ListControlsInput{
+			ControlType: aws.String("Standard"),
+			MaxResults: aws.Int64(1000),
+		},
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
 				d.StreamListItem(ctx, items)
