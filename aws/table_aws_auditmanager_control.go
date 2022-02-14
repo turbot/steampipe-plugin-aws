@@ -144,7 +144,6 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 	err = svc.ListControlsPages(
 		&auditmanager.ListControlsInput{
 			ControlType: aws.String("Standard"),
-			MaxResults: aws.Int64(1000),
 		},
 		func(page *auditmanager.ListControlsOutput, lastPage bool) bool {
 			for _, items := range page.ControlMetadataList {
