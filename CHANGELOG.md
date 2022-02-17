@@ -12,7 +12,7 @@ _Enhancements_
 _Bug fixes_
 
 - Fixed pagination issues in ` aws_ecs_service` table ([#908](https://github.com/turbot/steampipe-plugin-aws/pull/908))
-- Fixed the `aws_iam_access_advisor` table to handle the errors when steampipe is running on multi-account connections by using an aggregator connection in the configuration file ([#905](https://github.com/turbot/steampipe-plugin-aws/pull/905))
+- Fixed the `aws_iam_access_advisor` table to handle the errors when steampipe is running on multi-account connections by using an [aggregator connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators) in the configuration file ([#905](https://github.com/turbot/steampipe-plugin-aws/pull/905))
 
 ## v0.48.0 [2022-02-14]
 
