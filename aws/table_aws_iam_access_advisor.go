@@ -33,9 +33,8 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 		Description:      "AWS IAM Access Advisor",
 		DefaultTransform: transform.FromGo(),
 		List: &plugin.ListConfig{
-			KeyColumns:        plugin.SingleColumn("principal_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listAccessAdvisor,
+			KeyColumns: plugin.SingleColumn("principal_arn"),
+			Hydrate:    listAccessAdvisor,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -104,7 +103,9 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// check if principalArn is empty or if the account id in the principalArn is not same with the account
-	if principalArn == "" || len(strings.Split(principalArn, ":")) < 4 || strings.Split(principalArn, ":")[4] != commonColumnData.AccountId {
+	if principalArn == "" || len(strings.Split(principalArn, ":")) < 4 {
+		return nil, nil
+	} else if strings.Split(principalArn, ":")[4] != "aws" && strings.Split(principalArn, ":")[4] != commonColumnData.AccountId {
 		return nil, nil
 	}
 
