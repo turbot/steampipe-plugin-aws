@@ -25,6 +25,7 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2GatewayLoadBalancers,
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
 			},
@@ -148,23 +149,30 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	input := &elbv2.DescribeLoadBalancersInput{
-		PageSize: aws.Int64(400),
-	}
+	input := &elbv2.DescribeLoadBalancersInput{}
+	
+	if d.Quals["arn"] != nil {
+		arn := getQualsValueByColumn(d.Quals, "arn", "string")
+		val, ok := arn.(string)
+		if ok {
+			input.LoadBalancerArns = []*string{aws.String(val)}
+		} else {
+			valSlice := arn.([]*string)
+			input.LoadBalancerArns = valSlice
+		}
+	} else {
+		// Pagination is not supported when specifying load balancers
+		input.PageSize = aws.Int64(400)
 
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["arn"] != nil {
-		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetJsonbValue())}
-	}
-
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.PageSize {
-			if *limit < 1 {
-				input.PageSize = aws.Int64(1)
-			} else {
-				input.PageSize = limit
+		// Limiting the results
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < *input.PageSize {
+				if *limit < 1 {
+					input.PageSize = aws.Int64(1)
+				} else {
+					input.PageSize = limit
+				}
 			}
 		}
 	}
