@@ -93,7 +93,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/workspaces"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
 )
 
 // AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
