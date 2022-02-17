@@ -48,7 +48,6 @@ data "null_data_source" "resource" {
 
 resource "aws_s3_bucket" "firehose_bucket" {
   bucket = var.resource_name
-  acl    = "private"
 }
 
 resource "aws_iam_role" "firehose_role" {

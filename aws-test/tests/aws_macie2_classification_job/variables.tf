@@ -47,8 +47,7 @@ data "null_data_source" "resource" {
 }
 
 resource "aws_s3_bucket" "test" {
-  bucket = var.resource_name
-  acl    = "private"
+  bucket = var.resource_name  
 }
 
 resource "aws_macie2_account" "test" {

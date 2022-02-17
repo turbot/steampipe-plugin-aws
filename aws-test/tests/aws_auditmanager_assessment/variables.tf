@@ -50,7 +50,6 @@ data "null_data_source" "resource" {
 // Create S3 bucket to store assessment reports
 resource "aws_s3_bucket" "named_test_resource" {
   bucket        = var.resource_name
-  acl           = "private"
   force_destroy = true
 }
 
