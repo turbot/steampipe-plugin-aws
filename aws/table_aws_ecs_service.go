@@ -217,7 +217,8 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	// DescribeServices API can describe up to 10 services in a single operation. Default MaxResults is 10 for ListServicesInput
 	input := &ecs.ListServicesInput{
-		Cluster: cluster.ClusterArn,
+		Cluster:    cluster.ClusterArn,
+		MaxResults: aws.Int64(10),
 	}
 
 	// If the requested number of items is less than the paging max limit
