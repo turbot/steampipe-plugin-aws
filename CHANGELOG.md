@@ -1,3 +1,19 @@
+## v0.49.0 [2022-02-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_servicequotas_service_quota_change_request](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicequotas_service_quota_change_request) ([#889](https://github.com/turbot/steampipe-plugin-aws/pull/889))
+
+_Enhancements_
+
+- Recompiled plugin with `steampipe-plugin-sdk v2.0.3` ([#901](https://github.com/turbot/steampipe-plugin-aws/pull/901))
+
+_Bug fixes_
+
+- Fixed pagination issues in ` aws_ecs_service` table ([#908](https://github.com/turbot/steampipe-plugin-aws/pull/908))
+- Added the missing check for `account_id` column and handled the `InvalidParameter` exception in `aws_iam_access_advisor` table ([#905](https://github.com/turbot/steampipe-plugin-aws/pull/905))
+
 ## v0.48.0 [2022-02-14]
 
 _What's new?_
