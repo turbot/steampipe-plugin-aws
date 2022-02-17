@@ -7,7 +7,7 @@ _What's new?_
 
 _Enhancements_
 
-- Recompiled plugin with `steampipe-plugin-sdk v2.0.3` ([#901](https://github.com/turbot/steampipe-plugin-aws/pull/901))
+- Recompiled plugin with [steampipe-plugin-sdk v2.0.3](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v203--2022-02-14) ([#901](https://github.com/turbot/steampipe-plugin-aws/pull/901))
 
 _Bug fixes_
 
