@@ -21,7 +21,6 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
-
 				{
 					Name:        "service",
 					Description: "The name of the AWS service.",

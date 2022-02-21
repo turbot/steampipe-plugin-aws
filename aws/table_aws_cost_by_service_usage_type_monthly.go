@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,6 +19,10 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service and Usage Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageMonthly,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+				// {Name: "usage_type", Operators: []string{}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -40,12 +45,14 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceAndUsageInput("MONTHLY")
+func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "BEFORE PARAM")
+	params := buildCostByServiceAndUsageInput(ctx, "MONTHLY", d.Quals, d.Table.List.KeyColumns)
+	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "AFTER PARAM")
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, quals plugin.KeyColumnQualMap, KeyColumns plugin.KeyColumnSlice) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -70,6 +77,55 @@ func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAn
 				Key:  aws.String("USAGE_TYPE"),
 			},
 		},
+	}
+
+	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "BEFORE")
+	// params.SetFilter(&costexplorer.Expression{
+	// 	Dimensions: &costexplorer.DimensionValues{
+	// 		Key:    aws.String(""),
+	// 		Values: aws.StringSlice([]string{}),
+	// 	},
+	// })
+
+	var filter *costexplorer.Expression
+
+	for _, keyQual := range KeyColumns {
+		filterQual := quals[keyQual.Name]
+		if filterQual == nil {
+			continue
+		}
+		for _, qual := range filterQual.Quals {
+			// for _, _ := range filterQual.Quals {
+			if qual.Value != nil {
+				value := qual.Value
+				filter = &costexplorer.Expression{}
+				filter.Dimensions = &costexplorer.DimensionValues{}
+				plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "AFTER")
+
+				// if filter != nil {
+
+				// }
+
+				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+				filterVal := []string{}
+				// if value.GetListValue() != nil {
+				// 	for _, q := range value.GetListValue().Values {
+				// 		filterVal = append(filterVal, q.GetStringValue())
+				// 	}
+				// } else {
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "SINGLE VALUE", "filterVal")
+				plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetStringValue()", value.GetStringValue())
+				plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetListValue()", value.GetListValue())
+				filterVal = append(filterVal, value.GetStringValue())
+				// }
+				filter.Dimensions.Values = aws.StringSlice(filterVal)
+				// filter.Dimensions.Values = aws.StringSlice(filter)
+			}
+		}
+	}
+
+	if filter != nil {
+		params.SetFilter(filter)
 	}
 
 	return params
