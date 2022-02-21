@@ -86,5 +86,13 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 		}
 	}
 
+	if len(filters) > 1 {
+		params.Filter = &costexplorer.Expression{
+			And: filters,
+		}
+	} else if len(filters) == 1 {
+		params.Filter = filters[0]
+	}
+
 	return params
 }
