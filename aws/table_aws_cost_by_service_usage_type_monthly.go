@@ -21,7 +21,7 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByServiceAndUsageMonthly,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
-				// {Name: "usage_type", Operators: []string{}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"="}, Require: plugin.Optional},
 			},
 		},
 		Columns: awsColumns(
@@ -79,15 +79,7 @@ func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, qu
 		},
 	}
 
-	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "BEFORE")
-	// params.SetFilter(&costexplorer.Expression{
-	// 	Dimensions: &costexplorer.DimensionValues{
-	// 		Key:    aws.String(""),
-	// 		Values: aws.StringSlice([]string{}),
-	// 	},
-	// })
-
-	var filter *costexplorer.Expression
+	var filters []*costexplorer.Expression
 
 	for _, keyQual := range KeyColumns {
 		filterQual := quals[keyQual.Name]
@@ -95,37 +87,42 @@ func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, qu
 			continue
 		}
 		for _, qual := range filterQual.Quals {
-			// for _, _ := range filterQual.Quals {
 			if qual.Value != nil {
 				value := qual.Value
-				filter = &costexplorer.Expression{}
+
+				filter := &costexplorer.Expression{}
 				filter.Dimensions = &costexplorer.DimensionValues{}
-				plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "AFTER")
-
-				// if filter != nil {
-
-				// }
-
 				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
-				filterVal := []string{}
+
+				// Affected by the BUG - https://github.com/turbot/steampipe-plugin-sdk/issues/239
+				//
+				// filterVal := []string{}
 				// if value.GetListValue() != nil {
 				// 	for _, q := range value.GetListValue().Values {
 				// 		filterVal = append(filterVal, q.GetStringValue())
 				// 	}
 				// } else {
 				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "SINGLE VALUE", "filterVal")
-				plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetStringValue()", value.GetStringValue())
-				plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetListValue()", value.GetListValue())
-				filterVal = append(filterVal, value.GetStringValue())
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetStringValue()", value.GetStringValue())
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetListValue()", value.GetListValue())
+				// 	filterVal = append(filterVal, value.GetStringValue())
 				// }
-				filter.Dimensions.Values = aws.StringSlice(filterVal)
-				// filter.Dimensions.Values = aws.StringSlice(filter)
+				// filter.Dimensions.Values = aws.StringSlice(filterVal)
+
+				filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+				filters = append(filters, filter)
 			}
 		}
 	}
 
-	if filter != nil {
-		params.SetFilter(filter)
+	if len(filters) > 1 {
+		plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "len(filters) > 1", "LIST")
+		params.Filter = &costexplorer.Expression{
+			And: filters,
+		}
+	} else if len(filters) == 1 {
+		plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "len(filters) == 1", "SINGLE")
+		params.Filter = filters[0]
 	}
 
 	return params

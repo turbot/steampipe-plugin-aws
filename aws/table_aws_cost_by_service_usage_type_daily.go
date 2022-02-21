@@ -14,6 +14,10 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service and Usage Type (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageDaily,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"="}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
