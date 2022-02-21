@@ -47,12 +47,12 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 
 func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "BEFORE PARAM")
-	params := buildCostByServiceAndUsageInput(ctx, "MONTHLY", d.Quals, d.Table.List.KeyColumns)
+	params := buildCostByServiceAndUsageInput("MONTHLY", d)
 	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "AFTER PARAM")
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, quals plugin.KeyColumnQualMap, KeyColumns plugin.KeyColumnSlice) *costexplorer.GetCostAndUsageInput {
+func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -81,8 +81,8 @@ func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, qu
 
 	var filters []*costexplorer.Expression
 
-	for _, keyQual := range KeyColumns {
-		filterQual := quals[keyQual.Name]
+	for _, keyQual := range d.Table.List.KeyColumns {
+		filterQual := d.Quals[keyQual.Name]
 		if filterQual == nil {
 			continue
 		}
@@ -116,12 +116,10 @@ func buildCostByServiceAndUsageInput(ctx context.Context, granularity string, qu
 	}
 
 	if len(filters) > 1 {
-		plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "len(filters) > 1", "LIST")
 		params.Filter = &costexplorer.Expression{
 			And: filters,
 		}
 	} else if len(filters) == 1 {
-		plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "len(filters) == 1", "SINGLE")
 		params.Filter = filters[0]
 	}
 

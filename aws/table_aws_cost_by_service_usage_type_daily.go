@@ -41,6 +41,6 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByServiceAndUsageDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceAndUsageInput(ctx, "DAILY", d.Quals, d.Table.List.KeyColumns)
+	params := buildCostByServiceAndUsageInput("DAILY", d)
 	return streamCostAndUsage(ctx, d, params)
 }

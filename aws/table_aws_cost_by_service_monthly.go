@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,6 +19,9 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceMonthly,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -35,11 +39,11 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByServiceMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceInput("MONTHLY")
+	params := buildCostByServiceInput("MONTHLY", d)
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByServiceInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -60,6 +64,26 @@ func buildCostByServiceInput(granularity string) *costexplorer.GetCostAndUsageIn
 				Key:  aws.String("SERVICE"),
 			},
 		},
+	}
+
+	var filters []*costexplorer.Expression
+
+	for _, keyQual := range d.Table.List.KeyColumns {
+		filterQual := d.Quals[keyQual.Name]
+		if filterQual == nil {
+			continue
+		}
+		for _, qual := range filterQual.Quals {
+			if qual.Value != nil {
+				value := qual.Value
+
+				filter := &costexplorer.Expression{}
+				filter.Dimensions = &costexplorer.DimensionValues{}
+				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+				filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+				filters = append(filters, filter)
+			}
+		}
 	}
 
 	return params
