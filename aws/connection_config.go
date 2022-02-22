@@ -6,11 +6,12 @@ import (
 )
 
 type awsConfig struct {
-	Regions      []string `cty:"regions"`
-	Profile      *string  `cty:"profile"`
-	AccessKey    *string  `cty:"access_key"`
-	SecretKey    *string  `cty:"secret_key"`
-	SessionToken *string  `cty:"session_token"`
+	Regions       []string `cty:"regions"`
+	Profile       *string  `cty:"profile"`
+	AccessKey     *string  `cty:"access_key"`
+	SecretKey     *string  `cty:"secret_key"`
+	SessionToken  *string  `cty:"session_token"`
+	MaxRetryCount *string  `cty:"max_retry_count"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -28,6 +29,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Type: schema.TypeString,
 	},
 	"session_token": {
+		Type: schema.TypeString,
+	},
+	"max_retry_count": {
 		Type: schema.TypeString,
 	},
 }

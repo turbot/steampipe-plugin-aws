@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1763,6 +1764,15 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 
+	// Configure the maximum number number of retry user wants to.
+	if awsConfig.MaxRetryCount != nil && *awsConfig.MaxRetryCount != "" {
+		maxRetryValue, err := strconv.Atoi(*awsConfig.MaxRetryCount)
+		if err != nil{
+			panic("Provide an Integer value in spc file for retry count")
+		}
+		maxRetries = maxRetryValue
+	}
+
 	// session default configuration
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -1904,6 +1914,8 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 			return true
 		}
 
+		
+
 		var awsErr awserr.Error
 		if errors.As(req.Error, &awsErr) {
 			/*
@@ -1936,6 +1948,8 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	// To avoid this problem added a jitter of "+/-20%" with delay time.
 	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
 	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	plugin.Logger(d.ctx).Info("Retry Count ===>>>>", retryCount)
 
 	// Creates a new exponential backoff using the starting value of
 	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
