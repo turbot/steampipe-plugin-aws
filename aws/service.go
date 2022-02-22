@@ -1914,8 +1914,6 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 			return true
 		}
 
-		
-
 		var awsErr awserr.Error
 		if errors.As(req.Error, &awsErr) {
 			/*
@@ -1948,8 +1946,6 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	// To avoid this problem added a jitter of "+/-20%" with delay time.
 	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
 	var jitter = float64(rand.Intn(120-80)+80) / 100
-
-	plugin.Logger(d.ctx).Info("Retry Count ===>>>>", retryCount)
 
 	// Creates a new exponential backoff using the starting value of
 	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
