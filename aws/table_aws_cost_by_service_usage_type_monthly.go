@@ -46,9 +46,7 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "BEFORE PARAM")
 	params := buildCostByServiceAndUsageInput("MONTHLY", d)
-	plugin.Logger(ctx).Info("listCostByServiceAndUsageMonthly", "ARE WE HERE", "AFTER PARAM")
 	return streamCostAndUsage(ctx, d, params)
 }
 
