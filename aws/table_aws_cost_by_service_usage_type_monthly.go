@@ -92,7 +92,7 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 				filter.Dimensions = &costexplorer.DimensionValues{}
 				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
 
-				// Affected by the BUG - https://github.com/turbot/steampipe-plugin-sdk/issues/239
+				// TODO: Re-add for IN clause support once https://github.com/turbot/steampipe-plugin-sdk/issues/279 is resolved
 				//
 				// filterVal := []string{}
 				// if value.GetListValue() != nil {
