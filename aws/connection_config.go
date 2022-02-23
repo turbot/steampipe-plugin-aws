@@ -6,12 +6,13 @@ import (
 )
 
 type awsConfig struct {
-	Regions       []string `cty:"regions"`
-	Profile       *string  `cty:"profile"`
-	AccessKey     *string  `cty:"access_key"`
-	SecretKey     *string  `cty:"secret_key"`
-	SessionToken  *string  `cty:"session_token"`
-	MaxRetryCount *string  `cty:"max_retry_count"`
+	Regions            []string `cty:"regions"`
+	Profile            *string  `cty:"profile"`
+	AccessKey          *string  `cty:"access_key"`
+	SecretKey          *string  `cty:"secret_key"`
+	SessionToken       *string  `cty:"session_token"`
+	MaxErrorRetry      *int     `cty:"max_error_retry"`
+	MinErrorRetryDelay *int     `cty:"min_error_retry_delay"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -31,8 +32,11 @@ var ConfigSchema = map[string]*schema.Attribute{
 	"session_token": {
 		Type: schema.TypeString,
 	},
-	"max_retry_count": {
-		Type: schema.TypeString,
+	"max_error_retry": {
+		Type: schema.TypeInt,
+	},
+	"min_error_retry_delay": {
+		Type: schema.TypeInt,
 	},
 }
 

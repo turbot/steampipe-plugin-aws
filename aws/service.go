@@ -7,7 +7,6 @@ import (
 	"math"
 	"math/rand"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -286,7 +285,7 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 
 	// CloudControl returns GeneralServiceException, which appears to be retryable
 	// We deliberately reduce the number of retries to avoid long delays
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 8)
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 8, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
@@ -1750,10 +1749,24 @@ func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.Wo
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
-	return getSessionWithMaxRetries(ctx, d, region, 9)
+	awsConfig := GetConfig(d.Connection)
+	maxRetries := 9
+	var minErrRetryDelay time.Duration = 25 * time.Millisecond
+
+	// Configure the maximum number of retry user wants to.
+	if awsConfig.MaxErrorRetry != nil {
+		maxRetries = *awsConfig.MaxErrorRetry
+	}
+
+	// Configure the minimum time delay for retry user wants to.
+	if awsConfig.MinErrorRetryDelay != nil {
+		minErrRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	}
+
+	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minErrRetryDelay)
 }
 
-func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int) (*session.Session, error) {
+func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minErrRetryDelay time.Duration) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
@@ -1764,15 +1777,6 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 
-	// Configure the maximum number number of retry user wants to.
-	if awsConfig.MaxRetryCount != nil && *awsConfig.MaxRetryCount != "" {
-		maxRetryValue, err := strconv.Atoi(*awsConfig.MaxRetryCount)
-		if err != nil{
-			panic("Provide an Integer value in spc file for retry count")
-		}
-		maxRetries = maxRetryValue
-	}
-
 	// session default configuration
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -1782,7 +1786,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			// number of retries as 9 (our default), the maximum delay will not be more than approximately 3 minutes to avoid steampipe
 			// waiting too long to render result
 			MaxRetries: aws.Int(maxRetries),
-			Retryer:    NewConnectionErrRetryer(maxRetries, ctx),
+			Retryer:    NewConnectionErrRetryer(maxRetries, minErrRetryDelay, ctx),
 		},
 	}
 
@@ -1886,14 +1890,13 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int, ctx context.Context) *ConnectionErrRetryer {
-	var minRetryDelay time.Duration = 25 * time.Millisecond
+func NewConnectionErrRetryer(maxRetries int, minErrRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryer {
 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
 		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
-			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
-			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
+			NumMaxRetries: maxRetries,       // MUST be set or all retrying is skipped!
+			MinRetryDelay: minErrRetryDelay, // Set default minimum retry delay to 25ms
 		},
 	}
 }
