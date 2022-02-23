@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,6 +19,10 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service and Usage Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageMonthly,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"="}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -40,12 +45,12 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceAndUsageInput("MONTHLY")
+func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	params := buildCostByServiceAndUsageInput("MONTHLY", d)
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -70,6 +75,50 @@ func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAn
 				Key:  aws.String("USAGE_TYPE"),
 			},
 		},
+	}
+
+	var filters []*costexplorer.Expression
+
+	for _, keyQual := range d.Table.List.KeyColumns {
+		filterQual := d.Quals[keyQual.Name]
+		if filterQual == nil {
+			continue
+		}
+		for _, qual := range filterQual.Quals {
+			if qual.Value != nil {
+				value := qual.Value
+
+				filter := &costexplorer.Expression{}
+				filter.Dimensions = &costexplorer.DimensionValues{}
+				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+
+				// TODO: Re-add for IN clause support once https://github.com/turbot/steampipe-plugin-sdk/issues/279 is resolved
+				//
+				// filterVal := []string{}
+				// if value.GetListValue() != nil {
+				// 	for _, q := range value.GetListValue().Values {
+				// 		filterVal = append(filterVal, q.GetStringValue())
+				// 	}
+				// } else {
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "SINGLE VALUE", "filterVal")
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetStringValue()", value.GetStringValue())
+				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetListValue()", value.GetListValue())
+				// 	filterVal = append(filterVal, value.GetStringValue())
+				// }
+				// filter.Dimensions.Values = aws.StringSlice(filterVal)
+
+				filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+				filters = append(filters, filter)
+			}
+		}
+	}
+
+	if len(filters) > 1 {
+		params.Filter = &costexplorer.Expression{
+			And: filters,
+		}
+	} else if len(filters) == 1 {
+		params.Filter = filters[0]
 	}
 
 	return params
