@@ -83,10 +83,18 @@ connection "aws" {
   # `secret_key`, and `session_token` arguments, or select a named profile
   # from an AWS credential file with the `profile` argument:
   #profile     = "profile2"
+
+  # If no values are specified, the plugin will use the default values as below:
+  #max_error_retry = 9
+  #min_error_retry_delay = 25
 }
 ```
 
  By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
+
+## Additional Parameters In Configuration
+
+By default `max_error_retry` and `min_error_retry_delay` arguments are set to 9 and 25ms respectively. You can change these parameters to increase or decrease the maximum number of times the retryable error will be retried(`max_error_retry`) and the minimum time interval in between two consecutive error retries(`min_error_retry_delay`).
 
 
 ## Get Involved

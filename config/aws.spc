@@ -14,4 +14,8 @@ connection "aws" {
   # `secret_key`, and `session_token` arguments, or select a named profile
   # from an AWS credential file with the `profile` argument:
   #profile     = "profile2"
+
+  # If no values are specified, the plugin will use the default values as below:
+  #max_error_retry = 9
+  #min_error_retry_delay = 25
 }

@@ -1767,6 +1767,10 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		minErrRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
 	}
 
+	// Restrict user to provide value less than 0
+	if maxRetries < 0 || minErrRetryDelay < 0 {
+		panic("\nconnection config has invalid value for \"max_error_retry\" or \"min_error_retry_delay\". It should not be less than 0. Edit your connection configuration file and then restart Steampipe")
+	}
 	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minErrRetryDelay)
 }
 
