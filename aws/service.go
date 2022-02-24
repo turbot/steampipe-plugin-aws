@@ -1750,15 +1750,19 @@ func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.Wo
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
 	awsConfig := GetConfig(d.Connection)
-	maxRetries := 9
-	var minErrRetryDelay time.Duration = 25 * time.Millisecond
 
-	// Configure the maximum number of retry user wants to.
+	// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
+	// number of retries as 9 (our default), the default maximum delay will not be more than approximately 3 minutes to avoid steampipe
+	// waiting too long to render result
+	maxRetries := 9
+	var minErrRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+
+	// Set max retry count from configuration file
 	if awsConfig.MaxErrorRetry != nil {
 		maxRetries = *awsConfig.MaxErrorRetry
 	}
 
-	// Configure the minimum time delay for retry user wants to.
+	// Set min delay time from configuration file
 	if awsConfig.MinErrorRetryDelay != nil {
 		minErrRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
 	}
@@ -1781,10 +1785,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
-			Region: &region,
-			// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
-			// number of retries as 9 (our default), the maximum delay will not be more than approximately 3 minutes to avoid steampipe
-			// waiting too long to render result
+			Region:     &region,
 			MaxRetries: aws.Int(maxRetries),
 			Retryer:    NewConnectionErrRetryer(maxRetries, minErrRetryDelay, ctx),
 		},
@@ -1896,7 +1897,7 @@ func NewConnectionErrRetryer(maxRetries int, minErrRetryDelay time.Duration, ctx
 		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,       // MUST be set or all retrying is skipped!
-			MinRetryDelay: minErrRetryDelay, // Set default minimum retry delay to 25ms
+			MinRetryDelay: minErrRetryDelay, // Set minimum retry delay
 		},
 	}
 }
@@ -1953,5 +1954,11 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	// Creates a new exponential backoff using the starting value of
 	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
 	// as example (23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s...) up to max.
-	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+	// Maximum delay should not be more than 5 min
+	maxDelayTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+	if maxDelayTime > time.Duration(5*time.Minute) {
+		return time.Duration(5 * time.Minute)
+	}
+
+	return maxDelayTime
 }
