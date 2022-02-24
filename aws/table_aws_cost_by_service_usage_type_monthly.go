@@ -20,8 +20,8 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageMonthly,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
-				{Name: "usage_type", Operators: []string{"="}, Require: plugin.Optional},
+				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 			},
 		},
 		Columns: awsColumns(
@@ -92,6 +92,22 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 				filter.Dimensions = &costexplorer.DimensionValues{}
 				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
 
+				switch qual.Operator {
+				case "=":
+					filter := &costexplorer.Expression{}
+					filter.Dimensions = &costexplorer.DimensionValues{}
+					filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+					filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filters = append(filters, filter)
+				case "<>":
+					filter := &costexplorer.Expression{}
+					filter.Not = &costexplorer.Expression{}
+					filter.Not.Dimensions = &costexplorer.DimensionValues{}
+					filter.Not.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+					filter.Not.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filters = append(filters, filter)
+				}
+
 				// TODO: Re-add for IN clause support once https://github.com/turbot/steampipe-plugin-sdk/issues/279 is resolved
 				//
 				// filterVal := []string{}
@@ -106,9 +122,6 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 				// 	filterVal = append(filterVal, value.GetStringValue())
 				// }
 				// filter.Dimensions.Values = aws.StringSlice(filterVal)
-
-				filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
-				filters = append(filters, filter)
 			}
 		}
 	}
