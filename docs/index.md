@@ -85,7 +85,7 @@ connection "aws" {
   #profile     = "profile2"
 
   # If no values are specified, the plugin will use the default values as below:
-  #max_error_retry = 9
+  #max_error_retry_attempts = 9
   #min_error_retry_delay = 25
 }
 ```
@@ -94,7 +94,7 @@ connection "aws" {
 
 ## Additional Parameters In Configuration
 
-By default `max_error_retry` and `min_error_retry_delay` arguments are set to 9 and 25ms respectively. You can change these parameters to increase or decrease the maximum number of times the retryable error will be retried(`max_error_retry`) and the minimum time interval in between two consecutive error retries(`min_error_retry_delay`).
+By default `max_error_retry_attempts` and `min_error_retry_delay` arguments are set to 9 and 25ms respectively. You can change these parameters to increase or decrease the maximum number of times the retryable error will be retried(`max_error_retry_attempts`) and the minimum time interval in between two consecutive error retries(`min_error_retry_delay`). Also you can set the `max_error_retry_attempts` using environment variable `AWS_MAX_ATTEMPTS`.
 
 
 ## Get Involved

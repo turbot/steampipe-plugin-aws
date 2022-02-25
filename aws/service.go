@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1757,9 +1759,15 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	maxRetries := 9
 	var minErrRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
 
-	// Set max retry count from configuration file
-	if awsConfig.MaxErrorRetry != nil {
-		maxRetries = *awsConfig.MaxErrorRetry
+	// Set max retry count from configuration file or from AWS environment varible
+	if awsConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsConfig.MaxErrorRetryAttempts
+	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
+		maxRetriesAttempt, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
+		if err != nil || maxRetriesAttempt < 0 {
+			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value and should not be less than 0")
+		}
+		maxRetries = maxRetriesAttempt
 	}
 
 	// Set min delay time from configuration file
@@ -1769,7 +1777,7 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 
 	// Restrict user to provide value less than 0
 	if maxRetries < 0 || minErrRetryDelay < 0 {
-		panic("\nconnection config has invalid value for \"max_error_retry\" or \"min_error_retry_delay\". It should not be less than 0. Edit your connection configuration file and then restart Steampipe")
+		panic("\nconnection config has invalid value for \"max_error_retry_attempts\" or \"min_error_retry_delay\". It should not be less than 0. Edit your connection configuration file and then restart Steampipe")
 	}
 	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minErrRetryDelay)
 }

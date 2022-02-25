@@ -16,6 +16,6 @@ connection "aws" {
   #profile     = "profile2"
 
   # If no values are specified, the plugin will use the default values as below:
-  #max_error_retry = 9
+  #max_error_retry_attempts = 9
   #min_error_retry_delay = 25
 }
