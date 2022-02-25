@@ -372,12 +372,14 @@ func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 				filter.Values = []*string{aws.String(fmt.Sprint(value))}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
-				val, ok := value.(string)
-				if ok {
-					filter.Values = []*string{aws.String(val)}
-				} else {
-					valSlice := value.([]*string)
-					filter.Values = valSlice
+				if value != nil {
+					val, ok := value.(string)
+					if ok {
+						filter.Values = []*string{aws.String(val)}
+					} else {
+						valSlice := value.([]*string)
+						filter.Values = valSlice
+					}
 				}
 			}
 			filters = append(filters, &filter)

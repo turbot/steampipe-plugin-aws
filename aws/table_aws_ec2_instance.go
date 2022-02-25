@@ -706,8 +706,12 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 func getListValues(listValue *proto.QualValueList) []*string {
 	values := make([]*string, 0)
-	for _, value := range listValue.Values {
-		values = append(values, types.String(value.GetStringValue()))
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, types.String(value.GetStringValue()))
+			}
+		}
 	}
 	return values
 }
