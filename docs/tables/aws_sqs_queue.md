@@ -14,7 +14,7 @@ select
 from
   aws_sqs_queue
 where
-  kms_master_key_id is null or not sqs_managed_sse_enabled;
+  kms_master_key_id is null and not sqs_managed_sse_enabled;
 ```
 
 ### List of SQS queues which are encrypted by CMK
