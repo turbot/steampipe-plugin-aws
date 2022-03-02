@@ -9,11 +9,38 @@ Amazon Simple Queue Service (SQS) is a fully managed message queuing service tha
 ```sql
 select
   title,
-  kms_master_key_id
+  kms_master_key_id,
+  sqs_managed_sse_enabled
 from
   aws_sqs_queue
 where
-  kms_master_key_id is null;
+  kms_master_key_id is null or not sqs_managed_sse_enabled;
+```
+
+### List of SQS queues which are encrypted by CMK
+
+```sql
+select
+  title,
+  kms_master_key_id,
+  sqs_managed_sse_enabled
+from
+  aws_sqs_queue
+where
+  kms_master_key_id is not null;
+```
+
+### List of SQS queues which are encrypted by queue managed key
+
+```sql
+select
+  title,
+  kms_master_key_id,
+  sqs_managed_sse_enabled
+from
+  aws_sqs_queue
+where
+  sqs_managed_sse_enabled;
 ```
 
 
