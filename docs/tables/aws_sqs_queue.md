@@ -4,47 +4,7 @@ Amazon Simple Queue Service (SQS) is a fully managed message queuing service tha
 
 ## Examples
 
-### List of SQS queues which are not encrypted
-
-```sql
-select
-  title,
-  kms_master_key_id,
-  sqs_managed_sse_enabled
-from
-  aws_sqs_queue
-where
-  kms_master_key_id is null and not sqs_managed_sse_enabled;
-```
-
-### List of SQS queues which are encrypted by CMK
-
-```sql
-select
-  title,
-  kms_master_key_id,
-  sqs_managed_sse_enabled
-from
-  aws_sqs_queue
-where
-  kms_master_key_id is not null;
-```
-
-### List of SQS queues which are encrypted by queue managed key
-
-```sql
-select
-  title,
-  kms_master_key_id,
-  sqs_managed_sse_enabled
-from
-  aws_sqs_queue
-where
-  sqs_managed_sse_enabled;
-```
-
-
-### SQS queue message configuration info
+### Basic info
 
 ```sql
 select
@@ -58,8 +18,47 @@ from
   aws_sqs_queue;
 ```
 
+### List unencrypted queues
 
-### List of SQS queues where message retention period is less than 7 days
+```sql
+select
+  title,
+  kms_master_key_id,
+  sqs_managed_sse_enabled
+from
+  aws_sqs_queue
+where
+  kms_master_key_id is null
+  and not sqs_managed_sse_enabled;
+```
+
+### List queues encrypted with a CMK
+
+```sql
+select
+  title,
+  kms_master_key_id,
+  sqs_managed_sse_enabled
+from
+  aws_sqs_queue
+where
+  kms_master_key_id is not null;
+```
+
+### List queues encrypted with an SQS-owned encryption key
+
+```sql
+select
+  title,
+  kms_master_key_id,
+  sqs_managed_sse_enabled
+from
+  aws_sqs_queue
+where
+  sqs_managed_sse_enabled;
+```
+
+### List queues with a message retention period less than 7 days
 
 ```sql
 select
@@ -71,8 +70,7 @@ where
   message_retention_seconds < '604800';
 ```
 
-
-### List of queues which are not configured with DLQ(Dead Letter Queue)
+### List queues which are not configured with a dead-letter queue (DLQ)
 
 ```sql
 select
@@ -84,8 +82,7 @@ where
   redrive_policy is null;
 ```
 
-
-### List of FIFO queues
+### List FIFO queues
 
 ```sql
 select
@@ -97,7 +94,7 @@ where
   fifo_queue;
 ```
 
-### List of queues policy statements that grant external access
+### List queues with policy statements that grant cross-account access
 
 ```sql
 select
@@ -120,8 +117,7 @@ where
   );
 ```
 
-
-### Queue policy statements that grant anonymous access
+### List queues with policy statements that grant anoymous access
 
 ```sql
 select
@@ -140,8 +136,7 @@ where
   and s ->> 'Effect' = 'Allow';
 ```
 
-
-### Queue policy statements that grant full access (sqs:*)
+### List queues with policy statements that grant full access (sqs:*)
 
 ```sql
 select
