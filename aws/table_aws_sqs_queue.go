@@ -79,7 +79,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "sqs_managed_sse_enabled",
-				Description: "Returns true if the queue is using SSE-SQS encryption using SQS owned encryption keys",
+				Description: "Returns true if the queue is using SSE-SQS encryption with SQS-owned encryption keys.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.SqsManagedSseEnabled"),
