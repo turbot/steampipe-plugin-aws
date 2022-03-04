@@ -391,9 +391,9 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 	// Create a unique AKA
 	hashCode := "_" + *sgRule.IpProtocol
 	if *sgRule.IsEgress {
-		hashCode = "ingress" + hashCode
-	} else {
 		hashCode = "egress" + hashCode
+	} else {
+		hashCode = "ingress" + hashCode
 	}
 
 	if sgRule.FromPort != nil {
