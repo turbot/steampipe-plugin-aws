@@ -139,7 +139,10 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 			if q.Value.GetStringValue() != "" {
 				value = q.Value.GetStringValue()
 			} else {
-				value = getListValues(q.Value.GetListValue())
+				valList := getListValues(q.Value.GetListValue())
+				if len(valList) > 0 {
+					value = valList
+				}
 			}
 		}
 		if dataType == "boolean" {
