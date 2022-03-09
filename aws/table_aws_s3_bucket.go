@@ -315,6 +315,14 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	if location != nil && location.LocationConstraint != nil {
+		plugin.Logger(ctx).Info("getBucketLocation", "location.LocationConstraint", *location.LocationConstraint)
+		// For few of the bucket which are available in 'eu-west-1' region we are getting the region name as 'EU' 
+		// for which the service connection throws no such host error in getBucketEncryption
+		if *location.LocationConstraint == "EU" {
+			return &s3.GetBucketLocationOutput{
+				LocationConstraint: aws.String("eu-west-1"),
+			}, nil
+		}
 		return location, nil
 	}
 
