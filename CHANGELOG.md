@@ -1,3 +1,9 @@
+## v0.50.1 [2022-03-10]
+
+_Bug fixes_
+
+- Fixed the `aws_ebs_snapshot` table to correctly handle `InvalidParameterValue` error ([#919](https://github.com/turbot/steampipe-plugin-aws/pull/919))
+
 ## v0.50.0 [2022-03-04]
 
 _Enhancements_
