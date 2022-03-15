@@ -1688,6 +1688,10 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
 	// have we already created and cached the service?
 	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed WAF Regional")
+	}
 	serviceCacheKey := "wafregional"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*wafregional.WAFRegional), nil
