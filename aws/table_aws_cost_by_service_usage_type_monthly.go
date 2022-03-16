@@ -107,21 +107,6 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 					filter.Not.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
 					filters = append(filters, filter)
 				}
-
-				// TODO: Re-add for IN clause support once https://github.com/turbot/steampipe-plugin-sdk/issues/279 is resolved
-				//
-				// filterVal := []string{}
-				// if value.GetListValue() != nil {
-				// 	for _, q := range value.GetListValue().Values {
-				// 		filterVal = append(filterVal, q.GetStringValue())
-				// 	}
-				// } else {
-				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "SINGLE VALUE", "filterVal")
-				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetStringValue()", value.GetStringValue())
-				// 	plugin.Logger(ctx).Info("buildCostByServiceAndUsageInput", "value.GetListValue()", value.GetListValue())
-				// 	filterVal = append(filterVal, value.GetStringValue())
-				// }
-				// filter.Dimensions.Values = aws.StringSlice(filterVal)
 			}
 		}
 	}
