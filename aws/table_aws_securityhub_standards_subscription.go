@@ -49,7 +49,7 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 				Hydrate:     GetEnabledStandards,
 			},
 			{
-				Name:        "status_reason_code",
+				Name:        "standards_status_reason_code",
 				Description: "The reason code that represents the reason for the current status of a standard subscription.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     GetEnabledStandards,
