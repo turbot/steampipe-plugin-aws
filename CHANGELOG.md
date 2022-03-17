@@ -1,3 +1,9 @@
+## v0.51.0 [2022-03-17]
+
+_Enhancements_
+
+- Added column `standards_status_reason_code` to `aws_securityhub_standards_subscription` table ([#930](https://github.com/turbot/steampipe-plugin-aws/pull/930))
+
 ## v0.50.1 [2022-03-10]
 
 _Bug fixes_
