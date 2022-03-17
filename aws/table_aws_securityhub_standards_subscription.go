@@ -49,6 +49,13 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 				Hydrate:     GetEnabledStandards,
 			},
 			{
+				Name:        "standards_status_reason_code",
+				Description: "The reason code that represents the reason for the current status of a standard subscription.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     GetEnabledStandards,
+				Transform:   transform.FromField("StandardsStatusReason.StatusReasonCode"),
+			},
+			{
 				Name:        "standards_subscription_arn",
 				Description: "The ARN of a resource that represents your subscription to a supported standard.",
 				Type:        proto.ColumnType_STRING,
