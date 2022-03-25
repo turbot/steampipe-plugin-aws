@@ -136,7 +136,6 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	if err != nil {
 		return nil, err
 	}
-
 	// List call
 	for {
 		output, err := svc.GetCostAndUsage(params)
@@ -149,7 +148,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		for _, row := range buildCEMetricRows(ctx, output, d.KeyColumnQuals) {
 			d.StreamListItem(ctx, row)
 
-			if d.QueryStatus.RowsRemaining(ctx) == 0{
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}

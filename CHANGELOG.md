@@ -1,3 +1,31 @@
+## v0.52.0 [2022-03-23]
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v2.1.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v211--2022-03-10) ([#933](https://github.com/turbot/steampipe-plugin-aws/pull/933))
+
+## v0.51.0 [2022-03-17]
+
+_Enhancements_
+
+- Added column `standards_status_reason_code` to `aws_securityhub_standards_subscription` table ([#930](https://github.com/turbot/steampipe-plugin-aws/pull/930))
+
+## v0.50.1 [2022-03-10]
+
+_Bug fixes_
+
+- Fixed the `aws_ebs_snapshot` table to correctly handle `InvalidParameterValue` error ([#919](https://github.com/turbot/steampipe-plugin-aws/pull/919))
+
+## v0.50.0 [2022-03-04]
+
+_Enhancements_
+
+- Added `sqs_managed_sse_enabled` column to `aws_sqs_queue` table ([#922](https://github.com/turbot/steampipe-plugin-aws/pull/922))
+- Added additional optional key quals to `aws_cost_by_service_daily`, `aws_cost_by_service_monthly`, `aws_cost_by_service_usage_type_daily` and `aws_cost_by_service_usage_type_monthly` tables ([#912](https://github.com/turbot/steampipe-plugin-aws/pull/912))
+
+_Bug fixes_
+- Fixed the `title` column of `aws_vpc_security_group_rule` table to correctly evaluate if a security group rule is either ingress or egress ([#924](https://github.com/turbot/steampipe-plugin-aws/pull/924))
+
 ## v0.49.0 [2022-02-17]
 
 _What's new?_

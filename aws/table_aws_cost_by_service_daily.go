@@ -14,6 +14,9 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceDaily,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -32,6 +35,6 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByServiceDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceInput("DAILY")
+	params := buildCostByServiceInput("DAILY", d)
 	return streamCostAndUsage(ctx, d, params)
 }
