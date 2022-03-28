@@ -61,6 +61,13 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("CreationDateTime"),
 			},
 			{
+				Name:        "table_class",
+				Description: "The table class of the specified table. Valid values are STANDARD and STANDARD_INFREQUENT_ACCESS.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getDynamboDbTable,
+				Transform:   transform.FromField("TableClassSummary.TableClass"),
+			},
+			{
 				Name:        "table_status",
 				Description: "The current state of the table.",
 				Type:        proto.ColumnType_STRING,
