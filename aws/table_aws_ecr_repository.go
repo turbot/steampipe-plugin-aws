@@ -93,7 +93,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "image_scanning_findings",
-				Description: "The scanning findings for an image.",
+				Description: "Scan findings for an image.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEcrDescribeImageScanningFindings,
 				Transform:   transform.FromValue(),
