@@ -15,7 +15,7 @@ func tableAwsCostByServiceDaily(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceDaily,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service", Operators: []string{"="}, Require: plugin.Optional},
+				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
 			},
 		},
 		Columns: awsColumns(

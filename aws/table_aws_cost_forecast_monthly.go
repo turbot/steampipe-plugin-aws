@@ -62,6 +62,10 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// stream the results...
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
+
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil
