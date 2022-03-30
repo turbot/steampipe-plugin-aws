@@ -315,8 +315,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	if location != nil && location.LocationConstraint != nil {
-		// For few of the bucket which are available in 'eu-west-1' region we are getting the region name as 'EU' 
-		// for which the service connection throws no such host error in getBucketEncryption
+		// Buckets in eu-west-1 return a location of "EU", so we need to standardize back
 		if *location.LocationConstraint == "EU" {
 			return &s3.GetBucketLocationOutput{
 				LocationConstraint: aws.String("eu-west-1"),
@@ -325,7 +324,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return location, nil
 	}
 
-	// Buckets in Region us-east-1 have a LocationConstraint of null.
+	// Buckets in us-east-1 have a LocationConstraint of null
 	return &s3.GetBucketLocationOutput{
 		LocationConstraint: aws.String("us-east-1"),
 	}, nil
