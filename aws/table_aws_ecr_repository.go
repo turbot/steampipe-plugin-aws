@@ -334,51 +334,50 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 	}
 
 	// Build the params
+	// As per doc the max result value can be between 1-1000 but as per testing it returns only 100 result per page
 	params := &ecr.DescribeImageScanFindingsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int64(100),
 	}
 
 	var result []ecr.DescribeImageScanFindingsOutput
 
 	for _, image := range images.ImageDetails {
 		var scanningDetails *ecr.DescribeImageScanFindingsOutput
-		for _, imageTag := range image.ImageTags {
 
-			params.RepositoryName = image.RepositoryName
-			params.ImageId = &ecr.ImageIdentifier{
-				ImageDigest: image.ImageDigest,
-				ImageTag:    imageTag,
-			}
-
-			err = svc.DescribeImageScanFindingsPages(
-				params,
-				func(page *ecr.DescribeImageScanFindingsOutput, isLast bool) bool {
-					if scanningDetails != nil {
-						if *scanningDetails.ImageId.ImageDigest == *image.ImageDigest {
-							if scanningDetails.ImageScanFindings.EnhancedFindings != nil {
-								scanningDetails.ImageScanFindings.EnhancedFindings = append(scanningDetails.ImageScanFindings.EnhancedFindings, page.ImageScanFindings.EnhancedFindings...)
-							} else if scanningDetails.ImageScanFindings.Findings != nil {
-								scanningDetails.ImageScanFindings.Findings = append(scanningDetails.ImageScanFindings.Findings, page.ImageScanFindings.Findings...)
-							}
-						}
-						for k, v := range page.ImageScanFindings.FindingSeverityCounts {
-							scanningDetails.ImageScanFindings.FindingSeverityCounts[k] = aws.Int64(*v + *scanningDetails.ImageScanFindings.FindingSeverityCounts[k])
-						}
-					} else {
-						scanningDetails = page
-					}
-					return !isLast
-				},
-			)
-
-			if err != nil {
-				if strings.Contains(err.Error(), "ScanNotFoundException") {
-					return result, nil
-				}
-				logger.Error("getAwsEcrDescribeImageScanningFindings", "DescribeImageScanFindingsPages", err)
-				return nil, err
-			}
+		params.RepositoryName = image.RepositoryName
+		params.ImageId = &ecr.ImageIdentifier{
+			ImageDigest: image.ImageDigest,
 		}
+
+		err = svc.DescribeImageScanFindingsPages(
+			params,
+			func(page *ecr.DescribeImageScanFindingsOutput, isLast bool) bool {
+				if scanningDetails != nil {
+					if *scanningDetails.ImageId.ImageDigest == *image.ImageDigest {
+						if scanningDetails.ImageScanFindings.EnhancedFindings != nil {
+							scanningDetails.ImageScanFindings.EnhancedFindings = append(scanningDetails.ImageScanFindings.EnhancedFindings, page.ImageScanFindings.EnhancedFindings...)
+						} else if scanningDetails.ImageScanFindings.Findings != nil {
+							scanningDetails.ImageScanFindings.Findings = append(scanningDetails.ImageScanFindings.Findings, page.ImageScanFindings.Findings...)
+						}
+					}
+					for k, v := range page.ImageScanFindings.FindingSeverityCounts {
+						scanningDetails.ImageScanFindings.FindingSeverityCounts[k] = aws.Int64(*v + *scanningDetails.ImageScanFindings.FindingSeverityCounts[k])
+					}
+				} else {
+					scanningDetails = page
+				}
+				return !isLast
+			},
+		)
+
+		if err != nil {
+			if strings.Contains(err.Error(), "ScanNotFoundException") {
+				return result, nil
+			}
+			logger.Error("getAwsEcrDescribeImageScanningFindings", "DescribeImageScanFindingsPages", err)
+			return nil, err
+		}
+
 		if scanningDetails != nil {
 			result = append(result, *scanningDetails)
 		}
