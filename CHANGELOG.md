@@ -3,6 +3,11 @@
 _Enhancements_
 
 - Added `table_class` column to `aws_dynamodb_table` table ([#936](https://github.com/turbot/steampipe-plugin-aws/pull/936))
+- Added additional optional key quals ('<>') to `aws_cost_by_service_daily`, `aws_cost_by_service_monthly`, `aws_cost_by_service_usage_type_daily` and `aws_cost_by_service_usage_type_monthly` tables and context cancellation to `aws_cost_forecast_daily` and `aws_cost_forecast_monthly` tables ([#917](https://github.com/turbot/steampipe-plugin-aws/pull/917))
+
+_Bug fixes_
+
+- Fixed the `aws_s3_bucket` table to handle errors which typically occur when we try to query for buckets created through the AWS CLI or other API driven methods in the `eu-west-1` region ([#927](https://github.com/turbot/steampipe-plugin-aws/pull/927))
 
 ## v0.52.0 [2022-03-23]
 
