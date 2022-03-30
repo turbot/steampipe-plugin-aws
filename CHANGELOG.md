@@ -1,3 +1,9 @@
+## v0.53.0 [2022-03-30]
+
+_Enhancements_
+
+- Added `table_class` column to `aws_dynamodb_table` table ([#936](https://github.com/turbot/steampipe-plugin-aws/pull/936))
+
 ## v0.52.0 [2022-03-23]
 
 _Enhancements_
