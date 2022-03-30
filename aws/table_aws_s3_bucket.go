@@ -308,17 +308,23 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// Specifies the Region where the bucket resides. For a list of all the Amazon
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
-
 	location, err := svc.GetBucketLocation(params)
 	if err != nil {
 		return nil, err
 	}
 
 	if location != nil && location.LocationConstraint != nil {
+		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
+		// so we need to convert back
+		if *location.LocationConstraint == "EU" {
+			return &s3.GetBucketLocationOutput{
+				LocationConstraint: aws.String("eu-west-1"),
+			}, nil
+		}
 		return location, nil
 	}
 
-	// Buckets in Region us-east-1 have a LocationConstraint of null.
+	// Buckets in us-east-1 have a LocationConstraint of null
 	return &s3.GetBucketLocationOutput{
 		LocationConstraint: aws.String("us-east-1"),
 	}, nil
