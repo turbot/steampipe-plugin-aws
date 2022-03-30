@@ -7,7 +7,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `aws_s3_bucket` table to handle errors which typically occur when we try to query for buckets created through the AWS CLI or other API driven methods in the `eu-west-1` region ([#927](https://github.com/turbot/steampipe-plugin-aws/pull/927))
+- Fixed `aws_s3_bucket` queries failing for buckets created in the `EU` (eu-west-1) region through the CLI or API ([#927](https://github.com/turbot/steampipe-plugin-aws/pull/927))
 
 ## v0.52.0 [2022-03-23]
 
