@@ -74,12 +74,6 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RuleGroupResponse.RuleGroupId"),
 			},
 			{
-				Name:        "rule_group",
-				Description: "TBD.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNetworkFirewallRuleGroup,
-			},
-			{
 				Name:        "rule_group_status",
 				Description: "Detailed information about the current status of a rule group.",
 				Type:        proto.ColumnType_STRING,
@@ -87,10 +81,25 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("RuleGroupResponse.RuleGroupStatus"),
 			},
 			{
+				Name:        "rule_variables",
+				Description: "Settings that are available for use in the rules in the rule group. You can only use these for stateful rule groups.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroup.RuleVariables"),
+			},
+			{
+				Name:        "rules_source",
+				Description: "The stateful rules or stateless rules for the rule group.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroup.RulesSource"),
+			},
+			{
 				Name:        "stateful_rule_options",
 				Description: "Additional options governing how Network Firewall handles the rule group. You can only use these for stateful rule groups.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNetworkFirewallRuleGroupMetadata,
+				Hydrate:     getNetworkFirewallRuleGroup,
+				Transform:   transform.FromField("RuleGroup.StatefulRuleOptions"),
 			},
 			{
 				Name:        "type",
@@ -256,7 +265,6 @@ func getNetworkFirewallRuleGroupMetadata(ctx context.Context, d *plugin.QueryDat
 
 func networkFirewallRuleGroupTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("networkFirewallRuleGroupTurbotTags")
-	//tags := d.HydrateItem.(*networkfirewall.RuleGroupResponse)
 	ruleGroup := d.HydrateItem.(*networkfirewall.DescribeRuleGroupOutput)
 
 	// Mapping the resource tags inside turbotTags
@@ -269,14 +277,4 @@ func networkFirewallRuleGroupTurbotTags(ctx context.Context, d *transform.Transf
 	}
 
 	return turbotTagsMap, nil
-}
-
-func ruleGroupName(item interface{}) string {
-	switch item := item.(type) {
-	case *networkfirewall.RuleGroupMetadata:
-		return *item.Name
-	case *networkfirewall.RuleGroupResponse:
-		return *item.RuleGroupName
-	}
-	return ""
 }
