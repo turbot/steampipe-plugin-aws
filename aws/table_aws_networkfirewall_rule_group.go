@@ -15,7 +15,7 @@ import (
 
 func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_network_firewall_rule_group",
+		Name:        "aws_networkfirewall_rule_group",
 		Description: "AWS Network Firewall Rule Group",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"arn", "rule_group_name"}),
