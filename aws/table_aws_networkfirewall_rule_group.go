@@ -224,43 +224,6 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	return data, nil
 }
 
-func getNetworkFirewallRuleGroupMetadata(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getNetworkFirewallRuleGroupMetadata")
-
-	var name, arn string
-	if h.Item != nil {
-		name = *h.Item.(*networkfirewall.RuleGroupMetadata).Name
-		arn = *h.Item.(*networkfirewall.RuleGroupMetadata).Arn
-	} else {
-		name = d.KeyColumnQuals["rule_group_name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
-	}
-	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	// Can pass in ARN, name, or both
-	params := &networkfirewall.DescribeRuleGroupMetadataInput{}
-	if name != "" {
-		params.RuleGroupName = aws.String(name)
-	}
-	if arn != "" {
-		params.RuleGroupArn = aws.String(arn)
-	}
-
-	// Get call
-	data, err := svc.DescribeRuleGroupMetadata(params)
-	if err != nil {
-		logger.Debug("getNetworkFirewallRuleGroupMetadata", "ERROR", err)
-		return nil, err
-	}
-	return data, nil
-}
-
 //// TRANSFORM FUNCTIONS
 
 func networkFirewallRuleGroupTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
