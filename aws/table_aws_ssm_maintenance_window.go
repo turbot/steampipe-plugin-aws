@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
@@ -175,6 +176,7 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	filters := buildSsmMentenanceWindowFilter(d.Quals)
+	
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
@@ -390,7 +392,7 @@ func buildSsmMentenanceWindowFilter(quals plugin.KeyColumnQualMap) []*ssm.Mainte
 			}
 			if helpers.StringSliceContains(columnBool, columnName) {
 				value := getQualsValueByColumn(quals, columnName, "boolean").(string)
-				filter.Values = []*string{aws.String(strings.Title(value))}
+				filter.Values = []*string{aws.String(cases.Title(language.English, cases.NoLower).String(value))}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)
