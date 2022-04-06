@@ -2,6 +2,10 @@
 
 Amazon Elastic Container Registry (Amazon ECR) is a managed container image registry service.
 
+**Note**
+
+Users having Read-only access to the console need to attach the AWS managed policy `AmazonInspector2ReadOnlyAccess` to their role to be able to query the `image_scanning_findings` column of the table.
+
 ## Examples
 
 ### Basic info
