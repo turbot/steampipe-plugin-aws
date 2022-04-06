@@ -1,3 +1,9 @@
+## v0.55.0 [2022-04-06]
+
+_Enhancements_
+
+- Added `image_scanning_findings` column to `aws_ecr_repository` table ([#937](https://github.com/turbot/steampipe-plugin-aws/pull/937))
+
 ## v0.54.0 [2022-04-01]
 
 - New tables added
