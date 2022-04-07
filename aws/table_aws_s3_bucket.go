@@ -303,7 +303,7 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 }
 
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getS3BucketEventNotification")
+	plugin.Logger(ctx).Trace("getS3BucketEventNotificationConfigurations")
 	// defaultRegion := GetDefaultAwsRegion(d)
 	name := h.Item.(*s3.Bucket).Name
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
@@ -321,7 +321,7 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 
 	notificatiionDetails, err := svc.GetBucketNotificationConfiguration(input)
 	if err != nil {
-		plugin.Logger(ctx).Error("getS3BucketEventNotification", "GetBucketNotification", err)
+		plugin.Logger(ctx).Error("getS3BucketEventNotificationConfigurations", "GetBucketNotification", err)
 		return nil, err
 	}
 	return notificatiionDetails, nil
