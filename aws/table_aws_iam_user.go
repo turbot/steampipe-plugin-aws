@@ -255,8 +255,10 @@ func getAwsIamUserLoginProfile(ctx context.Context, d *plugin.QueryData, h *plug
 	op, err := svc.GetLoginProfile(params)
 	if err != nil {
 		// If the user does not exist or does not have a password, the operation returns a 404 (NoSuchEntity) error.
-		if strings.Contains(err.Error(), "NoSuchEntity") {
-			return nil, nil
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "NoSuchEntity" {
+				return nil, nil
+			}
 		}
 		return nil, err
 	}
