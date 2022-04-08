@@ -96,7 +96,7 @@ connection "aws" {
 }
 ```
 
-- `access_key` - (Optional) AWS access key ID to use when authenticating along with the `secret_key` and `session_token` arguments. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
+- `access_key` - (Optional) AWS access key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
 - `max_error_retry_attempts` (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
 - `min_error_retry_delay` (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
 - `profile` - (Optional) AWS profile name to use for credentials. Can also be set with the `AWS_PROFILE` or `AWS_DEFAULT_PROFILE` environment variables.
@@ -105,11 +105,6 @@ connection "aws" {
 - `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
 
  By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
-
-## Get Involved
-
-* Open source: https://github.com/turbot/steampipe-plugin-aws
-* Community: [Slack Channel](https://steampipe.io/community/join)
 
 ## Multi-Region Connections
 
@@ -208,7 +203,6 @@ connection "aws_all" {
 Aggregators are powerful, but they are not infinitely scalable.  Like any other steampipe connection, they query APIs and are subject to API limits and throttling.  Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions.  This means you essentially run the same list API calls 48 times!  When using aggregators, it is especially important to:
 - Query only what you need!  `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
 - Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options).  The default is currently 300 seconds (5 minutes).  Obviously, anytime steampipe can pull from the cache, its is faster and less impactful to the APIs.  If you don't need the most up-to-date results, increase the cache TTL!
-
 
 ## Configuring AWS Credentials
 
@@ -312,6 +306,7 @@ One way to accomplish this is to use the `credential_process` to [generate the c
 Note that Steampipe cannot prompt you for your token currently, so you must authenticate before starting Steampipe, and re-authenticate outside of Steampipe whenever your credentials expire.
 
 #### aws credential file:
+
 ```bash
 [user_account]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
@@ -331,7 +326,6 @@ connection "aws_account_123456789012" {
   regions = ["*"]
 }
 ```
-
 
 ### AWS-Vault Credentials
 
@@ -399,3 +393,8 @@ connection "aws" {
   regions     = ["eu-west-1", "eu-west-2"]
 }
 ```
+
+## Get involved
+
+* Open source: https://github.com/turbot/steampipe-plugin-aws
+* Community: [Slack Channel](https://steampipe.io/community/join)
