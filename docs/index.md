@@ -68,43 +68,51 @@ steampipe plugin install aws
 Installing the latest aws plugin will create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`:
 ```hcl
 connection "aws" {
-  plugin    = "aws"
+  plugin = "aws"
 
   # You may connect to one or more regions. If `regions` is not specified,
   # Steampipe will use a single default region using the same resolution
-  # order as the aws cli:
+  # order as the AWS CLI:
   #  1. The `AWS_DEFAULT_REGION` or `AWS_REGION` environment variable
   #  2. The region specified in the active profile (`AWS_PROFILE` or default)
-  #regions     = ["us-east-1", "us-west-2"]
+  #regions = ["us-east-1", "us-west-2"]
 
   # If no credentials are specified, the plugin will use the AWS credentials
   # resolver to get the current credentials in the same manner as the CLI
-  #  Alternatively, you may set static credentials with the `access_key`,
+  # Alternatively, you may set static credentials with the `access_key`,
   # `secret_key`, and `session_token` arguments, or select a named profile
   # from an AWS credential file with the `profile` argument:
-  #profile     = "profile2"
+  #profile = "profile2"
 
-  # If no values are specified, the plugin will use the default values as below:
+  # The maximum number of attempts (including the initial call) Steampipe will
+  # make for failing API calls. Can also be set with the AWS_MAX_ATTEMPTS environment variable.
+  # Defaults to 9 and must be greater than or equal to 1.
   #max_error_retry_attempts = 9
+
+  # The minimum retry delay in milliseconds after which retries will be performed.
+  # This delay is also used as a base value when calculating the exponential backoff retry times.
+  # Defaults to 25ms and must be greater than or equal to 1ms.
   #min_error_retry_delay = 25
 }
 ```
 
+- `access_key` - (Optional) AWS access key ID to use when authenticating along with the `secret_key` and `session_token` arguments. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
+- `max_error_retry_attempts` (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
+- `min_error_retry_delay` (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
+- `profile` - (Optional) AWS profile name to use for credentials. Can also be set with the `AWS_PROFILE` or `AWS_DEFAULT_PROFILE` environment variables.
+- `regions` - (Optional) List of AWS regions Steampipe will connect to. Can also be set with the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables, or the region specified in the active profile.
+- `secret_key` - (Optional) AWS secret key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
+- `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
+
  By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
-
-## Additional Parameters In Configuration
-
-By default `max_error_retry_attempts` and `min_error_retry_delay` arguments are set to 9 and 25ms respectively. You can change these parameters to increase or decrease the maximum number of times the retryable error will be retried(`max_error_retry_attempts`) and the minimum time interval in between two consecutive error retries(`min_error_retry_delay`). Also you can set the `max_error_retry_attempts` using environment variable `AWS_MAX_ATTEMPTS`.
-
 
 ## Get Involved
 
 * Open source: https://github.com/turbot/steampipe-plugin-aws
 * Community: [Slack Channel](https://steampipe.io/community/join)
 
-
-
 ## Multi-Region Connections
+
 By default, AWS connections behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
 ```hcl
 connection "aws" {
@@ -138,10 +146,7 @@ The `region` argument supports wildcards:
 
 AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
 
-
-
 ## Multi-Account Connections
-
 
 You may create multiple aws connections:
 ```hcl
@@ -174,7 +179,6 @@ Alternatively, can use an unqualified name and it will be resolved according to 
 ```sql
 select * from aws_account
 ```
-
 
 You can multi-account connections by using an [**aggregator** connection](https://steampipe.io/docs/using-steampipe/managing-connections#using-aggregators).  Aggregators allow you to query data from multiple connections for a plugin as if they are a single connection:
 
@@ -212,6 +216,7 @@ Aggregators are powerful, but they are not infinitely scalable.  Like any other 
 You may specify a named profile from an AWS credential file with the `profile` argument.  A connection per profile, using named profiles is probably the most common configuration:
 
 #### aws credential file:
+
 ```ini
 [profile_y]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
@@ -224,6 +229,7 @@ aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 ```
 
 #### aws.spc:
+
 ```hcl
 connection "aws_account_y" {
   plugin      = "aws"
@@ -241,14 +247,14 @@ connection "aws_account_z" {
 Using named profiles allows Steampipe to work with your existing CLI configurations, including SSO and using role assumption.
 
 ### AWS SSO Credentials
+
 Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-auto) via AWS profiles however:
 - You must login to SSO (`aws sso login` ) before starting Steampipe
 - If your credentials expire, you will need to re-authenticate outside of Steampipe - Steampipe currently cannot re-authenticate you.
 
-
 #### aws credential file:
-```ini
 
+```ini
 [aws_000000000000]
 sso_start_url = https://d-9a672b0000.awsapps.com/start
 sso_region = us-east-2
@@ -274,6 +280,7 @@ connection "aws_000000000000" {
 If your aws credential file contains profiles that assume a role via the `source_profile` and `role_arn` options and MFA is not required, Steampipe can use the profile as-is:
 
 #### aws credential file:
+
 ```ini
 [cli-user]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
@@ -295,7 +302,6 @@ connection "role_aws" {
   regions = ["us-east-1", "us-east-2"]
 }
 ```
-
 
 ### AssumeRole Credentials (With MFA)
 
@@ -328,9 +334,11 @@ connection "aws_account_123456789012" {
 
 
 ### AWS-Vault Credentials
+
 Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (You must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA):
 
 #### aws credential file:
+
 ```bash
 [vault_user_account]
 credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile IN AWS_VAULT...
@@ -340,6 +348,7 @@ source_profile = vault_user_account
 role_arn =  arn:aws:iam::123456789012:role/my_role
 mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
 ```
+
 #### aws.spc:
 
 ```hcl
@@ -350,8 +359,8 @@ connection "aws_account_123456789012" {
 }
 ```
 
-
 ### IAM Access Key Pair Credentials
+
 The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.
 
 ```hcl
@@ -363,8 +372,8 @@ connection "aws_account_x" {
 }
 ```
 
-
 ### Credentials from Environment Variables
+
 The AWS plugin will use the standard AWS environment variables to obtain credentials **only if other arguments (`profile`, `access_key`/`secret_key`, `regions`) are not specified** in the connection:
 
 ```sh
