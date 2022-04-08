@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -286,7 +288,7 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 
 	// CloudControl returns GeneralServiceException, which appears to be retryable
 	// We deliberately reduce the number of retries to avoid long delays
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 8)
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 8, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
@@ -1772,16 +1774,47 @@ func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.Wo
 }
 
 func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
-	return getSessionWithMaxRetries(ctx, d, region, 9)
+	awsConfig := GetConfig(d.Connection)
+
+	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
+	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
+	// waiting too long to return results
+	maxRetries := 9
+	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+
+	// Set max retry count from config file or env variable (config file has precedence)
+	if awsConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsConfig.MaxErrorRetryAttempts
+	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
+		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
+		if err != nil || maxRetriesEnvVar < 1 {
+			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
+		}
+		maxRetries = maxRetriesEnvVar
+	}
+
+	// Set min delay time from config file
+	if awsConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	}
+
+	if maxRetries < 1 {
+		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+	if minRetryDelay < 1 {
+		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+
+	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 }
 
-func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int) (*session.Session, error) {
+func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
 	}
 
-	// If seesion was not in cache - create a session and save to cache
+	// If session was not in cache - create a session and save to cache
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
@@ -1790,12 +1823,9 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
-			Region: &region,
-			// As per the logic used in retryRules of NewConnectionErrRetryer with minimum delay of 25ms and maximum
-			// number of retries as 9 (our default), the maximum delay will not be more than approximately 3 minutes to avoid steampipe
-			// waiting too long to render result
+			Region:     &region,
 			MaxRetries: aws.Int(maxRetries),
-			Retryer:    NewConnectionErrRetryer(maxRetries, ctx),
+			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
 		},
 	}
 
@@ -1882,7 +1912,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	}
 
 	if len(invalidPatterns) > 0 {
-		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
+		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe.")
 	}
 
 	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
@@ -1899,14 +1929,13 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int, ctx context.Context) *ConnectionErrRetryer {
-	var minRetryDelay time.Duration = 25 * time.Millisecond
+func NewConnectionErrRetryer(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryer {
 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
 		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
-			MinRetryDelay: minRetryDelay, // Set default minimum retry delay to 25ms
+			MinRetryDelay: minRetryDelay, // Set minimum retry delay
 		},
 	}
 }
@@ -1962,6 +1991,13 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 
 	// Creates a new exponential backoff using the starting value of
 	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
-	// as example (23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s...) up to max.
-	return time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+	// For example, with a min delay time of 25ms: 23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s..., up to max.
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+
+	// Cap retry time at 5 minuets to avoid too long a wait
+	if retryTime > time.Duration(5*time.Minute) {
+		retryTime = time.Duration(5 * time.Minute)
+	}
+
+	return retryTime
 }
