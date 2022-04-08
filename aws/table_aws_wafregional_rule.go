@@ -29,24 +29,24 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name for the rule.",
+				Description: "The friendly name or description for the Rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "arn",
-				Description: "The name for the rule.",
+				Description: "Amazon Resource Name (ARN) of the Rule.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsWAFRegionalRuleAkas,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "rule_id",
-				Description: "The ID of the Rule.",
+				Description: "A unique identifier for a Rule.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "metric_name",
-				Description: "The name of the metric for the Rule.",
+				Description: "A friendly name or description for the metrics for this Rule.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsWAFRegionalRule,
 			},
