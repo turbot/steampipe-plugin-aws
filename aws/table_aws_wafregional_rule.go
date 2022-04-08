@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 
 	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
@@ -13,7 +14,7 @@ import (
 
 func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_waf_regional_rule",
+		Name:        "aws_wafregional_rule",
 		Description: "AWS WAF Regional Rule",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("rule_id"),
@@ -55,28 +56,14 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWAFRegionalRule,
 			},
-			// {
-			//  Name:        "tags_src",
-			//  Description: "A list of tags assigned to the Rule.",
-			//  Type:        proto.ColumnType_JSON,
-			//  Hydrate:     getAwsWAFRegionalRuleTags,
-			//  Transform:   transform.FromValue(),
-			//  // Transform:   transform.FromField("TagInfoForResource.TagList"),
-			// },
-			// Standard columns for all tables
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
-			// {
-			//  Name:        "tags",
-			//  Description: resourceInterfaceDescription("tags"),
-			//  Type:        proto.ColumnType_JSON,
-			//  Hydrate:     getAwsWAFRegionalRuleTags,
-			//  Transform:   transform.FromField("TagInfoForResource.TagList").Transform(wafRegionalRuleTagListToTurbotTags),
-			// },
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
@@ -96,10 +83,12 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+
 	// List call
 	params := &waf.ListRulesInput{
 		Limit: aws.Int64(100),
 	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	// Minimunm limit is 0
 	// https://docs.aws.amazon.com/waf/latest/APIReference/API_waf_ListRules.html
@@ -109,16 +98,16 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 			params.Limit = limit
 		}
 	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListRules(params)
 		if err != nil {
 			return nil, err
 		}
-		plugin.Logger(ctx).Trace("rules len : ", len(response.Rules))
 		for _, rule := range response.Rules {
 			d.StreamListItem(ctx, rule)
-			plugin.Logger(ctx).Trace("response : ", rule)
+			
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -131,6 +120,7 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 			pagesLeft = false
 		}
 	}
+
 	return nil, nil
 }
 
@@ -138,93 +128,56 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsWAFRegionalRule")
-	// region := d.
+
 	// Create Session
 	svc, err := WAFRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
+
 	var id string
 	if h.Item != nil {
 		id = regionalRuleData(h.Item)
 	} else {
 		id = d.KeyColumnQuals["rule_id"].GetStringValue()
 	}
+
 	// Build the params
 	param := &waf.GetRuleInput{
 		RuleId: aws.String(id),
 	}
+	
 	// Get call
 	data, err := svc.GetRule(param)
 	if err != nil {
-		return nil, nil
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "WAFNonexistentItemException" {
+				return nil, nil
+			}
+		}
+		return nil, err
 	}
+
 	return data.Rule, nil
 }
 
-// ListTagsForResource.NextMarker return empty string in API call
-// due to which pagination will not work properly
-// https://github.com/aws/aws-sdk-go/issues/3513
-// func getAwsWAFRegionalRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-//  plugin.Logger(ctx).Trace("getAwsWAFRuleTags")
-//  region := d.KeyColumnQualString(matrixKeyRegion)
-//  id := regionalRuleData(h.Item)
-//  commonAwsColumns, err := getCommonColumns(ctx, d, h)
-//  if err != nil {
-//      return nil, err
-//  }
-//  commonColumnData := commonAwsColumns.(*awsCommonColumnData)
-//  // Create Session
-//  svc, err := WAFRegionalService(ctx, d)
-//  if err != nil {
-//      return nil, err
-//  }
-//  aka := "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rule" + "/" + id
-//  // Build param with maximum limit set
-//  params := &waf.ListTagsForResourceInput{
-//      ResourceARN: &aka,
-//      Limit:       aws.Int64(100),
-//  }
-//  op, err := svc.ListTagsForResource(params)
-//  if err != nil {
-//      if strings.Contains(err.Error(), "WAFNonexistentItemException") {
-//          return nil, nil
-//      }
-//      return nil, err
-//  }
-//  return op.TagInfoForResource.TagList, nil
-// }
 func getAwsWAFRegionalRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWAFRuleAkas")
+	plugin.Logger(ctx).Trace("getAwsWAFRegionalRuleAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
+
 	commonColumnData := c.(*awsCommonColumnData)
 	aka := "arn:" + commonColumnData.Partition + ":waf-regional:" + region + ":" + commonColumnData.AccountId + ":rule" + "/" + id
+
 	return aka, nil
 }
 
-//// TRANSFORM FUNCTION
-// func wafRegionalRuleTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-//  plugin.Logger(ctx).Trace("tagListToTurbotTags")
-//  tagList := d.HydrateItem.(*waf.ListTagsForResourceOutput)
-//  if tagList.TagInfoForResource.TagList == nil {
-//      return nil, nil
-//  }
-//  // Mapping the resource tags inside turbotTags
-//  var turbotTagsMap map[string]string
-//  if tagList != nil {
-//      turbotTagsMap = map[string]string{}
-//      for _, i := range tagList.TagInfoForResource.TagList {
-//          turbotTagsMap[*i.Key] = *i.Value
-//      }
-//  }
-//  return turbotTagsMap, nil
-// }
 func regionalRuleData(item interface{}) string {
 	switch item := item.(type) {
 	case *waf.RuleSummary:
