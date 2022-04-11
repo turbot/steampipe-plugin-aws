@@ -8,7 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
 )
 
-func tableAwsCostByRecordTypetDaily(_ context.Context) *plugin.Table {
+func tableAwsCostByRecordTypeDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cost_by_record_type_daily",
 		Description: "AWS Cost Explorer - Cost by Record Type (Daily)",
