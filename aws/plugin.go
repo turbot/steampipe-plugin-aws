@@ -76,6 +76,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
 			"aws_cost_by_account_daily":                                    tableAwsCostByLinkedAccountDaily(ctx),
 			"aws_cost_by_account_monthly":                                  tableAwsCostByLinkedAccountMonthly(ctx),
+			"aws_cost_by_record_type_daily":                                tableAwsCostByRecordTypetDaily(ctx),
+			"aws_cost_by_record_type_monthly":                              tableAwsCostByRecordTypeMonthly(ctx),
 			"aws_cost_by_service_daily":                                    tableAwsCostByServiceDaily(ctx),
 			"aws_cost_by_service_monthly":                                  tableAwsCostByServiceMonthly(ctx),
 			"aws_cost_by_service_usage_type_daily":                         tableAwsCostByServiceUsageTypeDaily(ctx),
