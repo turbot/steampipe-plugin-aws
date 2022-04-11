@@ -25,8 +25,6 @@ order by
   period_start;
 ```
 
-
-
 ### Min, Max, and average monthly unblended_cost_amount by account and record type
 
 ```sql
