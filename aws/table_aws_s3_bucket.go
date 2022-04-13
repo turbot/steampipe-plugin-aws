@@ -67,6 +67,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Func:    getObjectLockConfiguration,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
+			{
+				Func:    getS3BucketEventNotificationConfigurations,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
 		},
 		Columns: awsS3Columns([]*plugin.Column{
 			{
@@ -135,6 +139,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("RestrictPublicBuckets"),
+			},
+			{
+				Name:        "event_notification_configuration",
+				Description: "A container for specifying the notification configuration of the bucket. If this element is empty, notifications are turned off for the bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getS3BucketEventNotificationConfigurations,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
@@ -289,6 +300,30 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 
 	return nil, err
+}
+
+func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getS3BucketEventNotificationConfigurations")
+	name := h.Item.(*s3.Bucket).Name
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create Session
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build param
+	input := &s3.GetBucketNotificationConfigurationRequest{
+		Bucket: name,
+	}
+
+	notificatiionDetails, err := svc.GetBucketNotificationConfiguration(input)
+	if err != nil {
+		plugin.Logger(ctx).Error("getS3BucketEventNotificationConfigurations", "GetBucketNotification", err)
+		return nil, err
+	}
+	return notificatiionDetails, nil
 }
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
