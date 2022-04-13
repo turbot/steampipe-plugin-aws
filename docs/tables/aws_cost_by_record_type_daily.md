@@ -1,4 +1,4 @@
-# Table: aws_cost_by_credit_type_daily
+# Table: aws_cost_by_record_type_daily
 
 Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_record_type_daily` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master) as per record types (fees, usage, costs, tax refunds, and credits), summarized by day, for the last year.  
 
