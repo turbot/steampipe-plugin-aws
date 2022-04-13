@@ -24,7 +24,7 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 
 				{
 					Name:        "linked_account_id",
-					Description: "The AWS Account ID.",
+					Description: "The linked AWS Account ID.",
 					Type:        proto.ColumnType_STRING,
 					Transform:   transform.FromField("Dimension1"),
 				},
