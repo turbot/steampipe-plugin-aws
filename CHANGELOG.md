@@ -1,3 +1,18 @@
+## v0.56.0 [2022-04-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_cost_by_record_type_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_record_type_daily) ([#950](https://github.com/turbot/steampipe-plugin-aws/pull/950))
+  - [aws_cost_by_record_type_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_record_type_monthly) ([#950](https://github.com/turbot/steampipe-plugin-aws/pull/950))
+  - [aws_wafregional_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafregional_rule) ([#931](https://github.com/turbot/steampipe-plugin-aws/pull/931))
+- Added optional config arguments `max_error_retry_attempts` and `min_error_retry_delay` to allow customization of the error retry timings. For more information please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration). ([#914](https://github.com/turbot/steampipe-plugin-aws/pull/914))
+
+_Enhancements_
+
+- Added column `event_notification_configuration` to `aws_s3_bucket` table. ([#946](https://github.com/turbot/steampipe-plugin-aws/pull/946))
+- Added column `login_profile` to `aws_iam_user` table. ([#947](https://github.com/turbot/steampipe-plugin-aws/pull/947))
+
 ## v0.55.0 [2022-04-06]
 
 _Enhancements_
