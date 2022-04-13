@@ -91,6 +91,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
 	"github.com/aws/aws-sdk-go/service/workspaces"
@@ -1703,6 +1704,30 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 		return nil, err
 	}
 	svc := waf.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// WAFRegionalService returns the service connection for AWS WAF Regional service
+func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
+	// have we already created and cached the service?
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed WAF Regional")
+	}
+	serviceCacheKey := "wafregional"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*wafregional.WAFRegional), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := wafregional.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
