@@ -10,8 +10,8 @@ _What's new?_
 
 _Enhancements_
 
-- Added column `event_notification_configuration` to `aws_s3_bucket` table ([#946](https://github.com/turbot/steampipe-plugin-aws/pull/946))
-- Added column `login_profile` to `aws_iam_user` table ([#947](https://github.com/turbot/steampipe-plugin-aws/pull/947))
+- Added column `event_notification_configuration` to `aws_s3_bucket` table. ([#946](https://github.com/turbot/steampipe-plugin-aws/pull/946))
+- Added column `login_profile` to `aws_iam_user` table. ([#947](https://github.com/turbot/steampipe-plugin-aws/pull/947))
 
 ## v0.55.0 [2022-04-06]
 
