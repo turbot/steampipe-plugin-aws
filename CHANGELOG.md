@@ -6,7 +6,7 @@ _What's new?_
   - [aws_cost_by_record_type_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_record_type_daily) ([#950](https://github.com/turbot/steampipe-plugin-aws/pull/950))
   - [aws_cost_by_record_type_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_record_type_monthly) ([#950](https://github.com/turbot/steampipe-plugin-aws/pull/950))
   - [aws_wafregional_rule](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_wafregional_rule) ([#931](https://github.com/turbot/steampipe-plugin-aws/pull/931))
-  - Added optional config arguments `max_error_retry_attempts` and `min_error_retry_delay` to allow customization of the error retry timings. For more information please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration). ([#914](https://github.com/turbot/steampipe-plugin-aws/pull/914))
+- Added optional config arguments `max_error_retry_attempts` and `min_error_retry_delay` to allow customization of the error retry timings. For more information please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration). ([#914](https://github.com/turbot/steampipe-plugin-aws/pull/914))
 
 _Enhancements_
 
