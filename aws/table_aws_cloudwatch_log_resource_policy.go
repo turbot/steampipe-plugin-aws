@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
@@ -100,7 +100,7 @@ func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData,
 		if resp.NextToken == nil {
 			break
 		}
-		
+
 		input.NextToken = resp.NextToken
 	}
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +24,7 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2GatewayLoadBalancer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2GatewayLoadBalancers,
+			Hydrate:           listEc2GatewayLoadBalancers,
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationError"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
@@ -150,7 +150,7 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	input := &elbv2.DescribeLoadBalancersInput{}
-	
+
 	if d.Quals["arn"] != nil {
 		arn := getQualsValueByColumn(d.Quals, "arn", "string")
 		val, ok := arn.(string)

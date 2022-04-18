@@ -6,10 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 )
 
 func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
