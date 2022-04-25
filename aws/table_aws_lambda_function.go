@@ -92,6 +92,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.Version", "Version"),
 			},
 			{
+				Name: "packagetype",
+				Description: "The type of deployment package.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.PackageType", "PackageType"),
+			},
+			{
 				Name:        "master_arn",
 				Description: "For Lambda@Edge functions, the ARN of the master function.",
 				Type:        proto.ColumnType_STRING,
