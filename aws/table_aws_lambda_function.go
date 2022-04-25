@@ -92,7 +92,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.Version", "Version"),
 			},
 			{
-				Name: "packagetype",
+				Name:        "package_type",
 				Description: "The type of deployment package.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Configuration.PackageType", "PackageType"),
