@@ -42,7 +42,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17
+          go-version: 1.18
 
       - name: Get latest version tag
         run: |-
@@ -105,40 +105,18 @@ jobs:
           path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_darwin_amd64.gz
           if-no-files-found: error
 
-  # test-amd64:
-  #   name: Integration Test
-  #   runs-on: ${{ matrix.os }}
-  #   needs: build
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest, macos-latest, windows-latest]
-  #   steps:
-
-  # test-darwin-amd64:
-  #   name: Test MacOS (AMD64)
-  #   runs-on: macos-latest
-  #   needs: build
-
-  # test-linux-amd64:
-  #   name: Test Linux (AMD64)
-  #   runs-on: ubuntu-latest
-  #   needs: build
-
-  # test-windows-amd64:
-  #   name: Test Windows (AMD64)
-  #   runs-on: windows-latest
-  #   needs: build
-
-  # There are no runners for amd64 - would need to run our own...
+      - name: Save MacOS Build Artifact - ARM64
+        uses: actions/upload-artifact@v2
+        with:
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_arm64
+          path: ./dist/steampipe-plugin-${{ env.PLUGIN_NAME }}_darwin_arm64.gz
+          if-no-files-found: error
 
   publish-deploy:
     name: Publish and Deploy
     runs-on: ubuntu-latest
     needs:
       - build
-      # - test-darwin-amd64
-      # - test-linux-amd64
-      # - test-windows-amd64
 
     steps:
       - name: Checkout
@@ -181,6 +159,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: steampipe-${{ env.PLUGIN_NAME }}_darwin_amd64
+
+      - name: Download darwin_arm64 artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: steampipe-${{ env.PLUGIN_NAME }}_darwin_arm64
 
       - name: List files
         run: ls -l
@@ -253,6 +236,7 @@ jobs:
             --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
             --manifest-annotations annotations.json \
             steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
+            steampipe-plugin-${PLUGIN_NAME}_darwin_arm64.gz:application/vnd.turbot.steampipe.plugin.darwin-arm64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_linux_arm64.gz:application/vnd.turbot.steampipe.plugin.linux-arm64.layer.v1+gzip \
             docs:application/vnd.turbot.steampipe.plugin.docs.layer.v1+tar \
