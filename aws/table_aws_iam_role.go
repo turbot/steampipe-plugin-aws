@@ -24,45 +24,23 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
-			Hydrate:           getIamRole,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			Hydrate:    getIamRole,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
+			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listIamRoles,
-			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			Hydrate: listIamRoles,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamRoleInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
-			},
-		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:              getIamRole,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamInstanceProfileData,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamRoleAttachedPolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              listAwsIamRoleInlinePolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamRoleInlinePolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-		},
+			}},
 		Columns: awsColumns([]*plugin.Column{
 			// "Key" Columns
 			{

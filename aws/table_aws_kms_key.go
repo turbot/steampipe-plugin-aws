@@ -20,35 +20,14 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 		Name:        "aws_kms_key",
 		Description: "AWS KMS Key",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter", "AccessDeniedException"}),
-			Hydrate:           getKmsKey,
-		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:              getAwsKmsKeyData,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
-			},
-			{
-				Func:              getAwsKmsKeyPolicy,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
-			},
-			{
-				Func:              getAwsKmsKeyRotationStatus,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
-			},
-			{
-				Func:              getAwsKmsKeyTagging,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
-			},
-			{
-				Func:              getAwsKmsKeyAliases,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getKmsKey,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException", "InvalidParameter", "AccessDeniedException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listKmsKeys,
-			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDeniedException"}),
+			Hydrate: listKmsKeys,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

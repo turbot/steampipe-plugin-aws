@@ -19,8 +19,7 @@ func tableAwsAccount(ctx context.Context) *plugin.Table {
 		Name:        "aws_account",
 		Description: "AWS Account",
 		List: &plugin.ListConfig{
-			Hydrate:           listAccountAlias,
-			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			Hydrate: listAccountAlias,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{

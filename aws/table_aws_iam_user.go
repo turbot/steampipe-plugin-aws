@@ -23,47 +23,22 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
-			Hydrate:           getIamUser,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationError", "NoSuchEntity", "InvalidParameter", "AccessDenied"}),
+			},
+			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listIamUsers,
-			ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
+			Hydrate: listIamUsers,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamUserInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
-			},
-		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:              getAwsIamUserData,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamUserAttachedPolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamUserGroups,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamUserMfaDevices,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              listAwsIamUserInlinePolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
-			},
-			{
-				Func:              getAwsIamUserInlinePolicies,
-				ShouldIgnoreError: ignoreAccessDeniedError(ctx, []string{"AccessDenied"}),
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{

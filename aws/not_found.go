@@ -22,18 +22,31 @@ func ignoreAccessDeniedError(ctx context.Context, AccessDeniedErrors []string) p
 	// if
 	return func(err error) bool {
 		if awsErr, ok := err.(awserr.Error); ok {
-			plugin.Logger(ctx).Info("shouldIgnoreError", "AWS Error CODE", awsErr.Code())
+			// plugin.Logger(ctx).Info("shouldIgnoreError", "AWS Error CODE", awsErr.Code())
 			return helpers.StringSliceContains(AccessDeniedErrors, awsErr.Code())
 		}
 		return false
 	}
 }
 
-func shouldIgnoreErrorTableDefault(AccessDeniedErrors []string) plugin.ErrorPredicateWithContext {
+func shouldIgnoreErrorTableDefault(IgnoreErrors []string) plugin.ErrorPredicateWithContext {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+		awsConfig := GetConfig(d.Connection)
+		if awsConfig.IgnoreAccessDeniedErrors == nil || (awsConfig.IgnoreAccessDeniedErrors != nil && !*awsConfig.IgnoreAccessDeniedErrors) {
+			return false
+		}
+		if awsErr, ok := err.(awserr.Error); ok {
+			plugin.Logger(ctx).Info("shouldIgnoreErrorTableDefault", "AWS Error CODE", awsErr.Code())
+			return helpers.StringSliceContains(IgnoreErrors, awsErr.Code())
+		}
+		return false
+	}
+}
+func isNotFoundErrorWithContext(IgnoreErrors []string) plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		if awsErr, ok := err.(awserr.Error); ok {
-			plugin.Logger(ctx).Info("shouldIgnoreError", "AWS Error CODE", awsErr.Code())
-			return helpers.StringSliceContains(AccessDeniedErrors, awsErr.Code())
+			// plugin.Logger(ctx).Info("isNotFoundErrorWithContext", "AWS Error CODE", awsErr.Code())
+			return helpers.StringSliceContains(IgnoreErrors, awsErr.Code())
 		}
 		return false
 	}
