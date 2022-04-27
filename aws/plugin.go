@@ -23,6 +23,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultGetConfig: &plugin.GetConfig{
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
 		},
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault([]string{}),
+		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
 			Schema:      ConfigSchema,

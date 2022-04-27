@@ -12,6 +12,7 @@ type awsConfig struct {
 	SecretKey                *string  `cty:"secret_key"`
 	SessionToken             *string  `cty:"session_token"`
 	IgnoreAccessDeniedErrors *string  `cty:"ignore_access_denied_errors"`
+	AccessDeniedErrors       []string `cty:"access_denied_errors"`
 	MaxErrorRetryAttempts    *int     `cty:"max_error_retry_attempts"`
 	MinErrorRetryDelay       *int     `cty:"min_error_retry_delay"`
 }
@@ -34,6 +35,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 		Type: schema.TypeString,
 	},
 	"ignore_access_denied_errors": {
+		Type: schema.TypeBool,
+	},
+	"access_denied_errors": {
 		Type: schema.TypeBool,
 	},
 	"max_error_retry_attempts": {

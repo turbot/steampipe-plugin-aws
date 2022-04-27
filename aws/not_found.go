@@ -19,8 +19,18 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicate {
 }
 
 func ignoreAccessDeniedError(ctx context.Context, AccessDeniedErrors []string) plugin.ErrorPredicate {
-	// if 
+	// if
 	return func(err error) bool {
+		if awsErr, ok := err.(awserr.Error); ok {
+			plugin.Logger(ctx).Info("shouldIgnoreError", "AWS Error CODE", awsErr.Code())
+			return helpers.StringSliceContains(AccessDeniedErrors, awsErr.Code())
+		}
+		return false
+	}
+}
+
+func shouldIgnoreErrorTableDefault(AccessDeniedErrors []string) plugin.ErrorPredicateWithContext {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		if awsErr, ok := err.(awserr.Error); ok {
 			plugin.Logger(ctx).Info("shouldIgnoreError", "AWS Error CODE", awsErr.Code())
 			return helpers.StringSliceContains(AccessDeniedErrors, awsErr.Code())
