@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,7 +22,7 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 			Hydrate:           getVpcVpnConnection,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listVpcVpnConnections,
+			Hydrate:           listVpcVpnConnections,
 			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "customer_gateway_configuration", Require: plugin.Optional},

@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -90,6 +90,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Description: "The version of the Lambda function.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Configuration.Version", "Version"),
+			},
+			{
+				Name:        "package_type",
+				Description: "The type of deployment package.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.PackageType", "PackageType"),
 			},
 			{
 				Name:        "master_arn",
@@ -253,6 +259,11 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
 			for _, function := range page.Functions {
 				d.StreamListItem(ctx, function)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plugin.Table {
@@ -158,6 +158,11 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 		func(page *serverlessapplicationrepository.ListApplicationsOutput, lastPage bool) bool {
 			for _, application := range page.Applications {
 				d.StreamListItem(ctx, application)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -209,7 +214,7 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 				return nil, errors.New("Unauthorized or InvalidFormat")
 			}
 		}
-		
+
 		return nil, err
 	}
 

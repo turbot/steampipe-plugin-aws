@@ -1,8 +1,8 @@
 package aws
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/schema"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/schema"
 )
 
 type awsConfig struct {
@@ -12,6 +12,8 @@ type awsConfig struct {
 	SecretKey                *string  `cty:"secret_key"`
 	SessionToken             *string  `cty:"session_token"`
 	IgnoreAccessDeniedErrors *string  `cty:"ignore_access_denied_errors"`
+	MaxErrorRetryAttempts    *int     `cty:"max_error_retry_attempts"`
+	MinErrorRetryDelay       *int     `cty:"min_error_retry_delay"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -33,6 +35,12 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"ignore_access_denied_errors": {
 		Type: schema.TypeBool,
+	},
+	"max_error_retry_attempts": {
+		Type: schema.TypeInt,
+	},
+	"min_error_retry_delay": {
+		Type: schema.TypeInt,
 	},
 }
 

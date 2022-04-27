@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3control"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -162,7 +162,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["bucket_name"] != nil {
-		if equalQuals["bucket_name"].GetStringValue() != ""{
+		if equalQuals["bucket_name"].GetStringValue() != "" {
 			input.Bucket = aws.String(equalQuals["bucket_name"].GetStringValue())
 		}
 	}
@@ -172,7 +172,7 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
 			// Minimum limit is 0 as per the doc https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_ListAccessPoints.html#API_control_ListAccessPoints_RequestSyntax
-			input.MaxResults = limit 
+			input.MaxResults = limit
 		}
 	}
 

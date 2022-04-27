@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpc(_ context.Context) *plugin.Table {
@@ -315,7 +315,7 @@ func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.Key
 			case "time":
 				val, ok := value.(time.Time)
 				if ok {
-					v := val.Format(time.RFC3339) 
+					v := val.Format(time.RFC3339)
 					filter.Values = []*string{&v}
 				} else {
 					filter.Values = value.([]*string)

@@ -38,7 +38,8 @@ select
   name,
   standards_arn,
   standards_subscription_arn,
-  standards_status
+  standards_status,
+  standards_status_reason_code
 from
   aws_securityhub_standards_subscription
 where

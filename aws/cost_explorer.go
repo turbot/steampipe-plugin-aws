@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 // AllCostMetrics is a constant returning all the cost metrics
@@ -136,7 +136,6 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	if err != nil {
 		return nil, err
 	}
-
 	// List call
 	for {
 		output, err := svc.GetCostAndUsage(params)
@@ -148,6 +147,10 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		// stream the results...
 		for _, row := range buildCEMetricRows(ctx, output, d.KeyColumnQuals) {
 			d.StreamListItem(ctx, row)
+
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		// get more pages if there are any...

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
@@ -247,6 +247,11 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 		func(page *ec2.DescribeSecurityGroupRulesOutput, isLast bool) bool {
 			for _, securityGroupRule := range page.SecurityGroupRules {
 				d.StreamListItem(ctx, securityGroupRule)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -386,9 +391,9 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 	// Create a unique AKA
 	hashCode := "_" + *sgRule.IpProtocol
 	if *sgRule.IsEgress {
-		hashCode = "ingress" + hashCode
-	} else {
 		hashCode = "egress" + hashCode
+	} else {
+		hashCode = "ingress" + hashCode
 	}
 
 	if sgRule.FromPort != nil {

@@ -14,8 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
@@ -139,7 +139,10 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 			if q.Value.GetStringValue() != "" {
 				value = q.Value.GetStringValue()
 			} else {
-				value = getListValues(q.Value.GetListValue())
+				valList := getListValues(q.Value.GetListValue())
+				if len(valList) > 0 {
+					value = valList
+				}
 			}
 		}
 		if dataType == "boolean" {

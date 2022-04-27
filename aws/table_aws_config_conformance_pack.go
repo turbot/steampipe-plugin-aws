@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
@@ -100,7 +100,18 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	input := &configservice.DescribeConformancePacksInput{}
+	input := &configservice.DescribeConformancePacksInput{
+		Limit: aws.Int64(20),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			input.Limit = limit
+		}
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

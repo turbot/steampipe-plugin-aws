@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -89,6 +90,13 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Name:        "image_scanning_configuration",
 				Description: "The image scanning configuration for a repository.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "image_scanning_findings",
+				Description: "Scan findings for an image.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEcrDescribeImageScanningFindings,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "lifecycle_policy",
@@ -305,6 +313,77 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	return op, nil
+}
+
+func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getAwsEcrDescribeImageScanningFindings")
+
+	getAwsEcrDescribeImageDetails := plugin.HydrateFunc(getAwsEcrDescribeImages)
+	imageDetails, err := getAwsEcrDescribeImageDetails(ctx, d, h)
+	if err != nil {
+		logger.Error("getAwsEcrDescribeImageScanningFindings", "getAwsEcrDescribeImageDetails", err)
+		return nil, err
+	}
+	images := imageDetails.(*ecr.DescribeImagesOutput)
+
+	svc, err := EcrService(ctx, d)
+	if err != nil {
+		logger.Error("getAwsEcrDescribeImageScanningFindings", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	// As per doc the max result value can be between 1-1000 but as per testing it returns only 100 result per page
+	params := &ecr.DescribeImageScanFindingsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	var result []ecr.DescribeImageScanFindingsOutput
+
+	for _, image := range images.ImageDetails {
+		var scanningDetails *ecr.DescribeImageScanFindingsOutput
+
+		params.RepositoryName = image.RepositoryName
+		params.ImageId = &ecr.ImageIdentifier{
+			ImageDigest: image.ImageDigest,
+		}
+
+		err = svc.DescribeImageScanFindingsPages(
+			params,
+			func(page *ecr.DescribeImageScanFindingsOutput, isLast bool) bool {
+				if scanningDetails != nil {
+					if *scanningDetails.ImageId.ImageDigest == *image.ImageDigest {
+						if scanningDetails.ImageScanFindings.EnhancedFindings != nil {
+							scanningDetails.ImageScanFindings.EnhancedFindings = append(scanningDetails.ImageScanFindings.EnhancedFindings, page.ImageScanFindings.EnhancedFindings...)
+						} else if scanningDetails.ImageScanFindings.Findings != nil {
+							scanningDetails.ImageScanFindings.Findings = append(scanningDetails.ImageScanFindings.Findings, page.ImageScanFindings.Findings...)
+						}
+					}
+					for k, v := range page.ImageScanFindings.FindingSeverityCounts {
+						scanningDetails.ImageScanFindings.FindingSeverityCounts[k] = aws.Int64(*v + *scanningDetails.ImageScanFindings.FindingSeverityCounts[k])
+					}
+				} else {
+					scanningDetails = page
+				}
+				return !isLast
+			},
+		)
+
+		if err != nil {
+			if strings.Contains(err.Error(), "ScanNotFoundException") {
+				return result, nil
+			}
+			logger.Error("getAwsEcrDescribeImageScanningFindings", "DescribeImageScanFindingsPages", err)
+			return nil, err
+		}
+
+		if scanningDetails != nil {
+			result = append(result, *scanningDetails)
+		}
+	}
+
+	return result, nil
 }
 
 func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

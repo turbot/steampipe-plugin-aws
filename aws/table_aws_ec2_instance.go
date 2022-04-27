@@ -7,12 +7,12 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -706,8 +706,12 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 func getListValues(listValue *proto.QualValueList) []*string {
 	values := make([]*string, 0)
-	for _, value := range listValue.Values {
-		values = append(values, types.String(value.GetStringValue()))
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, types.String(value.GetStringValue()))
+			}
+		}
 	}
 	return values
 }

@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssoadmin"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
@@ -75,7 +75,7 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 	params := &ssoadmin.ListManagedPoliciesInPermissionSetInput{
 		InstanceArn:      aws.String(instanceArn),
 		PermissionSetArn: aws.String(permissionSetArn),
-		MaxResults: aws.Int64(100),
+		MaxResults:       aws.Int64(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

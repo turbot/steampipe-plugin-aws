@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsS3Bucket(_ context.Context) *plugin.Table {
@@ -65,6 +65,10 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Func:    getObjectLockConfiguration,
+				Depends: []plugin.HydrateFunc{getBucketLocation},
+			},
+			{
+				Func:    getS3BucketEventNotificationConfigurations,
 				Depends: []plugin.HydrateFunc{getBucketLocation},
 			},
 		},
@@ -135,6 +139,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getBucketPublicAccessBlock,
 				Transform:   transform.FromField("RestrictPublicBuckets"),
+			},
+			{
+				Name:        "event_notification_configuration",
+				Description: "A container for specifying the notification configuration of the bucket. If this element is empty, notifications are turned off for the bucket.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getS3BucketEventNotificationConfigurations,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
@@ -291,6 +302,30 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	return nil, err
 }
 
+func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getS3BucketEventNotificationConfigurations")
+	name := h.Item.(*s3.Bucket).Name
+	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
+
+	// Create Session
+	svc, err := S3Service(ctx, d, *location.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build param
+	input := &s3.GetBucketNotificationConfigurationRequest{
+		Bucket: name,
+	}
+
+	notificatiionDetails, err := svc.GetBucketNotificationConfiguration(input)
+	if err != nil {
+		plugin.Logger(ctx).Error("getS3BucketEventNotificationConfigurations", "GetBucketNotification", err)
+		return nil, err
+	}
+	return notificatiionDetails, nil
+}
+
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketLocation")
 	bucket := h.Item.(*s3.Bucket)
@@ -308,17 +343,23 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	// Specifies the Region where the bucket resides. For a list of all the Amazon
 	// S3 supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region).
-
 	location, err := svc.GetBucketLocation(params)
 	if err != nil {
 		return nil, err
 	}
 
 	if location != nil && location.LocationConstraint != nil {
+		// Buckets in eu-west-1 created through the AWS CLI or other API driven methods can return a location of "EU",
+		// so we need to convert back
+		if *location.LocationConstraint == "EU" {
+			return &s3.GetBucketLocationOutput{
+				LocationConstraint: aws.String("eu-west-1"),
+			}, nil
+		}
 		return location, nil
 	}
 
-	// Buckets in Region us-east-1 have a LocationConstraint of null.
+	// Buckets in us-east-1 have a LocationConstraint of null
 	return &s3.GetBucketLocationOutput{
 		LocationConstraint: aws.String("us-east-1"),
 	}, nil

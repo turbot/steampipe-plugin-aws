@@ -9,10 +9,11 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -116,6 +117,13 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsIamUserMfaDevices,
 				Transform:   transform.From(userMfaStatus),
+			},
+			{
+				Name:        "login_profile",
+				Description: "Contains the user name and password create date for a user.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserLoginProfile,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "mfa_devices",
@@ -256,6 +264,35 @@ func getIamUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	}
 
 	return op.User, nil
+}
+
+func getAwsIamUserLoginProfile(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsIamUserLoginProfile")
+
+	name := h.Item.(*iam.User).UserName
+
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.GetLoginProfileInput{
+		UserName: name,
+	}
+
+	op, err := svc.GetLoginProfile(params)
+	if err != nil {
+		// If the user does not exist or does not have a password, the operation returns a 404 (NoSuchEntity) error.
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "NoSuchEntity" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+
+	return op.LoginProfile, nil
 }
 
 func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

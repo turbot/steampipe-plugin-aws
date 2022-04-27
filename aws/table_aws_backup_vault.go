@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -134,6 +134,11 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		func(page *backup.ListBackupVaultsOutput, lastPage bool) bool {
 			for _, vault := range page.BackupVaultList {
 				d.StreamListItem(ctx, vault)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

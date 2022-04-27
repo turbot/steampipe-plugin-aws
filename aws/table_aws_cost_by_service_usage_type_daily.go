@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
@@ -14,6 +14,10 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service and Usage Type (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageDaily,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -37,6 +41,6 @@ func tableAwsCostByServiceUsageTypeDaily(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByServiceAndUsageDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceAndUsageInput("DAILY")
+	params := buildCostByServiceAndUsageInput("DAILY", d)
 	return streamCostAndUsage(ctx, d, params)
 }

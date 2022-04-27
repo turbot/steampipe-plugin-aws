@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -18,7 +18,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Description: "AWS EBS Snapshot",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("snapshot_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed"}),
+			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
 			Hydrate:           getAwsEBSSnapshot,
 		},
 		List: &plugin.ListConfig{
@@ -275,7 +275,6 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	if err != nil {
 		return nil, err
 	}
-
 
 	// Build params
 	params := &ec2.DescribeSnapshotAttributeInput{

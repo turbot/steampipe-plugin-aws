@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -66,6 +66,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudwatch_log_metric_filter":                             tableAwsCloudwatchLogMetricFilter(ctx),
 			"aws_cloudwatch_log_resource_policy":                           tableAwsCloudwatchLogResourcePolicy(ctx),
 			"aws_cloudwatch_log_stream":                                    tableAwsCloudwatchLogStream(ctx),
+			"aws_cloudwatch_metric":                                        tableAwsCloudWatchMetric(ctx),
 			"aws_codebuild_project":                                        tableAwsCodeBuildProject(ctx),
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
@@ -75,6 +76,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
 			"aws_cost_by_account_daily":                                    tableAwsCostByLinkedAccountDaily(ctx),
 			"aws_cost_by_account_monthly":                                  tableAwsCostByLinkedAccountMonthly(ctx),
+			"aws_cost_by_record_type_daily":                                tableAwsCostByRecordTypeDaily(ctx),
+			"aws_cost_by_record_type_monthly":                              tableAwsCostByRecordTypeMonthly(ctx),
 			"aws_cost_by_service_daily":                                    tableAwsCostByServiceDaily(ctx),
 			"aws_cost_by_service_monthly":                                  tableAwsCostByServiceMonthly(ctx),
 			"aws_cost_by_service_usage_type_daily":                         tableAwsCostByServiceUsageTypeDaily(ctx),
@@ -167,6 +170,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_fsx_file_system":                                          tableAwsFsxFileSystem(ctx),
 			"aws_glacier_vault":                                            tableAwsGlacierVault(ctx),
 			"aws_glue_catalog_database":                                    tableAwsGlueCatalogDatabase(ctx),
+			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
 			"aws_guardduty_ipset":                                          tableAwsGuardDutyIPSet(ctx),
@@ -205,6 +209,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
+			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
@@ -251,6 +256,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_securityhub_product":                                      tableAwsSecurityhubProduct(ctx),
 			"aws_securityhub_standards_subscription":                       tableAwsSecurityHubStandardsSubscription(ctx),
 			"aws_serverlessapplicationrepository_application":              tableAwsServerlessApplicationRepositoryApplication(ctx),
+			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
+			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
+			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
@@ -289,6 +297,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_vpn_connection":                                       tableAwsVpcVpnConnection(ctx),
 			"aws_vpc_vpn_gateway":                                          tableAwsVpcVpnGateway(ctx),
 			"aws_waf_rate_based_rule":                                      tableAwsWafRateBasedRule(ctx),
+			"aws_wafregional_rule":                                         tableAwsWAFRegionalRule(ctx),
 			"aws_waf_rule":                                                 tableAwsWAFRule(ctx),
 			"aws_wafv2_ip_set":                                             tableAwsWafv2IpSet(ctx),
 			"aws_wafv2_regex_pattern_set":                                  tableAwsWafv2RegexPatternSet(ctx),

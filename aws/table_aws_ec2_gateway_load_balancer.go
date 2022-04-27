@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -24,7 +24,8 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 			Hydrate:           getEc2GatewayLoadBalancer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listEc2GatewayLoadBalancers,
+			Hydrate:           listEc2GatewayLoadBalancers,
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationError"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
 			},
@@ -148,23 +149,30 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	input := &elbv2.DescribeLoadBalancersInput{
-		PageSize: aws.Int64(400),
-	}
+	input := &elbv2.DescribeLoadBalancersInput{}
 
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["arn"] != nil {
-		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetJsonbValue())}
-	}
+	if d.Quals["arn"] != nil {
+		arn := getQualsValueByColumn(d.Quals, "arn", "string")
+		val, ok := arn.(string)
+		if ok {
+			input.LoadBalancerArns = []*string{aws.String(val)}
+		} else {
+			valSlice := arn.([]*string)
+			input.LoadBalancerArns = valSlice
+		}
+	} else {
+		// Pagination is not supported when specifying load balancers
+		input.PageSize = aws.Int64(400)
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.PageSize {
-			if *limit < 1 {
-				input.PageSize = aws.Int64(1)
-			} else {
-				input.PageSize = limit
+		// Limiting the results
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < *input.PageSize {
+				if *limit < 1 {
+					input.PageSize = aws.Int64(1)
+				} else {
+					input.PageSize = limit
+				}
 			}
 		}
 	}

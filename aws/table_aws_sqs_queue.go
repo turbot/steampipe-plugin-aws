@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -78,6 +78,13 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.ReceiveMessageWaitTimeSeconds"),
 			},
 			{
+				Name:        "sqs_managed_sse_enabled",
+				Description: "Returns true if the queue is using SSE-SQS encryption with SQS-owned encryption keys.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getQueueAttributes,
+				Transform:   transform.FromField("Attributes.SqsManagedSseEnabled"),
+			},
+			{
 				Name:        "visibility_timeout_seconds",
 				Description: "The visibility timeout for the queue in seconds.",
 				Type:        proto.ColumnType_STRING,
@@ -115,7 +122,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "kms_master_key_id",
-				Description: "the ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK.",
+				Description: "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.KmsMasterKeyId"),

@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -20,12 +20,12 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Network Load Balancer",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
 			Hydrate:           getEc2NetworkLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate:           listEc2NetworkLoadBalancers,
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",

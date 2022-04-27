@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -208,7 +208,18 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Build the params
-	input := &directoryservice.DescribeDirectoriesInput{}
+	input := &directoryservice.DescribeDirectoriesInput{
+		Limit: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			input.Limit = limit
+		}
+	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals

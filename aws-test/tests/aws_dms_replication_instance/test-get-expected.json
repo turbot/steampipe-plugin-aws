@@ -23,6 +23,7 @@
     "tags_src": [
       {
         "Key": "foo",
+        "ResourceArn": null,
         "Value": "bar"
       }
     ],

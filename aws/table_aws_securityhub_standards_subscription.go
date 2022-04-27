@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -47,6 +47,13 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 				Description: "The status of the standard subscription.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     GetEnabledStandards,
+			},
+			{
+				Name:        "standards_status_reason_code",
+				Description: "The reason code that represents the reason for the current status of a standard subscription.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     GetEnabledStandards,
+				Transform:   transform.FromField("StandardsStatusReason.StatusReasonCode"),
 			},
 			{
 				Name:        "standards_subscription_arn",

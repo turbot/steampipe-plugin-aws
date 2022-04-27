@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -59,6 +59,13 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getDynamboDbTable,
 				Transform:   transform.FromField("CreationDateTime"),
+			},
+			{
+				Name:        "table_class",
+				Description: "The table class of the specified table. Valid values are STANDARD and STANDARD_INFREQUENT_ACCESS.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getDynamboDbTable,
+				Transform:   transform.FromField("TableClassSummary.TableClass"),
 			},
 			{
 				Name:        "table_status",
