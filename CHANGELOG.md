@@ -1,3 +1,11 @@
+## v0.57.0 [2022-04-27]
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v3.1.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v310--2022-03-30) and Go version `1.18`. ([#953](https://github.com/turbot/steampipe-plugin-aws/pull/953))
+- Added support for native Linux ARM and Mac M1 builds. ([#958](https://github.com/turbot/steampipe-plugin-aws/pull/958))
+- Added column `package_type` to `aws_lambda_function` table. ([#956](https://github.com/turbot/steampipe-plugin-aws/pull/956))
+
 ## v0.56.0 [2022-04-13]
 
 _What's new?_
