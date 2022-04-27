@@ -18,9 +18,11 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_assessment",
 		Description: "AWS Audit Manager Assessment",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsAuditManagerAssessment,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsAuditManagerAssessment,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAuditManagerAssessments,

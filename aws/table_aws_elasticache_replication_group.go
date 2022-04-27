@@ -18,9 +18,11 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_replication_group",
 		Description: "AWS ElastiCache Replication Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("replication_group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheReplicationGroup,
+			KeyColumns: plugin.SingleColumn("replication_group_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReplicationGroups,

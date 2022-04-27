@@ -17,9 +17,11 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc",
 		Description: "AWS VPC",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpc_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
-			Hydrate:           getVpc,
+			KeyColumns: plugin.SingleColumn("vpc_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
+			},
+			Hydrate: getVpc,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,

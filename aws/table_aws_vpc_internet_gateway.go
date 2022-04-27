@@ -15,9 +15,11 @@ func tableAwsVpcInternetGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_internet_gateway",
 		Description: "AWS VPC Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("internet_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
-			Hydrate:           getVpcInternetGateway,
+			KeyColumns: plugin.SingleColumn("internet_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidInternetGatewayID.NotFound", "InvalidInternetGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcInternetGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcInternetGateways,

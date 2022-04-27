@@ -18,9 +18,11 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ssl_policy",
 		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"SSLPolicyNotFound"}),
-			Hydrate:           getEc2SslPolicy,
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"SSLPolicyNotFound"}),
+			},
+			Hydrate: getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,

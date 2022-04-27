@@ -17,9 +17,11 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_model",
 		Description: "AWS Sagemaker Model",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerModel,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerModel,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerModels,

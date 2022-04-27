@@ -19,7 +19,9 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 		Description: "AWS GuardDuty IPSet",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"detector_id", "ipset_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+				},
 			Hydrate:           getAwsGuardDutyIPSet,
 		},
 		List: &plugin.ListConfig{

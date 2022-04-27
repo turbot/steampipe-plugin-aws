@@ -32,7 +32,7 @@ func ignoreAccessDeniedError(ctx context.Context, AccessDeniedErrors []string) p
 func shouldIgnoreErrorTableDefault(IgnoreErrors []string) plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		awsConfig := GetConfig(d.Connection)
-		if awsConfig.IgnoreAccessDeniedErrors == nil || (awsConfig.IgnoreAccessDeniedErrors != nil && !*awsConfig.IgnoreAccessDeniedErrors) {
+		if awsConfig.ShouldIgnoreErrors == nil || (awsConfig.ShouldIgnoreErrors != nil && !*awsConfig.ShouldIgnoreErrors) {
 			return false
 		}
 		if awsErr, ok := err.(awserr.Error); ok {

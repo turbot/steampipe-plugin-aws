@@ -18,9 +18,11 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_cluster",
 		Description: "AWS RDS DB Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_cluster_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
-			Hydrate:           getRDSDBCluster,
+			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"DBClusterNotFoundFault"}),
+			},
+			Hydrate: getRDSDBCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,

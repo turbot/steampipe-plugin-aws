@@ -17,9 +17,11 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_firehose_delivery_stream",
 		Description: "AWS Kinesis Firehose Delivery Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("delivery_stream_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           describeFirehoseDeliveryStream,
+			KeyColumns: plugin.SingleColumn("delivery_stream_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: describeFirehoseDeliveryStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFirehoseDeliveryStreams,

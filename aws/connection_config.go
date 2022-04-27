@@ -6,15 +6,14 @@ import (
 )
 
 type awsConfig struct {
-	Regions                  []string `cty:"regions"`
-	Profile                  *string  `cty:"profile"`
-	AccessKey                *string  `cty:"access_key"`
-	SecretKey                *string  `cty:"secret_key"`
-	SessionToken             *string  `cty:"session_token"`
-	IgnoreAccessDeniedErrors *bool    `cty:"ignore_access_denied_errors"`
-	AccessDeniedErrorsList   []string `cty:"access_denied_errors_list"` // To extend the list of access denied errors handling
-	MaxErrorRetryAttempts    *int     `cty:"max_error_retry_attempts"`
-	MinErrorRetryDelay       *int     `cty:"min_error_retry_delay"`
+	Regions               []string `cty:"regions"`
+	Profile               *string  `cty:"profile"`
+	AccessKey             *string  `cty:"access_key"`
+	SecretKey             *string  `cty:"secret_key"`
+	SessionToken          *string  `cty:"session_token"`
+	ShouldIgnoreErrors    *bool    `cty:"should_ignore_errors"`
+	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
+	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -34,12 +33,8 @@ var ConfigSchema = map[string]*schema.Attribute{
 	"session_token": {
 		Type: schema.TypeString,
 	},
-	"ignore_access_denied_errors": {
+	"should_ignore_errors": {
 		Type: schema.TypeBool,
-	},
-	"access_denied_errors_list": {
-		Type: schema.TypeList,
-		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
 	"max_error_retry_attempts": {
 		Type: schema.TypeInt,

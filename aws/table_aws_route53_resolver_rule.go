@@ -18,9 +18,11 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_resolver_rule",
 		Description: "AWS Route53 Resolver Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsRoute53ResolverRule,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsRoute53ResolverRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRoute53ResolverRules,

@@ -17,9 +17,11 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_parameter_group",
 		Description: "AWS Redshift Parameter Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterParameterGroupNotFound"}),
-			Hydrate:           getAwsRedshiftParameterGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ClusterParameterGroupNotFound"}),
+			},
+			Hydrate: getAwsRedshiftParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftParameterGroups,

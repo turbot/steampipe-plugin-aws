@@ -18,9 +18,11 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_classic_load_balancer",
 		Description: "AWS EC2 Classic Load Balancer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			Hydrate:           getEc2ClassicLoadBalancer,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"LoadBalancerNotFound"}),
+			},
+			Hydrate: getEc2ClassicLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,

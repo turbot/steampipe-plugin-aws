@@ -17,9 +17,11 @@ func tableAwsStepFunctionsStateMachineExecution(_ context.Context) *plugin.Table
 		Name:        "aws_sfn_state_machine_execution",
 		Description: "AWS Step Functions State Machine Execution",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("execution_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
-			Hydrate:           getStepFunctionsStateMachineExecution,
+			KeyColumns: plugin.SingleColumn("execution_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameter", "ExecutionDoesNotExist", "InvalidArn"}),
+			},
+			Hydrate: getStepFunctionsStateMachineExecution,
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listStepFunctionsStateMachineExecutions,

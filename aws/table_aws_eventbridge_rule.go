@@ -16,7 +16,9 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		Description: "AWS EventBridge Rule",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "ValidationException"}),
+				},
 			Hydrate:           getAwsEventBridgeRule,
 		},
 		List: &plugin.ListConfig{

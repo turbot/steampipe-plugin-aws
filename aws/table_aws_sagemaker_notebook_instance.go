@@ -17,9 +17,11 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerNotebookInstance,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerNotebookInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,

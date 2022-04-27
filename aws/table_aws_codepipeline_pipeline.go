@@ -17,9 +17,11 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
-			Hydrate:           getCodepipelinePipeline,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"PipelineNotFoundException"}),
+			},
+			Hydrate: getCodepipelinePipeline,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodepipelinePipelines,

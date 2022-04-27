@@ -25,9 +25,11 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_threat_intel_set",
 		Description: "AWS GuardDuty ThreatIntelSet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
-			Hydrate:           getGuardDutyThreatIntelSet,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidInputException", "BadRequestException"}),
+			},
+			Hydrate: getGuardDutyThreatIntelSet,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,

@@ -19,9 +19,11 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Name:        "aws_sqs_queue",
 		Description: "AWS SQS Queue",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("queue_url"),
-			ShouldIgnoreError: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
-			Hydrate:           getQueueAttributes,
+			KeyColumns: plugin.SingleColumn("queue_url"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+			},
+			Hydrate: getQueueAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,

@@ -20,9 +20,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_network_interface",
 		Description: "AWS EC2 Network Interface",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("network_interface_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
-			Hydrate:           getEc2NetworkInterface,
+			KeyColumns: plugin.SingleColumn("network_interface_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
+			},
+			Hydrate: getEc2NetworkInterface,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkInterfaces,

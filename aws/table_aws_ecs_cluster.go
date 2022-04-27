@@ -18,9 +18,11 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_cluster",
 		Description: "AWS ECS Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
-			Hydrate:           getEcsCluster,
+			KeyColumns: plugin.SingleColumn("cluster_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "InvalidParameterException"}),
+			},
+			Hydrate: getEcsCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsClusters,

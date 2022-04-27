@@ -21,9 +21,11 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_dax_cluster",
 		Description: "AWS DAX Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
-			Hydrate:           getDaxCluster,
+			KeyColumns: plugin.SingleColumn("cluster_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
+			},
+			Hydrate: getDaxCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,

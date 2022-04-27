@@ -18,9 +18,11 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_evidence_folder",
 		Description: "AWS Audit Manager Evidence Folder",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAuditManagerEvidenceFolder,
+			KeyColumns: plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getAuditManagerEvidenceFolder,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,

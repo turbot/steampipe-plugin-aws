@@ -18,9 +18,11 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_origin_access_identity",
 		Description: "AWS CloudFront Origin Access Identity",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchCloudFrontOriginAccessIdentity"}),
-			Hydrate:           getCloudFrontOriginAccessIdentity,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NoSuchCloudFrontOriginAccessIdentity"}),
+			},
+			Hydrate: getCloudFrontOriginAccessIdentity,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,

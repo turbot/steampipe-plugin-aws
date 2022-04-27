@@ -22,9 +22,11 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamGroup,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
+			Hydrate: getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,

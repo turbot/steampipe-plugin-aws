@@ -18,9 +18,11 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_emr_cluster",
 		Description: "AWS EMR Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRequestException"}),
-			Hydrate:           getEmrCluster,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidRequestException"}),
+			},
+			Hydrate: getEmrCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEmrClusters,

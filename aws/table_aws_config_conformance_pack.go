@@ -15,9 +15,11 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		Name:        "aws_config_conformance_pack",
 		Description: "AWS Config Conformance Pack",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConformancePackException"}),
-			Hydrate:           getConfigConformancePack,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NoSuchConformancePackException"}),
+			},
+			Hydrate: getConfigConformancePack,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConformancePacks,

@@ -15,9 +15,11 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_vpn_gateway",
 		Description: "AWS VPC VPN Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpn_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
-			Hydrate:           getVpcVpnGateway,
+			KeyColumns: plugin.SingleColumn("vpn_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcVpnGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnGateways,

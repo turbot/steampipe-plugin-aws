@@ -15,9 +15,11 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticsearch_domain",
 		Description: "AWS Elasticsearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("domain_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsElasticsearchDomain,
+			KeyColumns: plugin.SingleColumn("domain_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsElasticsearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,

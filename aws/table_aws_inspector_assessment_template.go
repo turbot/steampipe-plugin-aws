@@ -17,9 +17,11 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 		Name:        "aws_inspector_assessment_template",
 		Description: "AWS Inspector Assessment Template",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{}),
-			Hydrate:           getInspectorAssessmentTemplate,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{}),
+			},
+			Hydrate: getInspectorAssessmentTemplate,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTemplates,

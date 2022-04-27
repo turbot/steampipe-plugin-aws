@@ -17,9 +17,11 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_stream",
 		Description: "AWS Kinesis Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("stream_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           describeStream,
+			KeyColumns: plugin.SingleColumn("stream_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: describeStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listStreams,

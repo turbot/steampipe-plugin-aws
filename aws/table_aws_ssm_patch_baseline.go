@@ -21,7 +21,9 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Patch Baseline",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("baseline_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
+				},
 			Hydrate:           getPatchBaseline,
 		},
 		List: &plugin.ListConfig{

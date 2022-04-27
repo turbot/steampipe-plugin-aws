@@ -17,9 +17,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_api",
 		Description: "AWS API Gateway Version 2 API",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("api_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIGatewayV2API,
+			KeyColumns: plugin.SingleColumn("api_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIGatewayV2API,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,

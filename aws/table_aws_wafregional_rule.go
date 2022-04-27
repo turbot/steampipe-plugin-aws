@@ -17,13 +17,17 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 		Name:        "aws_wafregional_rule",
 		Description: "AWS WAF Regional Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException"}),
-			Hydrate:           getAwsWAFRegionalRule,
+			KeyColumns: plugin.SingleColumn("rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException"}),
+			},
+			Hydrate: getAwsWAFRegionalRule,
 		},
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException"}),
-			Hydrate:           listAwsWAFRegionalRules,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException"}),
+			},
+			Hydrate: listAwsWAFRegionalRules,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{

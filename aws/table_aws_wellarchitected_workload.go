@@ -20,9 +20,11 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		Name:        "aws_wellarchitected_workload",
 		Description: "AWS Well-Architected Workload",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workload_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getWellArchitectedWorkload,
+			KeyColumns: plugin.SingleColumn("workload_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getWellArchitectedWorkload,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedWorkloads,

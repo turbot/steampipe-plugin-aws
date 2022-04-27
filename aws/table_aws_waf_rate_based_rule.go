@@ -16,9 +16,11 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 		Name:        "aws_waf_rate_based_rule",
 		Description: "AWS WAF Rate Based Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
-			Hydrate:           getAwsWafRateBasedRule,
+			KeyColumns: plugin.SingleColumn("rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException", "ValidationException"}),
+			},
+			Hydrate: getAwsWafRateBasedRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafRateBasedRules,

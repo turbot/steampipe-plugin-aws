@@ -19,9 +19,11 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_web_acl",
 		Description: "AWS WAFv2 Web ACL",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
-			Hydrate:           getAwsWafv2WebAcl,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
+			},
+			Hydrate: getAwsWafv2WebAcl,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2WebAcls,

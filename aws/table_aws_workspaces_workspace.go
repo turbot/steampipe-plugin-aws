@@ -19,9 +19,11 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		Name:        "aws_workspaces_workspace",
 		Description: "AWS Workspaces",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workspace_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getWorkspace,
+			KeyColumns: plugin.SingleColumn("workspace_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException"}),
+			},
+			Hydrate: getWorkspace,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspaces,

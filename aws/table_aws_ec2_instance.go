@@ -22,9 +22,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance",
 		Description: "AWS EC2 Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2Instance,
+			KeyColumns: plugin.SingleColumn("instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,

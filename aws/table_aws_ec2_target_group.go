@@ -19,13 +19,17 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_target_group",
 		Description: "AWS EC2 Target Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("target_group_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
-			Hydrate:           getEc2TargetGroup,
+			KeyColumns: plugin.SingleColumn("target_group_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
+			},
+			Hydrate: getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listEc2TargetGroups,
-			ShouldIgnoreError: isNotFoundError([]string{"TargetGroupNotFound"}),
+			Hydrate: listEc2TargetGroups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"TargetGroupNotFound"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},
 			},

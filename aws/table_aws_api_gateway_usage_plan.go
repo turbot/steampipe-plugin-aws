@@ -18,9 +18,11 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_usage_plan",
 		Description: "AWS API Gateway Usage Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getUsagePlan,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+			},
+			Hydrate: getUsagePlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,

@@ -18,9 +18,11 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_capacity_reservation",
 		Description: "AWS EC2 Capacity Reservation",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("capacity_reservation_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
-			Hydrate:           getEc2CapacityReservation,
+			KeyColumns: plugin.SingleColumn("capacity_reservation_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
+			},
+			Hydrate: getEc2CapacityReservation,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2CapacityReservations,

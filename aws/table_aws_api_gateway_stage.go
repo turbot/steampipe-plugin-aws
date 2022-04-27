@@ -17,9 +17,11 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_stage",
 		Description: "AWS API Gateway Stage",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIGatewayStage,
+			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIGatewayStage,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,

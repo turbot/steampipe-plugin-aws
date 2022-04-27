@@ -20,9 +20,11 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_reserved_instance",
 		Description: "AWS EC2 Reserved Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("reserved_instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2ReservedInstance,
+			KeyColumns: plugin.SingleColumn("reserved_instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2ReservedInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ReservedInstances,

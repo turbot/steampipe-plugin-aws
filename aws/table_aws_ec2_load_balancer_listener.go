@@ -19,9 +19,11 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Name:        "aws_ec2_load_balancer_listener",
 		Description: "AWS EC2 Load Balancer Listener",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
-			Hydrate:           getEc2LoadBalancerListener,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
+			},
+			Hydrate: getEc2LoadBalancerListener,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,

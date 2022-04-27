@@ -18,9 +18,11 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_api_key",
 		Description: "AWS API Gateway API Key",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIKey,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIKey,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIKeys,

@@ -18,9 +18,11 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_key_pair",
 		Description: "AWS EC2 Key Pair",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("key_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
-			Hydrate:           getEc2KeyPair,
+			KeyColumns: plugin.SingleColumn("key_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
+			},
+			Hydrate: getEc2KeyPair,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2KeyPairs,

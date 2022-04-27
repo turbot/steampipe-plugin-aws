@@ -21,9 +21,11 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 		Name:        "aws_glacier_vault",
 		Description: "AWS Glacier Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vault_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getGlacierVault,
+			KeyColumns: plugin.SingleColumn("vault_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getGlacierVault,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,

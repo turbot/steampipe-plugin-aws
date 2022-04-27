@@ -16,13 +16,17 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 		Name:        "aws_media_store_container",
 		Description: "AWS Media Store Container",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
-			Hydrate:           getMediaStoreContainer,
+			KeyColumns: plugin.AllColumns([]string{"name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
+			},
+			Hydrate: getMediaStoreContainer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listMediaStoreContainers,
-			ShouldIgnoreError: isNotFoundError([]string{"ContainerInUseException"}),
+			Hydrate: listMediaStoreContainers,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ContainerInUseException"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

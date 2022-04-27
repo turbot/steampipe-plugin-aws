@@ -18,9 +18,11 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		Name:        "aws_directory_service_directory",
 		Description: "AWS Directory Service Directory",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("directory_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
-			Hydrate:           getDirectoryServiceDirectory,
+			KeyColumns: plugin.SingleColumn("directory_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
+			},
+			Hydrate: getDirectoryServiceDirectory,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,

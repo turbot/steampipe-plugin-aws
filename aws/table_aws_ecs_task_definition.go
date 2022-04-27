@@ -19,9 +19,11 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task_definition",
 		Description: "AWS ECS Task Definition",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("task_definition_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
-			Hydrate:           getEcsTaskDefinition,
+			KeyColumns: plugin.SingleColumn("task_definition_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterException", "ClientException"}),
+			},
+			Hydrate: getEcsTaskDefinition,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsTaskDefinitions,

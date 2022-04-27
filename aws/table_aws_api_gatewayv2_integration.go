@@ -22,9 +22,11 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_integration",
 		Description: "AWS API Gateway Version 2 Integration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"integration_id", "api_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "TooManyRequestsException"}),
-			Hydrate:           getAPIGatewayV2Integration,
+			KeyColumns: plugin.AllColumns([]string{"integration_id", "api_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException", "TooManyRequestsException"}),
+			},
+			Hydrate: getAPIGatewayV2Integration,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,

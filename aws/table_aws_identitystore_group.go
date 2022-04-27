@@ -15,9 +15,11 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_identitystore_group",
 		Description: "AWS Identity Store Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"identity_store_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getIdentityStoreGroup,
+			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getIdentityStoreGroup,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "name"}),

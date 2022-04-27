@@ -18,9 +18,11 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_option_group",
 		Description: "AWS RDS DB Option Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			Hydrate:           getRDSDBOptionGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"OptionGroupNotFoundFault"}),
+			},
+			Hydrate: getRDSDBOptionGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,

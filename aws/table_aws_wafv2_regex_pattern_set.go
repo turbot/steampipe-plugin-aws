@@ -18,9 +18,11 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_regex_pattern_set",
 		Description: "AWS WAFv2 Regex Pattern Set",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsWafv2RegexPatternSet,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsWafv2RegexPatternSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,

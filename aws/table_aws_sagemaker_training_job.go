@@ -15,9 +15,11 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_training_job",
 		Description: "AWS SageMaker Training Job",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerTrainingJob,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerTrainingJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerTrainingJobs,

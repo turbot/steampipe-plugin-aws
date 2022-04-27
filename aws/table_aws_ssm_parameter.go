@@ -18,9 +18,11 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_parameter",
 		Description: "AWS SSM Parameter",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getAwsSSMParameter,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException"}),
+			},
+			Hydrate: getAwsSSMParameter,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMParameters,
