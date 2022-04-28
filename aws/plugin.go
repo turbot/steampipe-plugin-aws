@@ -30,7 +30,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault([]string{"AccessDeniedException", "AccessDenied"}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault([]string{
+				"AccessDenied",
+				"AccessDeniedException",
+				"NotAuthorized",
+				"UnauthorizedOperation",
+				"UnrecognizedClientException",
+			}),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,

@@ -93,6 +93,11 @@ connection "aws" {
   # This delay is also used as a base value when calculating the exponential backoff retry times.
   # Defaults to 25ms and must be greater than or equal to 1ms.
   #min_error_retry_delay = 25
+
+  # The flag to control the plugin behavior for errors in the hydrate function.
+  # If set to true, the plugin will ignore this set of errors for the hydrate functions.
+  # https://github.com/turbot/steampipe-plugin-aws/issues/878
+  #should_ignore_errors = false
 }
 ```
 

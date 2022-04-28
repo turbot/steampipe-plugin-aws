@@ -18,17 +18,3 @@ func isNotFoundErrorWithContext(IgnoreErrors []string) plugin.ErrorPredicateWith
 		return false
 	}
 }
-
-func shouldIgnoreErrorTableDefault(IgnoreErrors []string) plugin.ErrorPredicateWithContext {
-	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
-		awsConfig := GetConfig(d.Connection)
-		if awsConfig.ShouldIgnoreErrors == nil || (awsConfig.ShouldIgnoreErrors != nil && !*awsConfig.ShouldIgnoreErrors) {
-			return false
-		}
-		if awsErr, ok := err.(awserr.Error); ok {
-			// plugin.Logger(ctx).Info("shouldIgnoreErrorTableDefault", "AWS Error CODE", awsErr.Code())
-			return helpers.StringSliceContains(IgnoreErrors, awsErr.Code())
-		}
-		return false
-	}
-}
