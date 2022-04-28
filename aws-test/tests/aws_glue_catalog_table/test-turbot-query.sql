@@ -1,4 +1,5 @@
 select 
+  akas, 
   name, 
   region, 
   title
