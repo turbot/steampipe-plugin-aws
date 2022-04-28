@@ -9,11 +9,16 @@ import (
 )
 
 // isNotFoundErrorWithContext:: function which returns an ErrorPredicate for AWS API calls
-func isNotFoundErrorWithContext(IgnoreErrors []string) plugin.ErrorPredicateWithContext {
+func isNotFoundErrorWithContext(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
+		awsConfig := GetConfig(d.Connection)
+		allErrors := notFoundErrors
+		// If the get or list hydrate functions have a separate IgnoreConfig defined using isNotFoundErrorWithContext function - It will also check for "should_ignore_flag"
+		if awsConfig.ShouldIgnoreErrors != nil && *awsConfig.ShouldIgnoreErrors {
+			allErrors = append(allErrors, accessDeniedErrors...)
+		}
 		if awsErr, ok := err.(awserr.Error); ok {
-
-			return helpers.StringSliceContains(IgnoreErrors, awsErr.Code())
+			return helpers.StringSliceContains(allErrors, awsErr.Code())
 		}
 		return false
 	}

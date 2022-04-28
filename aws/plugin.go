@@ -15,6 +15,14 @@ import (
 
 const pluginName = "steampipe-plugin-aws"
 
+var accessDeniedErrors = []string{
+	"AccessDenied",
+	"AccessDeniedException",
+	"NotAuthorized",
+	"UnauthorizedOperation",
+	"UnrecognizedClientException",
+}
+
 // Plugin creates this (aws) plugin
 func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
@@ -30,24 +38,15 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault([]string{
-				"AccessDenied",
-				"AccessDeniedException",
-				"NotAuthorized",
-				"UnauthorizedOperation",
-				"UnrecognizedClientException",
-			}),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault(accessDeniedErrors),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
-			"aws_account":                                                  tableAwsAccount(ctx),
-			"aws_iam_role":                                                 tableAwsIamRole(ctx),
-			"aws_iam_user":                                                 tableAwsIamUser(ctx),
-			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
+			"aws_account":                                                  tableAwsAccount(ctx),
 			"aws_acm_certificate":                                          tableAwsAcmCertificate(ctx),
 			"aws_api_gateway_api_key":                                      tableAwsAPIGatewayAPIKey(ctx),
 			"aws_api_gateway_authorizer":                                   tableAwsAPIGatewayAuthorizer(ctx),
@@ -203,7 +202,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_policy":                                               tableAwsIamPolicy(ctx),
 			"aws_iam_policy_attachment":                                    tableAwsIamPolicyAttachment(ctx),
 			"aws_iam_policy_simulator":                                     tableAwsIamPolicySimulator(ctx),
+			"aws_iam_role":                                                 tableAwsIamRole(ctx),
 			"aws_iam_server_certificate":                                   tableAwsIamServerCertificate(ctx),
+			"aws_iam_user":                                                 tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),
 			"aws_identitystore_group":                                      tableAwsIdentityStoreGroup(ctx),
 			"aws_identitystore_user":                                       tableAwsIdentityStoreUser(ctx),
@@ -214,6 +215,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),
 			"aws_kinesis_video_stream":                                     tableAwsKinesisVideoStream(ctx),
 			"aws_kinesisanalyticsv2_application":                           tableAwsKinesisAnalyticsV2Application(ctx),
+			"aws_kms_key":                                                  tableAwsKmsKey(ctx),
 			"aws_lambda_alias":                                             tableAwsLambdaAlias(ctx),
 			"aws_lambda_function":                                          tableAwsLambdaFunction(ctx),
 			"aws_lambda_function_metric_duration_daily":                    tableAwsLambdaFunctionMetricDurationDaily(ctx),
