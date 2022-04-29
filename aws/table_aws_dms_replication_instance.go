@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -214,31 +214,31 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["replication_instance_identifier"] != nil {
 		paramFilter := &databasemigrationservice.Filter{
-			Name: aws.String("replication-instance-id"),
+			Name:   aws.String("replication-instance-id"),
 			Values: []*string{aws.String(equalQuals["replication_instance_identifier"].GetStringValue())},
-		 }
-		 filter = append(filter, paramFilter)
+		}
+		filter = append(filter, paramFilter)
 	}
 	if equalQuals["arn"] != nil {
 		paramFilter := &databasemigrationservice.Filter{
-			Name: aws.String("replication-instance-arn"),
+			Name:   aws.String("replication-instance-arn"),
 			Values: []*string{aws.String(equalQuals["arn"].GetStringValue())},
-		 }
-		 filter = append(filter, paramFilter)
+		}
+		filter = append(filter, paramFilter)
 	}
 	if equalQuals["replication_instance_class"] != nil {
 		paramFilter := &databasemigrationservice.Filter{
-			Name: aws.String("replication-instance-class"),
+			Name:   aws.String("replication-instance-class"),
 			Values: []*string{aws.String(equalQuals["replication_instance_class"].GetStringValue())},
-		 }
-		 filter = append(filter, paramFilter)
+		}
+		filter = append(filter, paramFilter)
 	}
 	if equalQuals["engine_version"] != nil {
 		paramFilter := &databasemigrationservice.Filter{
-			Name: aws.String("engine-version"),
+			Name:   aws.String("engine-version"),
 			Values: []*string{aws.String(equalQuals["engine_version"].GetStringValue())},
-		 }
-		 filter = append(filter, paramFilter)
+		}
+		filter = append(filter, paramFilter)
 	}
 	input.Filters = filter
 

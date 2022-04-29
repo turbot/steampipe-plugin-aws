@@ -8,12 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gocarina/gocsv"
-	"github.com/ttacon/chalk"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 type awsIamCredentialReportResult struct {
@@ -214,7 +213,7 @@ func listCredentialReports(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
 			if helpers.StringSliceContains([]string{"ReportNotPresent"}, a.Code()) {
-				return nil, errors.New("Credential report not available. Please run " + chalk.Bold.TextStyle("aws iam generate-credential-report") + " to generate it and try again.")
+				return nil, errors.New("Credential report not available. Please run 'aws iam generate-credential-report' to generate it and try again.")
 			}
 		}
 		return nil, err

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v2/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v2/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSSMParameter(_ context.Context) *plugin.Table {
@@ -342,8 +342,8 @@ func buildSsmParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context)
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
 			filter := ssm.ParameterStringFilter{
-				Key: aws.String(filterName),
-				Option: aws.String("Equals"), 
+				Key:    aws.String(filterName),
+				Option: aws.String("Equals"),
 			}
 
 			value := getQualsValueByColumn(quals, columnName, "string")
