@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsNeptuneDbCluster(_ context.Context) *plugin.Table {
+func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_neptune_db_cluster",
 		Description: "AWS Neptune DB Cluster",
@@ -95,7 +95,6 @@ func tableAwsNeptuneDbCluster(_ context.Context) *plugin.Table {
 				Name:        "database_name",
 				Description: "Contains the name of the initial database of this DB cluster that was provided.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DatabaseName"),
 			},
 			{
 				Name:        "db_cluster_resource_id",
@@ -188,7 +187,6 @@ func tableAwsNeptuneDbCluster(_ context.Context) *plugin.Table {
 				Name:        "associated_roles",
 				Description: "Provides a list of the Amazon Identity and Access Management (IAM) roles.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AssociatedRoles"),
 			},
 			{
 				Name:        "availability_zones",
