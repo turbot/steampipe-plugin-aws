@@ -1,4 +1,4 @@
-# Table: aws_rds_db_cluster
+# Table: aws_neptune_db_cluster
 
 An Amazon Neptune DB cluster manages access to your data through queries.
 

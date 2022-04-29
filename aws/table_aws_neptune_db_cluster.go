@@ -18,7 +18,7 @@ func tableAwsNeptuneDbCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_neptune_db_cluster",
 		Description: "AWS Neptune DB Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"db_cluster_identifier"}),
+			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			Hydrate:    getNeptuneDbCluster,
 			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
 		},
@@ -260,7 +260,7 @@ func listNeptuneDbClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	// Filter parameter is not supported yet in this SDK version so option quals can not be implemented
+	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
 		MaxRecords: aws.Int64(100),
 	}
