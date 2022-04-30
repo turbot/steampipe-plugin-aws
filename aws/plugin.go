@@ -211,6 +211,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
+			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":                                  tableAwsRDSDBClusterSnapshot(ctx),

@@ -95,6 +95,74 @@ func getInvalidRegions(regions []string) []string {
 	return invalidRegions
 }
 
+func BuildPinpointRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
+	pluginQueryData.Connection = connection
+
+	// cache matrix
+	cacheKey := "PinpointRegionListMatrix"
+	if cachedData, ok := pluginQueryData.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.([]map[string]interface{})
+	}
+
+	defaultAwsRegion := GetDefaultAwsRegion(pluginQueryData)
+	regionData, _ := listRegions(ctx, pluginQueryData)
+	var allRegions []string
+
+	// Get pinpoint service supported regions
+	supportedRegionForPinpoint := SupportedRegionsForService(ctx, pluginQueryData, "pinpoint")
+
+	// retrieve regions from connection config
+	awsConfig := GetConfig(connection)
+	// Get only the regions as required by config file
+	if awsConfig.Regions != nil {
+		for _, pattern := range awsConfig.Regions {
+			for _, validRegion := range regionData["AllRegions"] {
+				if ok, _ := path.Match(pattern, validRegion); ok {
+					allRegions = append(allRegions, validRegion)
+				}
+			}
+		}
+	}
+
+	if len(allRegions) > 0 {
+		uniqueRegions := unique(allRegions)
+
+		if len(getInvalidRegions(uniqueRegions)) > 0 {
+			panic("\n\nConnection config has invalid regions: " + strings.Join(getInvalidRegions(uniqueRegions), ", "))
+		}
+
+		// Remove inactive regions from the list
+		finalRegions := helpers.StringSliceDiff(uniqueRegions, regionData["NotOptedRegions"])
+		var pinpointSupportedConfigFileRegions []string
+
+		// Filter out valid regional endpoint from aws.spc file for pinpoint service 
+		for _, r := range finalRegions {
+			if helpers.StringSliceContains(supportedRegionForPinpoint, r) {
+				pinpointSupportedConfigFileRegions = append(pinpointSupportedConfigFileRegions, r)
+			}
+		}
+
+		plugin.Logger(ctx).Error("pinpoint service supported regions ==> ", strings.Join(pinpointSupportedConfigFileRegions, ", "))
+		matrix := make([]map[string]interface{}, len(pinpointSupportedConfigFileRegions))
+		for i, region := range pinpointSupportedConfigFileRegions {
+			matrix[i] = map[string]interface{}{matrixKeyRegion: region}
+		}
+
+		// set cache
+		pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
+		return matrix
+	}
+
+	matrix := []map[string]interface{}{
+		{matrixKeyRegion: defaultAwsRegion},
+	}
+
+	// set cache
+	pluginQueryData.ConnectionManager.Cache.Set(cacheKey, matrix)
+	return matrix
+
+}
+
 // BuildWafRegionList :: return a list of matrix items for AWS WAF resources, one per region specified in the connection config
 func BuildWafRegionList(ctx context.Context, connection *plugin.Connection) []map[string]interface{} {
 	var regionMatrix []map[string]interface{}
