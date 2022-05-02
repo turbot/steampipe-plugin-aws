@@ -22,8 +22,6 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
-				{Name: "name", Require: plugin.Optional},
-				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
 		},
@@ -145,22 +143,12 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	// Optional parameters not included due to incorrect api response for `name` and `type`
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &hostedZoneID,
 		MaxItems:     aws.String("1000"),
 	}
 
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		if equalQuals["name"].GetStringValue() != "" {
-			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
-		}
-	}
-	if equalQuals["type"] != nil {
-		if equalQuals["type"].GetStringValue() != "" {
-			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
-		}
-	}
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
 	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
 	// Reduce the basic request limit down if the user has only requested a small number of rows
