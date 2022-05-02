@@ -19,7 +19,7 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidResourceId", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
 			},
 			Hydrate: listSsmManagedInstanceCompliances,
 			KeyColumns: []*plugin.KeyColumn{

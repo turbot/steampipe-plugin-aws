@@ -19,7 +19,7 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{}),
 			},
 			Hydrate: getInspectorAssessmentTemplate,
 		},

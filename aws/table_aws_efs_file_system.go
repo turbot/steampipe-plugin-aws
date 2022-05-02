@@ -21,7 +21,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("file_system_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"FileSystemNotFound", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
 				},
 			Hydrate:           getElasticFileSystem,
 		},

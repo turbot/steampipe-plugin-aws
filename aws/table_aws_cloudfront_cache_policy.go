@@ -20,7 +20,7 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NoSuchCachePolicy"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchCachePolicy"}),
 			},
 			Hydrate: getCloudFrontCachePolicy,
 		},

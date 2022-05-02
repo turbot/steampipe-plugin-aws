@@ -21,7 +21,7 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("flow_log_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
 			},
 			Hydrate: getVpcFlowlog,
 		},

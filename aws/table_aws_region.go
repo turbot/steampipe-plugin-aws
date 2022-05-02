@@ -20,7 +20,7 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
 			},
 			Hydrate: getAwsRegion,
 		},

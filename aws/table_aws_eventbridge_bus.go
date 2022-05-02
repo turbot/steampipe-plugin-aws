@@ -17,7 +17,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAwsEventBridgeBus,
 		},

@@ -20,7 +20,7 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cache_parameter_group_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
 			},
 			Hydrate: getElastiCacheParameterGroup,
 		},

@@ -18,7 +18,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError"}),
 			},
 			Hydrate: getAwsEc2AutoscalingGroup,
 		},

@@ -17,7 +17,7 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("nat_gateway_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
 			},
 			Hydrate: getVpcNatGateway,
 		},

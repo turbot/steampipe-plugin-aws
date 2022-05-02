@@ -24,7 +24,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("detector_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
 			},
 			Hydrate: getGuardDutyDetector,
 		},

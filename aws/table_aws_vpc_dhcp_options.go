@@ -17,7 +17,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("dhcp_options_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidDhcpOptionID.NotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidDhcpOptionID.NotFound"}),
 			},
 			Hydrate: getVpcDhcpOption,
 		},

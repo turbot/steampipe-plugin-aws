@@ -20,7 +20,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"DBClusterNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBClusterNotFoundFault"}),
 			},
 			Hydrate: getRDSDBCluster,
 		},

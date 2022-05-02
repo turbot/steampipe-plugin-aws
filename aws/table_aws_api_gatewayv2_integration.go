@@ -24,7 +24,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"integration_id", "api_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException", "TooManyRequestsException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "TooManyRequestsException"}),
 			},
 			Hydrate: getAPIGatewayV2Integration,
 		},

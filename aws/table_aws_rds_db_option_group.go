@@ -20,7 +20,7 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"OptionGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
 			},
 			Hydrate: getRDSDBOptionGroup,
 		},

@@ -21,7 +21,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("association_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"AssociationDoesNotExist", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
 			},
 			Hydrate: getAwsSSMAssociation,
 		},

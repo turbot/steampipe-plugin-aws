@@ -20,7 +20,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ClusterNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFound"}),
 			},
 			Hydrate: getRedshiftCluster,
 		},

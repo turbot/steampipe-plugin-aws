@@ -22,7 +22,7 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("api_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
 			},
 			Hydrate: getRestAPI,
 		},

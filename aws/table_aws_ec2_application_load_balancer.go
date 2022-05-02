@@ -21,14 +21,14 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"LoadBalancerNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2ApplicationLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ApplicationLoadBalancers,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"LoadBalancerNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{

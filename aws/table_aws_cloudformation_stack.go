@@ -22,7 +22,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationError", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
 			},
 			Hydrate: getCloudFormationStack,
 		},

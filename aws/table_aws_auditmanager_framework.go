@@ -20,7 +20,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			},
 			Hydrate: getAuditManagerFramework,
 		},

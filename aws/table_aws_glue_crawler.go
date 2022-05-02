@@ -20,7 +20,7 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"EntityNotFoundException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException", "InvalidParameter"}),
 			},
 			Hydrate: getGlueCrawler,
 		},

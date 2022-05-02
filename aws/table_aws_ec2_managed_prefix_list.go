@@ -19,7 +19,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidAction", "InvalidRequest"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
 			},
 			Hydrate: listManagedPrefixList,
 			KeyColumns: []*plugin.KeyColumn{

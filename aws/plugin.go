@@ -15,30 +15,19 @@ import (
 
 const pluginName = "steampipe-plugin-aws"
 
-var accessDeniedErrors = []string{
-	"AccessDenied",
-	"AccessDeniedException",
-	"NotAuthorized",
-	"UnauthorizedOperation",
-	"UnrecognizedClientException",
-}
-
 // Plugin creates this (aws) plugin
 func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:             pluginName,
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
-			// IgnoreConfig: &plugin.IgnoreConfig{
-			// ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
-			// Not working - raise issue
-			// Details in - https://turbothq.slack.com/archives/C01AC8JQNHH/p1650992209265619
+			// https://github.com/turbot/steampipe-plugin-sdk/issues/319
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ResourceNotFoundException", "NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
 			},
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: shouldIgnoreErrorTableDefault(accessDeniedErrors),
+			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,

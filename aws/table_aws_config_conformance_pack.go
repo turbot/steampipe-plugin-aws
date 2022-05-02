@@ -17,7 +17,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NoSuchConformancePackException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConformancePackException"}),
 			},
 			Hydrate: getConfigConformancePack,
 		},

@@ -21,7 +21,7 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("subscription_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
 				},
 			Hydrate:           getSubscriptionAttributes,
 		},

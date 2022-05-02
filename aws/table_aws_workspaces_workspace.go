@@ -21,7 +21,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("workspace_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
 			},
 			Hydrate: getWorkspace,
 		},

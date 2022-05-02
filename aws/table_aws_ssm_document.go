@@ -19,7 +19,7 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException", "InvalidDocument"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidDocument"}),
 			},
 			Hydrate: getAwsSSMDocument,
 		},

@@ -22,7 +22,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("backup_plan_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterValueException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException"}),
 			},
 			Hydrate: getAwsBackupPlan,
 		},

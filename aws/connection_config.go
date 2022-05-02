@@ -11,9 +11,9 @@ type awsConfig struct {
 	AccessKey             *string  `cty:"access_key"`
 	SecretKey             *string  `cty:"secret_key"`
 	SessionToken          *string  `cty:"session_token"`
-	ShouldIgnoreErrors    *bool    `cty:"should_ignore_errors"`
 	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
 	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
+	IgnoredErrorCodes     []string `cty:"ignored_error_codes"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -33,8 +33,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	"session_token": {
 		Type: schema.TypeString,
 	},
-	"should_ignore_errors": {
-		Type: schema.TypeBool,
+	"ignored_error_codes": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
 	},
 	"max_error_retry_attempts": {
 		Type: schema.TypeInt,

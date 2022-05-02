@@ -20,7 +20,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("topic_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
 			},
 			Hydrate: getTopicAttributes,
 		},

@@ -17,7 +17,7 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"AccountNotFoundException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getOrganizationsAccount,
 		},

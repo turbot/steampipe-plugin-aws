@@ -19,14 +19,14 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("access_point_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"AccessPointNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccessPointNotFound"}),
 			},
 			Hydrate: getEfsAccessPoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEfsAccessPoints,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"FileSystemNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "file_system_id", Require: plugin.Optional},

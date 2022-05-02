@@ -20,7 +20,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("mount_target_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"MountTargetNotFound", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
 			},
 			Hydrate: getAwsEfsMountTarget,
 		},

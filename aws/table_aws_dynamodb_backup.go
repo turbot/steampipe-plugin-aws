@@ -19,7 +19,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
 			},
 			Hydrate: getDynamodbBackup,
 		},

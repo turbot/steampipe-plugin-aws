@@ -17,7 +17,7 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("network_acl_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidNetworkAclID.NotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidNetworkAclID.NotFound"}),
 			},
 			Hydrate: getVpcNetworkACL,
 		},

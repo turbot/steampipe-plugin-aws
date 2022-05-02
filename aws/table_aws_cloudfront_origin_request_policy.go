@@ -20,7 +20,7 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
 			},
 			Hydrate: getCloudFrontOriginRequestPolicy,
 		},

@@ -18,7 +18,7 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"SubscriptionNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SubscriptionNotFound"}),
 			},
 			Hydrate: getAwsRedshiftEventSubscription,
 		},

@@ -19,13 +19,13 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("rule_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: getAwsWAFRegionalRule,
 		},
 		List: &plugin.ListConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"WAFNonexistentItemException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
 			},
 			Hydrate: listAwsWAFRegionalRules,
 		},

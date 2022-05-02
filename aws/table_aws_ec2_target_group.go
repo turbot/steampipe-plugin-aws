@@ -21,14 +21,14 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("target_group_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
 			},
 			Hydrate: getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"TargetGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"TargetGroupNotFound"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "target_group_name", Require: plugin.Optional},

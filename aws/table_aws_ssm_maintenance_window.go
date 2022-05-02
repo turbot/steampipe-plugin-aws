@@ -22,7 +22,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("window_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"DoesNotExistException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DoesNotExistException"}),
 			},
 			Hydrate: getAwsSSMMaintenanceWindow,
 		},

@@ -18,7 +18,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 			Hydrate:    getTaggingResource,
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException"}),
 			},
 		},
 		List: &plugin.ListConfig{

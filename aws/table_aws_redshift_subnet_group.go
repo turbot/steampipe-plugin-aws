@@ -20,7 +20,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_subnet_group_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ClusterSubnetGroupNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterSubnetGroupNotFoundFault"}),
 			},
 			Hydrate: getRedshiftSubnetGroup,
 		},

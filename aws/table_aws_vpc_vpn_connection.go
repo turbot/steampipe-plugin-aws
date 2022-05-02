@@ -19,14 +19,14 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("vpn_connection_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
 			},
 			Hydrate: getVpcVpnConnection,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnConnections,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "customer_gateway_configuration", Require: plugin.Optional},

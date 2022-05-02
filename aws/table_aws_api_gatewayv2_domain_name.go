@@ -19,7 +19,7 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"domain_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
 			},
 			Hydrate: getDomainName,
 		},

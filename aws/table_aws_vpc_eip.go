@@ -17,7 +17,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("allocation_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAllocationID.NotFound", "InvalidAllocationID.Malformed"}),
 			},
 			Hydrate: getVpcEip,
 		},

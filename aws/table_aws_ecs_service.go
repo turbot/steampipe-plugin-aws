@@ -21,7 +21,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsServices,
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorWithContext([]string{"ClusterNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException"}),
 			},
 		},
 		GetMatrixItem: BuildRegionList,
