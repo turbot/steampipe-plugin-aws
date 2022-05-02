@@ -15,6 +15,7 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 		// If the get or list hydrate functions have a overriding IgnoreConfig defined using isNotFoundError function - It should also check for errors in "ignored_error_codes"
 		allErrors := append(notFoundErrors, awsConfig.IgnoredErrorCodes...)
 		if awsErr, ok := err.(awserr.Error); ok {
+			plugin.Logger(ctx).Info("isNotFoundError", "AWS Error CODE", awsErr.Code())
 			return helpers.StringSliceContains(allErrors, awsErr.Code())
 		}
 		return false
@@ -29,7 +30,7 @@ func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 		}
 		awsConfig := GetConfig(d.Connection)
 		if awsErr, ok := err.(awserr.Error); ok {
-			// plugin.Logger(ctx).Info("shouldIgnoreErrorPluginDefault", "AWS Error CODE", awsErr.Code())
+			plugin.Logger(ctx).Info("shouldIgnoreErrorPluginDefault", "AWS Error CODE", awsErr.Code())
 			return helpers.StringSliceContains(awsConfig.IgnoredErrorCodes, awsErr.Code())
 		}
 		return false
