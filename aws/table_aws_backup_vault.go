@@ -22,7 +22,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
 			},
 			Hydrate: getAwsBackupVault,
 		},

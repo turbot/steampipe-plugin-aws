@@ -23,7 +23,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			Hydrate:    getKmsKey,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidParameter", "AccessDeniedException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
