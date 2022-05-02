@@ -259,6 +259,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
+			"aws_ses_identity":                                             tableAwsSESIdentity(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),

@@ -84,6 +84,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -1494,6 +1495,26 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 	}
 	svc := serverlessapplicationrepository.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SESService returns the service connection for AWS SES service
+func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "ses"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ses.SES), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ses.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
