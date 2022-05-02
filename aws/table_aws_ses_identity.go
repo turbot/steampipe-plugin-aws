@@ -10,10 +10,10 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
-func tableAwsSESIdentity(_ context.Context) *plugin.Table {
+func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ses_identity",
-		Description: "AWS SES Identity",
+		Name:        "aws_ses_email_identity",
+		Description: "AWS SES Email Identity",
 		List: &plugin.ListConfig{
 			Hydrate: listSESIdentities,
 		},
@@ -144,7 +144,7 @@ func listSESIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// execute list call
-	input := &ses.ListIdentitiesInput{}
+	input := &ses.ListIdentitiesInput{IdentityType: &ses.IdentityType_Values()[0]}
 	identityResult, err := svc.ListIdentities(input)
 	if err != nil {
 		return nil, err
