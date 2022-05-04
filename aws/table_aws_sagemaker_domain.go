@@ -283,9 +283,9 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 func sagemakerDomainId(item interface{}) string {
 	switch item := item.(type) {
 	case *sagemaker.DomainDetails:
-		return *item.DomainName
+		return *item.DomainId
 	case *sagemaker.DescribeDomainOutput:
-		return *item.DomainName
+		return *item.DomainId
 	}
 	return ""
 }
