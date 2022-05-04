@@ -19,11 +19,11 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Neptune DB Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
-			Hydrate:    getNeptuneDbCluster,
+			Hydrate:    getNeptuneDBCluster,
 			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listNeptuneDbClusters,
+			Hydrate: listNeptuneDBClusters,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -249,7 +249,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listNeptuneDbClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listNeptuneDbClusters")
 
 	// Create session
@@ -295,7 +295,7 @@ func listNeptuneDbClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getNeptuneDbCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getNeptuneDbCluster")
 
