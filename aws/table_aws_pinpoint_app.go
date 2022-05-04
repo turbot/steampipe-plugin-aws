@@ -42,6 +42,13 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the application.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "application_settings",
+				Description: "Provides information about an application, including the default settings for an application.",
+				Hydrate:     getPinpointApplicationSettings,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe standard columns
 			{
@@ -126,7 +133,7 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Debug("getPinpointApp")
+	plugin.Logger(ctx).Trace("getPinpointApp")
 	appId := d.KeyColumnQuals["id"].GetStringValue()
 	plugin.Logger(ctx).Error("getPinpointApp", "ApplicationId", appId)
 
@@ -145,13 +152,11 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	params.SetApplicationId(appId)
 
 	op, err := svc.GetApp(params)
-	plugin.Logger(ctx).Error("getPinpointApp", "Ok", 1111111)
 	if err != nil {
 		plugin.Logger(ctx).Error("getPinpointApp", "get", err)
 		return nil, err
 	}
-	plugin.Logger(ctx).Error("getPinpointApp", "Ok", 222222)
-	plugin.Logger(ctx).Error("getPinpointApp", "Ok", *op.ApplicationResponse.Arn)
+
 	if op == nil {
 		return nil, nil
 	}
@@ -159,17 +164,27 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return op.ApplicationResponse, nil
 }
 
-//// TRANSFORM FUNCTIONS
+func getPinpointApplicationSettings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getPinpointApplicationSettings")
+	application := h.Item.(*pinpoint.ApplicationResponse)
 
-// func getPinpointAppTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-// 	app := d.HydrateItem.(*pinpoint.ApplicationResponse)
+	// Create service
+	svc, err := PinpointService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getPinpointApplicationSettings", "connection", err)
+		return nil, err
+	}
+	params := &pinpoint.GetApplicationSettingsInput{}
+	params.SetApplicationId(*application.Id)
 
-// 	if app.Tags != nil {
-// 		turbotTagsMap := map[string]string{}
-// 		for _, i := range app.Tags {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 		return turbotTagsMap, nil
-// 	}
-// 	return nil, nil
-// }
+	op, err := svc.GetApplicationSettings(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getPinpointApplicationSettings", err)
+		return nil, err
+	}
+	if op == nil {
+		return nil, nil
+	}
+
+	return op.ApplicationSettingsResource, nil
+}
