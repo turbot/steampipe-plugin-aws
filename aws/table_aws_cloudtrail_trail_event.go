@@ -202,9 +202,9 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		// CloudWatch fields
 		{Name: "log_group_name"},
 		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional, CacheMatch: "exact"},
 		{Name: "region", Require: plugin.Optional},
-		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
+		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional, CacheMatch: "exact"},
 
 		// event fields
 		{Name: "event_category", Require: plugin.Optional},
@@ -282,7 +282,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Info("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "region", d.KeyColumnQualString(matrixKeyRegion), "input.FilterPattern", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(

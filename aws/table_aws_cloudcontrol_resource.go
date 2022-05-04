@@ -18,7 +18,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "type_name", Require: plugin.Required},
-				{Name: "resource_model", Require: plugin.Optional},
+				{Name: "resource_model", Require: plugin.Optional, CacheMatch: "exact"},
 			},
 			Hydrate: listCloudControlResources,
 		},
