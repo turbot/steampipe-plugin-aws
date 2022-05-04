@@ -15,10 +15,10 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		Name:        "aws_ses_email_identity",
 		Description: "AWS SES Email Identity",
 		List: &plugin.ListConfig{
-			Hydrate: listSESIdentities,
+			Hydrate: listSESEmailIdentities,
 		},
 		GetMatrixItem: BuildRegionList,
-		Columns: awsS3Columns([]*plugin.Column{
+		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The user friendly name of the bucket.",
@@ -88,20 +88,6 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Hydrate:     getIdentityARN,
 				Transform:   transform.FromValue(),
 			},
-			// {
-			// 	Name:        "tags_src",
-			// 	Description: "A list of tags assigned to bucket.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getBucketTagging,
-			// 	Transform:   transform.FromField("TagSet"),
-			// },
-			// {
-			// 	Name:        "tags",
-			// 	Description: resourceInterfaceDescription("tags"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getBucketTagging,
-			// 	Transform:   transform.FromField("TagSet").Transform(s3TagsToTurbotTags),
-			// },
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -115,25 +101,15 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Hydrate:     getIdentityAkas,
 				Transform:   transform.FromValue(),
 			},
-			{
-				Name:        "region",
-				Description: "The AWS Region in which the resource is located.",
-				Type:        proto.ColumnType_STRING,
-			},
 		}),
 	}
 }
 
-// type IdentityInfo struct {
-// 	Name   *string
-// 	Region *string
-// }
-
 //// LIST FUNCTION
 
-func listSESIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listSESIdentities")
+	logger.Trace("listSESEmailIdentities")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
@@ -179,7 +155,6 @@ func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData,
 
 	identities := []*string{&name}
 
-	// execute list call
 	input := &ses.GetIdentityVerificationAttributesInput{
 		Identities: identities,
 	}
@@ -187,7 +162,6 @@ func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
-	// logger.Trace("==========>>>>>>>>>>>>>>>>>>>", result.VerificationAttributes[name], name, result)
 	return result.VerificationAttributes[name], err
 }
 
@@ -206,7 +180,6 @@ func getIdentityDkimAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 
 	identities := []*string{&name}
 
-	// execute list call
 	input := &ses.GetIdentityDkimAttributesInput{
 		Identities: identities,
 	}
@@ -214,7 +187,6 @@ func getIdentityDkimAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
-	// logger.Trace("==========>>>>>>>>>>>>>>>>>>>", result.VerificationAttributes[name], name, result)
 	return result.DkimAttributes[name], err
 }
 
@@ -233,7 +205,6 @@ func getIdentityMailFromDomainAttributes(ctx context.Context, d *plugin.QueryDat
 
 	identities := []*string{&name}
 
-	// execute list call
 	input := &ses.GetIdentityMailFromDomainAttributesInput{
 		Identities: identities,
 	}
@@ -241,7 +212,6 @@ func getIdentityMailFromDomainAttributes(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
-	// logger.Trace("==========>>>>>>>>>>>>>>>>>>>", result.VerificationAttributes[name], name, result)
 	return result.MailFromDomainAttributes[name], err
 }
 
@@ -260,7 +230,6 @@ func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData,
 
 	identities := []*string{&name}
 
-	// execute list call
 	input := &ses.GetIdentityNotificationAttributesInput{
 		Identities: identities,
 	}
@@ -268,7 +237,6 @@ func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
-	// logger.Trace("==========>>>>>>>>>>>>>>>>>>>", result.VerificationAttributes[name], name, result)
 	return result.NotificationAttributes[name], err
 }
 
@@ -301,20 +269,3 @@ func getIdentityAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	return []string{types.SafeString(arn)}, nil
 }
-
-/* func sesTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")
-	tags := d.Value.([]*s3.Tag)
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-
-	return turbotTagsMap, nil
-}
-*/

@@ -1502,7 +1502,7 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
 
 	// have we already created and cached the service?
-	serviceCacheKey := "ses"
+	serviceCacheKey := "ses" + region
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*ses.SES), nil
 	}
