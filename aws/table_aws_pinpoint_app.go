@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -94,7 +95,7 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			if *limit < 1 {
 				input.PageSize = aws.String("1")
 			} else {
-				input.PageSize = aws.String(string(*limit))
+				input.PageSize = aws.String(fmt.Sprint(*limit))
 			}
 		}
 	}
