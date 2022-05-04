@@ -213,7 +213,7 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var id string
 	if h.Item != nil {
-		id = sagemakerDomainId(h.Item)
+		id = sageMakerDomainId(h.Item)
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
@@ -244,7 +244,7 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	var domainArn string
 	if h.Item != nil {
-		domainArn = sagemakerDomainArn(h.Item)
+		domainArn = sageMakerDomainArn(h.Item)
 	}
 
 	// Create Session
@@ -280,7 +280,7 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTION
 
-func sagemakerDomainId(item interface{}) string {
+func sageMakerDomainId(item interface{}) string {
 	switch item := item.(type) {
 	case *sagemaker.DomainDetails:
 		return *item.DomainId
@@ -290,7 +290,7 @@ func sagemakerDomainId(item interface{}) string {
 	return ""
 }
 
-func sagemakerDomainArn(item interface{}) string {
+func sageMakerDomainArn(item interface{}) string {
 	switch item := item.(type) {
 	case *sagemaker.DomainDetails:
 		return *item.DomainArn
