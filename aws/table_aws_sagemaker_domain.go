@@ -18,7 +18,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 		Description: "AWS Sagemaker Domain",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
 			Hydrate:           getAwsSageMakerDomain,
 		},
 		List: &plugin.ListConfig{
