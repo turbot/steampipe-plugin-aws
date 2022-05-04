@@ -230,15 +230,16 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	if tags, ok := d.HydrateItem.(*sns.ListTagsForResourceOutput); ok {
-		var turbotTagsMap map[string]string
-		if tags.Tags != nil {
-			turbotTagsMap = map[string]string{}
-			for _, i := range tags.Tags {
-				turbotTagsMap[*i.Key] = *i.Value
-			}
-		}
-		return turbotTagsMap, nil
+	tags, ok := d.HydrateItem.(*sns.ListTagsForResourceOutput)
+	if !ok {
+		return nil, nil
 	}
-	return nil, nil
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+	return turbotTagsMap, nil
 }
