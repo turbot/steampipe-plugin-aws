@@ -219,7 +219,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the resource.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNeptuneDbClusterTags,
+				Hydrate:     getNeptuneDBClusterTags,
 				Transform:   transform.FromField("TagList"),
 			},
 
@@ -234,8 +234,8 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getNeptuneDbClusterTags,
-				Transform:   transform.From(neptuneDbClusterTurbotTags),
+				Hydrate:     getNeptuneDBClusterTags,
+				Transform:   transform.From(neptuneDBClusterTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -250,7 +250,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listNeptuneDbClusters")
+	plugin.Logger(ctx).Trace("listNeptuneDBClusters")
 
 	// Create session
 	svc, err := NeptuneService(ctx, d)
@@ -297,7 +297,7 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getNeptuneDbCluster")
+	logger.Trace("getNeptuneDBCluster")
 
 	identifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
@@ -315,7 +315,7 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Get call
 	data, err := svc.DescribeDBClusters(params)
 	if err != nil {
-		logger.Debug("getNeptuneDbCluster", "ERROR", err)
+		logger.Error("getNeptuneDBCluster", "ERROR", err)
 		return nil, err
 	}
 	if len(data.DBClusters) > 0 {
@@ -324,9 +324,9 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	return nil, nil
 }
 
-func getNeptuneDbClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getNeptuneDbClusterTags")
+	logger.Trace("getNeptuneDBClusterTags")
 	clusterArn := h.Item.(*neptune.DBCluster).DBClusterArn
 
 	// Create session
@@ -341,7 +341,7 @@ func getNeptuneDbClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	tags, err := svc.ListTagsForResource(input)
 	if err != nil {
-		logger.Debug("getNeptuneDbClusterTags", "ERROR", err)
+		logger.Error("getNeptuneDBClusterTags", "ERROR", err)
 		return nil, err
 	}
 
@@ -354,8 +354,8 @@ func getNeptuneDbClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 
 //// TRANSFORM FUNCTIONS
 
-func neptuneDbClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("networkFirewallRuleGroupTurbotTags")
+func neptuneDBClusterTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("neptuneDBClusterTurbotTags")
 	tagsDetails := d.HydrateItem.(*neptune.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
