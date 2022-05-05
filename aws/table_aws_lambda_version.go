@@ -119,16 +119,16 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "environment_variables",
-				Description: "The environment variables that are accessible from function code during execution.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
-			},
-			{
 				Name:        "vpc_id",
 				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VpcConfig.VpcId"),
+			},
+			{
+				Name:        "environment_variables",
+				Description: "The environment variables that are accessible from function code during execution.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
 			},
 			{
 				Name:        "policy",
