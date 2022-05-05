@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -26,7 +28,7 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listPinpointApps,
 		},
-		GetMatrixItem: BuildPinpointRegionList,
+		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -77,6 +79,15 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 
 func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listPinpointApps")
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Pinpoint is not supported in all regions.
+	// https://docs.aws.amazon.com/general/latest/gr/pinpoint.html
+	serviceId := endpoints.PinpointServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := PinpointService(ctx, d)
@@ -84,14 +95,15 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
+	// Page size must be greater than 0 and less than or equal to 1000
 	input := &pinpoint.GetAppsInput{
-		PageSize: aws.String("100"),
+		PageSize: aws.String("1000"),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < 100 {
+		if *limit <= 1000 {
 			if *limit < 1 {
 				input.PageSize = aws.String("1")
 			} else {
@@ -136,7 +148,6 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPinpointApp")
 	appId := d.KeyColumnQuals["id"].GetStringValue()
-	plugin.Logger(ctx).Error("getPinpointApp", "ApplicationId", appId)
 
 	if appId == "" {
 		return nil, nil
