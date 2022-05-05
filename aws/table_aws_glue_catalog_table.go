@@ -211,6 +211,10 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
 
+	if name == "" || databaseName == "" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := GlueService(ctx, d)
 	if err != nil {
