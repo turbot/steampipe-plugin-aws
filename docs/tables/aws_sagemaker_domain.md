@@ -42,4 +42,4 @@ from
   aws_sagemaker_domain
 where 
   app_network_access_type = 'PublicInternetOnly';
-  ```
+```
