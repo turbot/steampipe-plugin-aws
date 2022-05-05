@@ -18,11 +18,12 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Name:        "aws_glue_catalog_table",
 		Description: "AWS Glue Catalog Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "database_name"}),
+			KeyColumns:        plugin.AllColumns([]string{"catalog_id", "name", "database_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
 			Hydrate:           getGlueCatalogTable,
 		},
 		List: &plugin.ListConfig{
+			KeyColumns:    plugin.AnyColumn([]string{"catalog_id", "database_name"}),
 			ParentHydrate: listGlueCatalogDatabases,
 			Hydrate:       listGlueCatalogTables,
 		},
@@ -30,7 +31,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The table name. For Hive compatibility, this must be entirely lowercase.",
+				Description: "The table name.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -40,7 +41,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "create_time",
-				Description: "The time when the table definition was created in the Data Catalog.",
+				Description: "The time when the table definition was created in the data catalog.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -55,12 +56,12 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "database_name",
-				Description: "The name of the database where the table metadata resides. For Hive compatibility, this must be all lowercase.",
+				Description: "The name of the database where the table metadata resides.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "is_registered_with_lake_formation",
-				Description: "Indicates whether the table has been registered with Lake Formation.",
+				Description: "Indicates whether the table has been registered with lake formation.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -95,12 +96,12 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "view_expanded_text",
-				Description: "If the table is a view, the expanded text of the view; otherwise null.",
+				Description: "If the table is a view, the expanded text of the view otherwise null.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "view_original_text",
-				Description: "If the table is a view, the original text of the view; otherwise null.",
+				Description: "If the table is a view, the original text of the view otherwise null.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -156,9 +157,17 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
+	if d.KeyColumnQualString("catalog_id") != "" && *database.CatalogId != d.KeyColumnQualString("catalog_id") {
+		return nil, nil
+	}
+	if d.KeyColumnQualString("database_name") != "" && *database.Name != d.KeyColumnQualString("database_name") {
+		return nil, nil
+	}
+
 	input := &glue.GetTablesInput{
 		MaxResults:   aws.Int64(100),
 		DatabaseName: database.Name,
+		CatalogId:    database.CatalogId,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -198,6 +207,7 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
+	catalogId := d.KeyColumnQuals["catalog_id"].GetStringValue()
 
 	// Create Session
 	svc, err := GlueService(ctx, d)
@@ -209,12 +219,13 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	params := &glue.GetTableInput{
 		Name:         aws.String(name),
 		DatabaseName: aws.String(databaseName),
+		CatalogId:    aws.String(catalogId),
 	}
 
 	// Get call
 	data, err := svc.GetTable(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getGlueCatalogTable", "ERROR", err)
+		plugin.Logger(ctx).Error("getGlueCatalogTable", "ERROR", err)
 		return nil, err
 	}
 	return data.Table, nil

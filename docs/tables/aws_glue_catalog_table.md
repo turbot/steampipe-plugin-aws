@@ -29,7 +29,7 @@ group by
   catalog_id;
 ```
 
-### List tables with retention less than 30 days
+### List tables with retention period less than 30 days
 
 ```sql
 select
