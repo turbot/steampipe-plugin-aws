@@ -51,7 +51,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "date-created",
+				Name:        "date_created",
 				Description: "The creation date for this environment.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
