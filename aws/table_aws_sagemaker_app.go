@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
@@ -23,7 +24,10 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsSageMakerApp,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns:    plugin.SingleColumn("user_profile_name"),
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "user_profile_name", Require: plugin.Required},
+				{Name: "domain_id", Require: plugin.Optional},
+			},
 			Hydrate:       listAwsSageMakerApps,
 			ParentHydrate: listAwsSageMakerDomains,
 		},
@@ -42,7 +46,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The app's Amazon Resource Name (ARN).",
+				Description: "The Amazon Resource Name (ARN) of the app.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSageMakerApp,
 				Transform:   transform.FromField("AppArn"),
@@ -130,22 +134,25 @@ func listAwsSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	sageMakerDomain := h.Item.(*sagemaker.DomainDetails)
 	plugin.Logger(ctx).Trace("listAwsSageMakerApps")
 
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
+	equalQuals := d.KeyColumnQuals
 
+	if equalQuals["domain_id"].GetStringValue() != "" && equalQuals["domain_id"].GetStringValue() != *sageMakerDomain.DomainId {
+		return nil, nil
+	}
 	input := &sagemaker.ListAppsInput{
 		DomainIdEquals: sageMakerDomain.DomainId,
 		MaxResults:     aws.Int64(100),
 	}
-
-	equalQuals := d.KeyColumnQuals
 	if equalQuals["user_profile_name"] != nil {
 		if equalQuals["user_profile_name"].GetStringValue() != "" {
 			input.UserProfileNameEquals = aws.String(equalQuals["user_profile_name"].GetStringValue())
 		}
+	}
+
+	// Create Session
+	svc, err := SageMakerService(ctx, d)
+	if err != nil {
+		return nil, err
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -268,7 +275,7 @@ func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 			":" + commonColumnData.AccountId +
 			":app/" + *item.DomainId +
 			"/" + *item.UserProfileName +
-			"/" + *item.AppType +
+			"/" + strings.ToLower(*item.AppType) +
 			"/" + *item.AppName, nil
 	case *sagemaker.DescribeAppOutput:
 		return *item.AppArn, nil
