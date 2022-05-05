@@ -1,3 +1,20 @@
+## v0.58.0 [2022-05-05]
+
+_What's new?_
+
+- New tables added
+  - [aws_neptune_db_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_neptune_db_cluster) ([#966](https://github.com/turbot/steampipe-plugin-aws/pull/966))
+  - [aws_sagemaker_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_domain) ([#974](https://github.com/turbot/steampipe-plugin-aws/pull/974))
+
+_Enhancements_
+
+- Added the `environment_variables` column to `aws_lambda_function` and `aws_lambda_version` tables ([#973](https://github.com/turbot/steampipe-plugin-aws/pull/973))
+- Updated the `aws_organizations_account` table's `id` column description and document for account ID clarifications ([#975](https://github.com/turbot/steampipe-plugin-aws/pull/975))
+
+_Bug fixes_
+
+- Updated the column name from `date-created` to `date_created` in the `aws_elastic_beanstalk_environment` table ([#965](https://github.com/turbot/steampipe-plugin-aws/pull/965))
+
 ## v0.57.0 [2022-04-27]
 
 _Enhancements_
