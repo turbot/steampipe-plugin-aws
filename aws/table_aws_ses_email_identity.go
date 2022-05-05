@@ -21,7 +21,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The user friendly name of the bucket.",
+				Description: "The email identity.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromValue(),
 			},
