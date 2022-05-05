@@ -18,7 +18,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 		Description: "AWS Sagemaker Domain",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
 			Hydrate:           getAwsSageMakerDomain,
 		},
 		List: &plugin.ListConfig{
@@ -40,7 +40,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The domain's Amazon Resource Name (ARN).",
+				Description: "The Amazon Resource Name (ARN) of the domain.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DomainArn"),
 			},
@@ -76,7 +76,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "home_efs_file_system_id",
-				Description: "The ID of the Amazon Elastic File System (EFS) managed by this Domain.",
+				Description: "The ID of the Amazon Elastic File System (EFS) managed by this domain.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSageMakerDomain,
 			},
@@ -128,13 +128,13 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "domain_settings",
-				Description: "A collection of Domain settings.",
+				Description: "A collection of domain settings.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerDomain,
 			},
 			{
 				Name:        "subnet_ids",
-				Description: "The VPC subnets that Studio uses for communication.",
+				Description: "The VPC subnets that studio uses for communication.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerDomain,
 			},
@@ -213,9 +213,12 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var id string
 	if h.Item != nil {
-		id = sagemakerDomainId(h.Item)
+		id = sageMakerDomainId(h.Item)
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+	if id == "" {
+		return nil, nil
 	}
 
 	// Create service
@@ -244,7 +247,7 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 	var domainArn string
 	if h.Item != nil {
-		domainArn = sagemakerDomainArn(h.Item)
+		domainArn = sageMakerDomainArn(h.Item)
 	}
 
 	// Create Session
@@ -280,17 +283,17 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTION
 
-func sagemakerDomainId(item interface{}) string {
+func sageMakerDomainId(item interface{}) string {
 	switch item := item.(type) {
 	case *sagemaker.DomainDetails:
-		return *item.DomainName
+		return *item.DomainId
 	case *sagemaker.DescribeDomainOutput:
-		return *item.DomainName
+		return *item.DomainId
 	}
 	return ""
 }
 
-func sagemakerDomainArn(item interface{}) string {
+func sageMakerDomainArn(item interface{}) string {
 	switch item := item.(type) {
 	case *sagemaker.DomainDetails:
 		return *item.DomainArn
