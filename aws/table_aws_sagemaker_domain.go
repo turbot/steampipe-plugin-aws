@@ -40,7 +40,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The domain's Amazon Resource Name (ARN).",
+				Description: "The Amazon Resource Name (ARN) of the domain.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("DomainArn"),
 			},
@@ -216,6 +216,9 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		id = sageMakerDomainId(h.Item)
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+	if id == "" {
+		return nil, nil
 	}
 
 	// Create service

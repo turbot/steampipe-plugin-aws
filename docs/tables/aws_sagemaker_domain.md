@@ -29,6 +29,7 @@ from
 where 
   kms_key_id is null;
 ```
+
 ### List publicly accessible sagemaker domains
 
 ```sql
@@ -42,3 +43,4 @@ from
 where 
   app_network_access_type = 'PublicInternetOnly';
   ```
+  
