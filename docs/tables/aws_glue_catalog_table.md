@@ -41,5 +41,5 @@ select
 from
   aws_glue_catalog_table
 where
-  retention::bigint < 30;
+  retention < 30;
 ```

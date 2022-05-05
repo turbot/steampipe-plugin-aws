@@ -85,7 +85,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "retention",
 				Description: "The retention time for this table.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "table_type",
