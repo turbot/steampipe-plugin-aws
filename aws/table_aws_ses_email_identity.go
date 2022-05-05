@@ -27,38 +27,38 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "behavior_on_mx_failure",
-				Description: "The user friendly name of the bucket.",
+				Description: "The action that Amazon SES takes if it cannot successfully read the required MX record when you send an email.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityMailFromDomainAttributes,
 				Transform:   transform.FromField("BehaviorOnMXFailure"),
 			},
 			{
 				Name:        "dkim_enabled",
-				Description: "The user friendly name of the bucket.",
+				Description: "Denotes if DKIM signing is enabled for email sent from the identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityDkimAttributes,
 			},
 			{
 				Name:        "dkim_tokens",
-				Description: "The user friendly name of the bucket.",
+				Description: "A set of character strings that represent the domain's identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityDkimAttributes,
 			},
 			{
 				Name:        "dkim_verification_status",
-				Description: "The user friendly name of the bucket.",
+				Description: "Describes whether Amazon SES has successfully verified the DKIM DNS records.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityDkimAttributes,
 			},
 			{
 				Name:        "mail_from_domain",
-				Description: "The user friendly name of the bucket.",
+				Description: "The custom MAIL FROM domain that the identity is configured to use.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityMailFromDomainAttributes,
 			},
 			{
 				Name:        "mail_from_domain_status",
-				Description: "The user friendly name of the bucket.",
+				Description: "The state that indicates whether Amazon SES has successfully read the MX record required for custom MAIL FROM domain setup.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityMailFromDomainAttributes,
 			},
@@ -76,11 +76,13 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "notification_attributes",
-				Description: "The user friendly name of the bucket.",
+				Description: "Represents the notification attributes of an identity.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
+
+			// Standard columns for all tables
 			{
 				Name:        "arn",
 				Description: "The ARN of the AWS SES Identity.",
