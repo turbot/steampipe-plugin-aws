@@ -76,7 +76,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "home_efs_file_system_id",
-				Description: "The ID of the Amazon Elastic File System (EFS) managed by this Domain.",
+				Description: "The ID of the Amazon Elastic File System (EFS) managed by this domain.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSageMakerDomain,
 			},
@@ -128,13 +128,13 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "domain_settings",
-				Description: "A collection of Domain settings.",
+				Description: "A collection of domain settings.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerDomain,
 			},
 			{
 				Name:        "subnet_ids",
-				Description: "The VPC subnets that Studio uses for communication.",
+				Description: "The VPC subnets that studio uses for communication.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsSageMakerDomain,
 			},

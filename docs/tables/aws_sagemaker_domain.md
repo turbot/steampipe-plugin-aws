@@ -1,6 +1,6 @@
 # Table: aws_sagemaker_domain
 
-An Amazon SageMaker Domain consists of an associated Amazon Elastic File System (Amazon EFS) volume; a list of authorized users; and a variety of security, application, policy, and Amazon Virtual Private Cloud (Amazon VPC) configurations.
+Amazon SageMaker Domain consists of an associated Amazon Elastic File System (Amazon EFS) volume; a list of authorized users; and a variety of security, application, policy, and Amazon Virtual Private Cloud (Amazon VPC) configurations.
 
 ## Examples
 
@@ -16,7 +16,7 @@ from
   aws_sagemaker_domain;
 ```
 
-### List sagemaker domains where efs volume is unencrypted
+### List sagemaker domains where EFS volume is unencrypted
 
 ```sql
 select
