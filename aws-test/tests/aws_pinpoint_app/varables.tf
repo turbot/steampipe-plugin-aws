@@ -52,6 +52,7 @@ resource "aws_pinpoint_app" "named_test_resource" {
 
   limits {
     maximum_duration = 600
+    messages_per_second = 50
   }
 
   quiet_time {
