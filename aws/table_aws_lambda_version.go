@@ -127,6 +127,12 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("VpcConfig.VpcId"),
 			},
 			{
+				Name:        "environment_variables",
+				Description: "The environment variables that are accessible from function code during execution.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Environment.Variables"),
+			},
+			{
 				Name:        "policy",
 				Description: "Contains the resource-based policy.",
 				Hydrate:     getFunctionVersionPolicy,
