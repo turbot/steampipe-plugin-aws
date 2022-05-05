@@ -8,8 +8,9 @@ _What's new?_
 
 _Enhancements_
 
-- Added the `environment_variables` column to `aws_lambda_function` and `aws_lambda_version` tables ([#973](https://github.com/turbot/steampipe-plugin-aws/pull/973))
-- Updated the `aws_organizations_account` table's `id` column description and document for account ID clarifications ([#975](https://github.com/turbot/steampipe-plugin-aws/pull/975))
+- Added the `environment_variables` column to `aws_lambda_function` and `aws_lambda_version` tables. ([#973](https://github.com/turbot/steampipe-plugin-aws/pull/973))
+- Updated the `aws_organizations_account` table's `id` column description and document for account ID clarifications. ([#975](https://github.com/turbot/steampipe-plugin-aws/pull/975))
+- Removed the use of chalk package in `aws_iam_credential_report` table for dashboard compatibility.
 
 _Bug fixes_
 
