@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
+	"path"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	// "github.com/turbot/go-kit/helpers"
 )
 
 // isNotFoundError:: function which returns an ErrorPredicate for AWS API calls
@@ -16,7 +17,14 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 		allErrors := append(notFoundErrors, awsConfig.IgnoredErrorCodes...)
 		if awsErr, ok := err.(awserr.Error); ok {
 			plugin.Logger(ctx).Info("isNotFoundError", "AWS Error CODE", awsErr.Code())
-			return helpers.StringSliceContains(allErrors, awsErr.Code())
+			// return helpers.StringSliceContains(allErrors, awsErr.Code())
+
+			// Added to support regex in not found errors
+			for _, pattern := range allErrors {
+				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
+					return true
+				}
+			}
 		}
 		return false
 	}
@@ -31,7 +39,14 @@ func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 		awsConfig := GetConfig(d.Connection)
 		if awsErr, ok := err.(awserr.Error); ok {
 			plugin.Logger(ctx).Info("shouldIgnoreErrorPluginDefault", "AWS Error CODE", awsErr.Code())
-			return helpers.StringSliceContains(awsConfig.IgnoredErrorCodes, awsErr.Code())
+			// return helpers.StringSliceContains(awsConfig.IgnoredErrorCodes, awsErr.Code())
+
+			// Added to support regex in ignoring errors
+			for _, pattern := range awsConfig.IgnoredErrorCodes {
+				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
+					return true
+				}
+			}
 		}
 		return false
 	}
