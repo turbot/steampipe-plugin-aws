@@ -1,3 +1,3 @@
-select db_cluster_identifier, arn, status, resource_id
+select id, arn, name
 from aws_pinpoint_app
 where id = 'dummy-{{ resourceName }}';
