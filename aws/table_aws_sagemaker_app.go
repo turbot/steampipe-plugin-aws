@@ -75,13 +75,13 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "last_user_activity_timestamp",
-				Description: "The timestamp of the last health check.",
+				Description: "The timestamp of the last user activity.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsSageMakerApp,
 			},
 			{
 				Name:        "status",
-				Description: "The app's status.",
+				Description: "The status of the app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -189,6 +189,7 @@ func listAwsSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getAwsSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var params sagemaker.DescribeAppInput
+
 	// Build the params
 	if h.Item != nil {
 		params = sageMakerAppParams(h.Item)
