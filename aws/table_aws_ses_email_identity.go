@@ -21,46 +21,9 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The user friendly name of the bucket.",
+				Description: "The email identity.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromValue(),
-			},
-			{
-				Name:        "behavior_on_mx_failure",
-				Description: "The action that Amazon SES takes if it cannot successfully read the required MX record when you send an email.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityMailFromDomainAttributes,
-				Transform:   transform.FromField("BehaviorOnMXFailure"),
-			},
-			{
-				Name:        "dkim_enabled",
-				Description: "Denotes if DKIM signing is enabled for email sent from the identity.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityDkimAttributes,
-			},
-			{
-				Name:        "dkim_tokens",
-				Description: "A set of character strings that represent the domain's identity.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityDkimAttributes,
-			},
-			{
-				Name:        "dkim_verification_status",
-				Description: "Describes whether Amazon SES has successfully verified the DKIM DNS records.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityDkimAttributes,
-			},
-			{
-				Name:        "mail_from_domain",
-				Description: "The custom MAIL FROM domain that the identity is configured to use.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityMailFromDomainAttributes,
-			},
-			{
-				Name:        "mail_from_domain_status",
-				Description: "The state that indicates whether Amazon SES has successfully read the MX record required for custom MAIL FROM domain setup.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityMailFromDomainAttributes,
 			},
 			{
 				Name:        "verification_status",
@@ -165,56 +128,6 @@ func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 	return result.VerificationAttributes[name], err
-}
-
-func getIdentityDkimAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentity")
-
-	name := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	identities := []*string{&name}
-
-	input := &ses.GetIdentityDkimAttributesInput{
-		Identities: identities,
-	}
-	result, err := svc.GetIdentityDkimAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.DkimAttributes[name], err
-}
-
-func getIdentityMailFromDomainAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentity")
-
-	name := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	identities := []*string{&name}
-
-	input := &ses.GetIdentityMailFromDomainAttributesInput{
-		Identities: identities,
-	}
-	result, err := svc.GetIdentityMailFromDomainAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.MailFromDomainAttributes[name], err
 }
 
 func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
