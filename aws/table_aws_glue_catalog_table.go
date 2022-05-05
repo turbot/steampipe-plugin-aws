@@ -18,12 +18,15 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Name:        "aws_glue_catalog_table",
 		Description: "AWS Glue Catalog Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"catalog_id", "name", "database_name"}),
+			KeyColumns:        plugin.AllColumns([]string{"name", "database_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
 			Hydrate:           getGlueCatalogTable,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns:    plugin.AnyColumn([]string{"catalog_id", "database_name"}),
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "catalog_id", Require: plugin.Optional},
+				{Name: "database_name", Require: plugin.Optional},
+			},
 			ParentHydrate: listGlueCatalogDatabases,
 			Hydrate:       listGlueCatalogTables,
 		},
@@ -207,7 +210,6 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
-	catalogId := d.KeyColumnQuals["catalog_id"].GetStringValue()
 
 	// Create Session
 	svc, err := GlueService(ctx, d)
@@ -219,7 +221,6 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	params := &glue.GetTableInput{
 		Name:         aws.String(name),
 		DatabaseName: aws.String(databaseName),
-		CatalogId:    aws.String(catalogId),
 	}
 
 	// Get call
