@@ -164,8 +164,6 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getPinpointApp")
-
-	plugin.Logger(ctx).Trace("listPinpointApps")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// AWS Pinpoint is not supported in all regions.
@@ -175,9 +173,9 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	if !helpers.StringSliceContains(validRegions, region) {
 		return nil, nil
 	}
-	
-	appId := d.KeyColumnQuals["id"].GetStringValue()
 
+	appId := d.KeyColumnQuals["id"].GetStringValue()
+	// Empty check
 	if appId == "" {
 		return nil, nil
 	}

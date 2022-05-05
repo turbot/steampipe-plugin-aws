@@ -34,13 +34,12 @@ select
   id,
   campaign_hook -> 'LambdaFunctionName' as lambda_function_name,
   campaign_hook -> 'Mode' as mode,
-  campaign_hook -> 'WebUrl' as web_url,
-
+  campaign_hook -> 'WebUrl' as web_url
 from
   aws_pinpoint_app;
 ```
 
-### List limits of applications
+### List the limits of applications
 
 ```sql
 select
