@@ -11,35 +11,45 @@ select
   id,
   name,
   arn,
-  application_settings
+  limits
 from
   aws_pinpoint_app;
 ```
 
-
-### Application settings details
+### Get quiet time for application
 
 ```sql
 select
   id,
-  application_settings ->> 'Limits' as limits,
-  application_settings ->> 'QuietTime' as quiet_time,
-  application_settings ->> 'CampaignHook' as campaign_hook,
-  application_settings ->> 'LastModifiedDate' as last_modified_date
+  quiet_time -> 'Start' as start_time,
+  quiet_time -> 'End' as end_time
 from
   aws_pinpoint_app;
 ```
 
-### List limit of an application
+### Get campaign hook details for application
 
 ```sql
 select
   id,
-  application_settings -> 'Limits' ->> 'Daily' as daily,
-  application_settings -> 'Limits' ->> 'Total' as total,
-  application_settings -> 'Limits' ->> 'Session' as session,
-  application_settings -> 'Limits' ->> 'MaximumDuration' as maximum_duration,
-  application_settings -> 'Limits' ->> 'MessagesPerSecond' as messages_per_second
+  campaign_hook -> 'LambdaFunctionName' as lambda_function_name,
+  campaign_hook -> 'Mode' as mode,
+  campaign_hook -> 'WebUrl' as web_url,
+
+from
+  aws_pinpoint_app;
+```
+
+### List limits of applications
+
+```sql
+select
+  id,
+  limits -> 'Daily' as daily,
+  limits -> 'Total' as total,
+  limits -> 'Session' as session,
+  limits -> 'MaximumDuration' as maximum_duration,
+  limits -> 'MessagesPerSecond' as messages_per_second
 from
   aws_pinpoint_app;
 ```
