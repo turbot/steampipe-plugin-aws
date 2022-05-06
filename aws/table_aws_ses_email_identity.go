@@ -29,19 +29,19 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "verification_status",
 				Description: "The verification status of the identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityVerificationAttributes,
+				Hydrate:     getEmailIdentityVerificationAttributes,
 			},
 			{
 				Name:        "verification_token",
 				Description: "The verification token for a domain identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityVerificationAttributes,
+				Hydrate:     getEmailIdentityVerificationAttributes,
 			},
 			{
 				Name:        "notification_attributes",
 				Description: "Represents the notification attributes of an identity.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIdentityNotificationAttributes,
+				Hydrate:     getEmailIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
 
@@ -50,7 +50,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The ARN of the AWS SES identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getIdentityARN,
+				Hydrate:     getEmailIdentityARN,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -63,7 +63,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getIdentityAkas,
+				Hydrate:     getEmailIdentityAkas,
 				Transform:   transform.FromValue(),
 			},
 		}),
@@ -105,7 +105,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIdentityVerificationAttributes")
 
@@ -129,7 +129,7 @@ func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData,
 	return result.VerificationAttributes[name], err
 }
 
-func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getIdentityNotificationAttributes")
 
@@ -155,7 +155,7 @@ func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData,
 
 //// TRANSFORM FUNCTIONS
 
-func getIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIdentityARN")
 
 	name := h.Item.(string)
@@ -171,8 +171,8 @@ func getIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	return arn, nil
 }
 
-func getIdentityAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn, err := getIdentityARN(ctx, d, h)
+func getEmailIdentityAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	arn, err := getEmailIdentityARN(ctx, d, h)
 	if err != nil {
 		return nil, nil
 	}
