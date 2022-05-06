@@ -1,3 +1,9 @@
+## v0.58.1 [WIP]
+
+_Bug fixes_
+
+- Fixed `aws_cloudcontrol_resource`, `aws_cloudtrail_trail_event`, `aws_cloudwatch_log_event`, and `aws_vpc_flow_log_event` tables not returning correct results for consecutive queries when using optional list key column.
+
 ## v0.58.0 [2022-05-05]
 
 _What's new?_
@@ -87,6 +93,7 @@ _Enhancements_
 - Added additional optional key quals to `aws_cost_by_service_daily`, `aws_cost_by_service_monthly`, `aws_cost_by_service_usage_type_daily` and `aws_cost_by_service_usage_type_monthly` tables ([#912](https://github.com/turbot/steampipe-plugin-aws/pull/912))
 
 _Bug fixes_
+
 - Fixed the `title` column of `aws_vpc_security_group_rule` table to correctly evaluate if a security group rule is either ingress or egress ([#924](https://github.com/turbot/steampipe-plugin-aws/pull/924))
 
 ## v0.49.0 [2022-02-17]
@@ -115,6 +122,7 @@ _What's new?_
 _Enhancements_
 
 - Added context cancellation handling to the following tables ([#896](https://github.com/turbot/steampipe-plugin-aws/pull/896))
+
   - aws_auditmanager_control
   - aws_auditmanager_framework
   - aws_backup_recovery_point
@@ -380,13 +388,12 @@ _Bug fixes_
 - Fixed the `ecs_service` table to correctly return the tags instead of returning `null` ([#710](https://github.com/turbot/steampipe-plugin-aws/pull/710))
 
 ## v0.36.0 [2021-10-12]
-  
+
 _What's new?_
 
 - New tables added
   - [aws_ssoadmin_managed_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_managed_policy_attachment) ([#664](https://github.com/turbot/steampipe-plugin-aws/pull/664))
   - [aws_workspaces_workspace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_workspaces_workspace) ([#681](https://github.com/turbot/steampipe-plugin-aws/pull/681))
-
 
 ## v0.35.1 [2021-10-08]
 
@@ -415,7 +422,7 @@ _What's new?_
 
 - New tables added
   - [aws_identitystore_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_identitystore_group) ([#663](https://github.com/turbot/steampipe-plugin-aws/pull/663))
-  
+
 _Bug fixes_
 
 - Add pagination to list and list tags functions in several tables ([#660](https://github.com/turbot/steampipe-plugin-aws/pull/660))
