@@ -48,7 +48,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 			// Standard columns for all tables
 			{
 				Name:        "arn",
-				Description: "The ARN of the AWS SES Identity.",
+				Description: "The ARN of the AWS SES identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getIdentityARN,
 				Transform:   transform.FromValue(),
@@ -107,18 +107,17 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentity")
+	logger.Trace("getIdentityVerificationAttributes")
 
 	name := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
+	identities := []*string{&name}
 
 	// Create Session
 	svc, err := SESService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
-	identities := []*string{&name}
 
 	input := &ses.GetIdentityVerificationAttributesInput{
 		Identities: identities,
@@ -132,18 +131,17 @@ func getIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData,
 
 func getIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentity")
+	logger.Trace("getIdentityNotificationAttributes")
 
 	name := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
+	identities := []*string{&name}
 
 	// Create Session
 	svc, err := SESService(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
-	identities := []*string{&name}
 
 	input := &ses.GetIdentityNotificationAttributesInput{
 		Identities: identities,
@@ -168,19 +166,15 @@ func getIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	if err != nil {
 		return nil, err
 	}
-
 	commonColumnData := c.(*awsCommonColumnData)
 	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + name
-
 	return arn, nil
 }
 
 func getIdentityAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	arn, err := getIdentityARN(ctx, d, h)
 	if err != nil {
 		return nil, nil
 	}
-
 	return []string{types.SafeString(arn)}, nil
 }
