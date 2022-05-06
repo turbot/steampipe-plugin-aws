@@ -18,7 +18,7 @@ where
   user_profile_name = 'testprofile';
 ```
 
-### List all sagemaker apps for which creation failed
+### List apps that failed to create
 
 ```sql
 select

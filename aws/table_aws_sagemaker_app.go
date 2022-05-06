@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,12 +23,12 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 			Hydrate:           getAwsSageMakerApp,
 		},
 		List: &plugin.ListConfig{
+			ParentHydrate: listAwsSageMakerDomains,
+			Hydrate:       listAwsSageMakerApps,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "user_profile_name", Require: plugin.Required},
+				{Name: "user_profile_name", Require: plugin.Optional},
 				{Name: "domain_id", Require: plugin.Optional},
 			},
-			Hydrate:       listAwsSageMakerApps,
-			ParentHydrate: listAwsSageMakerDomains,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -85,13 +84,6 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "The list of tags for the app.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsSageMakerAppTags,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "user_profile_name",
 				Description: "The user profile name.",
 				Type:        proto.ColumnType_STRING,
@@ -109,13 +101,6 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AppName"),
-			},
-			{
-				Name:        "tags",
-				Description: resourceInterfaceDescription("tags"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsSageMakerAppTags,
-				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -195,11 +180,19 @@ func getAwsSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		params = sageMakerAppParams(h.Item)
 	} else {
 		equalQuals := d.KeyColumnQuals
+		appName := aws.String(equalQuals["name"].GetStringValue())
+		appType := aws.String(equalQuals["app_type"].GetStringValue())
+		userProfileName := aws.String(equalQuals["user_profile_name"].GetStringValue())
+		domainId := aws.String(equalQuals["domain_id"].GetStringValue())
+		if len(*appName) == 0 || len(*appType) == 0 || len(*userProfileName) == 0 || len(*domainId) == 0 {
+			return nil, nil
+		}
+
 		params = sagemaker.DescribeAppInput{
-			AppName:         aws.String(equalQuals["name"].GetStringValue()),
-			AppType:         aws.String(equalQuals["app_type"].GetStringValue()),
-			UserProfileName: aws.String(equalQuals["user_profile_name"].GetStringValue()),
-			DomainId:        aws.String(equalQuals["domain_id"].GetStringValue()),
+			AppName:         appName,
+			AppType:         appType,
+			UserProfileName: userProfileName,
+			DomainId:        domainId,
 		}
 	}
 
@@ -212,54 +205,10 @@ func getAwsSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	data, err := svc.DescribeApp(&params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsSageMakerApp", "ERROR", err)
+		plugin.Logger(ctx).Error("getAwsSageMakerApp", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
-}
-
-func listAwsSageMakerAppTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsSageMakerAppTags")
-
-	var appArn interface{}
-	var err error
-	if h.Item != nil {
-		appArn, err = sageMakerAppArn(ctx, d, h)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Create Session
-	svc, err := SageMakerService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the params
-	params := &sagemaker.ListTagsInput{
-		ResourceArn: aws.String(fmt.Sprintf("%v", appArn)),
-	}
-
-	pagesLeft := true
-	tags := []*sagemaker.Tag{}
-	for pagesLeft {
-		keyTags, err := svc.ListTags(params)
-		if err != nil {
-			plugin.Logger(ctx).Error("listAwsSageMakerAppTags", "ListTags_error", err)
-			return nil, err
-		}
-		tags = append(tags, keyTags.Tags...)
-
-		if keyTags.NextToken != nil {
-			params.NextToken = keyTags.NextToken
-		} else {
-			pagesLeft = false
-		}
-	}
-
-	return tags, nil
 }
 
 func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -283,8 +232,6 @@ func sageMakerAppArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 	return "", nil
 }
-
-//// TRANSFORM FUNCTION
 
 func sageMakerAppParams(item interface{}) sagemaker.DescribeAppInput {
 	switch item := item.(type) {
