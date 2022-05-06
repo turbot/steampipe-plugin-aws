@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
@@ -75,7 +76,6 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listSESEmailIdentities")
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
@@ -85,21 +85,38 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// execute list call
-	input := &ses.ListIdentitiesInput{IdentityType: &ses.IdentityType_Values()[0]}
-	identityResult, err := svc.ListIdentities(input)
-	if err != nil {
-		return nil, err
+	input := &ses.ListIdentitiesInput{
+		MaxItems:     aws.Int64(1000),
+		IdentityType: &ses.IdentityType_Values()[0],
 	}
 
-	for _, identity := range identityResult.Identities {
-		d.StreamListItem(ctx, *identity)
-
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil, nil
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
 		}
 	}
 
+	// List call
+	err = svc.ListIdentitiesPages(
+		input,
+		func(page *ses.ListIdentitiesOutput, lastPage bool) bool {
+			for _, identity := range page.Identities {
+				d.StreamListItem(ctx, *identity)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
+			}
+			return !lastPage
+		},
+	)
 	return nil, err
 }
 
@@ -152,8 +169,6 @@ func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.Query
 	}
 	return result.NotificationAttributes[name], err
 }
-
-//// TRANSFORM FUNCTIONS
 
 func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEmailIdentityARN")
