@@ -107,7 +107,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getIdentityVerificationAttributes")
+	logger.Trace("getEmailIdentityVerificationAttributes")
 
 	name := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -131,7 +131,7 @@ func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.Query
 
 func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getIdentityNotificationAttributes")
+	logger.Trace("getEmailIdentityNotificationAttributes")
 
 	name := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -156,7 +156,7 @@ func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.Query
 //// TRANSFORM FUNCTIONS
 
 func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIdentityARN")
+	plugin.Logger(ctx).Trace("getEmailIdentityARN")
 
 	name := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
