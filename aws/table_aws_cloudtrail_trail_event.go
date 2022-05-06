@@ -282,7 +282,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Info("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "region", d.KeyColumnQualString(matrixKeyRegion), "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Debug("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "region", d.KeyColumnQualString(matrixKeyRegion), "filter query", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(
