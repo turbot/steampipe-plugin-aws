@@ -2,7 +2,7 @@
 
 _Bug fixes_
 
-- Fixed `aws_cloudcontrol_resource`, `aws_cloudtrail_trail_event`, `aws_cloudwatch_log_event`, and `aws_vpc_flow_log_event` tables not returning correct results for consecutive queries when using optional list key column.
+- Fixed `aws_cloudcontrol_resource`, `aws_cloudtrail_trail_event`, `aws_cloudwatch_log_event`, and `aws_vpc_flow_log_event` tables not returning correct results for consecutive queries when using optional list key columns. ([#981](https://github.com/turbot/steampipe-plugin-aws/pull/981))
 
 ## v0.58.0 [2022-05-05]
 
