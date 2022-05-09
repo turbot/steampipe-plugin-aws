@@ -170,6 +170,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_fsx_file_system":                                          tableAwsFsxFileSystem(ctx),
 			"aws_glacier_vault":                                            tableAwsGlacierVault(ctx),
 			"aws_glue_catalog_database":                                    tableAwsGlueCatalogDatabase(ctx),
+			"aws_glue_catalog_table":                                       tableAwsGlueCatalogTable(ctx),
 			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
