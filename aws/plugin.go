@@ -212,6 +212,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
+			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
