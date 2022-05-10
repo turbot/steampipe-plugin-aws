@@ -27,6 +27,13 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "arn",
+				Description: "The ARN of the AWS SES identity.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getEmailIdentityARN,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "verification_status",
 				Description: "The verification status of the identity.",
 				Type:        proto.ColumnType_STRING,
@@ -48,13 +55,6 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 
 			// Standard columns for all tables
 			{
-				Name:        "arn",
-				Description: "The ARN of the AWS SES identity.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEmailIdentityARN,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -64,8 +64,8 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getEmailIdentityAkas,
-				Transform:   transform.FromValue(),
+				Hydrate:     getEmailIdentityARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -184,12 +184,4 @@ func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	commonColumnData := c.(*awsCommonColumnData)
 	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + name
 	return arn, nil
-}
-
-func getEmailIdentityAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	arn, err := getEmailIdentityARN(ctx, d, h)
-	if err != nil {
-		return nil, nil
-	}
-	return []string{types.SafeString(arn)}, nil
 }
