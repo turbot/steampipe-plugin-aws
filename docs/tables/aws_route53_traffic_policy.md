@@ -2,7 +2,6 @@
 
 Amazon Route 53 Traffic Policy is a domain name system service that allows an Amazon Web Services customer to define how end-user traffic is routed to application endpoints through a visual interface.
 
-
 ## Examples
 
 ### Basic Info
