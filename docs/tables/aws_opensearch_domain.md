@@ -17,7 +17,6 @@ from
   aws_opensearch_domain;
 ```
 
-
 ### List domains that are not encrypted at rest
 
 ```sql
@@ -31,7 +30,6 @@ from
 where
   encryption_at_rest_options ->> 'Enabled' = 'false';
 ```
-
 
 ### Get storage details for domains that are using EBS storage type
 
@@ -48,7 +46,6 @@ where
   ebs_options ->> 'EBSEnabled' = 'true';
 ```
 
-
 ### Get network details for each domain
 
 ```sql
@@ -64,7 +61,6 @@ where
   vpc_options ->> 'AvailabilityZones' is not null;
 ```
 
-
 ### Get the instance details for each domain
 
 ```sql
@@ -77,7 +73,6 @@ from
   aws_opensearch_domain;
 ```
 
-
 ### List domains that are publicly accessible
 
 ```sql
@@ -88,11 +83,10 @@ select
   engine_version,
   created
 from
-  aws_opensearch_domain,
+  aws_opensearch_domain
 where
   vpc_options is null;
 ```
-
 
 ### List domain log publishing options
 
@@ -104,7 +98,6 @@ select
 from
   aws_opensearch_domain;
 ```
-
 
 ### List domain Search slow logs details
 

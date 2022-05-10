@@ -50,7 +50,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "access_policies",
-				Description: "IAM access policy as a JSON-formatted string.",
+				Description: "The IAM access policies of the domain.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -74,7 +74,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "engine_version",
-				Description: "The domain's engine version.",
+				Description: "The domain's OpenSearch version.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -92,14 +92,14 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "node_to_node_encryption_enabled",
-				Description: "Specifies the status of the NodeToNodeEncryptionOptions.",
+				Description: "Specifies the status of the node to node encryption status.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsOpenSearchDomain,
 				Transform:   transform.FromField("NodeToNodeEncryptionOptions.Enabled"),
 			},
 			{
 				Name:        "advanced_options",
-				Description: "Specifies the status of the AdvancedOptions.",
+				Description: "Specifies the status of the advanced options.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -111,7 +111,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "auto_tune_options",
-				Description: "The current status of the domain's Auto-Tune options.",
+				Description: "The current status of the domain's auto-tune options.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -123,7 +123,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "cognito_options",
-				Description: "The CognitoOptions for the specified domain.",
+				Description: "The cognito options for the specified domain.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -142,7 +142,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "encryption_at_rest_options",
-				Description: "The status of the EncryptionAtRestOptions.",
+				Description: "The status of the encryption at rest options.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
@@ -166,13 +166,13 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "snapshot_options",
-				Description: "Specifies the status of the SnapshotOptions.",
+				Description: "Specifies the status of the snapshot options.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 			},
 			{
 				Name:        "vpc_options",
-				Description: "The VPCOptions for the specified domain.",
+				Description: "The vpc options for the specified domain.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsOpenSearchDomain,
 				Transform:   transform.FromField("VPCOptions"),
