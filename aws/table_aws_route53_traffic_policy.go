@@ -209,7 +209,7 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		Version: &version,
 	}
 
-	// execute list call
+	// execute get call
 	item, err := svc.GetTrafficPolicy(params)
 	if err != nil {
 		return nil, err
