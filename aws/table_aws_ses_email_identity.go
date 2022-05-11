@@ -21,7 +21,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
+				Name:        "identity",
 				Description: "The email identity.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromValue(),
@@ -126,9 +126,9 @@ func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.Query
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEmailIdentityVerificationAttributes")
 
-	name := h.Item.(string)
+	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&name}
+	identities := []*string{&identity}
 
 	// Create Session
 	svc, err := SESService(ctx, d, region)
@@ -143,16 +143,16 @@ func getEmailIdentityVerificationAttributes(ctx context.Context, d *plugin.Query
 	if err != nil {
 		return nil, err
 	}
-	return result.VerificationAttributes[name], err
+	return result.VerificationAttributes[identity], err
 }
 
 func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getEmailIdentityNotificationAttributes")
 
-	name := h.Item.(string)
+	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&name}
+	identities := []*string{&identity}
 
 	// Create Session
 	svc, err := SESService(ctx, d, region)
@@ -167,13 +167,13 @@ func getEmailIdentityNotificationAttributes(ctx context.Context, d *plugin.Query
 	if err != nil {
 		return nil, err
 	}
-	return result.NotificationAttributes[name], err
+	return result.NotificationAttributes[identity], err
 }
 
 func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEmailIdentityARN")
 
-	name := h.Item.(string)
+	identity := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -182,6 +182,6 @@ func getEmailIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + name
+	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + identity
 	return arn, nil
 }

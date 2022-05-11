@@ -8,7 +8,7 @@ Amazon SES is an email platform that provides an easy, cost-effective way for yo
 
 ```sql
 select
-  name,
+  identity,
   arn,
   region,
   akas
@@ -20,7 +20,7 @@ from
 
 ```sql
 select
-  name,
+  identity,
   region,
   verification_status
 from

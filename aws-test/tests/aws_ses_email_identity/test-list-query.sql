@@ -1,5 +1,5 @@
 select
-  name,
+  identity,
   arn,
   region,
   akas
