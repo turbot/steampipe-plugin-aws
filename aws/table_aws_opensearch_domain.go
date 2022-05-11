@@ -91,7 +91,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Hydrate:     getOpenSearchDomain,
 			},
 			{
-				Name:        "node_to_node_encryption_enabled",
+				Name:        "node_to_node_encryption_options_enabled",
 				Description: "Specifies the status of the node to node encryption status.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getOpenSearchDomain,
