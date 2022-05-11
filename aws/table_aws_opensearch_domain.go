@@ -268,7 +268,7 @@ func getAwsOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Get call
 	data, err := svc.DescribeDomain(params)
 	if err != nil {
-		logger.Debug("getAwsOpenSearchDomain", "ERROR", err)
+		logger.Error("getAwsOpenSearchDomain", "ERROR", err)
 		return nil, err
 	}
 
