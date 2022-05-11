@@ -1,4 +1,18 @@
-## v0.58.1 [WIP]
+## v0.59.0 [2022-05-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_glue_catalog_table](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_catalog_table) ([#963](https://github.com/turbot/steampipe-plugin-aws/pull/963))
+  - [aws_opensearch_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_opensearch_domain) ([#984](https://github.com/turbot/steampipe-plugin-aws/pull/984))
+  - [aws_pinpoint_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_pinpoint_app) ([#968](https://github.com/turbot/steampipe-plugin-aws/pull/968))
+  - [aws_route53_traffic_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_traffic_policy) ([#983](https://github.com/turbot/steampipe-plugin-aws/pull/983))
+  - [aws_sagemaker_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sagemaker_app) ([#977](https://github.com/turbot/steampipe-plugin-aws/pull/977))
+  - [aws_ses_email_identity](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ses_email_identity) ([#978](https://github.com/turbot/steampipe-plugin-aws/pull/978))
+
+_Enhancements_
+
+- Improved the example descriptions in `aws_iam_credential_report` table document.
 
 _Bug fixes_
 
