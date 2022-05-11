@@ -17,15 +17,15 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("domain_name"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsOpenSearchDomain,
+			Hydrate:           getOpenSearchDomain,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsOpenSearchDomains,
+			Hydrate: listOpenSearchDomains,
 		},
 		HydrateDependencies: []plugin.HydrateDependencies{
 			{
-				Func:    listAwsOpenSearchDomainTags,
-				Depends: []plugin.HydrateFunc{getAwsOpenSearchDomain},
+				Func:    listOpenSearchDomainTags,
+				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
@@ -39,149 +39,149 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Name:        "domain_id",
 				Description: "The unique identifier for the specified domain.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the domain.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 				Transform:   transform.FromField("ARN"),
 			},
 			{
 				Name:        "access_policies",
 				Description: "The IAM access policies of the domain.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "created",
 				Description: "The domain creation status.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "deleted",
 				Description: "The domain deletion status.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "endpoint",
 				Description: "The domain endpoint that is used to submit index and search requests.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "engine_version",
 				Description: "The domain's OpenSearch version.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "processing",
 				Description: "The status of the domain configuration.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "upgrade_processing",
 				Description: "The status of the domain version upgrade.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "node_to_node_encryption_enabled",
 				Description: "Specifies the status of the node to node encryption status.",
 				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 				Transform:   transform.FromField("NodeToNodeEncryptionOptions.Enabled"),
 			},
 			{
 				Name:        "advanced_options",
 				Description: "Specifies the status of the advanced options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "advanced_security_options",
 				Description: "Specifies The current status of the OpenSearch domain's advanced security options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "auto_tune_options",
 				Description: "The current status of the domain's auto-tune options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "cluster_config",
 				Description: "The type and number of instances in the domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "cognito_options",
 				Description: "The cognito options for the specified domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "domain_endpoint_options",
 				Description: "The current status of the domain's endpoint options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "ebs_options",
 				Description: "The EBSOptions for the specified domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 				Transform:   transform.FromField("EBSOptions"),
 			},
 			{
 				Name:        "encryption_at_rest_options",
 				Description: "The status of the encryption at rest options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "endpoints",
 				Description: "Map containing the domain endpoints used to submit index and search requests.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "log_publishing_options",
 				Description: "Log publishing options for the given domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "service_software_options",
 				Description: "The current status of the domain's service software.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "snapshot_options",
 				Description: "Specifies the status of the snapshot options.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 			},
 			{
 				Name:        "vpc_options",
 				Description: "The vpc options for the specified domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 				Transform:   transform.FromField("VPCOptions"),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the domain.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsOpenSearchDomainTags,
+				Hydrate:     listOpenSearchDomainTags,
 				Transform:   transform.FromField("TagList"),
 			},
 
@@ -196,14 +196,14 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listAwsOpenSearchDomainTags,
+				Hydrate:     listOpenSearchDomainTags,
 				Transform:   transform.FromField("TagList").Transform(openSearchDomaintagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsOpenSearchDomain,
+				Hydrate:     getOpenSearchDomain,
 				Transform:   transform.FromField("ARN").Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -212,7 +212,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := OpenSearchService(ctx, d)
 	if err != nil {
@@ -243,9 +243,9 @@ func listAwsOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getAwsOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsOpenSearchDomain")
+	logger.Trace("getOpenSearchDomain")
 
 	var domainName string
 	if h.Item != nil {
@@ -273,18 +273,18 @@ func getAwsOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Get call
 	data, err := svc.DescribeDomain(params)
 	if err != nil {
-		logger.Error("getAwsOpenSearchDomain", "ERROR", err)
+		logger.Error("getOpenSearchDomain", "ERROR", err)
 		return nil, err
 	}
 
 	return data.DomainStatus, nil
 }
 
-func listAwsOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsOpenSearchDomainTags")
+	logger.Trace("listOpenSearchDomainTags")
 
-	arn := h.HydrateResults["getAwsOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
+	arn := h.HydrateResults["getOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
 
 	// Create Session
 	svc, err := OpenSearchService(ctx, d)
