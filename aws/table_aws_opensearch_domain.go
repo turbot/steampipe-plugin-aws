@@ -247,11 +247,16 @@ func getAwsOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsOpenSearchDomain")
 
-	var domainname string
+	var domainName string
 	if h.Item != nil {
-		domainname = *h.Item.(*opensearchservice.DomainStatus).DomainName
+		domainName = *h.Item.(*opensearchservice.DomainStatus).DomainName
 	} else {
-		domainname = d.KeyColumnQuals["domain_name"].GetStringValue()
+		domainName = d.KeyColumnQuals["domain_name"].GetStringValue()
+
+		// Validate user input
+		if len(domainName) < 1 {
+			return nil, nil
+		}
 	}
 
 	// Create Session
@@ -262,7 +267,7 @@ func getAwsOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	// Build the params
 	params := &opensearchservice.DescribeDomainInput{
-		DomainName: &domainname,
+		DomainName: &domainName,
 	}
 
 	// Get call
