@@ -197,7 +197,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsOpenSearchDomainTags,
-				Transform:   transform.FromField("TagList").Transform(getAwsOpenSearchDomaintagListToTurbotTags),
+				Transform:   transform.FromField("TagList").Transform(openSearchDomaintagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -308,8 +308,8 @@ func listAwsOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *pl
 
 //// TRANSFORM FUNCTION
 
-func getAwsOpenSearchDomaintagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsOpenSearchDomaintagListToTurbotTags")
+func openSearchDomaintagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("openSearchDomaintagListToTurbotTags")
 	tagList := d.HydrateItem.(*opensearchservice.ListTagsOutput)
 
 	if tagList.TagList == nil {
