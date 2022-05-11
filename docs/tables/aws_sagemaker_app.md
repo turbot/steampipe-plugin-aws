@@ -13,9 +13,7 @@ select
   creation_time,
   status
 from
-  aws_sagemaker_app
-where 
-  user_profile_name = 'testprofile';
+  aws_sagemaker_app;
 ```
 
 ### List apps that failed to create
@@ -30,6 +28,5 @@ select
 from
   aws_sagemaker_app
 where 
-  user_profile_name = 'testprofile'
-  and status = 'Failed';
+  status = 'Failed';
 ```

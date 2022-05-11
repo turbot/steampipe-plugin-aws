@@ -20,11 +20,11 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
 			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
-			Hydrate:           getAwsSageMakerApp,
+			Hydrate:           getSageMakerApp,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSageMakerDomains,
-			Hydrate:       listAwsSageMakerApps,
+			Hydrate:       listSageMakerApps,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "user_profile_name", Require: plugin.Optional},
 				{Name: "domain_id", Require: plugin.Optional},
@@ -47,7 +47,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the app.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSageMakerApp,
+				Hydrate:     getSageMakerApp,
 				Transform:   transform.FromField("AppArn"),
 			},
 			{
@@ -64,19 +64,19 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Name:        "failure_reason",
 				Description: "The failure reason.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsSageMakerApp,
+				Hydrate:     getSageMakerApp,
 			},
 			{
 				Name:        "last_health_check_timestamp",
 				Description: "The timestamp of the last health check.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsSageMakerApp,
+				Hydrate:     getSageMakerApp,
 			},
 			{
 				Name:        "last_user_activity_timestamp",
 				Description: "The timestamp of the last user activity.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getAwsSageMakerApp,
+				Hydrate:     getSageMakerApp,
 			},
 			{
 				Name:        "status",
@@ -92,7 +92,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Name:        "resource_spec",
 				Description: "The instance type and the Amazon Resource Name (ARN) of the SageMaker image created on the instance.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsSageMakerApp,
+				Hydrate:     getSageMakerApp,
 			},
 
 			// Steampipe standard columns
@@ -115,9 +115,9 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	sageMakerDomain := h.Item.(*sagemaker.DomainDetails)
-	plugin.Logger(ctx).Trace("listAwsSageMakerApps")
+	plugin.Logger(ctx).Trace("listSageMakerApps")
 
 	equalQuals := d.KeyColumnQuals
 
@@ -172,7 +172,7 @@ func listAwsSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var params sagemaker.DescribeAppInput
 
 	// Build the params
@@ -205,7 +205,7 @@ func getAwsSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Get call
 	data, err := svc.DescribeApp(&params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsSageMakerApp", "ERROR", err)
+		plugin.Logger(ctx).Error("getSageMakerApp", "ERROR", err)
 		return nil, err
 	}
 	return data, nil
