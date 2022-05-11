@@ -119,11 +119,6 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			if err != nil {
 				return nil, err
 			}
-
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				pagesLeft = false
-			}
 		}
 		if *result.IsTruncated {
 			input.TrafficPolicyIdMarker = result.TrafficPolicyIdMarker
@@ -194,6 +189,8 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = d.KeyColumnQuals["id"].GetStringValue()
 		version = d.KeyColumnQuals["version"].GetInt64Value()
 	}
+
+	// Validate if input params are empty
 	if len(id) < 1 || version < 1 {
 		return nil, nil
 	}
