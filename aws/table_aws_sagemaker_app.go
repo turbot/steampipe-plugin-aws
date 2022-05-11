@@ -107,7 +107,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     sageMakerAppArn,
-				Transform:   transform.FromValue().Transform(arnToAkas),
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
