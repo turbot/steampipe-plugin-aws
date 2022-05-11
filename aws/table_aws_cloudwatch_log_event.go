@@ -19,7 +19,7 @@ func tableAwsCloudwatchLogEventListKeyColumns() []*plugin.KeyColumn {
 	return []*plugin.KeyColumn{
 		{Name: "log_group_name"},
 		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional, CacheMatch: "exact"},
 		{Name: "region", Require: plugin.Optional},
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 	}

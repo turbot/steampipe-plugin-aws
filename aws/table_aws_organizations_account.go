@@ -28,9 +28,10 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Description: "The description of the permission set.",
 				Type:        proto.ColumnType_STRING,
 			},
+			// This description has added text for better clarification on ID type
 			{
 				Name:        "id",
-				Description: "The unique identifier (ID) of the account.",
+				Description: "The unique identifier (account ID) of the member account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

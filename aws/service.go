@@ -69,7 +69,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/mediastore"
+	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
+	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -85,6 +87,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -1204,6 +1207,28 @@ func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.Me
 	return svc, nil
 }
 
+// NeptuneService returns the service connection for AWS Neptune service
+func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed NeptuneService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("neptune-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*neptune.Neptune), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := neptune.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // NetworkFirewallService returns the service connection for AWS Network Firewall service
 func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -1245,6 +1270,30 @@ func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoi
 	}
 	svc := pinpoint.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// OpenSearchService returns the service connection for AWS OpenSearch service
+func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed OpenSearchService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("opensearch-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*opensearchservice.OpenSearchService), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := opensearchservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
@@ -1517,6 +1566,26 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 	}
 	svc := serverlessapplicationrepository.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SESService returns the service connection for AWS SES service
+func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "ses" + region
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ses.SES), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ses.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
