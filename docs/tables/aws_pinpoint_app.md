@@ -1,7 +1,6 @@
 # Table: aws_pinpoint_app
 
-In Amazon Pinpoint, a project is a collection of recipient information, segments, campaigns, and journeys. New Amazon Pinpoint users should start by creating a project.
-
+In Amazon Pinpoint, a project is a collection of recipient information, segments, campaigns, and journeys. New Amazon Pinpoint users should start by creating a project. Amazon Pinpoint is an AWS service that you can use to engage with your customers across multiple messaging channels. You can use Amazon Pinpoint to send push notifications, in-app notifications, emails, text messages, voice messages, and messages over custom channels. It includes segmentation, campaign, and journey features that help you send the right message to the right customer at the right time over the right channel.
 ## Examples
 
 ### Basic info
