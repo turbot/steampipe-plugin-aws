@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -114,12 +115,24 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			plugin.Logger(ctx).Error("listTrafficPolicies", "ListTrafficPolicies_error", err)
 			return nil, err
 		}
+
+		var wg sync.WaitGroup
+		errorCh := make(chan error, len(result.TrafficPolicySummaries))
+
 		for _, policies := range result.TrafficPolicySummaries {
-			_, err := listTrafficPolicyVersions(ctx, d, svc, policies.Id)
-			if err != nil {
-				return nil, err
-			}
+			wg.Add(1)
+			go listTrafficPolicyVersionsAsync(ctx, d, svc, policies.Id, &wg, errorCh)
 		}
+
+		// wait for all executions to be processed
+		wg.Wait()
+		close(errorCh)
+
+		for err := range errorCh {
+			plugin.Logger(ctx).Error("listTrafficPolicies", "listTrafficPolicyVersionsAsync_error", err)
+			return nil, err
+		}
+
 		if *result.IsTruncated {
 			input.TrafficPolicyIdMarker = result.TrafficPolicyIdMarker
 		} else {
@@ -130,8 +143,8 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 //To fetch all available versions for a traffic policy
-func listTrafficPolicyVersions(ctx context.Context, d *plugin.QueryData, svc *route53.Route53, id *string) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTrafficPolicyVersions")
+func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, svc *route53.Route53, id *string, wg *sync.WaitGroup, errorCh chan error) {
+	plugin.Logger(ctx).Trace("listTrafficPolicyVersionsAsync")
 
 	input := &route53.ListTrafficPolicyVersionsInput{
 		Id:       id,
@@ -149,14 +162,15 @@ func listTrafficPolicyVersions(ctx context.Context, d *plugin.QueryData, svc *ro
 			}
 		}
 	}
+	defer wg.Done()
 
 	// List call
 	pagesLeft := true
 	for pagesLeft {
 		result, err := svc.ListTrafficPolicyVersions(input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listTrafficPolicyVersions", "ListTrafficPolicyVersions_error", err)
-			return nil, err
+			plugin.Logger(ctx).Error("listTrafficPolicyVersionsAsync", "ListTrafficPolicyVersions_error", err)
+			errorCh <- err
 		}
 		for _, policies := range result.TrafficPolicies {
 			d.StreamListItem(ctx, policies)
@@ -172,7 +186,6 @@ func listTrafficPolicyVersions(ctx context.Context, d *plugin.QueryData, svc *ro
 			pagesLeft = false
 		}
 	}
-	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS

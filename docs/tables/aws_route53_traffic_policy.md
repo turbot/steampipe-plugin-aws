@@ -42,7 +42,7 @@ where
 
 ```sql
 select
-  document ->> 'RecordType' as "dns_type",
+  document ->> 'RecordType' as dns_type,
   count(id) as "policies"
 from
   aws_route53_traffic_policy
