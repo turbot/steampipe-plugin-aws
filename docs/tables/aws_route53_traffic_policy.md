@@ -11,6 +11,7 @@ select
   name,
   id,
   version,
+  document,
   region
 from 
   aws_route53_traffic_policy;
