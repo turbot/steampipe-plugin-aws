@@ -17,7 +17,7 @@ from
   aws_route53_traffic_policy;
 ```
 
-### List policies' latest version
+### List policies with latest version
 
 ```sql
 select 

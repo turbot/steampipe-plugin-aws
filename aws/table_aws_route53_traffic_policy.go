@@ -38,6 +38,11 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "type",
+				Description: "The DNS type of the resource record sets that Amazon Route 53 creates when you use a traffic policy to create a traffic policy instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "version",
 				Description: "The version number that Amazon Route 53 assigns to a traffic policy.",
 				Type:        proto.ColumnType_INT,
@@ -55,11 +60,6 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 				Description: "The definition of a traffic policy in JSON format.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTrafficPolicy,
-			},
-			{
-				Name:        "type",
-				Description: "The DNS type of the resource record sets that Amazon Route 53 creates when you use a traffic policy to create a traffic policy instance.",
-				Type:        proto.ColumnType_STRING,
 			},
 
 			// Steampipe standard columns
