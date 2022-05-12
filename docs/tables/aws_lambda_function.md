@@ -106,7 +106,7 @@ where
 ```
 
 
-### List runtime settings for each lambda function
+### List runtime settings for each function
 
 ```sql
 select 
