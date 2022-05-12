@@ -23,9 +23,9 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			},
+			// IgnoreConfig: &plugin.IgnoreConfig{
+			// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "InvalidParameter"}),
+			// },
 			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{

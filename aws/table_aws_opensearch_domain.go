@@ -16,8 +16,10 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		Description: "AWS OpenSearch Domain",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("domain_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getOpenSearchDomain,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getOpenSearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOpenSearchDomains,
