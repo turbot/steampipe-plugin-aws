@@ -104,3 +104,16 @@ from
 where
   dead_letter_config_target_arn is null;
 ```
+
+
+### List runtime settings for each lambda function
+
+```sql
+select 
+  name,
+  runtime, 
+  handler, 
+  architectures 
+from
+  aws_lambda_function;
+```

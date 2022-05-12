@@ -177,6 +177,11 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.VpcConfig.VpcId", "VpcConfig.VpcId"),
 			},
 			{
+				Name:        "architectures",
+				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "environment_variables",
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
