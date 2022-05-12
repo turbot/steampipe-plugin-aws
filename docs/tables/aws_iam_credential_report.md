@@ -8,7 +8,7 @@ _Please note_: This table requires a valid credential report to exist. To genera
 
 ## Examples
 
-### List Users that have logged into the console in the past 90 days
+### List users that have logged into the console in the past 90 days
 
 ```sql
 select
@@ -20,7 +20,7 @@ where
   and password_last_used > (current_date - interval '90' day);
 ```
 
-### Report of users that have NOT logged into the console in the past 90 days?
+### List users that have NOT logged into the console in the past 90 days
 
 ```sql
 select
@@ -36,18 +36,18 @@ order by
   password_last_used;
 ```
 
-### List of users with console access that have never logged in to the console
+### List users with console access that have never logged in to the console
 
 ```sql
 select
-    user_name
+  user_name
 from
-    aws_iam_credential_report
+  aws_iam_credential_report
 where
-    password_status = 'never_used';
+  password_status = 'never_used';
 ```
 
-### Find Access Keys older than 90 days
+### List access keys older than 90 days
 
 ```sql
 select
@@ -65,7 +65,7 @@ order by
   user_name;
 ```
 
-### Find users that have a console password but do not have MFA enabled
+### List users that have a console password but do not have MFA enabled
 
 ```sql
 select
