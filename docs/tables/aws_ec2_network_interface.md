@@ -64,3 +64,21 @@ from
 order by
   eni;
 ```
+
+### Get network details for each ENI
+
+```sql
+select
+  eni.network_interface_id,
+  vpc.vpc_id,
+  vpc.is_default,
+  vpc.cidr_block,
+  vpc.state,
+  vpc.account_id,
+  vpc.region
+from
+  aws_ec2_network_interface eni,
+  aws_vpc vpc
+where 
+  eni.vpc_id = vpc.vpc_id;
+```
