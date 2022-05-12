@@ -69,16 +69,16 @@ order by
 
 ```sql
 select
-  eni.network_interface_id,
-  vpc.vpc_id,
-  vpc.is_default,
-  vpc.cidr_block,
-  vpc.state,
-  vpc.account_id,
-  vpc.region
+  e.network_interface_id,
+  v.vpc_id,
+  v.is_default,
+  v.cidr_block,
+  v.state,
+  v.account_id,
+  v.region
 from
-  aws_ec2_network_interface eni,
-  aws_vpc vpc
+  aws_ec2_network_interface e,
+  aws_vpc v
 where 
-  eni.vpc_id = vpc.vpc_id;
+  e.vpc_id = v.vpc_id;
 ```
