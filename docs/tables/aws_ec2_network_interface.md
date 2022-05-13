@@ -18,7 +18,6 @@ from
   aws_ec2_network_interface;
 ```
 
-
 ### Find all ENIs with private IPs that are in a given subnet (10.66.0.0/16)
 
 ```sql
@@ -35,7 +34,6 @@ where
   private_ip_address :: cidr < <= '10.66.0.0/16';
 ```
 
-
 ### Count of ENIs by interface type
 
 ```sql
@@ -50,7 +48,6 @@ order by
   count desc;
 ```
 
-
 ### Security groups attached to each ENI
 
 ```sql
@@ -64,7 +61,6 @@ from
 order by
   eni;
 ```
-
 
 ### Get network details for each ENI
 
