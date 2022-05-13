@@ -17,11 +17,11 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_security_group_rule",
 		Description: "AWS VPC Security Group Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("security_group_rule_id"),
+			KeyColumns: plugin.SingleColumn("security_group_rule_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
-				},
-			Hydrate:           getSecurityGroupRule,
+			},
+			Hydrate: getSecurityGroupRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityGroupRules,

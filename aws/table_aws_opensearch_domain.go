@@ -15,7 +15,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_opensearch_domain",
 		Description: "AWS OpenSearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("domain_name"),
+			KeyColumns: plugin.SingleColumn("domain_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
 			},

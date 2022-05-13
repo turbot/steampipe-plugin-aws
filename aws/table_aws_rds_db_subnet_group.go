@@ -18,11 +18,11 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_subnet_group",
 		Description: "AWS RDS DB Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
+			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSubnetGroupNotFoundFault"}),
 			},
-			Hydrate:           getRDSDBSubnetGroup,
+			Hydrate: getRDSDBSubnetGroup,
 		},
 		GetMatrixItem: BuildRegionList,
 		List: &plugin.ListConfig{

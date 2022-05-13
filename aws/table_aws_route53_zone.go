@@ -20,11 +20,11 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_zone",
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			Hydrate:           getHostedZone,
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getHostedZone,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchHostedZone"}),
-				},
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,

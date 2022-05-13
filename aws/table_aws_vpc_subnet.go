@@ -15,11 +15,11 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_subnet",
 		Description: "AWS VPC Subnet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("subnet_id"),
+			KeyColumns: plugin.SingleColumn("subnet_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
-				},
-			Hydrate:           getVpcSubnet,
+			},
+			Hydrate: getVpcSubnet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSubnets,
