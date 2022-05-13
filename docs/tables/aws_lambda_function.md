@@ -16,7 +16,6 @@ where
   kms_key_arn is null;
 ```
 
-
 ### Count of lambda functions by runtime engines
 
 ```sql
@@ -28,7 +27,6 @@ from
 group by
   runtime;
 ```
-
 
 ### List of lambda function whose retention period is less than 30 days
 
@@ -47,7 +45,6 @@ where
   lg.retention_in_days < 30;
 ```
 
-
 ### Availability zone count for each VPC lambda function
 
 ```sql
@@ -65,7 +62,6 @@ group by
 order by
   zone_count;
 ```
-
 
 ### List all the actions allowed by managed policies for a Lambda execution role
 
@@ -92,7 +88,6 @@ where
   and f.name = 'hellopython';
 ```
 
-
 ### List functions not configured with a dead-letter queue
 
 ```sql
@@ -104,7 +99,6 @@ from
 where
   dead_letter_config_target_arn is null;
 ```
-
 
 ### List runtime settings for each function
 
