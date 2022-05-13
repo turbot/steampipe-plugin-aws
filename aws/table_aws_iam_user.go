@@ -23,9 +23,9 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
-			// IgnoreConfig: &plugin.IgnoreConfig{
-			// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "InvalidParameter"}),
-			// },
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
 			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{
@@ -415,42 +415,41 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
 
-	if listUserPoliciesOutput, ok := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput); ok {
-		var userPolicies []map[string]interface{}
+	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
+	var userPolicies []map[string]interface{}
 
-		// Create Session
-		svc, err := IAMService(ctx, d)
-		if err != nil {
-			return nil, err
-		}
-
-		var wg sync.WaitGroup
-		policyCh := make(chan map[string]interface{}, len(listUserPoliciesOutput.PolicyNames))
-		errorCh := make(chan error, len(listUserPoliciesOutput.PolicyNames))
-		for _, policy := range listUserPoliciesOutput.PolicyNames {
-			wg.Add(1)
-			go getUserPolicyDataAsync(policy, user.UserName, svc, &wg, policyCh, errorCh)
-		}
-
-		// wait for all inline policies to be processed
-		wg.Wait()
-
-		// NOTE: close channel before ranging over results
-		close(policyCh)
-		close(errorCh)
-
-		for err := range errorCh {
-			// return the first error
-			return nil, err
-		}
-
-		for userPolicy := range policyCh {
-			userPolicies = append(userPolicies, userPolicy)
-		}
-
-		return userPolicies, nil
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+
+	var wg sync.WaitGroup
+	policyCh := make(chan map[string]interface{}, len(listUserPoliciesOutput.PolicyNames))
+	errorCh := make(chan error, len(listUserPoliciesOutput.PolicyNames))
+	for _, policy := range listUserPoliciesOutput.PolicyNames {
+		wg.Add(1)
+		go getUserPolicyDataAsync(policy, user.UserName, svc, &wg, policyCh, errorCh)
+	}
+
+	// wait for all inline policies to be processed
+	wg.Wait()
+
+	// NOTE: close channel before ranging over results
+	close(policyCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		return nil, err
+	}
+
+	for userPolicy := range policyCh {
+		userPolicies = append(userPolicies, userPolicy)
+	}
+
+	return userPolicies, nil
+
 }
 
 func getUserPolicyDataAsync(policy *string, userName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {

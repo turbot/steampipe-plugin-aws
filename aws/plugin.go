@@ -22,15 +22,19 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{
+					"NoSuchEntity",
+					"NotFoundException",
+					"ResourceNotFoundException",
+					"InvalidParameter",
+					"InvalidParameterValue",
+					"InvalidParameterValueException",
+					"ValidationError",
+					"ValidationException",
+				}),
 			},
 		},
-		// DefaultGetConfig: &plugin.GetConfig{
-		// 	// https://github.com/turbot/steampipe-plugin-sdk/issues/319
-		// 	IgnoreConfig: &plugin.IgnoreConfig{
-		// 		ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
-		// 	},
-		// },
+		// Default ignore config for the plugin
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
 			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
 		},

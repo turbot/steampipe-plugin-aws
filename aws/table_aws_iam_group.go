@@ -34,7 +34,7 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamGroupInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamGroupInlinePolicies},

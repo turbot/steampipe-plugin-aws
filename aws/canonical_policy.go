@@ -355,31 +355,29 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 
 // Inline policies in canonical form
 func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
-	if inlinePolicies, ok := d.HydrateItem.([]map[string]interface{}); ok {
+	inlinePolicies := d.HydrateItem.([]map[string]interface{})
 
-		var inlinePoliciesStd []map[string]interface{}
-		if inlinePolicies == nil {
-			return nil, nil
-		}
-
-		for _, inlinePolicy := range inlinePolicies {
-			strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
-			if err != nil {
-				return nil, err
-			}
-			policyStd, errStd := canonicalPolicy(string(strPolicy))
-			if errStd != nil {
-				return nil, errStd
-			}
-
-			inlinePoliciesStd = append(inlinePoliciesStd, map[string]interface{}{
-				"PolicyDocument": policyStd,
-				"PolicyName":     inlinePolicy["PolicyName"],
-			})
-		}
-
-		return inlinePoliciesStd, nil
+	var inlinePoliciesStd []map[string]interface{}
+	if inlinePolicies == nil {
+		return nil, nil
 	}
-	return []map[string]interface{}{}, nil
+
+	for _, inlinePolicy := range inlinePolicies {
+		strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
+		if err != nil {
+			plugin.Logger(ctx).Error("inlinePoliciesToStd", fmt.Sprintf("transform_error for %s", d.ColumnName), err)
+			return nil, err
+		}
+		policyStd, errStd := canonicalPolicy(string(strPolicy))
+		if errStd != nil {
+			return nil, errStd
+		}
+
+		inlinePoliciesStd = append(inlinePoliciesStd, map[string]interface{}{
+			"PolicyDocument": policyStd,
+			"PolicyName":     inlinePolicy["PolicyName"],
+		})
+	}
+
+	return inlinePoliciesStd, nil
 }

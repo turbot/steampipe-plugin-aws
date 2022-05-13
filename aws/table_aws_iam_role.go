@@ -358,42 +358,40 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	logger.Trace("getAwsIamRoleInlinePolicies")
 	role := h.Item.(*iam.Role)
 
-	if listRolePoliciesOutput, ok := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput); ok {
+	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
-		// Create Session
-		svc, err := IAMService(ctx, d)
-		if err != nil {
-			return nil, err
-		}
-
-		var wg sync.WaitGroup
-		policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
-		errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
-		for _, policy := range listRolePoliciesOutput.PolicyNames {
-			wg.Add(1)
-			go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
-		}
-
-		// wait for all inline policies to be processed
-		wg.Wait()
-		// NOTE: close channel before ranging over results
-		close(policyCh)
-		close(errorCh)
-
-		for err := range errorCh {
-			// return the first error
-			return nil, err
-		}
-
-		var rolePolicies []map[string]interface{}
-
-		for rolePolicy := range policyCh {
-			rolePolicies = append(rolePolicies, rolePolicy)
-		}
-
-		return rolePolicies, nil
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+
+	var wg sync.WaitGroup
+	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
+	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
+	for _, policy := range listRolePoliciesOutput.PolicyNames {
+		wg.Add(1)
+		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
+	}
+
+	// wait for all inline policies to be processed
+	wg.Wait()
+	// NOTE: close channel before ranging over results
+	close(policyCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		return nil, err
+	}
+
+	var rolePolicies []map[string]interface{}
+
+	for rolePolicy := range policyCh {
+		rolePolicies = append(rolePolicies, rolePolicy)
+	}
+
+	return rolePolicies, nil
 }
 
 func getRolePolicyDataAsync(policy *string, roleName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
@@ -443,15 +441,13 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	if tags, ok := d.HydrateItem.(*iam.Role); ok {
-		var turbotTagsMap map[string]string
-		if tags.Tags != nil {
-			turbotTagsMap = map[string]string{}
-			for _, i := range tags.Tags {
-				turbotTagsMap[*i.Key] = *i.Value
-			}
+	tags := d.HydrateItem.(*iam.Role)
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
 		}
-		return turbotTagsMap, nil
 	}
-	return nil, nil
+	return turbotTagsMap, nil
 }
