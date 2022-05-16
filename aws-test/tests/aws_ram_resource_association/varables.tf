@@ -84,9 +84,9 @@ output "resource_name" {
 }
 
 output "resource_id" {
-  value = split(",", aws_ram_principal_association.named_test_resource.id)[1]
+  value = split(",", aws_ram_resource_association.named_test_resource.id)[1]
 }
 
 output "resource_aka" {
-  value = split(",", aws_ram_principal_association.named_test_resource.id)[0]
+  value = split(",", aws_ram_resource_association.named_test_resource.id)[0]
 }
