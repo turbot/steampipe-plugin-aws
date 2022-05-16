@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
@@ -20,11 +21,11 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("insight_arn"),
 			Hydrate:           getSecurityHubInsight,
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidInputException"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate:           listSecurityHubInsights,
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -32,25 +33,21 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of a Security Hub insight.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "insight_arn",
 				Description: "The ARN of a Security Hub insight.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("InsightArn"),
 			},
 			{
 				Name:        "group_by_attribute",
 				Description: "The grouping attribute for the insight's findings. Indicates how to group the matching findings,and identifies the type of item that the insight applies to. For example, if an insight is grouped by resource identifier, then the insight produces a list of resource identifiers.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("GroupByAttribute"),
 			},
 			{
 				Name:        "filters",
 				Description: "One or more attributes used to filter the findings included in the insight. The insight only includes findings that match the criteria defined in the filters.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Filters"),
 			},
 
 			// Steampipe standard columns
@@ -112,6 +109,14 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 			return !isLast
 		},
 	)
+
+	if err != nil {
+		// Handle error for accounts that are not subscribed to AWS Security Hub
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listSecurityHubInsights", "list", err)
+	}
 	return nil, err
 }
 
