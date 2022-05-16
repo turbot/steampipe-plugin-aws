@@ -31,7 +31,7 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Title"),
 			},
 			{
-				Name:        "Control_id",
+				Name:        "control_id",
 				Description: "The identifier of the security standard control.",
 				Type:        proto.ColumnType_STRING,
 			},

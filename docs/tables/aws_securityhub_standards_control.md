@@ -15,7 +15,7 @@ Security Hub provides controls for the following standards.
 ```sql
 select
   name,
-  Control_id,
+  control_id,
   control_status,
   severity_rating
 from
@@ -27,7 +27,7 @@ from
 ```sql
 select
   name,
-  Control_id,
+  control_id,
   control_status,
   severity_rating
 from
@@ -41,7 +41,7 @@ where
 ```sql
 select
   name,
-  Control_id,
+  control_id,
   control_status,
   severity_rating
 from
