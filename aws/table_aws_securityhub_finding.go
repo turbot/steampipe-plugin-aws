@@ -1,0 +1,487 @@
+package aws
+
+import (
+	"context"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_securityhub_finding",
+		Description: "AWS Security Hub Finding",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getSecurityHubFinding,
+		},
+		List: &plugin.ListConfig{
+			Hydrate: listSecurityHubFindings,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "company_name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "compliance_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "confidence", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
+				{Name: "criticality", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
+				{Name: "generator_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "network_direction", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "network_protocol", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "product_arn", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "product_name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "record_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "verification_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "workflow_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
+		},
+		GetMatrixItem: BuildRegionList,
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "A finding's title.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Title"),
+			},
+			{
+				Name:        "id",
+				Description: "The security findings provider-specific identifier for a finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "company_name",
+				Description: "The name of the company for the product that generated the finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "confidence",
+				Description: "A finding's confidence. Confidence is defined as the likelihood that a finding accurately identifies the behavior or issue that it was intended to identify.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "created_at",
+				Description: "Indicates when the security-findings provider created the potential security issue that a finding captured.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "compliance_status",
+				Description: "The result of a compliance standards check.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Compliance.Status"),
+			},
+			{
+				Name:        "updated_at",
+				Description: "Indicates when the security-findings provider last updated the finding record.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "criticality",
+				Description: "The level of importance assigned to the resources associated with the finding.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "description",
+				Description: "A finding's description.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "first_observed_at",
+				Description: "Indicates when the security-findings provider first observed the potential security issue that a finding captured.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "generator_id",
+				Description: "The identifier for the solution-specific component (a discrete unit of logic) that generated a finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "last_observed_at",
+				Description: "Indicates when the security-findings provider most recently observed the potential security issue that a finding captured.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "network_destination_domain",
+				Description: "The destination domain of network-related information about a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Network.DestinationDomain"),
+			},
+			{
+				Name:        "network_destination_ip_v4",
+				Description: "The destination IPv4 address of network-related information about a finding.",
+				Type:        proto.ColumnType_IPADDR,
+				Transform:   transform.FromField("Network.DestinationIpV4"),
+			},
+			{
+				Name:        "network_destination_ip_v6",
+				Description: "The destination IPv6 address of network-related information about a finding.",
+				Type:        proto.ColumnType_IPADDR,
+				Transform:   transform.FromField("Network.DestinationIpV6"),
+			},
+			{
+				Name:        "network_destination_port",
+				Description: "The destination port of network-related information about a finding.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Network.DestinationPort"),
+			},
+			{
+				Name:        "network_direction",
+				Description: "The direction of network traffic associated with a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Network.Direction"),
+			},
+			{
+				Name:        "network_open_port_range_begin",
+				Description: "The first port in the port range.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Network.OpenPortRange.Begin"),
+			},
+			{
+				Name:        "network_open_port_range_end",
+				Description: "The last port in the port range.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Network.OpenPortRange.End"),
+			},
+			{
+				Name:        "network_protocol",
+				Description: "The protocol of network-related information about a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Network.Protocol"),
+			},
+			{
+				Name:        "network_source_domain",
+				Description: "The source domain of network-related information about a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Network.SourceDomain"),
+			},
+			{
+				Name:        "network_source_ip_v4",
+				Description: "The source IPv4 address of network-related information about a finding.",
+				Type:        proto.ColumnType_IPADDR,
+				Transform:   transform.FromField("Network.SourceIpV4"),
+			},
+			{
+				Name:        "network_source_ip_v6",
+				Description: "The source IPv6 address of network-related information about a finding.",
+				Type:        proto.ColumnType_IPADDR,
+				Transform:   transform.FromField("Network.SourceIpV6"),
+			},
+			{
+				Name:        "network_source_mac",
+				Description: "The source media access control (MAC) address of network-related information about a finding.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Network.SourceMac"),
+			},
+			{
+				Name:        "network_source_port",
+				Description: "The source port of network-related information about a finding.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("Network.SourcePort"),
+			},
+			{
+				Name:        "product_arn",
+				Description: "The ARN generated by Security Hub that uniquely identifies a product that generates findings.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "product_name",
+				Description: "The name of the product that generated the finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "record_state",
+				Description: "The record state of a finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "schema_version",
+				Description: "The schema version that a finding is formatted for.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_url",
+				Description: "A URL that links to a page about the current finding in the security-findings provider's solution.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "verification_state",
+				Description: "Indicates the veracity of a finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "workflow_state",
+				Description: "The workflow state of a finding.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "action",
+				Description: "Provides details about an action that affects or that was taken on a resource.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "compliance",
+				Description: "This data type is exclusive to findings that are generated as the result of a check run against a specific rule in a supported security standard, such as CIS Amazon Web Services Foundations.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "finding_provider_fields",
+				Description: "In a BatchImportFindings request, finding providers use FindingProviderFields to provide and update their own values for confidence, criticality, related findings, severity, and types.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "malware",
+				Description: "A list of malware related to a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "network_path",
+				Description: "Provides information about a network path that is relevant to a finding. Each entry under NetworkPath represents a component of that path.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "note",
+				Description: "A user-defined note added to a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "patch_summary",
+				Description: "Provides an overview of the patch compliance status for an instance against a selected compliance standard.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "process",
+				Description: "The details of process-related information about a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "product_fields",
+				Description: "A data type where security-findings providers can include additional solution-specific details that aren't part of the defined AwsSecurityFinding format.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "related_findings",
+				Description: "A list of related findings.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "remediation",
+				Description: "A data type that describes the remediation options for a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "resources",
+				Description: "A set of resource data types that describe the resources that the finding refers to.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "severity",
+				Description: "A finding's severity.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "threat_intel_indicators",
+				Description: "Threat intelligence details related to a finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "user_defined_fields",
+				Description: "A list of name/value string pairs associated with the finding.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vulnerabilities",
+				Description: "Provides a list of vulnerabilities associated with the findings.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "network",
+				Description: "Provides a list of vulnerabilities associated with the findings.",
+				Type:        proto.ColumnType_JSON,
+			},
+
+			/// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: "The title of hub. This is a constant value 'default'",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Id").Transform(transform.EnsureStringArray),
+			},
+		}),
+	}
+}
+
+//// LIST FUNCTION
+
+func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listSecurityHubFindings")
+
+	// Create session
+	svc, err := SecurityHubService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	input := &securityhub.GetFindingsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	findingsFilter := buildListFindingsParam(d.Quals)
+	if findingsFilter != nil {
+		input.Filters = findingsFilter
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
+	// List call
+	err = svc.GetFindingsPages(
+		input,
+		func(page *securityhub.GetFindingsOutput, isLast bool) bool {
+			for _, finding := range page.Findings {
+				d.StreamListItem(ctx, finding)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
+			}
+			return !isLast
+		},
+	)
+	if err != nil {
+		plugin.Logger(ctx).Error("listSecurityHubFindings", "Error", err)
+		// Handle error for unsupported or inactive regions
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getSecurityHubFinding")
+
+	id := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Empty check
+	if id == "" {
+		return nil, nil
+	}
+
+	// get service
+	svc, err := SecurityHubService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &securityhub.GetFindingsInput{
+		Filters: &securityhub.AwsSecurityFindingFilters{
+			Id: []*securityhub.StringFilter{
+				{
+					Comparison: aws.String("EQUALS"),
+					Value:      aws.String(id),
+				},
+			},
+		},
+	}
+
+	// Get call
+	op, err := svc.GetFindings(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("getSecurityHubFinding", "ERROR", err)
+		// Handle error for unsupported or inactive regions
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+	return op, nil
+}
+
+// Build param for findings list call
+func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecurityFindingFilters {
+	securityFindingsFilter := &securityhub.AwsSecurityFindingFilters{}
+	strFilter := &securityhub.StringFilter{}
+
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "network_direction", "network_protocol", "product_arn", "product_name", "record_state", "name", "verification_state", "workflow_state"}
+
+	for _, s := range strColumns {
+		if quals[s] == nil {
+			continue
+		}
+		for _, q := range quals[s].Quals {
+			value := q.Value.GetStringValue()
+			if value == "" {
+				continue
+			}
+
+			switch q.Operator {
+			case "<>":
+				strFilter.Comparison = aws.String("NOT_EQUALS")
+			case "=":
+				strFilter.Comparison = aws.String("EQUALS")
+			}
+
+			switch s {
+			case "company_name":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.CompanyName = append(securityFindingsFilter.CompanyName, strFilter)
+			case "generator_id":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.GeneratorId = append(securityFindingsFilter.GeneratorId, strFilter)
+			case "network_direction":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.NetworkDirection = append(securityFindingsFilter.NetworkDirection, strFilter)
+			case "network_protocol":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.NetworkProtocol = append(securityFindingsFilter.NetworkProtocol, strFilter)
+			case "compliance_status":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.ComplianceStatus = append(securityFindingsFilter.ComplianceStatus, strFilter)
+			case "product_arn":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.ProductArn = append(securityFindingsFilter.ProductArn, strFilter)
+			case "product_name":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.ProductName = append(securityFindingsFilter.ProductName, strFilter)
+			case "record_state":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.RecordState = append(securityFindingsFilter.RecordState, strFilter)
+			case "name":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.Title = append(securityFindingsFilter.Title, strFilter)
+			case "verification_state":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.VerificationState = append(securityFindingsFilter.VerificationState, strFilter)
+			case "workflow_state":
+				strFilter.Value = aws.String(value)
+				securityFindingsFilter.WorkflowState = append(securityFindingsFilter.WorkflowState, strFilter)
+			}
+
+		}
+	}
+
+	return securityFindingsFilter
+}
