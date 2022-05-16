@@ -12,11 +12,12 @@ import (
 )
 
 func tableAwsRamResourceAssociation(_ context.Context) *plugin.Table {
+	associationType := "RESOURCE"
 	return &plugin.Table{
 		Name:        "aws_ram_resource_association",
 		Description: "AWS RAM Resource Association",
 		List: &plugin.ListConfig{
-			Hydrate: listResourceShareResourceAssociations,
+			Hydrate: listResourceShareAssociations(associationType),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -92,34 +93,36 @@ func tableAwsRamResourceAssociation(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listResourceShareResourceAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := RAMService(ctx, d)
-	if err != nil {
+func listResourceShareAssociations(associationType string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+		// Create session
+		svc, err := RAMService(ctx, d)
+		if err != nil {
+			return nil, err
+		}
+
+		// List call
+		input := &ram.GetResourceShareAssociationsInput{
+			AssociationType: aws.String(associationType),
+		}
+
+		// List call
+		err = svc.GetResourceShareAssociationsPages(
+			input,
+			func(page *ram.GetResourceShareAssociationsOutput, isLast bool) bool {
+				for _, association := range page.ResourceShareAssociations {
+					d.StreamListItem(ctx, association)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
+				}
+				return !isLast
+			},
+		)
 		return nil, err
 	}
-
-	// List call
-	input := &ram.GetResourceShareAssociationsInput{
-		AssociationType: aws.String("RESOURCE"),
-	}
-
-	// List call
-	err = svc.GetResourceShareAssociationsPages(
-		input,
-		func(page *ram.GetResourceShareAssociationsOutput, isLast bool) bool {
-			for _, association := range page.ResourceShareAssociations {
-				d.StreamListItem(ctx, association)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	return nil, err
 }
 
 //// HYDRATE FUNCTIONS

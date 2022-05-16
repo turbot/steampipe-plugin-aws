@@ -3,20 +3,18 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ram"
-
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsRamPrincipalAssociation(_ context.Context) *plugin.Table {
+	associationType := "PRINCIPAL"
 	return &plugin.Table{
 		Name:        "aws_ram_principal_association",
 		Description: "AWS RAM Principal Association",
 		List: &plugin.ListConfig{
-			Hydrate: listResourceSharePrincipalAssociations,
+			Hydrate: listResourceShareAssociations(associationType),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -88,36 +86,4 @@ func tableAwsRamPrincipalAssociation(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-//// LIST FUNCTION
-
-func listResourceSharePrincipalAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := RAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	// List call
-	input := &ram.GetResourceShareAssociationsInput{
-		AssociationType: aws.String("PRINCIPAL"),
-	}
-
-	// List call
-	err = svc.GetResourceShareAssociationsPages(
-		input,
-		func(page *ram.GetResourceShareAssociationsOutput, isLast bool) bool {
-			for _, association := range page.ResourceShareAssociations {
-				d.StreamListItem(ctx, association)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-	return nil, err
 }
