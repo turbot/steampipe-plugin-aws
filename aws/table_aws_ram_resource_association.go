@@ -104,6 +104,19 @@ func listResourceShareAssociations(associationType string) func(ctx context.Cont
 		// List call
 		input := &ram.GetResourceShareAssociationsInput{
 			AssociationType: aws.String(associationType),
+			MaxResults:      aws.Int64(100),
+		}
+
+		// Reduce the basic request limit down if the user has only requested a small number of rows
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit <= 100 {
+				if *limit < 1 {
+					input.MaxResults = aws.Int64(1)
+				} else {
+					input.MaxResults = limit
+				}
+			}
 		}
 
 		// List call
