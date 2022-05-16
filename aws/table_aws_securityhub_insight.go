@@ -20,11 +20,11 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("insight_arn"),
 			Hydrate:           getSecurityHubInsight,
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException", "AccessDeniedException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException"}),
 		},
 		List: &plugin.ListConfig{
 			Hydrate:           listSecurityHubInsights,
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException", "AccessDeniedException"}),
+			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidAccessException"}),
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -81,7 +81,6 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &securityhub.GetInsightsInput{
 		MaxResults: aws.Int64(100),
 	}
