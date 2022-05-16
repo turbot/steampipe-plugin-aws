@@ -261,6 +261,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_secretsmanager_secret":                                    tableAwsSecretsManagerSecret(ctx),
 			"aws_securityhub_hub":                                          tableAwsSecurityHub(ctx),
 			"aws_securityhub_member":                                       tableAwsSecurityHubMember(ctx),
+			"aws_securityhub_insight":                                      tableAwsSecurityHubInsight(ctx),
 			"aws_securityhub_product":                                      tableAwsSecurityhubProduct(ctx),
 			"aws_securityhub_standards_control":                            tableAwsSecurityHubStandardsControl(ctx),
 			"aws_securityhub_standards_subscription":                       tableAwsSecurityHubStandardsSubscription(ctx),
