@@ -28,7 +28,7 @@ from
   aws_dlm_lifecycle_policy,
   jsonb_array_elements(policy_details -> 'Schedules') s
 where 
-  s ->> 'ShareRules' is not null
+  s ->> 'ShareRules' is not null;
 ```
 
 ### List policies where cross region copying is scheduled
@@ -44,7 +44,7 @@ from
   aws_dlm_lifecycle_policy,
   jsonb_array_elements(policy_details -> 'Schedules') s
 where 
-  s ->> 'CrossRegionCopyRules' is not null
+  s ->> 'CrossRegionCopyRules' is not null;
   ```
 
   ### List maximum snapshots allowed to be retained after each schedule
@@ -60,5 +60,5 @@ from
   aws_dlm_lifecycle_policy,
   jsonb_array_elements(policy_details -> 'Schedules') s
 where 
-  s -> 'RetainRule' is not null
+  s -> 'RetainRule' is not null;
   ```
