@@ -11,8 +11,7 @@ select
   name,
   insight_arn,
   group_by_attribute,
-  region,
-  filters
+  region
 from
   aws_securityhub_insight;
 ```
@@ -24,8 +23,7 @@ select
   name,
   insight_arn,
   group_by_attribute,
-  region,
-  filters
+  region
 from
   aws_securityhub_insight
 where
