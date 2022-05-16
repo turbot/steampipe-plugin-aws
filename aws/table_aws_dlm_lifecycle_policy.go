@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dlm"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -23,12 +24,6 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDlmLifecyclePolicies,
-			KeyColumns: []*plugin.KeyColumn{
-				{
-					Name:    "policy_id",
-					Require: plugin.Optional,
-				},
-			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -126,11 +121,6 @@ func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	input := &dlm.GetLifecyclePoliciesInput{}
 
-	id := d.KeyColumnQuals["policy_id"].GetStringValue()
-	if len(id) > 0 {
-		input.PolicyIds = []*string{&id}
-	}
-
 	policies, err := svc.GetLifecyclePolicies(input)
 	if err != nil {
 		plugin.Logger(ctx).Error("listDlmLifecyclePolicies", "list", err)
@@ -176,8 +166,9 @@ func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	params := &dlm.GetLifecyclePolicyInput{}
-	params.SetPolicyId(id)
+	params := &dlm.GetLifecyclePolicyInput{
+		PolicyId: aws.String(id),
+	}
 
 	op, err := svc.GetLifecyclePolicy(params)
 	if err != nil {
