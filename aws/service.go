@@ -40,6 +40,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/aws/aws-sdk-go/service/dlm"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -551,6 +552,28 @@ func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservi
 		return nil, err
 	}
 	svc := directoryservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DLMService returns the service connection for AWS DLM Service
+func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DLMService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("dlm-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*dlm.DLM), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := dlm.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
