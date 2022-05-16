@@ -98,13 +98,9 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 
 func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubStandardsControls")
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	standardsArn := h.Item.(*securityhub.Standard).StandardsArn
-
-	// ARN must be a valid standards arn
-	if !strings.Contains(*standardsArn, "standards") {
-		return nil, nil
-	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
@@ -115,7 +111,13 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 
 	// Standards Subscription Arn format
 	// arn:aws:securityhub:us-east-1:accountID:subscription/aws-foundational-security-best-practices/v/1.0.0
-	standardsSubscriptionArn := strings.Replace(strings.Split(*standardsArn, "standards")[0], "::", ":"+commonColumnData.AccountId+":subscription", 1) + strings.Split(*standardsArn, "standards")[1]
+	// arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0
+	var standardsSubscriptionArn string
+	if strings.Contains(*standardsArn, "standards") {
+		standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(*standardsArn, "standards")[1]
+	} else {
+		standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(*standardsArn, "ruleset")[1]
+	}
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d)
