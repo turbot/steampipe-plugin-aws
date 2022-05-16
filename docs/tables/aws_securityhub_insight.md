@@ -17,7 +17,6 @@ from
   aws_securityhub_insight;
 ```
 
-
 ### List insights by a particular attribute
 
 ```sql
