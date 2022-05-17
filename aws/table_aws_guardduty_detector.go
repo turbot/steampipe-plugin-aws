@@ -80,6 +80,12 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGuardDutyDetector,
 			},
+			{
+				Name:        "master_account",
+				Description: "Contains information about the administrator account and invitation.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGuardDutyDetectorMasterAccount,
+			},
 
 			// Standard columns
 			{
@@ -181,6 +187,31 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	return detectorInfo{*op, id}, nil
+}
+
+func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getGuardDutyDetectorMasterAccount")
+
+	id := h.Item.(detectorInfo).DetectorID
+
+	// Create Session
+	svc, err := GuardDutyService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &guardduty.GetMasterAccountInput{
+		DetectorId: &id,
+	}
+
+	op, err := svc.GetMasterAccount(params)
+	if err != nil {
+		logger.Error("getGuardDutyDetectorMasterAccount", "ERROR", err)
+		return nil, err
+	}
+
+	return op.Master, nil
 }
 
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
