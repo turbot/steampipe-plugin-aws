@@ -85,6 +85,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Description: "Contains information about the administrator account and invitation.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGuardDutyDetectorMasterAccount,
+				Transform:   transform.FromValue(),
 			},
 
 			// Standard columns
