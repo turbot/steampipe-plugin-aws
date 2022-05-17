@@ -29,8 +29,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				{Name: "confidence", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
 				{Name: "criticality", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
 				{Name: "generator_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "network_direction", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "network_protocol", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "product_arn", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "product_name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "record_state", Require: plugin.Optional, Operators: []string{"=", "<>"}},
@@ -341,7 +339,7 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 	securityFindingsFilter := &securityhub.AwsSecurityFindingFilters{}
 	strFilter := &securityhub.StringFilter{}
 
-	strColumns := []string{"company_name", "compliance_status", "generator_id", "network_direction", "network_protocol", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state"}
+	strColumns := []string{"company_name", "compliance_status", "generator_id", "product_arn", "product_name", "record_state", "title", "verification_state", "workflow_state"}
 
 	for _, s := range strColumns {
 		if quals[s] == nil {
@@ -367,12 +365,6 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 			case "generator_id":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.GeneratorId = append(securityFindingsFilter.GeneratorId, strFilter)
-			case "network_direction":
-				strFilter.Value = aws.String(value)
-				securityFindingsFilter.NetworkDirection = append(securityFindingsFilter.NetworkDirection, strFilter)
-			case "network_protocol":
-				strFilter.Value = aws.String(value)
-				securityFindingsFilter.NetworkProtocol = append(securityFindingsFilter.NetworkProtocol, strFilter)
 			case "compliance_status":
 				strFilter.Value = aws.String(value)
 				securityFindingsFilter.ComplianceStatus = append(securityFindingsFilter.ComplianceStatus, strFilter)
