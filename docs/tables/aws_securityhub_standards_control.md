@@ -43,6 +43,8 @@ select
 from
   aws_securityhub_standards_control
 group by
+  severity_rating
+order by
   severity_rating;
 ```
 
@@ -69,7 +71,7 @@ select
 from
   aws_securityhub_standards_control
 where
-  date_part('day', now() - control_status_updated_at) <= 30;
+  control_status_updated_at <= (now() - interval '30' day);
 ```
 
 ### List CIS AWS foundations benchmark controls with critical severity
@@ -82,7 +84,8 @@ select
 from
   aws_securityhub_standards_control
 where
-  severity_rating = 'CRITICAL' and standards_control_arn like '%cis-aws-foundations-benchmark%';
+  severity_rating = 'CRITICAL'
+  and standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
 ### List related requirements benchmark for s3 controls
@@ -97,5 +100,24 @@ from
 where
   control_id like '%S3%'
 group by
-  control_id,r;
+  control_id, r
+order by
+  control_id, r;
+```
+
+### List controls which require PCI DSS benchmark
+
+```sql
+select
+  r as related_requirements,
+  control_id
+from
+  aws_securityhub_standards_control,
+  jsonb_array_elements_text(related_requirements) as r
+where
+  r like '%PCI%'
+group by
+  r, control_id
+order by
+  r, control_id;
 ```
