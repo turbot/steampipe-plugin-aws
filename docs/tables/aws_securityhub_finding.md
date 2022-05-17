@@ -58,7 +58,7 @@ select
 from
   aws_securityhub_finding
 where
-  compliance ->> 'Status' = 'FAILED'
+  compliance ->> 'Status' = 'FAILED';
 ```
 
 ### List findings with malware
@@ -101,7 +101,8 @@ select
   criticality
 from
   aws_securityhub_finding
-order by criticality desc;
+order by 
+  criticality desc nulls last;
 ```
 
 ### List findings for company Turbot
@@ -115,7 +116,8 @@ select
   company_name
 from
   aws_securityhub_finding
-where company_name = 'Turbot';
+where 
+  company_name = 'Turbot';
 ```
 
 ### List findings which are updated in last 30 days
@@ -143,7 +145,8 @@ select
   workflow_state
 from
   aws_securityhub_finding
-where workflow_state = 'ASSIGNED';
+where 
+  workflow_state = 'ASSIGNED';
 ```
 
 ### Get network detail for a particular finding
@@ -162,7 +165,8 @@ select
   network ->> 'SourcePort' as network_source_port
 from
   aws_securityhub_finding
-where title = 'EC2 instance involved in SSH brute force attacks.';
+where 
+  title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
 ### Get patch summary for a particular finding
@@ -184,7 +188,8 @@ select
   patch_summary ->> 'RebootOption' as reboot_option
 from
   aws_securityhub_finding
-where title = 'EC2 instance involved in SSH brute force attacks.';
+where 
+  title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
 ### Get vulnerabilities for a finding
@@ -205,7 +210,8 @@ select
 from
   aws_securityhub_finding,
   jsonb_array_elements(vulnerabilities) as v
-where title = 'EC2 instance involved in SSH brute force attacks.';
+where 
+  title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
 ### List EC2 instance with compliance failed
