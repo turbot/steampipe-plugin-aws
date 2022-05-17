@@ -88,7 +88,7 @@ where
   and standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
-### List related requirements benchmark for s3 controls
+### List related requirements benchmark for S3 controls
 
 ```sql
 select
