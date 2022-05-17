@@ -8,7 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
-func tableAwsRamPrincipalAssociation(_ context.Context) *plugin.Table {
+func tableAwsRAMPrincipalAssociation(_ context.Context) *plugin.Table {
 	associationType := "PRINCIPAL"
 	return &plugin.Table{
 		Name:        "aws_ram_principal_association",

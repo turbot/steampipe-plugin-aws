@@ -11,7 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
-func tableAwsRamResourceAssociation(_ context.Context) *plugin.Table {
+func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 	associationType := "RESOURCE"
 	return &plugin.Table{
 		Name:        "aws_ram_resource_association",
