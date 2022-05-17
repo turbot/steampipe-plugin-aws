@@ -84,3 +84,18 @@ from
 where
   severity_rating = 'CRITICAL' and standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
+
+### List related requirements benchmark for s3 controls
+
+```sql
+select
+  control_id,
+  r as related_requirements
+from
+  aws_securityhub_standards_control,
+  jsonb_array_elements_text(related_requirements) as r
+where
+  control_id like '%S3%'
+group by
+  control_id,r;
+```
