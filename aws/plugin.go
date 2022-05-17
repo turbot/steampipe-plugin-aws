@@ -71,6 +71,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),
+			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
 			"aws_config_configuration_recorder":                            tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                                  tableAwsConfigConformancePack(ctx),
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
