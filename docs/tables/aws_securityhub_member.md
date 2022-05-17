@@ -1,6 +1,6 @@
 # Table: aws_securityhub_member
 
-An AWS Security Hub member
+An AWS Security Hub member account.
 
 ## Examples
 
@@ -63,5 +63,5 @@ from
 where
   member_status='Enabled'
 and
-  date_part('day', now() - invited_at) <= 10;
+  invited_at >= (now() - interval '10' day);
 ```
