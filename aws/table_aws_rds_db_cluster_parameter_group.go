@@ -18,9 +18,11 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_cluster_parameter_group",
 		Description: "AWS RDS DB Cluster Parameter Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBParameterGroupNotFound"}),
-			Hydrate:           getRDSDBClusterParameterGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBParameterGroupNotFound"}),
+			},
+			Hydrate: getRDSDBClusterParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusterParameterGroups,

@@ -17,9 +17,11 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Name:        "aws_dynamodb_backup",
 		Description: "AWS DynamoDB Backup",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getDynamodbBackup,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+			},
+			Hydrate: getDynamodbBackup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamodbBackups,

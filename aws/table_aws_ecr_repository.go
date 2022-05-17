@@ -19,9 +19,11 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_ecr_repository",
 		Description: "AWS ECR Repository",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("repository_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
-			Hydrate:           getAwsEcrRepositories,
+			KeyColumns: plugin.SingleColumn("repository_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
+			},
+			Hydrate: getAwsEcrRepositories,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrRepositories,

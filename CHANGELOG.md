@@ -136,6 +136,7 @@ _What's new?_
 _Enhancements_
 
 - Added context cancellation handling to the following tables ([#896](https://github.com/turbot/steampipe-plugin-aws/pull/896))
+
   - aws_auditmanager_control
   - aws_auditmanager_framework
   - aws_backup_recovery_point

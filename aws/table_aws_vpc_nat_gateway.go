@@ -15,9 +15,11 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_nat_gateway",
 		Description: "AWS VPC Network Address Translation Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("nat_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
-			Hydrate:           getVpcNatGateway,
+			KeyColumns: plugin.SingleColumn("nat_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NatGatewayMalformed", "NatGatewayNotFound"}),
+			},
+			Hydrate: getVpcNatGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNatGateways,

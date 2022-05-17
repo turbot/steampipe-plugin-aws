@@ -15,9 +15,11 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_launch_configuration",
 		Description: "AWS EC2 Launch Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
-			Hydrate:           getAwsEc2LaunchConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
+			},
+			Hydrate: getAwsEc2LaunchConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,

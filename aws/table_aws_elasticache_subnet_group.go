@@ -18,9 +18,11 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_subnet_group",
 		Description: "AWS ElastiCache Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_subnet_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
-			Hydrate:           getElastiCacheSubnetGroup,
+			KeyColumns: plugin.SingleColumn("cache_subnet_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getElastiCacheSubnetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheSubnetGroups,
