@@ -1,0 +1,9 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "db_cluster_snapshot_identifier": "{{ resourceName }}",
+    "title": "{{ resourceName }}"
+  }
+]

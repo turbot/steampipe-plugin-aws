@@ -40,6 +40,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/aws/aws-sdk-go/service/docdb"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -573,6 +574,30 @@ func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.Dynamo
 		return nil, err
 	}
 	svc := dynamodb.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DocDBService returns the service connection for AWS DocDB Service
+func DocDBService(ctx context.Context, d *plugin.QueryData) (*docdb.DocDB, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DocDBService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("docdb-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*docdb.DocDB), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := docdb.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
