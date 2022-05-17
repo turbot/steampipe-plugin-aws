@@ -18,9 +18,11 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ami",
 		Description: "AWS EC2 AMI",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("image_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			Hydrate:           getEc2Ami,
+			KeyColumns: plugin.SingleColumn("image_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			},
+			Hydrate: getEc2Ami,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Amis,

@@ -18,9 +18,11 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_efs_mount_target",
 		Description: "AWS EFS Mount Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("mount_target_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
-			Hydrate:           getAwsEfsMountTarget,
+			KeyColumns: plugin.SingleColumn("mount_target_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
+			},
+			Hydrate: getAwsEfsMountTarget,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listElasticFileSystem,

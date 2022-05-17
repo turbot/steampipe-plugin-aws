@@ -17,9 +17,11 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_route_table",
 		Description: "AWS VPC Route table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-			Hydrate:           getVpcRouteTable,
+			KeyColumns: plugin.SingleColumn("route_table_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+			},
+			Hydrate: getVpcRouteTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcRouteTables,

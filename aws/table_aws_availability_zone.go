@@ -19,9 +19,11 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 		Name:        "aws_availability_zone",
 		Description: "AWS Availability Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsAvailabilityZone,
+			KeyColumns: plugin.AllColumns([]string{"name", "region_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+			},
+			Hydrate: getAwsAvailabilityZone,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,
