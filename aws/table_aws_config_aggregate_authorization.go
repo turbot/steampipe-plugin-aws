@@ -41,7 +41,28 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 
+			{
+				Name:        "tags_src",
+				Description: "A list of tags attached to the Cluster.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getConfigAggregateAuthorizationsTags,
+				Transform:   transform.FromField("Tags"),
+			},
+
 			// Standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getConfigAggregateAuthorizationsTags,
+				Transform:   transform.FromField("Tags").Transform(configAggregateAuthorizationsTagListToTurbotTags),
+			},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AggregationAuthorizationArn"),
+			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
@@ -92,4 +113,48 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	)
 
 	return nil, err
+}
+
+func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getDocDBClusterTags")
+	auth := h.Item.(*configservice.AggregationAuthorization)
+
+	// Create Session
+	svc, err := ConfigService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &configservice.ListTagsForResourceInput{
+		ResourceArn: auth.AggregationAuthorizationArn,
+	}
+
+	// Get call
+	op, err := svc.ListTagsForResource(params)
+	if err != nil {
+		logger.Error("getConfigAggregateAuthorizationsTags", "ERROR", err)
+		return nil, err
+	}
+
+	return op, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func configAggregateAuthorizationsTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("configAggregateAuthorizationsTagListToTurbotTags")
+	tagList := d.Value.([]*configservice.Tag)
+
+	// Mapping the resource tags inside turbotTags
+	var turbotTagsMap map[string]string
+	if tagList != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tagList {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+
+	return turbotTagsMap, nil
 }
