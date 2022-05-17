@@ -40,7 +40,7 @@ select
 from
   aws_securityhub_insight
 where
-  name='sp';
+  name = 'sp';
 ```
 
 ### Get record state details for a particular insight
@@ -53,5 +53,5 @@ select
 from
   aws_securityhub_insight
 where
-  name='sp';
+  name = 'sp';
 ```
