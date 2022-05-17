@@ -30,7 +30,7 @@ select
 from
   aws_securityhub_member
 where
-  member_status='Enabled';
+  member_status = 'Enabled';
 ```
 
 ### List members which are invited but did not accept
@@ -45,7 +45,7 @@ select
 from
   aws_securityhub_member
 where
-  member_status='Created';
+  member_status = 'Created';
 ```
 
 ### List members which were enabled within the last 10 days
@@ -61,7 +61,7 @@ select
 from
   aws_securityhub_member
 where
-  member_status='Enabled'
+  member_status = 'Enabled'
 and
   invited_at >= (now() - interval '10' day);
 ```
