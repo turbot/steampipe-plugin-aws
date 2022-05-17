@@ -161,13 +161,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "shared_directories",
-				Description: "Details about the shared directory in the directory owner account for which the share request in the directory consumer account has been accepted.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDirectoryServiceSharedDirectory,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "vpc_settings",
 				Description: "A DirectoryVpcSettingsDescription object that contains additional information about a directory.",
 				Type:        proto.ColumnType_JSON,
@@ -288,42 +281,6 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 
 	if op.DirectoryDescriptions != nil && len(op.DirectoryDescriptions) > 0 {
 		return op.DirectoryDescriptions[0], nil
-	}
-	return nil, nil
-}
-
-func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDirectoryServiceSharedDirectory")
-
-	// Create service
-	svc, err := DirectoryService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	directory := h.Item.(*directoryservice.DirectoryDescription)
-
-	params := &directoryservice.DescribeSharedDirectoriesInput{
-		OwnerDirectoryId: directory.DirectoryId,
-	}
-
-	directories := make([]*directoryservice.SharedDirectory, 0)
-
-	for {
-		response, err := svc.DescribeSharedDirectories(params)
-		if err != nil {
-			return nil, err
-		}
-		if response.SharedDirectories != nil {
-			directories = append(directories, response.SharedDirectories...)
-		}
-		if response.NextToken == nil {
-			break
-		}
-		params.NextToken = response.NextToken
-	}
-
-	if len(directories) > 0 {
-		return directories, nil
 	}
 	return nil, nil
 }
