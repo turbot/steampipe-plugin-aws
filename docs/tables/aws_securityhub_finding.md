@@ -29,7 +29,21 @@ select
 from
   aws_securityhub_finding
 where
-  severity ->> 'Original' = 'HIGH'
+  severity ->> 'Original' = 'HIGH';
+```
+
+### Count the number of findings by severity
+
+```sql
+select
+  severity ->> 'Original' as severity_original,
+  count(severity ->> 'Original')
+from
+  aws_securityhub_finding
+group by
+  severity ->> 'Original'
+order by
+  severity ->> 'Original';
 ```
 
 ### List findings with failed compliance
@@ -74,7 +88,7 @@ from
 where
   severity ->> 'Original' = 'CRITICAL'
 and 
-   date_part('day', now() - created_at) <= 10;
+  created_at <= (now() - interval '10' day);
 ```
 
 ### List findings with highest criticality
@@ -115,7 +129,7 @@ select
 from
   aws_securityhub_finding
 where
-   date_part('day', now() - updated_at) <= 30;
+   updated_at <= (now() - interval '30' day);
 ```
 
 ### List findings with assigned workflow state
@@ -192,4 +206,53 @@ from
   aws_securityhub_finding,
   jsonb_array_elements(vulnerabilities) as v
 where title = 'EC2 instance involved in SSH brute force attacks.';
+```
+
+### List EC2 instance with compliance failed
+
+```sql
+select
+  distinct i.instance_id,
+  i.instance_state,
+  i.instance_type
+from
+  aws_ec2_instance as i,
+  aws_securityhub_finding as f,
+  jsonb_array_elements(resources) as r
+where
+  compliance_status = 'FAILED'
+and
+  r ->> 'Type' = 'AwsEc2Instance'
+and
+  i.arn = r ->> 'Id';
+```
+
+### Count resources with compliance failed
+
+```sql
+select
+  r ->> 'Type',
+  count(r ->> 'Type')
+from
+  aws_securityhub_finding,
+  jsonb_array_elements(resources) as r
+group by
+  r ->> 'Type'
+order by
+  r ->> 'Type';
+```
+
+### Get standard control detail for the findings
+
+```sql
+select 
+  distinct control_id, 
+  standards_control_arn, 
+  control_status, 
+  severity_rating
+from 
+  aws_securityhub_standards_control as c,
+  aws_securityhub_finding as f
+where 
+  f.title = concat(c.control_id, ' ', c.title);
 ```
