@@ -260,6 +260,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sagemaker_training_job":                                   tableAwsSageMakerTrainingJob(ctx),
 			"aws_secretsmanager_secret":                                    tableAwsSecretsManagerSecret(ctx),
 			"aws_securityhub_hub":                                          tableAwsSecurityHub(ctx),
+			"aws_securityhub_member":                                       tableAwsSecurityHubMember(ctx),
 			"aws_securityhub_product":                                      tableAwsSecurityhubProduct(ctx),
 			"aws_securityhub_standards_subscription":                       tableAwsSecurityHubStandardsSubscription(ctx),
 			"aws_serverlessapplicationrepository_application":              tableAwsServerlessApplicationRepositoryApplication(ctx),
