@@ -18,7 +18,6 @@ where
   not storage_encrypted;
 ```
 
-
 ### Cluster info of each snapshot
 
 ```sql
@@ -31,7 +30,6 @@ from
   aws_docdb_cluster_snapshot;
 ```
 
-
 ### Cluster snapshot count per cluster
 
 ```sql
@@ -43,7 +41,6 @@ from
 group by
   db_cluster_identifier;
 ```
-
 
 ### List of manual cluster snapshot
 
