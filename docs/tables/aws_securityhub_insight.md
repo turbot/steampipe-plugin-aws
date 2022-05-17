@@ -29,3 +29,29 @@ from
 where
   group_by_attribute='ResourceId';
 ```
+
+### Get workflow status details for a particular insight
+
+```sql
+select
+  name,
+  insight_arn,
+  filters ->> 'WorkflowStatus' as workflow_status
+from
+  aws_securityhub_insight
+where
+  name='sp';
+```
+
+### Get record state details for a particular insight
+
+```sql
+select
+  name,
+  insight_arn,
+  filters ->> 'RecordState' as record_state
+from
+  aws_securityhub_insight
+where
+  name='sp';
+```
