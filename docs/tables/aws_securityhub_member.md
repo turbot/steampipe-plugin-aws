@@ -48,7 +48,7 @@ where
   member_status = 'Created';
 ```
 
-### List members which were enabled within the last 10 days
+### List members which were invited within the last 10 days
 
 ```sql
 select
