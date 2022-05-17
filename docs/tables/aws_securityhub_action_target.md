@@ -14,3 +14,16 @@ select
 from
   aws_securityhub_action_target;
 ```
+
+### Get details of a specific action target
+
+```sql
+select
+  name,
+  arn,
+  region
+from
+  aws_securityhub_action_target
+where
+  arn = 'arn:aws:securityhub:ap-south-1:*****:action/custom/test';
+```
