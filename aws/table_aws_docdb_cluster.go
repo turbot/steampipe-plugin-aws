@@ -15,7 +15,7 @@ import (
 
 func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_doc_db_cluster",
+		Name:        "aws_docdb_cluster",
 		Description: "AWS Doc DB Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("db_cluster_identifier"),
