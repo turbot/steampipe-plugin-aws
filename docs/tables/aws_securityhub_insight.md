@@ -27,7 +27,7 @@ select
 from
   aws_securityhub_insight
 where
-  group_by_attribute='ResourceId';
+  group_by_attribute = 'ResourceId';
 ```
 
 ### Get workflow status details for a particular insight
