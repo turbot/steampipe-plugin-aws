@@ -63,5 +63,5 @@ from
 where
   member_status = 'Enabled'
 and
-  invited_at >= (now() - interval '10' day);
+  invited_at <= (now() - interval '10' day);
 ```
