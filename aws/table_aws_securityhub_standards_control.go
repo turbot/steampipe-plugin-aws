@@ -25,12 +25,6 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "name",
-				Description: "The title of the security standard control.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Title"),
-			},
-			{
 				Name:        "control_id",
 				Description: "The identifier of the security standard control.",
 				Type:        proto.ColumnType_STRING,

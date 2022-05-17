@@ -67,7 +67,7 @@ output "aws_region" {
   value = data.aws_region.primary.name
 }
 
-output "name" {
+output "title" {
   value = jsondecode(data.local_file.control.content).Controls[0].Title
 }
 

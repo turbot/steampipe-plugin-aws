@@ -1,3 +1,3 @@
-select akas, name, region, title
+select akas, region, title
 from aws_securityhub_standards_control
-where name = 'dummy-PCI DSS v3.2.1';
+where title = 'dummy-PCI DSS v3.2.1';
