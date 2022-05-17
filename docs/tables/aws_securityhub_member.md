@@ -1,6 +1,6 @@
 # Table: aws_securityhub_member
 
-An AWS Security Hub member account.
+An AWS Security Hub member account. An administrator account can view data from and manage configuration for its member accounts.
 
 ## Examples
 
