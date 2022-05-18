@@ -71,7 +71,7 @@ select
 from
   aws_securityhub_standards_control
 where
-  control_status_updated_at <= (now() - interval '30' day);
+  control_status_updated_at >= (now() - interval '30' day);
 ```
 
 ### List CIS AWS foundations benchmark controls with critical severity
