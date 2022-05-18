@@ -35,14 +35,12 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name for the filter.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsGuardDutyFilter,
 			},
 			{
 				Name:        "detector_id",
 				Description: "The ID of the detector.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsGuardDutyFilter,
-				Transform:   transform.FromField("DetectorID"),
 			},
 			{
 				Name:        "action",
@@ -96,8 +94,8 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 
 type filterInfo = struct {
 	guardduty.GetFilterOutput
-	FilterName string
-	DetectorID string
+	Name       string
+	DetectorId string
 }
 
 //// LIST FUNCTION
@@ -149,8 +147,8 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 		func(page *guardduty.ListFiltersOutput, isLast bool) bool {
 			for _, parameter := range page.FilterNames {
 				d.StreamLeafListItem(ctx, filterInfo{
-					FilterName: *parameter,
-					DetectorID: id,
+					Name:       *parameter,
+					DetectorId: id,
 				})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -179,8 +177,8 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	var detectorID string
 	var name string
 	if h.Item != nil {
-		detectorID = h.Item.(filterInfo).DetectorID
-		name = h.Item.(filterInfo).FilterName
+		detectorID = h.Item.(filterInfo).DetectorId
+		name = h.Item.(filterInfo).Name
 	} else {
 		detectorID = d.KeyColumnQuals["detector_id"].GetStringValue()
 		name = d.KeyColumnQuals["name"].GetStringValue()
@@ -215,7 +213,7 @@ func getAwsGuardDutyFilterAkas(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
-	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorID + "/filter" + "/" + data.FilterName
+	aka := "arn:" + commonColumnData.Partition + ":guardduty:" + region + ":" + commonColumnData.AccountId + ":detector" + "/" + data.DetectorId + "/filter" + "/" + data.Name
 
 	return []string{aka}, nil
 }

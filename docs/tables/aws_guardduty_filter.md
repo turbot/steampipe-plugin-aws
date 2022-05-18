@@ -35,6 +35,7 @@ where
 ```sql
 select
   name,
+  region,
   detector_id,
   action,
   rank
