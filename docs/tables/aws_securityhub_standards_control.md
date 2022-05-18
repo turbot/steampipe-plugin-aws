@@ -85,7 +85,7 @@ from
   aws_securityhub_standards_control
 where
   severity_rating = 'CRITICAL'
-  and standards_control_arn like '%cis-aws-foundations-benchmark%';
+  and arn like '%cis-aws-foundations-benchmark%';
 ```
 
 ### List related requirements benchmark for S3 controls
