@@ -131,6 +131,12 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "standards_control_arn",
+				Description: "The ARN of the security standard control.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(extractStandardControlArn),
+			},
+			{
 				Name:        "action",
 				Description: "Provides details about an action that affects or that was taken on a resource.",
 				Type:        proto.ColumnType_JSON,
@@ -331,7 +337,10 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 		return nil, err
 	}
-	return op, nil
+	if len(op.Findings) > 0 {
+		return op.Findings[0], nil
+	}
+	return nil, nil
 }
 
 // Build param for findings list call
@@ -392,4 +401,16 @@ func buildListFindingsParam(quals plugin.KeyColumnQualMap) *securityhub.AwsSecur
 	}
 
 	return securityFindingsFilter
+}
+
+//// TRANSFORM FUNCTIONS
+
+func extractStandardControlArn(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	findingArn := d.HydrateItem.(*securityhub.AwsSecurityFinding).Id
+
+	if strings.Contains(*findingArn, "arn:aws:securityhub") {
+		standardControlArn := strings.Replace(strings.Split(*findingArn, "/finding")[0], "subscription", "control", 1)
+		return standardControlArn, nil
+	}
+	return nil, nil
 }

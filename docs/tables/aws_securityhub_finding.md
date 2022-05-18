@@ -88,7 +88,7 @@ from
 where
   severity ->> 'Original' = 'CRITICAL'
 and 
-  created_at <= (now() - interval '10' day);
+  created_at <= now() - interval '10' day;
 ```
 
 ### List findings with highest criticality
@@ -120,7 +120,7 @@ where
   company_name = 'Turbot';
 ```
 
-### List findings which are updated in last 30 days
+### List findings which were updated in last 30 days
 
 ```sql
 select
@@ -131,7 +131,7 @@ select
 from
   aws_securityhub_finding
 where
-   updated_at <= (now() - interval '30' day);
+   updated_at <= now() - interval '30' day;
 ```
 
 ### List findings with assigned workflow state
@@ -220,7 +220,10 @@ where
 select
   distinct i.instance_id,
   i.instance_state,
-  i.instance_type
+  i.instance_type,
+  f.title,
+  f.compliance_status,
+  f.severity ->> 'Original' as severity_original
 from
   aws_ec2_instance as i,
   aws_securityhub_finding as f,
@@ -237,7 +240,7 @@ and
 
 ```sql
 select
-  r ->> 'Type',
+  r ->> 'Type' as resource_type,
   count(r ->> 'Type')
 from
   aws_securityhub_finding,
@@ -245,20 +248,59 @@ from
 group by
   r ->> 'Type'
 order by
-  r ->> 'Type';
+  count desc;
 ```
 
-### Get standard control detail for the findings
+### List findings for CIS AWS foundations benchmark
 
 ```sql
-select 
-  distinct control_id, 
-  standards_control_arn, 
-  control_status, 
-  severity_rating
+ select 
+  title,
+  id,
+  company_name,
+  created_at,
+  criticality,
+  confidence
 from 
-  aws_securityhub_standards_control as c,
-  aws_securityhub_finding as f
+  aws_redhood.aws_securityhub_finding
 where 
-  f.title = concat(c.control_id, ' ', c.title);
+  standards_control_arn like '%cis-aws-foundations-benchmark%';
+```
+
+### List findings for a particular standard control
+
+```sql
+ select 
+  f.title,
+  f.id,
+  f.company_name,
+  f.created_at,
+  f.criticality,
+  f.confidence
+from 
+  aws_securityhub_finding as f,
+  aws_securityhub_standards_control as c
+where 
+  c.arn = f.standards_control_arn
+and
+  c.control_id = 'Config.1';
+```
+
+### List resources where compliance failed for CIS AWS foundations benchmark
+
+```sql
+select
+  distinct r ->> 'Id' as resource_arn,
+  r ->> 'Type' as resource_type,
+  f.title,
+  f.compliance_status,
+  f.severity ->> 'Original' as severity_original
+from
+  aws_securityhub_finding as f,
+  jsonb_array_elements(resources) as r
+where
+  f.compliance_status = 'FAILED'
+and
+  standards_control_arn like '%cis-aws-foundations-benchmark%';
+
 ```
