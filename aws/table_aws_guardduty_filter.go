@@ -55,15 +55,15 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsGuardDutyFilter,
 			},
 			{
-				Name:        "finding_criteria",
-				Description: "Represents the criteria to be used in the filter for querying findings.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsGuardDutyFilter,
-			},
-			{
 				Name:        "rank",
 				Description: "Specifies the position of the filter in the list of current filters. Also specifies the order in which this filter is applied to the findings.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getAwsGuardDutyFilter,
+			},
+			{
+				Name:        "finding_criteria",
+				Description: "Represents the criteria to be used in the filter for querying findings.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsGuardDutyFilter,
 			},
 
