@@ -41,5 +41,3 @@ from
 where
   region_linking_mode = 'SPECIFIED_REGIONS';
 ```
-
-### List regions 
