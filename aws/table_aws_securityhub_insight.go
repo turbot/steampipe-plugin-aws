@@ -19,7 +19,7 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_insight",
 		Description: "AWS Securityhub Insight",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("insight_arn"),
+			KeyColumns:        plugin.SingleColumn("arn"),
 			Hydrate:           getSecurityHubInsight,
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidInputException"}),
 		},
@@ -35,9 +35,10 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "insight_arn",
+				Name:        "arn",
 				Description: "The ARN of a Security Hub insight.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("InsightArn"),
 			},
 			{
 				Name:        "group_by_attribute",
@@ -126,7 +127,7 @@ func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	logger.Trace("getSecurityHubInsight")
 
-	arn := d.KeyColumnQuals["insight_arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Entry check
 	if arn == "" {
