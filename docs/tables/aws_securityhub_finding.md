@@ -302,5 +302,35 @@ where
   f.compliance_status = 'FAILED'
 and
   standards_control_arn like '%cis-aws-foundations-benchmark%';
+```
 
+### List findings for production resources
+
+```sql
+select
+  distinct r ->> 'Id' as resource_arn,
+  r ->> 'Type' as resource_type,
+  f.title,
+  f.compliance_status,
+  f.severity ->> 'Original' as severity_original
+from
+  aws_securityhub_finding as f,
+  jsonb_array_elements(resources) as r
+where
+  (r ->> 'Tags')::json->>'Environment' = 'PROD';
+```
+
+### Count finding resources by environment tag
+
+```sql
+select
+  (r ->> 'Tags')::json->>'Name' as name,
+  count(r ->> 'Tags')
+from
+  aws_securityhub_finding as f,
+  jsonb_array_elements(resources) as r
+group by
+  (r ->> 'Tags')::json->>'Name'
+order by
+  count desc;
 ```
