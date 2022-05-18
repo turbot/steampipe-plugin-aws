@@ -44,20 +44,18 @@ where
   kms_key_arn is null;
 ```
 
-### List publishing destination by type
+### Count publishing destination by type
 
 ```sql
 select
-  destination_id,
-  kms_key_arn,
-  status,
-  destination_type
+  destination_type,
+  count(destination_id)
 from
   aws_guardduty_publishing_destination
 group by 
   destination_type
 order by
-  destination_type;
+  count desc;
 ```
 
 ### Get S3 bucket policy for publishing destination
