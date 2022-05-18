@@ -317,20 +317,20 @@ from
   aws_securityhub_finding as f,
   jsonb_array_elements(resources) as r
 where
-  (r -> 'Tags') ->> 'Environment' = 'PROD';
+  r -> 'Tags' ->> 'Environment' = 'PROD';
 ```
 
 ### Count finding resources by environment tag
 
 ```sql
 select
-  (r -> 'Tags') ->> 'Name' as name,
+  r -> 'Tags' ->> 'Environment' as environment,
   count(r ->> 'Tags')
 from
   aws_securityhub_finding as f,
   jsonb_array_elements(resources) as r
 group by
-  (r -> 'Tags') ->> 'Name'
+  r -> 'Tags' ->> 'Environment'
 order by
   count desc;
 ```
