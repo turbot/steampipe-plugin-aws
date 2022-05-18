@@ -1,6 +1,6 @@
 # Table: aws_guardduty_filter
 
-A finding filter allows you to view findings that match the criteria you specify and filter out any unmatched findings. 
+A GuardDuty filter allows you to view findings that match the criteria you specify and filter out any unmatched findings. 
 
 ## Examples
 
@@ -54,4 +54,20 @@ from
   aws_guardduty_filter
 where
   name = 'filter-1';
+```
+
+### Get the count of filters for detectors and regions
+
+```sql
+select
+  region,
+  detector_id,
+  count(name)
+from
+  aws_guardduty_filter
+group by
+  region,
+  detector_id
+order by
+  count desc;
 ```
