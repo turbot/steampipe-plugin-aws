@@ -88,7 +88,7 @@ from
 where
   severity ->> 'Original' = 'CRITICAL'
 and 
-  created_at <= now() - interval '10' day;
+  created_at >= now() - interval '10' day;
 ```
 
 ### List findings with highest criticality
@@ -131,7 +131,7 @@ select
 from
   aws_securityhub_finding
 where
-   updated_at <= now() - interval '30' day;
+   updated_at >= now() - interval '30' day;
 ```
 
 ### List findings with assigned workflow state
@@ -317,20 +317,20 @@ from
   aws_securityhub_finding as f,
   jsonb_array_elements(resources) as r
 where
-  (r ->> 'Tags')::json->>'Environment' = 'PROD';
+  (r -> 'Tags') ->> 'Environment' = 'PROD';
 ```
 
 ### Count finding resources by environment tag
 
 ```sql
 select
-  (r ->> 'Tags')::json->>'Name' as name,
+  (r -> 'Tags') ->> 'Name' as name,
   count(r ->> 'Tags')
 from
   aws_securityhub_finding as f,
   jsonb_array_elements(resources) as r
 group by
-  (r ->> 'Tags')::json->>'Name'
+  (r -> 'Tags') ->> 'Name'
 order by
   count desc;
 ```
