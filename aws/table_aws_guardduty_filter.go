@@ -184,6 +184,11 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
+	// check if name or detectorID is empty
+	if detectorID == "" || name == "" {
+		return nil, nil
+	}
+
 	// Build the params
 	params := &guardduty.GetFilterInput{
 		DetectorId: &detectorID,
