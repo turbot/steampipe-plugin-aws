@@ -28,7 +28,7 @@ where
   region_linking_mode = 'ALL_REGIONS';
 ```
 
-### List regions for finding aggregators with linking mode ALL_REGIONS or SPECIFIED_REGIONS
+### List regions for finding aggregators with linking mode SPECIFIED_REGIONS
 
 ```sql
 select
@@ -39,5 +39,7 @@ from
   aws_securityhub_finding_aggregator,
   jsonb_array_elements_text(regions) as r
 where
-  region_linking_mode = 'SPECIFIED_REGIONS' OR region_linking_mode = 'ALL_REGIONS';
+  region_linking_mode = 'SPECIFIED_REGIONS';
 ```
+
+### List regions 

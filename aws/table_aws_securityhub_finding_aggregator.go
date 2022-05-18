@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
@@ -18,7 +19,6 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 		Description: "AWS Security Hub Finding Aggregator",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
 			Hydrate:           getSecurityHubFindingAggregator,
 		},
 		List: &plugin.ListConfig{
@@ -104,7 +104,14 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 		},
 	)
 
-	return nil, nil
+	if err != nil {
+		// Handeled error for not subscribed region
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
+	}
+
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -139,32 +146,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	op, err := svc.GetFindingAggregator(params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("getSecurityHubFindingAggregator", "ERROR", err)
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return op, nil
 }
-
-// func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("getSecurityHubTags")
-
-// 	hubArn := *h.Item.(*securityhub.DescribeHubOutput).HubArn
-
-// 	// get service
-// 	svc, err := SecurityHubService(ctx, d)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Build the params
-// 	params := &securityhub.ListTagsForResourceInput{
-// 		ResourceArn: &hubArn,
-// 	}
-
-// 	// Get call
-// 	op, err := svc.ListTagsForResource(params)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Debug("getSecurityHubTags", "ERROR", err)
-// 		return nil, err
-// 	}
-// 	return op, nil
-// }
