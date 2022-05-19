@@ -111,11 +111,12 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listDlmLifecyclePolicies")
+	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := DLMService(ctx, d)
 	if err != nil {
+		logger.Error("aws_dlm_lifecycle_policy.listDlmLifecyclePolicies", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -123,7 +124,7 @@ func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	policies, err := svc.GetLifecyclePolicies(input)
 	if err != nil {
-		plugin.Logger(ctx).Error("listDlmLifecyclePolicies", "list", err)
+		logger.Error("aws_dlm_lifecycle_policy.listDlmLifecyclePolicies", "list_api_error", err)
 		return nil, err
 	}
 	if policies.Policies == nil {
@@ -145,7 +146,7 @@ func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDlmLifecyclePolicy")
+	logger := plugin.Logger(ctx)
 
 	var id string
 	if h.Item != nil {
@@ -162,7 +163,7 @@ func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create service
 	svc, err := DLMService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getDlmLifecyclePolicy", "connection", err)
+		logger.Error("aws_dlm_lifecycle_policy.getDlmLifecyclePolicy", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -172,7 +173,7 @@ func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	op, err := svc.GetLifecyclePolicy(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getDlmLifecyclePolicy", "get", err)
+		logger.Error("aws_dlm_lifecycle_policy.getDlmLifecyclePolicy", "get_api_error", err)
 		return nil, err
 	}
 	return op.Policy, nil
