@@ -58,7 +58,7 @@ order by
   count desc;
 ```
 
-### Get S3 bucket policy for publishing destination
+### Get bucket policies for S3 bucket publishing destinations
 
 ```sql
 select
