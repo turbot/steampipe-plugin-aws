@@ -43,7 +43,7 @@ from
   aws_guardduty_detector;
 ```
 
-### Get information about the administrator account and invitation
+### Get information about the master account relationship
 
 ```sql
 select 
