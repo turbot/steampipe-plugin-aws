@@ -1,6 +1,6 @@
 # Table: aws_guardduty_member
 
-AWS GuardDuty Member resource can be used to add an AWS account as a GuardDuty member account to the current GuardDuty administrator account. If the value of the Status property is not provided or is set to Created, a member account is created but not invited. If the value of the Status property is set to Invited, a member account is created and invited.
+AWS GuardDuty member resource can be used to add an AWS account as a GuardDuty member account to the current GuardDuty administrator account. If the value of the Status property is not provided or is set to Created, a member account is created but not invited. If the value of the Status property is set to Invited, a member account is created and invited.
 
 ## Examples
 
@@ -16,7 +16,7 @@ from
   aws_guardduty_member;
 ```
 
-### List members with email verification failed
+### List members that failed email verification
 
 ```sql
 select
