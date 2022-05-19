@@ -30,9 +30,10 @@ func tableAwsSecurityHubStandardsControl(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "standards_control_arn",
+				Name:        "arn",
 				Description: "The ARN of the security standard control.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("StandardsControlArn"),
 			},
 			{
 				Name:        "control_status",
