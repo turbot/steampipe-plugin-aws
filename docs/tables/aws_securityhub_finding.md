@@ -236,7 +236,7 @@ and
   i.arn = r ->> 'Id';
 ```
 
-### Count resources with compliance failed
+### Count resources with failed compliance status
 
 ```sql
 select
