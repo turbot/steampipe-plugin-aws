@@ -46,7 +46,7 @@ order by
   severity ->> 'Original';
 ```
 
-### List findings with failed compliance
+### List findings with failed compliance status
 
 ```sql
 select
