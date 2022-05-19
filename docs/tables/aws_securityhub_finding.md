@@ -91,7 +91,7 @@ and
   created_at >= now() - interval '10' day;
 ```
 
-### List findings with highest criticality
+### List findings ordered by criticality
 
 ```sql
 select
