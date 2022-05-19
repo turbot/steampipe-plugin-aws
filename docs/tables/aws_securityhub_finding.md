@@ -267,7 +267,7 @@ where
   standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
-### List findings for a particular standard control
+### List findings for a particular standard control (Config.1)
 
 ```sql
  select 
