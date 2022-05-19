@@ -175,6 +175,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
 			"aws_guardduty_ipset":                                          tableAwsGuardDutyIPSet(ctx),
+			"aws_guardduty_member":                                         tableAwsGuardDutyMember(ctx),
 			"aws_guardduty_threat_intel_set":                               tableAwsGuardDutyThreatIntelSet(ctx),
 			"aws_iam_access_advisor":                                       tableAwsIamAccessAdvisor(ctx),
 			"aws_iam_access_key":                                           tableAwsIamAccessKey(ctx),
