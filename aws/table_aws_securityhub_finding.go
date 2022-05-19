@@ -234,12 +234,6 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Description: "A finding's title.",
 				Type:        proto.ColumnType_STRING,
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Id").Transform(transform.EnsureStringArray),
-			},
 		}),
 	}
 }
