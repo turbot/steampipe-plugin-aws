@@ -30,7 +30,7 @@ where
   status = 'PENDING_VERIFICATION';
 ```
 
-###  List publishing destination which are not encrypted
+### List publishing destinations which are not encrypted
 
 ```sql
 select
