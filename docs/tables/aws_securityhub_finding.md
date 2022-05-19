@@ -54,7 +54,7 @@ select
   product_arn,
   product_name,
   compliance ->> 'Status' as compliance_status,
-  compliance ->> 'StatusReasons'as compliance_status_reason
+  compliance ->> 'StatusReasons' as compliance_status_reasons
 from
   aws_securityhub_finding
 where
