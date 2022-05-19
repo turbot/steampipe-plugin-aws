@@ -214,7 +214,7 @@ where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
-### List EC2 instance with compliance failed
+### List EC2 instances with failed compliance status
 
 ```sql
 select
