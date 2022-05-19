@@ -17,7 +17,7 @@ from
   aws_guardduty_publishing_destination;
 ```
 
-### List unverified publishing destination
+### List unverified publishing destinations
 
 ```sql
 select
