@@ -79,6 +79,7 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	// Create session
 	svc, err := ConfigService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -111,18 +112,16 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 			return !lastPage
 		},
 	)
-
 	return nil, err
 }
 
 func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDocDBClusterTags")
 	auth := h.Item.(*configservice.AggregationAuthorization)
 
 	// Create Session
 	svc, err := ConfigService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -134,17 +133,15 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Error("getConfigAggregateAuthorizationsTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "api_error", err)
 		return nil, err
 	}
-
 	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS
 
 func configAggregateAuthorizationsTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("configAggregateAuthorizationsTagListToTurbotTags")
 	tagList := d.Value.([]*configservice.Tag)
 
 	// Mapping the resource tags inside turbotTags
@@ -155,6 +152,5 @@ func configAggregateAuthorizationsTagListToTurbotTags(ctx context.Context, d *tr
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
-
 	return turbotTagsMap, nil
 }
