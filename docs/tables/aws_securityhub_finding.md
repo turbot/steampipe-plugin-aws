@@ -169,7 +169,7 @@ where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
-### Get patch summary for a particular finding
+### Get patch summary details for a particular finding
 
 ```sql
 select
