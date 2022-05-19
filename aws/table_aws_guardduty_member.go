@@ -2,11 +2,8 @@ package aws
 
 import (
 	"context"
-<<<<<<< HEAD
-=======
 	"fmt"
 	"strings"
->>>>>>> 5f878f79d2d78ff6bf0ec34d7840e44fca72c978
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -29,12 +26,9 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyMembers,
-<<<<<<< HEAD
-=======
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "detector_id", Require: plugin.Optional},
 			},
->>>>>>> 5f878f79d2d78ff6bf0ec34d7840e44fca72c978
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
