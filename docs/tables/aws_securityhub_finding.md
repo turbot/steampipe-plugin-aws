@@ -286,7 +286,7 @@ and
   c.control_id = 'Config.1';
 ```
 
-### List resources where compliance failed for CIS AWS foundations benchmark
+### List resources with a failed compliance status for CIS AWS foundations benchmark
 
 ```sql
 select
