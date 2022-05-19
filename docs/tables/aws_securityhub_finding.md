@@ -105,7 +105,7 @@ order by
   criticality desc nulls last;
 ```
 
-### List findings for company Turbot
+### List findings for Turbot company
 
 ```sql
 select
