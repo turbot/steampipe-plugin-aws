@@ -26,7 +26,7 @@ select
   finding_counts ->> 'High' as high,
   finding_counts ->> 'Low' as low,
   finding_counts ->> 'Medium' as medium,
-  finding_counts ->> 'Informational' as Informational,
+  finding_counts ->> 'Informational' as informational,
   state
 from
   aws_inspector_assessment_run;
@@ -38,7 +38,7 @@ from
 select
   t.name as assessment_template_name,
   r.name as assessment_run_name,
-  r.created_at,
+  r.created_at as assessment_run_created_at,
   r.state,
   r.region
 from

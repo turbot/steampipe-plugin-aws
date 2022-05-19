@@ -21,9 +21,9 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentRuns,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "assessment_template_arn", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
-				{Name: "state", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
+				{Name: "assessment_template_arn", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
@@ -60,7 +60,7 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "data_collected",
-				Description: " Boolean value (true or false) that specifies whether the process of collecting data from the agents is completed.",
+				Description: "Boolean value (true or false) that specifies whether the process of collecting data from the agents is completed.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
