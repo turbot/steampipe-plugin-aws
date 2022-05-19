@@ -156,7 +156,6 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			return !isLast
 		},
 	)
-	logger.Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
 	return nil, err
 }
 
