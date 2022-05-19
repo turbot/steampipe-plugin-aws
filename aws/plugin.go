@@ -194,6 +194,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_identitystore_user":                                       tableAwsIdentityStoreUser(ctx),
 			"aws_inspector_assessment_target":                              tableAwsInspectorAssessmentTarget(ctx),
 			"aws_inspector_assessment_template":                            tableAwsInspectorAssessmentTemplate(ctx),
+			"aws_inspector_finding":                                        tableAwsInspectorFinding(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
 			"aws_kinesis_firehose_delivery_stream":                         tableAwsKinesisFirehoseDeliveryStream(ctx),
 			"aws_kinesis_stream":                                           tableAwsKinesisStream(ctx),
