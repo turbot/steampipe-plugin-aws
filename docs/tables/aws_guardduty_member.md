@@ -16,7 +16,7 @@ from
   aws_guardduty_member;
 ```
 
-### List members with email verification failed
+### List members that failed email verification
 
 ```sql
 select
