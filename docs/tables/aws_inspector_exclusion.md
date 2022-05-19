@@ -55,3 +55,21 @@ from
 where
   arn = 'arn:aws:inspector:us-east-1:533793682495:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
 ```
+
+### Count the number of exclusions whose type is Agent not found
+
+```sql
+select
+  arn,
+  region,
+  title,
+  count(arn)
+from
+  test_aab.aws_inspector_exclusion
+group by
+  arn,
+  region,
+  title
+order by
+  count desc;
+```
