@@ -20,6 +20,11 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 		Description: "AWS Inspector Assessment Run",
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentRuns,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "assessment_template_arn", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "state", Require: plugin.Optional, Operators: []string{"=", ">=", "<="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -140,6 +145,20 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 	input := &inspector.ListAssessmentRunsInput{
 		MaxResults: aws.Int64(500),
 	}
+
+	filter := &inspector.AssessmentRunFilter{}
+
+	if d.KeyColumnQuals["assessment_template_arn"].GetStringValue() != "" {
+		input.AssessmentTemplateArns = aws.StringSlice([]string{d.KeyColumnQuals["assessment_template_arn"].GetStringValue()})
+	}
+	if d.KeyColumnQuals["name"].GetStringValue() != "" {
+		filter.NamePattern = aws.String(d.KeyColumnQuals["name"].GetStringValue())
+	}
+	if d.KeyColumnQuals["state"].GetStringValue() != "" {
+		filter.States = aws.StringSlice([]string{d.KeyColumnQuals["state"].GetStringValue()})
+	}
+
+	input.Filter = filter
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
