@@ -44,7 +44,7 @@ where
   kms_key_arn is null;
 ```
 
-### Count publishing destination by type
+### Count publishing destinations by type
 
 ```sql
 select
