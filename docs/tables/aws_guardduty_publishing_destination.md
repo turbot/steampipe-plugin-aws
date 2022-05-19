@@ -79,7 +79,7 @@ and
   s.arn = d.destination_arn;
 ```
 
-### Get KMS Key policy document associate with publishing destination
+### Get KMS key policies associated with publishing destinations
 
 ```sql
 select
