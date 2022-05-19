@@ -50,14 +50,14 @@ where
 ```sql
 select
   name,
-  jsonb_pretty(finding_criteria)
+  jsonb_pretty(finding_criteria) as finding_criteria
 from
   aws_guardduty_filter
 where
   name = 'filter-1';
 ```
 
-### Get the count of filters for detectors and regions
+### Count the number of filters by region and detector
 
 ```sql
 select
