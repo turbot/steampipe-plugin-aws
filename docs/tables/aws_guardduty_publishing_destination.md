@@ -1,6 +1,6 @@
 # Table: aws_guardduty_publishing_destination
 
-AWS Guardduty Publishing Destination provides a resource to export the guard duty findings. This requires an existing GuardDuty Detector.
+AWS Guardduty Publishing Destinations provide a resource to export the guard duty findings. This requires an existing GuardDuty Detector.
 
 ## Examples
 
