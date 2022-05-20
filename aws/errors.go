@@ -14,13 +14,10 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 		awsConfig := GetConfig(d.Connection)
 
 		// If the get or list hydrate functions have a overriding IgnoreConfig
-		// defined using isNotFoundError function then
-		// It should also check for errors in "ignored_error_codes"
-		allErrors := append(notFoundErrors, awsConfig.IgnoredErrorCodes...)
+		// defined using isNotFoundError function then,
+		// it should also check for errors in "ignore_error_codes"
+		allErrors := append(notFoundErrors, awsConfig.IgnoreErrorCodes...)
 		if awsErr, ok := err.(awserr.Error); ok {
-			plugin.Logger(ctx).Info("isNotFoundError", "AWS Error CODE", awsErr.Code())
-			// return helpers.StringSliceContains(allErrors, awsErr.Code())
-
 			// Added to support regex in not found errors
 			for _, pattern := range allErrors {
 				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
@@ -32,19 +29,17 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 	}
 }
 
-// shouldIgnoreErrorPluginDefault:: Plugin level default function to ignore a set errors for hydrate functions based on `ignored_error_codes`
+// shouldIgnoreErrorPluginDefault:: Plugin level default function to ignore a set errors for hydrate functions based on `ignore_error_codes`
 func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		if !hasIgnoredErrorCodes(d.Connection) {
 			return false
 		}
+
 		awsConfig := GetConfig(d.Connection)
 		if awsErr, ok := err.(awserr.Error); ok {
-			plugin.Logger(ctx).Info("shouldIgnoreErrorPluginDefault", "AWS Error CODE", awsErr.Code())
-			// return helpers.StringSliceContains(awsConfig.IgnoredErrorCodes, awsErr.Code())
-
 			// Added to support regex in ignoring errors
-			for _, pattern := range awsConfig.IgnoredErrorCodes {
+			for _, pattern := range awsConfig.IgnoreErrorCodes {
 				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
 					return true
 				}
@@ -56,5 +51,5 @@ func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 
 func hasIgnoredErrorCodes(connection *plugin.Connection) bool {
 	awsConfig := GetConfig(connection)
-	return len(awsConfig.IgnoredErrorCodes) > 0
+	return len(awsConfig.IgnoreErrorCodes) > 0
 }

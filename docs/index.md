@@ -97,12 +97,12 @@ connection "aws" {
   # The list of AWS error codes to be ignored while running AWS queries. It will prevent aws plugin from breaking in case
   # of running AWS compliances for user defined set of AWS error codes.
   # https://github.com/turbot/steampipe-plugin-aws/issues/878
-  #ignored_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+  #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 }
 ```
 
 - `access_key` - (Optional) AWS access key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
-- `ignored_error_codes` - (Optional) The list of AWS error codes to ignore plugin.
+- `ignore_error_codes` - (Optional) The list of AWS error codes to ignore plugin.
 - `max_error_retry_attempts` - (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
 - `min_error_retry_delay` - (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
 - `profile` - (Optional) AWS profile name to use for credentials. Can also be set with the `AWS_PROFILE` or `AWS_DEFAULT_PROFILE` environment variables.

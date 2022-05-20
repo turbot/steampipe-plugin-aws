@@ -28,5 +28,5 @@ connection "aws" {
   # The list of AWS error codes to be ignored while running AWS queries. It will prevent aws plugin from breaking in case
   # of running AWS compliances for user defined set of AWS error codes.
   # https://github.com/turbot/steampipe-plugin-aws/issues/878
-  #ignored_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+  #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 }
