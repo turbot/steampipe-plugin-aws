@@ -29,7 +29,7 @@ select
 from
   aws_inspector_exclusion
 where
-  assessment_run_arn = 'arn:aws:inspector:us-east-1:533793682495:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz';
+  assessment_run_arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz';
 ```
 
 ### Get the attributes for an exclusion
@@ -41,7 +41,7 @@ select
 from
   aws_inspector_exclusion
 where
-  arn = 'arn:aws:inspector:us-east-1:533793682495:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
+  arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
 ```
 
 ### Get the scopes for an exclusion
@@ -53,7 +53,7 @@ select
 from
   aws_inspector_exclusion
 where
-  arn = 'arn:aws:inspector:us-east-1:533793682495:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
+  arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
 ```
 
 ### Count the number of exclusions whose type is Agent not found
@@ -65,7 +65,7 @@ select
   title,
   count(arn)
 from
-  test_aab.aws_inspector_exclusion
+  aws_inspector_exclusion
 group by
   arn,
   region,
