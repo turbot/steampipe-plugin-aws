@@ -46,7 +46,7 @@ order by
   severity ->> 'Original';
 ```
 
-### List findings with failed compliance
+### List findings with failed compliance status
 
 ```sql
 select
@@ -54,7 +54,7 @@ select
   product_arn,
   product_name,
   compliance ->> 'Status' as compliance_status,
-  compliance ->> 'StatusReasons'as compliance_status_reason
+  compliance ->> 'StatusReasons' as compliance_status_reasons
 from
   aws_securityhub_finding
 where
@@ -91,7 +91,7 @@ and
   created_at >= now() - interval '10' day;
 ```
 
-### List findings with highest criticality
+### List findings ordered by criticality
 
 ```sql
 select
@@ -105,7 +105,7 @@ order by
   criticality desc nulls last;
 ```
 
-### List findings for company Turbot
+### List findings for Turbot company
 
 ```sql
 select
@@ -169,7 +169,7 @@ where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
-### Get patch summary for a particular finding
+### Get patch summary details for a particular finding
 
 ```sql
 select
@@ -214,7 +214,7 @@ where
   title = 'EC2 instance involved in SSH brute force attacks.';
 ```
 
-### List EC2 instance with compliance failed
+### List EC2 instances with failed compliance status
 
 ```sql
 select
@@ -236,7 +236,7 @@ and
   i.arn = r ->> 'Id';
 ```
 
-### Count resources with compliance failed
+### Count resources with failed compliance status
 
 ```sql
 select
@@ -267,7 +267,7 @@ where
   standards_control_arn like '%cis-aws-foundations-benchmark%';
 ```
 
-### List findings for a particular standard control
+### List findings for a particular standard control (Config.1)
 
 ```sql
  select 
@@ -286,7 +286,7 @@ and
   c.control_id = 'Config.1';
 ```
 
-### List resources where compliance failed for CIS AWS foundations benchmark
+### List resources with a failed compliance status for CIS AWS foundations benchmark
 
 ```sql
 select
