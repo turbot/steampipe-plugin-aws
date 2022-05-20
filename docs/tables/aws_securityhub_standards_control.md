@@ -71,7 +71,7 @@ select
 from
   aws_securityhub_standards_control
 where
-  control_status_updated_at <= (now() - interval '30' day);
+  control_status_updated_at >= (now() - interval '30' day);
 ```
 
 ### List CIS AWS foundations benchmark controls with critical severity
@@ -85,7 +85,7 @@ from
   aws_securityhub_standards_control
 where
   severity_rating = 'CRITICAL'
-  and standards_control_arn like '%cis-aws-foundations-benchmark%';
+  and arn like '%cis-aws-foundations-benchmark%';
 ```
 
 ### List related requirements benchmark for S3 controls
