@@ -48,7 +48,7 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) for the finding.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id")
+				Transform:   transform.FromField("Id"),
 			},
 			{
 				Name:        "company_name",
