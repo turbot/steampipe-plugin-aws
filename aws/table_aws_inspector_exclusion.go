@@ -62,12 +62,13 @@ func tableAwsInspectorExclusion(_ context.Context) *plugin.Table {
 				Description: "The AWS resources for which the exclusion pertains.",
 				Type:        proto.ColumnType_JSON,
 			},
+
+			// Steampipe standard columns
 			{
 				Name:        "title",
-				Description: "The name of the exclusion.",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 			},
-			// Standard column for all tables
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),

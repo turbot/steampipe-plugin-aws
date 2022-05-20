@@ -32,31 +32,27 @@ where
   assessment_run_arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz';
 ```
 
-### Get the attributes for an exclusion
+### Get the attribute details for each exclusion
 
 ```sql
 select
   arn,
   jsonb_pretty(attributes) as attributes
 from
-  aws_inspector_exclusion
-where
-  arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
+  aws_inspector_exclusion;
 ```
 
-### Get the scopes for an exclusion
+### Get the scope details for each exclusion
 
 ```sql
 select
   arn,
-  jsonb_pretty(attributes) as attributes
+  jsonb_pretty(scopes) as scopes
 from
-  aws_inspector_exclusion
-where
-  arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz/exclusion/0-xNJPDc3o';
+  aws_inspector_exclusion;
 ```
 
-### Count the number of exclusions whose type is Agent not found
+### Count the number of exclusions whose type is 'Agent not found'
 
 ```sql
 select
