@@ -20,10 +20,10 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.SingleColumn("policy_id"),
 			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getDlmLifecyclePolicy,
+			Hydrate:           getDLMLifecyclePolicy,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listDlmLifecyclePolicies,
+			Hydrate: listDLMLifecyclePolicies,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -37,7 +37,7 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the policy.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("PolicyArn"),
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 			{
 				Name:        "description",
@@ -48,19 +48,19 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 				Name:        "date_created",
 				Description: "The local date and time when the lifecycle policy was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 			{
 				Name:        "date_modified",
 				Description: "The local date and time when the lifecycle policy was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 			{
 				Name:        "execution_role_arn",
 				Description: "The Amazon Resource Name (ARN) of the IAM role used to run the operations specified by the lifecycle policy.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 			{
 				Name:        "policy_type",
@@ -76,13 +76,13 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 				Name:        "status_message",
 				Description: "The description of the status.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 			{
 				Name:        "policy_details",
 				Description: "The configuration of the lifecycle policy.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 
 			// Steampipe standard columns
@@ -102,7 +102,7 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("PolicyArn").Transform(transform.EnsureStringArray),
-				Hydrate:     getDlmLifecyclePolicy,
+				Hydrate:     getDLMLifecyclePolicy,
 			},
 		}),
 	}
@@ -110,13 +110,13 @@ func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := DLMService(ctx, d)
 	if err != nil {
-		logger.Error("aws_dlm_lifecycle_policy.listDlmLifecyclePolicies", "service_creation_error", err)
+		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -124,7 +124,7 @@ func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	policies, err := svc.GetLifecyclePolicies(input)
 	if err != nil {
-		logger.Error("aws_dlm_lifecycle_policy.listDlmLifecyclePolicies", "list_api_error", err)
+		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "list_api_error", err)
 		return nil, err
 	}
 	if policies.Policies == nil {
@@ -145,7 +145,7 @@ func listDlmLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	var id string
@@ -163,7 +163,7 @@ func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create service
 	svc, err := DLMService(ctx, d)
 	if err != nil {
-		logger.Error("aws_dlm_lifecycle_policy.getDlmLifecyclePolicy", "service_creation_error", err)
+		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -173,7 +173,7 @@ func getDlmLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	op, err := svc.GetLifecyclePolicy(params)
 	if err != nil {
-		logger.Error("aws_dlm_lifecycle_policy.getDlmLifecyclePolicy", "get_api_error", err)
+		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "get_api_error", err)
 		return nil, err
 	}
 	return op.Policy, nil
