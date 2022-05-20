@@ -247,6 +247,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_route53_record":                                           tableAwsRoute53Record(ctx),
 			"aws_route53_resolver_endpoint":                                tableAwsRoute53ResolverEndpoint(ctx),
 			"aws_route53_resolver_rule":                                    tableAwsRoute53ResolverRule(ctx),
+			"aws_route53_traffic_policy_instances":                         tableAwsRoute53TrafficPolicyInstance(ctx),
 			"aws_route53_traffic_policy":                                   tableAwsRoute53TrafficPolicy(ctx),
 			"aws_route53_zone":                                             tableAwsRoute53Zone(ctx),
 			"aws_s3_access_point":                                          tableAwsS3AccessPoint(ctx),
