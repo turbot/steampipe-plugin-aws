@@ -205,6 +205,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "vpc_id",
+				Description: "The ID of the VPC.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "groups",
 				Description: "Any security groups for the network interface.",
 				Type:        proto.ColumnType_JSON,
