@@ -1,6 +1,6 @@
 # Table: aws_guardduty_publishing_destination
 
-AWS Guardduty Publishing Destination provides a resource to export the guard duty findings. This requires an existing GuardDuty Detector.
+AWS Guardduty Publishing Destinations provide a resource to export the guard duty findings. This requires an existing GuardDuty Detector.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_guardduty_publishing_destination;
 ```
 
-### List unverified publishing destination
+### List unverified publishing destinations
 
 ```sql
 select
@@ -30,7 +30,7 @@ where
   status = 'PENDING_VERIFICATION';
 ```
 
-###  List publishing destination which are not encrypted
+### List publishing destinations which are not encrypted
 
 ```sql
 select
@@ -44,7 +44,7 @@ where
   kms_key_arn is null;
 ```
 
-### Count publishing destination by type
+### Count publishing destinations by type
 
 ```sql
 select
@@ -58,7 +58,7 @@ order by
   count desc;
 ```
 
-### Get S3 bucket policy for publishing destination
+### Get bucket policies for S3 bucket publishing destinations
 
 ```sql
 select
@@ -79,7 +79,7 @@ and
   s.arn = d.destination_arn;
 ```
 
-### Get KMS Key policy document associate with publishing destination
+### Get KMS key policies associated with publishing destinations
 
 ```sql
 select
