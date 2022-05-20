@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsDlmLifecyclePolicy(_ context.Context) *plugin.Table {
+func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_dlm_lifecycle_policy",
 		Description: "AWS DLM Lifecycle Policy",
