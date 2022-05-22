@@ -26,6 +26,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
+			ShouldIgnoreError: isNotFoundError([]string{"AccessDenied"}),
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
