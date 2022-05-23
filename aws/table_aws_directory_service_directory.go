@@ -161,6 +161,13 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "shared_directories",
+				Description: "Details about the shared directory in the directory owner account for which the share request in the directory consumer account has been accepted.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDirectoryServiceSharedDirectory,
+				Transform:   transform.FromValue().NullIfZero(),
+			},
+			{
 				Name:        "vpc_settings",
 				Description: "A DirectoryVpcSettingsDescription object that contains additional information about a directory.",
 				Type:        proto.ColumnType_JSON,
@@ -283,6 +290,44 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return op.DirectoryDescriptions[0], nil
 	}
 	return nil, nil
+}
+
+func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	directory := h.Item.(*directoryservice.DirectoryDescription)
+
+	// DescribeSharedDirectories Operation is only supported for MicrosoftAD directories.
+	// Ignore if not a MicrosoftAD directory
+	if *directory.Type != "MicrosoftAD" {
+		return nil, nil
+	}
+
+	// Create service
+	svc, err := DirectoryService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "service_creation_error", err)
+		return nil, err
+	}
+	params := &directoryservice.DescribeSharedDirectoriesInput{
+		OwnerDirectoryId: directory.DirectoryId,
+	}
+
+	var directories []*directoryservice.SharedDirectory
+
+	for {
+		response, err := svc.DescribeSharedDirectories(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "api_error", err)
+			return nil, err
+		}
+		if response.SharedDirectories != nil {
+			directories = append(directories, response.SharedDirectories...)
+		}
+		if response.NextToken == nil {
+			break
+		}
+		params.NextToken = response.NextToken
+	}
+	return directories, nil
 }
 
 func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
