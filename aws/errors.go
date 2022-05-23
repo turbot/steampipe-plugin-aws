@@ -13,9 +13,9 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		awsConfig := GetConfig(d.Connection)
 
-		// If the get or list hydrate functions have a overriding IgnoreConfig
-		// defined using isNotFoundError function then,
-		// it should also check for errors in "ignore_error_codes"
+		// If the get or list hydrate functions have an overriding IgnoreConfig
+		// defined using the isNotFoundError function, then it should
+		// also check for errors in the "ignore_error_codes" config argument
 		allErrors := append(notFoundErrors, awsConfig.IgnoreErrorCodes...)
 		if awsErr, ok := err.(awserr.Error); ok {
 			// Added to support regex in not found errors
@@ -29,7 +29,7 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 	}
 }
 
-// shouldIgnoreErrorPluginDefault:: Plugin level default function to ignore a set errors for hydrate functions based on `ignore_error_codes`
+// shouldIgnoreErrorPluginDefault:: Plugin level default function to ignore a set errors for hydrate functions based on "ignore_error_codes" config argument
 func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
 		if !hasIgnoredErrorCodes(d.Connection) {
