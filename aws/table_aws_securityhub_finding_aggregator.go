@@ -18,8 +18,8 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_finding_aggregator",
 		Description: "AWS Security Hub Finding Aggregator",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getSecurityHubFindingAggregator,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getSecurityHubFindingAggregator,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindingAggregators,
@@ -30,7 +30,7 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the finding aggregator.",
 				Type:        proto.ColumnType_STRING,
-				Transform: transform.FromField("FindingAggregatorArn"),
+				Transform:   transform.FromField("FindingAggregatorArn"),
 			},
 			{
 				Name:        "finding_aggregation_region",

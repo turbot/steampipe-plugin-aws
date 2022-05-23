@@ -19,9 +19,11 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_version",
 		Description: "AWS Lambda Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"version", "function_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           getFunctionVersion,
+			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: getFunctionVersion,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,

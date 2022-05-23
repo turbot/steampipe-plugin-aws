@@ -20,9 +20,11 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_volume",
 		Description: "AWS EBS Volume",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("volume_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			Hydrate:           getEBSVolume,
+			KeyColumns: plugin.SingleColumn("volume_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getEBSVolume,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,

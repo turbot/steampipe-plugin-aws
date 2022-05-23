@@ -17,9 +17,11 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_consumer",
 		Description: "AWS Kinesis Consumer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("consumer_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsKinesisConsumer,
+			KeyColumns: plugin.SingleColumn("consumer_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsKinesisConsumer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listStreams,

@@ -16,8 +16,10 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_codecommit_repository",
 		Description: "AWS CodeCommit Repository",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listCodeCommitRepositories,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
+			},
+			Hydrate: listCodeCommitRepositories,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

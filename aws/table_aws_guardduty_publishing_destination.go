@@ -18,9 +18,11 @@ func tableAwsGuardDutyPublishingDestination(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_publishing_destination",
 		Description: "AWS GuardDuty Publishing Destination",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "destination_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
-			Hydrate:           getGuardDutyPublishingDestination,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "destination_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+			},
+			Hydrate: getGuardDutyPublishingDestination,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
