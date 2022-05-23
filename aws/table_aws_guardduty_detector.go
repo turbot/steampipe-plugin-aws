@@ -80,6 +80,13 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGuardDutyDetector,
 			},
+			{
+				Name:        "master_account",
+				Description: "Contains information about the administrator account and invitation.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGuardDutyDetectorMasterAccount,
+				Transform:   transform.FromValue(),
+			},
 
 			// Standard columns
 			{
@@ -108,9 +115,12 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create session
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
+		logger.Error("aws_guardduty_detector.listGuardDutyDetectors", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -146,7 +156,6 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			return !isLast
 		},
 	)
-
 	return nil, err
 }
 
@@ -154,7 +163,6 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getGuardDutyDetector")
 
 	var id string
 	if h.Item != nil {
@@ -167,6 +175,7 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Create Session
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
+		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -176,21 +185,46 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetDetector(params)
 	if err != nil {
-		logger.Debug("getGuardDutyDetector", "ERROR", err)
+		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "api_error", err)
 		return nil, err
 	}
 
 	return detectorInfo{*op, id}, nil
 }
 
+func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
+	id := h.Item.(detectorInfo).DetectorID
+
+	// Create Session
+	svc, err := GuardDutyService(ctx, d)
+	if err != nil {
+		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "service_connection_error", err)
+		return nil, err
+	}
+
+	params := &guardduty.GetMasterAccountInput{
+		DetectorId: &id,
+	}
+
+	op, err := svc.GetMasterAccount(params)
+	if err != nil {
+		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "api_error", err)
+		return nil, err
+	}
+
+	return op.Master, nil
+}
+
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGuardDutyDetectorARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(detectorInfo)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_detector.getGuardDutyDetectorARN", "error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
