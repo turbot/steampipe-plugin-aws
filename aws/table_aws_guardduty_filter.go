@@ -18,9 +18,11 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_filter",
 		Description: "AWS GuardDuty Filter",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
-			Hydrate:           getAwsGuardDutyFilter,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+			},
+			Hydrate: getAwsGuardDutyFilter,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,

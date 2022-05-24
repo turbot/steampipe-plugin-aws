@@ -17,9 +17,11 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 		Name:        "aws_codebuild_project",
 		Description: "AWS CodeBuild Project",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException"}),
-			Hydrate:           getCodeBuildProject,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+			},
+			Hydrate: getCodeBuildProject,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildProjects,

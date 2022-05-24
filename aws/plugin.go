@@ -21,7 +21,22 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		Name:             pluginName,
 		DefaultTransform: transform.FromCamel(),
 		DefaultGetConfig: &plugin.GetConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "NoSuchEntity"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{
+					"NoSuchEntity",
+					"NotFoundException",
+					"ResourceNotFoundException",
+					"InvalidParameter",
+					"InvalidParameterValue",
+					"InvalidParameterValueException",
+					"ValidationError",
+					"ValidationException",
+				}),
+			},
+		},
+		// Default ignore config for the plugin
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrorPluginDefault(),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,
@@ -71,6 +86,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
 			"aws_codepipeline_pipeline":                                    tableAwsCodepipelinePipeline(ctx),
+			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
 			"aws_config_configuration_recorder":                            tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                                  tableAwsConfigConformancePack(ctx),
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
@@ -87,6 +103,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cost_usage":                                               tableAwsCostAndUsage(ctx),
 			"aws_dax_cluster":                                              tableAwsDaxCluster(ctx),
 			"aws_directory_service_directory":                              tableAwsDirectoryServiceDirectory(ctx),
+			"aws_dlm_lifecycle_policy":                                     tableAwsDLMLifecyclePolicy(ctx),
 			"aws_dms_replication_instance":                                 tableAwsDmsReplicationInstance(ctx),
 			"aws_dynamodb_backup":                                          tableAwsDynamoDBBackup(ctx),
 			"aws_dynamodb_global_table":                                    tableAwsDynamoDBGlobalTable(ctx),
@@ -195,6 +212,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),
 			"aws_identitystore_group":                                      tableAwsIdentityStoreGroup(ctx),
 			"aws_identitystore_user":                                       tableAwsIdentityStoreUser(ctx),
+			"aws_inspector_assessment_run":                                 tableAwsInspectorAssessmentRun(ctx),
 			"aws_inspector_assessment_target":                              tableAwsInspectorAssessmentTarget(ctx),
 			"aws_inspector_assessment_template":                            tableAwsInspectorAssessmentTemplate(ctx),
 			"aws_kinesis_consumer":                                         tableAwsKinesisConsumer(ctx),
@@ -218,6 +236,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
+			"aws_ram_principal_association":                                tableAwsRAMPrincipalAssociation(ctx),
+			"aws_ram_resource_association":                                 tableAwsRAMResourceAssociation(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
 			"aws_rds_db_cluster_parameter_group":                           tableAwsRDSDBClusterParameterGroup(ctx),
 			"aws_rds_db_cluster_snapshot":                                  tableAwsRDSDBClusterSnapshot(ctx),

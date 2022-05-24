@@ -15,14 +15,16 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsKmsKey(_ context.Context) *plugin.Table {
+func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_kms_key",
 		Description: "AWS KMS Key",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
-			Hydrate:           getKmsKey,
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getKmsKey,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,

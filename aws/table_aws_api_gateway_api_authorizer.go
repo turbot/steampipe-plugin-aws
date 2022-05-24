@@ -18,9 +18,11 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_authorizer",
 		Description: "AWS API Gateway Authorizer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getRestAPIAuthorizer,
+			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getRestAPIAuthorizer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
