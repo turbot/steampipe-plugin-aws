@@ -288,13 +288,20 @@ func toSliceOfStrings(scalarOrSlice interface{}) ([]string, error) {
 	newSlice := make([]string, 0)
 
 	if reflect.TypeOf(scalarOrSlice).Kind() == reflect.Slice {
-		for _, v := range scalarOrSlice.([]interface{}) {
-			newSlice = append(newSlice, types.ToString(v))
+		switch item := scalarOrSlice.(type) {
+		case []string:
+			for _, v := range item {
+				newSlice = append(newSlice, types.ToString(v))
+			}
+		default:
+			for _, v := range scalarOrSlice.([]interface{}) {
+				newSlice = append(newSlice, types.ToString(v))
+			}
 		}
-		return newSlice, nil
+	} else {
+		newSlice = append(newSlice, types.ToString(scalarOrSlice))
 	}
 
-	newSlice = append(newSlice, types.ToString(scalarOrSlice))
 	return newSlice, nil
 }
 

@@ -386,6 +386,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_wafv2_web_acl":                                            tableAwsWafv2WebAcl(ctx),
 			"aws_wellarchitected_workload":                                 tableAwsWellArchitectedWorkload(ctx),
 			"aws_workspaces_workspace":                                     tableAwsWorkspace(ctx),
+			"aws_resource_policy_analysis":                                 tableAwsResourcePolicyAnalysis(ctx),
 		},
 	}
 
