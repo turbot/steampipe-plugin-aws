@@ -31,7 +31,7 @@ where
   s ->> 'ShareRules' is not null;
 ```
 
-### List policies where cross region copying is scheduled
+### List policies where cross-region copying is scheduled
 
 ```sql
 select
@@ -47,7 +47,7 @@ where
   s ->> 'CrossRegionCopyRules' is not null;
   ```
 
-  ### List maximum snapshots allowed to be retained after each schedule
+### List maximum snapshots allowed to be retained after each schedule
 
 ```sql
 select
