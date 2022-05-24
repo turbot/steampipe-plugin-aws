@@ -19,9 +19,11 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_cluster",
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheCluster,
+			KeyColumns: plugin.SingleColumn("cache_cluster_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,

@@ -14,7 +14,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsAccount(_ context.Context) *plugin.Table {
+func tableAwsAccount(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_account",
 		Description: "AWS Account",

@@ -17,9 +17,11 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_video_stream",
 		Description: "AWS Kinesis Video Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("stream_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getKinesisVideoStream,
+			KeyColumns: plugin.SingleColumn("stream_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getKinesisVideoStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,

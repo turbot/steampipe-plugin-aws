@@ -19,8 +19,10 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_member",
 		Description: "AWS Securityhub Member",
 		List: &plugin.ListConfig{
-			Hydrate:           listSecurityHubMembers,
-			ShouldIgnoreError: isNotFoundError([]string{"BadRequestException"}),
+			Hydrate: listSecurityHubMembers,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"BadRequestException"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

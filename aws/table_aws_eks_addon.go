@@ -18,9 +18,11 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 		Name:        "aws_eks_addon",
 		Description: "AWS EKS Addon",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"addon_name", "cluster_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
-			Hydrate:           getEksAddon,
+			KeyColumns: plugin.AllColumns([]string{"addon_name", "cluster_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
+			},
+			Hydrate: getEksAddon,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEksClusters,

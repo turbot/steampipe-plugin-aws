@@ -22,7 +22,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getBucketIsPublic,
 				Depends: []plugin.HydrateFunc{getBucketLocation},

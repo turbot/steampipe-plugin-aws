@@ -17,9 +17,11 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		Name:        "aws_dynamodb_global_table",
 		Description: "AWS DynamoDB Global Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("global_table_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getDynamboDbGlobalTable,
+			KeyColumns: plugin.SingleColumn("global_table_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getDynamboDbGlobalTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamboDbGlobalTables,
