@@ -28,3 +28,18 @@ from
 where 
   type = 'MicrosoftAD';
 ```
+
+### Get details about the shared directories
+
+```sql
+select
+  name,
+  directory_id,
+  sd ->> 'ShareMethod' share_method,
+  sd ->> 'ShareStatus' share_status,
+  sd ->> 'SharedAccountId' shared_account_id,
+  sd ->> 'SharedDirectoryId' shared_directory_id
+from
+  aws_directory_service_directory,
+  jsonb_array_elements(shared_directories) sd;
+```

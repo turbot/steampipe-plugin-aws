@@ -15,9 +15,11 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_egress_only_internet_gateway",
 		Description: "AWS VPC Egress Only Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
-			Hydrate:           getVpcEgressOnlyInternetGateway,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
+			},
+			Hydrate: getVpcEgressOnlyInternetGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,

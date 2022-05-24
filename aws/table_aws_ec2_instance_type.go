@@ -19,9 +19,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance_type",
 		Description: "AWS EC2 Instance Type",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_type"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceType"}),
-			Hydrate:           describeInstanceType,
+			KeyColumns: plugin.SingleColumn("instance_type"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceType"}),
+			},
+			Hydrate: describeInstanceType,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,

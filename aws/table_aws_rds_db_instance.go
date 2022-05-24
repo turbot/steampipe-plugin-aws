@@ -18,9 +18,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_instance",
 		Description: "AWS RDS DB Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_instance_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBInstanceNotFound"}),
-			Hydrate:           getRDSDBInstance,
+			KeyColumns: plugin.SingleColumn("db_instance_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBInstanceNotFound"}),
+			},
+			Hydrate: getRDSDBInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,

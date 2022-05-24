@@ -17,14 +17,16 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIamUser(_ context.Context) *plugin.Table {
+func tableAwsIamUser(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamUser,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
+			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
@@ -32,7 +34,7 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamUserInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
@@ -291,7 +293,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	PermissionsBoundaryArn := ""
 	PermissionsBoundaryType := ""
 
-	if userData.User.Tags != nil {
+	if userData.User != nil && userData.User.Tags != nil {
 		tags = userData.User.Tags
 		turbotTags = map[string]string{}
 		for _, t := range userData.User.Tags {
@@ -299,7 +301,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 	}
 
-	if userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
+	if userData.User != nil && userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
 		v := userData.User.PermissionsBoundary
 		PermissionsBoundaryArn = *v.PermissionsBoundaryArn
 		PermissionsBoundaryType = *v.PermissionsBoundaryType
@@ -412,7 +414,9 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
+
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
+	var userPolicies []map[string]interface{}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
@@ -440,13 +444,12 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	var userPolicies []map[string]interface{}
-
 	for userPolicy := range policyCh {
 		userPolicies = append(userPolicies, userPolicy)
 	}
 
 	return userPolicies, nil
+
 }
 
 func getUserPolicyDataAsync(policy *string, userName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {

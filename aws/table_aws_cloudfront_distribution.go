@@ -18,9 +18,11 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_distribution",
 		Description: "AWS CloudFront Distribution",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchDistribution"}),
-			Hydrate:           getCloudFrontDistribution,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchDistribution"}),
+			},
+			Hydrate: getCloudFrontDistribution,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsCloudFrontDistributions,

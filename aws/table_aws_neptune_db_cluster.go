@@ -20,7 +20,9 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			Hydrate:    getNeptuneDBCluster,
-			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBClusterNotFoundFault"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listNeptuneDBClusters,

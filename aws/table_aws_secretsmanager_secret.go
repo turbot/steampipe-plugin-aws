@@ -18,9 +18,11 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Name:        "aws_secretsmanager_secret",
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           describeSecretsManagerSecret,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,

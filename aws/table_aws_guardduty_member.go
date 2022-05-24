@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -17,13 +19,18 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_member",
 		Description: "AWS GuardDuty Member",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"member_account_id", "detector_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException"}),
-			Hydrate:           getGuardDutyMember,
+			KeyColumns: plugin.AllColumns([]string{"member_account_id", "detector_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+			},
+			Hydrate: getGuardDutyMember,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyMembers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -85,6 +92,21 @@ type memberInfo = struct {
 func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listGuardDutyMembers")
 	detectorId := h.Item.(detectorInfo).DetectorID
+
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the API call with the given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorId {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorId) {
+				return nil, nil
+			}
+		}
+	}
 
 	// Create session
 	svc, err := GuardDutyService(ctx, d)

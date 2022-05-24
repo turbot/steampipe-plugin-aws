@@ -18,9 +18,11 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesisanalyticsv2_application",
 		Description: "AWS Kinesis Analytics V2 Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("application_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getKinesisAnalyticsV2Application,
+			KeyColumns: plugin.SingleColumn("application_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getKinesisAnalyticsV2Application,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisAnalyticsV2Applications,

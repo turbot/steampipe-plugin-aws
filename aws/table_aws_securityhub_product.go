@@ -18,9 +18,11 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_product",
 		Description: "AWS Securityhub Product",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("product_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
-			Hydrate:           getSecurityHubProduct,
+			KeyColumns: plugin.SingleColumn("product_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException"}),
+			},
+			Hydrate: getSecurityHubProduct,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubProducts,
