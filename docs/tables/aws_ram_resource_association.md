@@ -1,6 +1,6 @@
 # Table: aws_ram_resource_association
 
-AWS Resource Access Manager (AWS RAM) helps you securely share the AWS resources that you create in one AWS account with other AWS accounts. If you have multiple AWS accounts, you can create a resource once and use AWS RAM to make that resource usable by those other accounts. This manages a Resource Access Manager (RAM) Resource Association.
+AWS Resource Access Manager (RAM) helps you securely share the AWS resources you create in one AWS account with other AWS accounts. If you have multiple AWS accounts, you can create a resource once and use AWS RAM to make that resource usable by those other accounts.
 
 ## Examples
 
