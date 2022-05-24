@@ -18,9 +18,11 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_dms_replication_instance",
 		Description: "AWS DMS Replication Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
-			Hydrate:           getDmsReplicationInstance,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
+			},
+			Hydrate: getDmsReplicationInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDmsReplicationInstances,

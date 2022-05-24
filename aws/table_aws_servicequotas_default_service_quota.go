@@ -17,13 +17,17 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 		Name:        "aws_servicequotas_default_service_quota",
 		Description: "AWS ServiceQuotas Default Service Quota",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
-			Hydrate:           getDefaultServiceQuota,
+			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+			},
+			Hydrate: getDefaultServiceQuota,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listDefaultServiceQuotas,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
+			Hydrate: listDefaultServiceQuotas,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
 			},

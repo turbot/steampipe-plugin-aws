@@ -17,9 +17,11 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_domain_name",
 		Description: "AWS API Gateway Version 2 Domain Name",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"domain_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getDomainName,
+			KeyColumns: plugin.AllColumns([]string{"domain_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getDomainName,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDomainNames,

@@ -18,9 +18,11 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Name:        "aws_glue_catalog_table",
 		Description: "AWS Glue Catalog Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "database_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
-			Hydrate:           getGlueCatalogTable,
+			KeyColumns: plugin.AllColumns([]string{"name", "database_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+			},
+			Hydrate: getGlueCatalogTable,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{

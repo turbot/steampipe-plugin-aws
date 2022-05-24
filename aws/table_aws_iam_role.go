@@ -18,14 +18,16 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIamRole(_ context.Context) *plugin.Table {
+func tableAwsIamRole(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamRole,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			Hydrate:    getIamRole,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
@@ -33,12 +35,11 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamRoleInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
-			},
-		},
+			}},
 		Columns: awsColumns([]*plugin.Column{
 			// "Key" Columns
 			{
@@ -356,6 +357,7 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsIamRoleInlinePolicies")
 	role := h.Item.(*iam.Role)
+
 	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
 	// Create Session
@@ -439,12 +441,11 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*iam.Role)
+	tags := d.HydrateItem.(*iam.Role)
 	var turbotTagsMap map[string]string
-
-	if data.Tags != nil {
+	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

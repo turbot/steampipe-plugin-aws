@@ -21,9 +21,11 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ami_shared",
 		Description: "AWS EC2 AMI - All public, private, and shared AMIs",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("image_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			Hydrate:           getEc2Ami,
+			KeyColumns: plugin.SingleColumn("image_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			},
+			Hydrate: getEc2Ami,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAmisByOwner,
@@ -45,7 +47,9 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				{Name: "sriov_net_support", Require: plugin.Optional},
 				{Name: "virtualization_type", Require: plugin.Optional},
 			},
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

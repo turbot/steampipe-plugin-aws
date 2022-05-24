@@ -1,0 +1,7 @@
+[
+  {
+   "detector_id": "{{ output.detector_id.value }}",
+   "email": "{{ output.email.value }}",
+   "member_account_id": "{{ output.member_account_id.value }}"
+  }
+]

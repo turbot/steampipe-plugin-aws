@@ -17,9 +17,11 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		Name:        "aws_config_rule",
 		Description: "AWS Config Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getConfigRule,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
+			},
+			Hydrate: getConfigRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRules,

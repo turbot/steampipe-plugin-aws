@@ -1,0 +1,8 @@
+[
+  {
+   "administrator_id": "{{ output.administrator_id.value }}",
+   "email": "example@example.com",
+   "member_account_id": "{{ output.member_account_id.value }}",
+   "member_status": "{{ output.member_status.value }}"
+  }
+]
