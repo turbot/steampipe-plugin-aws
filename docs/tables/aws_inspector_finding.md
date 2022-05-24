@@ -48,7 +48,7 @@ order by
   severity;
 ```
 
-### List last 10 days high findings
+### List last 10 days findings
 
 ```sql
 select
@@ -73,7 +73,7 @@ from
   aws_inspector_finding;
 ```
 
-### Get asset attribute for each finding
+### Get asset attributes for each finding
 
 ```sql
 select
@@ -107,7 +107,7 @@ and
   i.instance_id = f.agent_id;
 ```
 
-### List service attributes for each finding
+### Get service attributes for each finding
 
 ```sql
 select
