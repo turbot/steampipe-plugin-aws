@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/turbot/go-kit/helpers"
-	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
@@ -24,7 +24,9 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate:           listInspectorFindings,
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
+			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "agent_id", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "auto_scaling_group", Require: plugin.Optional, Operators: []string{"="}},
@@ -36,91 +38,91 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 			{
 				Name:        "id",
 				Description: "The ID of the finding.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Id"),
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN that specifies the finding.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Arn"),
 			},
 			{
 				Name:        "agent_id",
 				Description: "The ID of the agent that is installed on the EC2 instance where the finding is generated.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.AssetAttributes.AgentId"),
 			},
 			{
 				Name:        "asset_type",
 				Description: "The type of the host from which the finding is generated.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.AssetType"),
 			},
 			{
 				Name:        "auto_scaling_group",
 				Description: "The Auto Scaling group of the EC2 instance where the finding is generated.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.AssetAttributes.AutoScalingGroup"),
 			},
 			{
 				Name:        "confidence",
 				Description: "This data element is currently not used.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("Finding.Confidence"),
 			},
 			{
 				Name:        "created_at",
 				Description: "The time when the finding was generated.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Finding.CreatedAt"),
 			},
 			{
 				Name:        "updated_at",
 				Description: "The time when AddAttributesToFindings is called.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Finding.UpdatedAt"),
 			},
 			{
 				Name:        "description",
 				Description: "The description of the finding.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Description"),
 			},
 			{
 				Name:        "indicator_of_compromise",
 				Description: "This data element is currently not used.",
-				Type:        pb.ColumnType_BOOL,
+				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("Finding.IndicatorOfCompromise"),
 			},
 			{
 				Name:        "numeric_severity",
 				Description: "The numeric value of the finding severity.",
-				Type:        pb.ColumnType_DOUBLE,
+				Type:        proto.ColumnType_DOUBLE,
 				Transform:   transform.FromField("Finding.NumericSeverity"),
 			},
 			{
 				Name:        "recommendation",
 				Description: "The recommendation for the finding.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Recommendation"),
 			},
 			{
 				Name:        "schema_version",
 				Description: "The schema version of this data type.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 				Transform:   transform.FromField("Finding.SchemaVersion"),
 			},
 			{
 				Name:        "service",
 				Description: "The data element is set to 'Inspector'.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Service"),
 			},
 			{
 				Name:        "severity",
 				Description: "The finding severity. Values can be set to High, Medium, Low, and Informational.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Severity"),
 			},
 
@@ -128,30 +130,30 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 			{
 				Name:        "asset_attributes",
 				Description: "A collection of attributes of the host from which the finding is generated.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Finding.AssetAttributes"),
 			},
 			{
 				Name:        "attributes",
 				Description: "The system-defined attributes for the finding.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Finding.Attributes"),
 			},
 			{
 				Name:        "failed_items",
 				Description: "Attributes details that cannot be described. An error code is provided for each failed item.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "service_attributes",
 				Description: "This data type is used in the Finding data type.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Finding.ServiceAttributes"),
 			},
 			{
 				Name:        "user_attributes",
 				Description: "The user-defined attributes that are assigned to the finding.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Finding.UserAttributes"),
 			},
 
@@ -159,13 +161,13 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: "The name of the finding.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Finding.Title"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
