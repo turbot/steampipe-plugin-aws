@@ -19,10 +19,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Description: "AWS DLM Lifecycle Policy",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
-			},
-			Hydrate: getDLMLifecyclePolicy,
+			Hydrate:    getDLMLifecyclePolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
