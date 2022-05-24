@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -18,7 +17,7 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_traffic_policy_instances",
 		Description: "AWS Route53 Traffic Policy Instances",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "version"}),
+			KeyColumns:        plugin.AllColumns([]string{"id"}),
 			Hydrate:           getTrafficPolicyInstance,
 			ShouldIgnoreError: isNotFoundError([]string{"NoSuchTrafficPolicyInstance"}),
 		},
@@ -28,36 +27,49 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
-				Description: "The name that you specified when traffic policy was created.",
+				Description: "The DNS name for which Amazon Route 53 responds to queries.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "id",
-				Description: "The ID that Amazon Route 53 assigned to a traffic policy when it was created.",
+				Description: "The id that Amazon Route 53 assigned to the new traffic policy instance.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "type",
-				Description: "The DNS type of the resource record sets that Amazon Route 53 creates when you use a traffic policy to create a traffic policy instance.",
+				Name:        "hosted_zone_id",
+				Description: "The id of the hosted zone that Amazon Route 53 created resource record sets in.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "version",
-				Description: "The version number that Amazon Route 53 assigns to a traffic policy.",
+				Name:        "message",
+				Description: "If State is Failed, an explanation of the reason for the failure.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "state",
+				Description: "Current state of the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "traffic_policy_id",
+				Description: "The ID of the traffic policy that Amazon Route 53 used to create resource record sets in the specified hosted zone.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "traffic_policy_type",
+				Description: "The DNS type that Amazon Route 53 assigned to all of the resource record sets that it created for this traffic policy instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "traffic_policy_version",
+				Description: "The version of the traffic policy that Amazon Route 53 used to create resource record sets in the specified hosted zone.",
 				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromValue(),
 			},
 			{
-				Name:        "comment",
-				Description: "The comment that you specified when traffic policy was created.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getTrafficPolicyInstance,
-			},
-			{
-				Name:        "document",
-				Description: "The definition of a traffic policy in JSON format.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTrafficPolicyInstance,
+				Name:        "ttl",
+				Description: "The TTL that Amazon Route 53 assigned to all of the resource record sets that it created in the specified hosted zone.",
+				Type:        proto.ColumnType_INT,
+				Transform:   transform.FromField("TTL"),
 			},
 
 			// Steampipe standard columns
@@ -67,13 +79,13 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRoute53TrafficPolicyInstanceTurbotAkas,
-				Transform:   transform.FromValue(),
-			},
+			// {
+			// 	Name:        "akas",
+			// 	Description: resourceInterfaceDescription("akas"),
+			// 	Type:        proto.ColumnType_JSON,
+			// 	Hydrate:     getRoute53TrafficPolicyInstanceTurbotAkas,
+			// 	Transform:   transform.FromValue(),
+			// },
 		}),
 	}
 }
@@ -169,21 +181,21 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	return item.TrafficPolicyInstance, nil
 }
 
-func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	instance := h.Item.(*route53.TrafficPolicyInstance)
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
+// func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	instance := h.Item.(*route53.TrafficPolicyInstance)
+// 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+// 	commonData, err := getCommonColumnsCached(ctx, d, h)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
-	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
-	akas := []string{"arn:" + commonColumnData.Partition +
-		":route53::" + commonColumnData.AccountId +
-		":" + "trafficpolicy/" + *instance.Id +
-		"/" + strconv.FormatInt(trafficPolicyVersion(h.Item), 10)}
+// 	// Get data for turbot defined properties
+// 	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
+// 	akas := []string{"arn:" + commonColumnData.Partition +
+// 		":route53::" + commonColumnData.AccountId +
+// 		":" + "trafficpolicy/" + *instance.Id +
+// 		"/" + strconv.FormatInt(trafficPolicyVersion(h.Item), 10)}
 
-	return akas, nil
-}
+// 	return akas, nil
+// }
