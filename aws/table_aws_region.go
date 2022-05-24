@@ -18,9 +18,11 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Name:        "aws_region",
 		Description: "AWS Region",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsRegion,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+			},
+			Hydrate: getAwsRegion,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRegions,

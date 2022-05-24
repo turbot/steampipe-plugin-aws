@@ -18,9 +18,11 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_origin_request_policy",
 		Description: "AWS CloudFront Origin Request Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
-			Hydrate:           getCloudFrontOriginRequestPolicy,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
+			},
+			Hydrate: getCloudFrontOriginRequestPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginRequestPolicies,

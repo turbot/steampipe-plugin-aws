@@ -18,9 +18,11 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 		Name:        "aws_fsx_file_system",
 		Description: "AWS FSx File System",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("file_system_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
-			Hydrate:           getFsxFileSystem,
+			KeyColumns: plugin.SingleColumn("file_system_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
+			},
+			Hydrate: getFsxFileSystem,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFsxFileSystems,

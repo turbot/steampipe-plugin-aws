@@ -18,9 +18,11 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Name:        "aws_sns_topic",
 		Description: "AWS SNS Topic",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("topic_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			Hydrate:           getTopicAttributes,
+			KeyColumns: plugin.SingleColumn("topic_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+			},
+			Hydrate: getTopicAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
@@ -229,6 +231,9 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*sns.ListTagsForResourceOutput)
+	// if !ok {
+	// 	return nil, nil
+	// }
 	var turbotTagsMap map[string]string
 	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}

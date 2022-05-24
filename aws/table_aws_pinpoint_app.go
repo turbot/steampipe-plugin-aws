@@ -21,9 +21,11 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 		Name:        "aws_pinpoint_app",
 		Description: "AWS Pinpoint App",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getPinpointApp,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getPinpointApp,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listPinpointApps,

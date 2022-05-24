@@ -18,9 +18,11 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_app",
 		Description: "AWS Sagemaker App",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
-			Hydrate:           getSageMakerApp,
+			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+			},
+			Hydrate: getSageMakerApp,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSageMakerDomains,
