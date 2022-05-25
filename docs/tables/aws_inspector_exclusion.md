@@ -29,24 +29,15 @@ select
 from
   aws_inspector_exclusion
 where
-  assessment_run_arn = 'arn:aws:inspector:us-east-1:xxxxxxxxxxxx:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz';
+  assessment_run_arn = 'arn:aws:inspector:us-east-1:012345678912:target/0-ywdTAdRg/template/0-rY1J4B4f/run/0-LRRwpQFz';
 ```
 
-### Get the attribute details for each exclusion
+### Get the attribute and scope details for each exclusion
 
 ```sql
 select
   arn,
-  jsonb_pretty(attributes) as attributes
-from
-  aws_inspector_exclusion;
-```
-
-### Get the scope details for each exclusion
-
-```sql
-select
-  arn,
+  jsonb_pretty(attributes) as attributes,
   jsonb_pretty(scopes) as scopes
 from
   aws_inspector_exclusion;
