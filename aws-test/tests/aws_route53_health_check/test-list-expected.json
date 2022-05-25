@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "id": "{{ output.health_check_id.value }}",
+    "name": "{{ resourceName }}",
+    "tags": {
+      "Name": "{{ resourceName }}"
+    }
+  }
+]
