@@ -75,7 +75,7 @@ where
   malware is not null;
 ```
 
-### List last 10 days critical findings
+### List critical findings from the last 10 days
 
 ```sql
 select
@@ -120,7 +120,7 @@ where
   company_name = 'Turbot';
 ```
 
-### List findings which were updated in last 30 days
+### List findings updated in the last 30 days
 
 ```sql
 select
