@@ -2,7 +2,7 @@
 
 _What's new?_
 
-- Added `ignore_error_codes` config arg and update all tables to use `IgnoreConfig` instead of `ShouldIgnoreError` in `GetConfig`. ([#992](https://github.com/turbot/steampipe-plugin-aws/pull/992))
+- Added `ignore_error_codes` config arg to provide users the ability to set a list of additional AWS error codes to ignore while running queries. For instance, to ignore some common access denied errors, which is helpful when running with limited permissions, set the argument `ignore_error_codes = ["AccessDenied", "AccessDeniedException"]`. For more information, please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration) ([#992](https://github.com/turbot/steampipe-plugin-aws/pull/992))
 - New tables added
   - [aws_config_aggregate_authorization](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_aggregate_authorization) ([#1025](https://github.com/turbot/steampipe-plugin-aws/pull/1025))
   - [aws_dlm_lifecycle_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dlm_lifecycle_policy) ([#1016](https://github.com/turbot/steampipe-plugin-aws/pull/1016))
@@ -23,14 +23,15 @@ _What's new?_
 
 _Enhancements_
 
-- Added column `architectures` to `aws_lambda_function` table. ([#991](https://github.com/turbot/steampipe-plugin-aws/pull/991))
 - Added column `shared_directories` to `aws_directory_service_directory` table. ([#1024](https://github.com/turbot/steampipe-plugin-aws/pull/1024))
-- Added column `master_account` to `aws_guardduty_detector` table. ([#1023](https://github.com/turbot/steampipe-plugin-aws/pull/1023))
 - Added column `vpc_id` to `aws_ec2_network_interface` table. ([#990](https://github.com/turbot/steampipe-plugin-aws/pull/990))
+- Added column `master_account` to `aws_guardduty_detector` table. ([#1023](https://github.com/turbot/steampipe-plugin-aws/pull/1023))
+- Added column `architectures` to `aws_lambda_function` table. ([#991](https://github.com/turbot/steampipe-plugin-aws/pull/991))
+- Updated all tables to use `IgnoreConfig` instead of `ShouldIgnoreError` in `GetConfig` function. ([#992](https://github.com/turbot/steampipe-plugin-aws/pull/992))
 
 _Bug fixes_
 
-- Fixed the unsupported region issue in `aws_inspector_assessment_target` and `aws_inspector_assessment_template` tables. ([#1039](https://github.com/turbot/steampipe-plugin-aws/pull/1039)
+- Fixed the handling for unsupported regions in `aws_inspector_assessment_target` and `aws_inspector_assessment_template` tables. ([#1039](https://github.com/turbot/steampipe-plugin-aws/pull/1039)
 
 ## v0.59.0 [2022-05-11]
 
