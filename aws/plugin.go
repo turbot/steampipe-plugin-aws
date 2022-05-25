@@ -284,6 +284,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sagemaker_training_job":                                   tableAwsSageMakerTrainingJob(ctx),
 			"aws_secretsmanager_secret":                                    tableAwsSecretsManagerSecret(ctx),
 			"aws_securityhub_action_target":                                tableAwsSecurityHubActionTarget(ctx),
+			"aws_securityhub_finding":                                      tableAwsSecurityHubFinding(ctx),
 			"aws_securityhub_hub":                                          tableAwsSecurityHub(ctx),
 			"aws_securityhub_finding_aggregator":                           tableAwsSecurityHubFindingAggregator(ctx),
 			"aws_securityhub_member":                                       tableAwsSecurityHubMember(ctx),
