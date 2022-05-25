@@ -52,6 +52,45 @@ from
   aws_securityhub_insight;
 ```
 
+### List insights that filter on critical severity labels 
+
+```sql
+select
+  name,
+  arn,
+  filters ->> 'SeverityLabel' as severity
+from
+  aws_securityhub_insight
+where
+  filters ->> 'SeverityLabel' = '{"Comparison": "EQUALS", "Value": "CRITICAL"}'
+```
+
+### List insights that filter on ipv4_address threat intelligence type
+
+```sql
+select
+  name,
+  arn,
+  filters ->> 'ThreatIntelIndicatorType' as threat_intelligence_details
+from
+  aws_securityhub_insight
+where
+  filters ->> 'ThreatIntelIndicatorType' = '{"Comparison": "EQUALS", "Value": "IPV4_ADDRESS"}'
+```
+
+### List insights that failed compliance
+
+```sql
+select
+  name,
+  arn,
+  filters ->> 'ComplianceStatus' as compliance_status
+from
+  aws_securityhub_insight
+where
+  filters ->> 'ComplianceStatus' = '{"Comparison": "EQUALS", "Value": "FAILED"}'
+```
+
 ### Get malware details for insights
 
 ```sql
@@ -79,17 +118,6 @@ select
   filters ->> 'NetworkDestinationIpV6' as network_destination_ip_v6,
   filters ->> 'NetworkSourcePort' as network_source_port,
   filters ->> 'NetworkDestinationPort' as network_destination_port
-from
-  aws_securityhub_insight;
-```
-
-### Get compliance details for insights
-
-```sql
-select
-  name,
-  arn,
-  filters ->> 'ComplianceStatus' as compliance_status
 from
   aws_securityhub_insight;
 ```
