@@ -25,9 +25,11 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 			},
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			Hydrate:           getS3AccessPoint,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchAccessPoint", "AccessDenied", "InvalidParameter"}),
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			Hydrate:    getS3AccessPoint,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchAccessPoint", "InvalidParameter"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

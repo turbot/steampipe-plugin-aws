@@ -18,9 +18,11 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_cache_policy",
 		Description: "AWS CloudFront Cache Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchCachePolicy"}),
-			Hydrate:           getCloudFrontCachePolicy,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchCachePolicy"}),
+			},
+			Hydrate: getCloudFrontCachePolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontCachePolicies,

@@ -16,9 +16,11 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 		Name:        "aws_elastic_beanstalk_application",
 		Description: "AWS Elastic Beanstalk Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsElasticBeanstalkApplication,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsElasticBeanstalkApplication,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticBeanstalkApplications,

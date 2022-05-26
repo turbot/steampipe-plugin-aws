@@ -19,9 +19,11 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_action_target",
 		Description: "AWS Security Hub Action Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getSecurityHubActionTarget,
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException"}),
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getSecurityHubActionTarget,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubActionTargets,

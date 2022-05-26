@@ -15,9 +15,11 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_endpoint",
 		Description: "AWS VPC Endpoint",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpc_endpoint_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpcEndpointId.NotFound", "InvalidVpcEndpointId.Malformed"}),
-			Hydrate:           getVpcEndpoint,
+			KeyColumns: plugin.SingleColumn("vpc_endpoint_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVpcEndpointId.NotFound", "InvalidVpcEndpointId.Malformed"}),
+			},
+			Hydrate: getVpcEndpoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpoints,

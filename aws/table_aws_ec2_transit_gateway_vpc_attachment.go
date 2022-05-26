@@ -15,9 +15,11 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name: "aws_ec2_transit_gateway_vpc_attachment",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("transit_gateway_attachment_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
-			Hydrate:           getEc2TransitGatewayVpcAttachment,
+			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
+			},
+			Hydrate: getEc2TransitGatewayVpcAttachment,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,

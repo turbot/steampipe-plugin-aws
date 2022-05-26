@@ -19,9 +19,11 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_alias",
 		Description: "AWS Lambda Alias",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "function_name", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           getLambdaAlias,
+			KeyColumns: plugin.AllColumns([]string{"name", "function_name", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: getLambdaAlias,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,

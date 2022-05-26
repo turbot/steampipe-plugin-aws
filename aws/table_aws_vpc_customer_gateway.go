@@ -15,9 +15,11 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_customer_gateway",
 		Description: "AWS VPC Customer Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("customer_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
-			Hydrate:           getVpcCustomerGateway,
+			KeyColumns: plugin.SingleColumn("customer_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcCustomerGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,

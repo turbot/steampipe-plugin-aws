@@ -1,0 +1,6 @@
+[
+  {
+    "detector_id": "{{ output.detector_id.value }}",
+    "name": "{{ output.filter_name.value }}"
+  }
+]
