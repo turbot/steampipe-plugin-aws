@@ -25,8 +25,7 @@ connection "aws" {
   # Defaults to 25ms and must be greater than or equal to 1ms.
   #min_error_retry_delay = 25
 
-  # The list of AWS error codes to be ignored while running AWS queries. It will prevent aws plugin from breaking in case
-  # of running AWS compliances for user defined set of AWS error codes.
-  # https://github.com/turbot/steampipe-plugin-aws/issues/878
+  # List of additional AWS error codes to ignore for all queries.
+  # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 }
