@@ -14,8 +14,8 @@ import (
 
 func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_route53_traffic_policy_instances",
-		Description: "AWS Route53 Traffic Policy Instances",
+		Name:        "aws_route53_traffic_policy_instance",
+		Description: "AWS Route53 Traffic Policy Instance",
 		Get: &plugin.GetConfig{
 			KeyColumns:        plugin.AllColumns([]string{"id"}),
 			Hydrate:           getTrafficPolicyInstance,
@@ -79,13 +79,13 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getRoute53TrafficPolicyInstanceTurbotAkas,
-			// 	Transform:   transform.FromValue(),
-			// },
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRoute53TrafficPolicyInstanceTurbotAkas,
+				Transform:   transform.FromValue(),
+			},
 		}),
 	}
 }
@@ -181,21 +181,20 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	return item.TrafficPolicyInstance, nil
 }
 
-// func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	instance := h.Item.(*route53.TrafficPolicyInstance)
-// 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-// 	commonData, err := getCommonColumnsCached(ctx, d, h)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	commonColumnData := commonData.(*awsCommonColumnData)
+func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	instance := h.Item.(*route53.TrafficPolicyInstance)
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
 
-// 	// Get data for turbot defined properties
-// 	//arn:aws:route53::<account-id>:trafficpolicy/<id>/<version>
-// 	akas := []string{"arn:" + commonColumnData.Partition +
-// 		":route53::" + commonColumnData.AccountId +
-// 		":" + "trafficpolicy/" + *instance.Id +
-// 		"/" + strconv.FormatInt(trafficPolicyVersion(h.Item), 10)}
+	// Get data for turbot defined properties
+	//arn:aws:route53::<account-id>:trafficpolicyinstance/<id>
+	akas := []string{"arn:" + commonColumnData.Partition +
+		":route53::" + commonColumnData.AccountId +
+		":" + "trafficpolicyinstance/" + *instance.Id}
 
-// 	return akas, nil
-// }
+	return akas, nil
+}
