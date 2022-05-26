@@ -42,5 +42,5 @@ select
 from
   aws_securityhub_hub
 where
- administrator_account is not null;
+  administrator_account is not null;
 ```
