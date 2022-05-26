@@ -34,13 +34,6 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "name",
-				Description: "The name assigned to the health check.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getHealthCheckTags,
-				Transform:   transform.FromField("ResourceTagSet.Tags").Transform(route53HealthCheckName),
-			},
-			{
 				Name:        "caller_reference",
 				Description: "A unique string that you specified when you created the health check.",
 				Type:        proto.ColumnType_STRING,
@@ -118,7 +111,7 @@ func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "listHealthChecks", "service_creation_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.listHealthChecks", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -162,7 +155,7 @@ func getHealthCheck(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheck", "service_creation_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheck", "service_creation_error", err)
 		return nil, err
 	}
 	id := d.KeyColumnQuals["id"].GetStringValue()
@@ -179,7 +172,7 @@ func getHealthCheck(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// execute list call
 	item, err := svc.GetHealthCheck(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheck", "api_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheck", "api_error", err)
 		return nil, err
 	}
 
@@ -192,7 +185,7 @@ func getHealthCheckStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheckStatus", "service_creation_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckStatus", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -203,7 +196,7 @@ func getHealthCheckStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// execute list call
 	item, err := svc.GetHealthCheckStatus(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheckStatus", "api_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -216,7 +209,7 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheckTags", "service_creation_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckTags", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -228,7 +221,7 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// execute list call
 	resp, err := svc.ListTagsForResource(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_health_check", "getHealthCheckTags", "api_error")
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckTags", "api_error", err)
 		return nil, err
 	}
 
@@ -236,7 +229,6 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getRoute53HealthCheckTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53HealthCheckTurbotAkas")
 	healthCheck := h.Item.(*route53.HealthCheck)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -254,7 +246,6 @@ func getRoute53HealthCheckTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 //// TRANSFORM FUNCTIONS
 
 func route53HealthCheckTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53HealthCheckTurbotTags")
 	tags := d.Value.([]*route53.Tag)
 
 	// Mapping the resource tags inside turbotTags
@@ -267,20 +258,4 @@ func route53HealthCheckTurbotTags(ctx context.Context, d *transform.TransformDat
 	}
 
 	return turbotTagsMap, nil
-}
-
-func route53HealthCheckName(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53HealthCheckTurbotTags")
-	tags := d.Value.([]*route53.Tag)
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-	}
-
-	return turbotTagsMap["Name"], nil
 }

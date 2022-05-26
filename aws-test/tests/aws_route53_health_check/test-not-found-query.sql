@@ -1,6 +1,5 @@
 select
   akas,
-  name,
   id,
   tags_src
 from 

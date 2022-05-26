@@ -9,7 +9,6 @@ Amazon Route 53 health checks monitor the health and performance of your web app
 ```sql
 select
   akas,
-  name,
   id,
   health_check_version,
   health_check_config
@@ -21,7 +20,6 @@ from
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   cloud_watch_alarm_configuration ->> 'ComparisonOperator' as cloud_watch_comparison_operator,
@@ -41,7 +39,6 @@ where
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   linked_service_description,
@@ -56,7 +53,6 @@ where
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   health_check_config ->> 'Disabled' as disabled
@@ -70,7 +66,6 @@ where
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   health_check_config ->> 'FullyQualifiedDomainName' as fully_qualified_domain_name,
@@ -86,7 +81,6 @@ from
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   health_check_config ->> 'FullyQualifiedDomainName' as fully_qualified_domain_name,
@@ -105,7 +99,6 @@ where
 
 ```sql
 select
-  name,
   id,
   health_check_version,
   hc ->> 'IPAddress' as ip_address,
