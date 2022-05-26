@@ -78,12 +78,11 @@ resource "aws_route53_traffic_policy" "named_test_resource" {
 }
 
 resource "aws_route53_zone" "named_test_resource" {
-  name = "turbot.com"
+  name = "${var.resource_name}.com"
 }
 
-
 resource "aws_route53_traffic_policy_instance" "named_test_resource" {
-  name                   = var.resource_name
+  name                   = "${var.resource_name}.${var.resource_name}.com"
   traffic_policy_id      = aws_route53_traffic_policy.named_test_resource.id
   traffic_policy_version = var.version_input
   hosted_zone_id         = aws_route53_zone.named_test_resource.id

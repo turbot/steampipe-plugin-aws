@@ -17,9 +17,11 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_traffic_policy_instance",
 		Description: "AWS Route53 Traffic Policy Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id"}),
-			Hydrate:           getTrafficPolicyInstance,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchTrafficPolicyInstance"}),
+			KeyColumns: plugin.AllColumns([]string{"id"}),
+			Hydrate:    getTrafficPolicyInstance,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchTrafficPolicyInstance"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTrafficPolicyInstances,
@@ -93,11 +95,10 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTrafficPolicyInstances")
-
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.listTrafficPolicyInstances", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -122,7 +123,7 @@ func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 	for pagesLeft {
 		result, err := svc.ListTrafficPolicyInstances(input)
 		if err != nil {
-			plugin.Logger(ctx).Error("listTrafficPolicyInstances", "ListTrafficPolicyInstances_error", err)
+			plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.listTrafficPolicyInstances", "api_err", err)
 			return nil, err
 		}
 
@@ -148,12 +149,9 @@ func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTrafficPolicyInstance")
-
-	instance := h.Item.(*route53.TrafficPolicyInstance)
 	var id string
 	if h.Item != nil {
-		id = *instance.Id
+		id = *h.Item.(*route53.TrafficPolicyInstance).Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
@@ -166,6 +164,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Create session
 	svc, err := Route53Service(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getTrafficPolicyInstance", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -176,6 +175,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	// execute get call
 	item, err := svc.GetTrafficPolicyInstance(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getTrafficPolicyInstance", "api_error", err)
 		return nil, err
 	}
 	return item.TrafficPolicyInstance, nil
@@ -186,6 +186,7 @@ func getRoute53TrafficPolicyInstanceTurbotAkas(ctx context.Context, d *plugin.Qu
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getRoute53TrafficPolicyInstanceTurbotAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
