@@ -67,7 +67,7 @@ resource "aws_elasticache_replication_group" "named_test_resource" {
   node_type                     = "cache.t2.micro"
   number_cache_clusters         = 2
   parameter_group_name          = "default.redis5.0"
-  engine_version                = "5.0"
+  engine_version                = "5.0.6"
   port                          = 6379
   subnet_group_name             = aws_elasticache_subnet_group.my_subnet_group.id
 }

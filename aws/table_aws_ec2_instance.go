@@ -7,12 +7,12 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -22,9 +22,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance",
 		Description: "AWS EC2 Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2Instance,
+			KeyColumns: plugin.SingleColumn("instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
@@ -662,7 +664,7 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 
 //// UTILITY FUNCTIONS
 
-// build ec2 instance list call input filter
+// Build ec2 instance list call input filter
 func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)
 
@@ -706,8 +708,12 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 func getListValues(listValue *proto.QualValueList) []*string {
 	values := make([]*string, 0)
-	for _, value := range listValue.Values {
-		values = append(values, types.String(value.GetStringValue()))
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, types.String(value.GetStringValue()))
+			}
+		}
 	}
 	return values
 }

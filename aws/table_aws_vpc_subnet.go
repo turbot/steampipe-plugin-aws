@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
@@ -15,12 +15,26 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_subnet",
 		Description: "AWS VPC Subnet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("subnet_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
-			Hydrate:           getVpcSubnet,
+			KeyColumns: plugin.SingleColumn("subnet_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSubnetID.Malformed", "InvalidSubnetID.NotFound"}),
+			},
+			Hydrate: getVpcSubnet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSubnets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "availability_zone_id", Require: plugin.Optional},
+				{Name: "available_ip_address_count", Require: plugin.Optional},
+				{Name: "cidr_block", Require: plugin.Optional},
+				{Name: "default_for_az", Require: plugin.Optional},
+				{Name: "outpost_arn", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "subnet_arn", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -146,12 +160,51 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
+	input := &ec2.DescribeSubnetsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "availability_zone", FilterName: "availability-zone", ColumnType: "string"},
+		{ColumnName: "availability_zone_id", FilterName: "availability-zone-id", ColumnType: "string"},
+		{ColumnName: "available_ip_address_count", FilterName: "available-ip-address-count", ColumnType: "int64"},
+		{ColumnName: "cidr_block", FilterName: "cidr-block", ColumnType: "cidr"},
+		{ColumnName: "default_for_az", FilterName: "default-for-az", ColumnType: "boolean"},
+		{ColumnName: "outpost_arn", FilterName: "outpost-arn", ColumnType: "string"},
+		{ColumnName: "owner_id", FilterName: "owner-id", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "subnet_arn", FilterName: "subnet-arn", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeSubnetsPages(
-		&ec2.DescribeSubnetsInput{},
+		input,
 		func(page *ec2.DescribeSubnetsOutput, isLast bool) bool {
 			for _, subnet := range page.Subnets {
 				d.StreamListItem(ctx, subnet)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

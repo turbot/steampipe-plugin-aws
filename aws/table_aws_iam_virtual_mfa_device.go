@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,6 +18,12 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 		Description: "AWS IAM Virtual MFA device",
 		List: &plugin.ListConfig{
 			Hydrate: listIamVirtualMFADevices,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "assignment_status",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -28,6 +35,12 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 				Name:        "enable_date",
 				Description: "The date and time on which the virtual MFA device was enabled.",
 				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "assignment_status",
+				Description: "The status (Unassigned or Assigned) of the device.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(getAssignmentStatus),
 			},
 			{
 				Name:        "user_id",
@@ -100,11 +113,39 @@ func listIamVirtualMFADevices(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &iam.ListVirtualMFADevicesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["assignment_status"] != nil {
+		if equalQuals["assignment_status"].GetStringValue() != "" {
+			input.AssignmentStatus = aws.String(equalQuals["assignment_status"].GetStringValue())
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListVirtualMFADevicesPages(
-		&iam.ListVirtualMFADevicesInput{},
+		input,
 		func(page *iam.ListVirtualMFADevicesOutput, _ bool) bool {
 			for _, mfaDevice := range page.VirtualMFADevices {
 				d.StreamListItem(ctx, mfaDevice)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return true
 		},
@@ -154,4 +195,12 @@ func virtualMfaDeviceTurbotTags(_ context.Context, d *transform.TransformData) (
 	}
 
 	return &turbotTagsMap, nil
+}
+
+func getAssignmentStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(*iam.VirtualMFADevice)
+	if data.User != nil {
+		return "Assigned", nil
+	}
+	return "Unassigned", nil
 }

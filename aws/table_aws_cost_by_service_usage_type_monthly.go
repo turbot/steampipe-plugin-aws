@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
@@ -18,6 +19,10 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Service and Usage Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByServiceAndUsageMonthly,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{Name: "usage_type", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+			},
 		},
 		Columns: awsColumns(
 			costExplorerColumns([]*plugin.Column{
@@ -40,12 +45,12 @@ func tableAwsCostByServiceUsageTypeMonthly(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByServiceAndUsageInput("MONTHLY")
+func listCostByServiceAndUsageMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	params := buildCostByServiceAndUsageInput("MONTHLY", d)
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -70,6 +75,48 @@ func buildCostByServiceAndUsageInput(granularity string) *costexplorer.GetCostAn
 				Key:  aws.String("USAGE_TYPE"),
 			},
 		},
+	}
+
+	var filters []*costexplorer.Expression
+
+	for _, keyQual := range d.Table.List.KeyColumns {
+		filterQual := d.Quals[keyQual.Name]
+		if filterQual == nil {
+			continue
+		}
+		for _, qual := range filterQual.Quals {
+			if qual.Value != nil {
+				value := qual.Value
+
+				filter := &costexplorer.Expression{}
+				filter.Dimensions = &costexplorer.DimensionValues{}
+				filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+
+				switch qual.Operator {
+				case "=":
+					filter := &costexplorer.Expression{}
+					filter.Dimensions = &costexplorer.DimensionValues{}
+					filter.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+					filter.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filters = append(filters, filter)
+				case "<>":
+					filter := &costexplorer.Expression{}
+					filter.Not = &costexplorer.Expression{}
+					filter.Not.Dimensions = &costexplorer.DimensionValues{}
+					filter.Not.Dimensions.Key = aws.String(strings.ToUpper(keyQual.Name))
+					filter.Not.Dimensions.Values = aws.StringSlice([]string{value.GetStringValue()})
+					filters = append(filters, filter)
+				}
+			}
+		}
+	}
+
+	if len(filters) > 1 {
+		params.Filter = &costexplorer.Expression{
+			And: filters,
+		}
+	} else if len(filters) == 1 {
+		params.Filter = filters[0]
 	}
 
 	return params

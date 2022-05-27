@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/workspaces"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +19,19 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		Name:        "aws_workspaces_workspace",
 		Description: "AWS Workspaces",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workspace_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getWorkspace,
+			KeyColumns: plugin.SingleColumn("workspace_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+			},
+			Hydrate: getWorkspace,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspaces,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "bundle_id", Require: plugin.Optional},
+				{Name: "directory_id", Require: plugin.Optional},
+				{Name: "user_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -144,8 +153,17 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listWorkspaces")
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
+	serviceId := endpoints.WorkspacesServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := WorkspacesService(ctx, d)
@@ -153,17 +171,60 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
+	input := &workspaces.DescribeWorkspacesInput{
+		Limit: aws.Int64(25),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["bundle_id"] != nil {
+		if equalQuals["bundle_id"].GetStringValue() != "" {
+			input.BundleId = aws.String(equalQuals["bundle_id"].GetStringValue())
+		}
+	}
+	if equalQuals["directory_id"] != nil {
+		if equalQuals["directory_id"].GetStringValue() != "" {
+			input.DirectoryId = aws.String(equalQuals["directory_id"].GetStringValue())
+		}
+	}
+	if equalQuals["user_name"] != nil {
+		if equalQuals["user_name"].GetStringValue() != "" {
+			input.UserName = aws.String(equalQuals["user_name"].GetStringValue())
+		}
+	}
+
 	// List call
 	err = svc.DescribeWorkspacesPages(
-		&workspaces.DescribeWorkspacesInput{},
+		input,
 		func(page *workspaces.DescribeWorkspacesOutput, isLast bool) bool {
 			for _, Workspace := range page.Workspaces {
 				d.StreamListItem(ctx, Workspace)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
 	)
-	return nil, err
+	if err != nil {
+		plugin.Logger(ctx).Error("listWorkspaces", "list", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -171,7 +232,22 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getWorkspace")
 
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
+	serviceId := endpoints.WorkspacesServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
+
+	// check if workspace id is empty
+	if WorkspaceId == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := WorkspacesService(ctx, d)
@@ -191,7 +267,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 
-	if data.Workspaces != nil {
+	if len(data.Workspaces) > 0 {
 		return data.Workspaces[0], nil
 	}
 
@@ -200,6 +276,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listWorkspacesTags")
+
 	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
 
 	// Create Session

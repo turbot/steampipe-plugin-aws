@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +20,28 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_reserved_instance",
 		Description: "AWS EC2 Reserved Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("reserved_instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2ReservedInstance,
+			KeyColumns: plugin.SingleColumn("reserved_instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2ReservedInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ReservedInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "duration", Require: plugin.Optional},
+				{Name: "end_time", Require: plugin.Optional},
+				{Name: "fixed_price", Require: plugin.Optional},
+				{Name: "instance_type", Require: plugin.Optional},
+				{Name: "scope", Require: plugin.Optional},
+				{Name: "product_description", Require: plugin.Optional},
+				{Name: "start_time", Require: plugin.Optional},
+				{Name: "instance_state", Require: plugin.Optional},
+				{Name: "usage_price", Require: plugin.Optional},
+				{Name: "offering_class", Require: plugin.Optional},
+				{Name: "offering_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -168,15 +186,35 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
-	param := &ec2.DescribeReservedInstancesInput{}
+	input := &ec2.DescribeReservedInstancesInput{}
+
+	filters := buildEc2ReservedInstanceFilter(d.Quals)
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["offering_class"] != nil {
+		input.OfferingClass = aws.String(equalQuals["offering_class"].GetStringValue())
+	}
+	if equalQuals["offering_type"] != nil {
+		input.OfferingType = aws.String(equalQuals["offering_type"].GetStringValue())
+	}
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	result, err := svc.DescribeReservedInstances(param)
+	result, err := svc.DescribeReservedInstances(input)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, reservedInstance := range result.ReservedInstances {
 		d.StreamListItem(ctx, reservedInstance)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
 }
@@ -268,4 +306,52 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	instance := d.HydrateItem.(*ec2.ReservedInstances)
 	return ec2TagsToMap(instance.Tags)
+}
+
+//// UTILITY FUNCTION
+// Build ec2 reserved instance list call input filter
+func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"availability_zone":   "availability-zone",
+		"duration":            "duration",
+		"end_time":            "end",
+		"fixed_price":         "fixed-price",
+		"instance_type":       "instance-type",
+		"scope":               "scope",
+		"product_description": "product-description",
+		"start_time":          "start",
+		"usage_price":         "usage-price",
+		"instance_state":      "state",
+	}
+
+	columnsDouble := []string{"fixed_price", "usage_price"}
+	columnsInt := []string{"duration"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			if strings.Contains(fmt.Sprint(columnsDouble), columnName) { //check Double columns
+				value := getQualsValueByColumn(quals, columnName, "double")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
+				value := getQualsValueByColumn(quals, columnName, "int64")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					v := value.([]*string)
+					filter.Values = v
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

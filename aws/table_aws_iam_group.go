@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -22,14 +22,19 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamGroup,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
+			Hydrate: getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path", Require: plugin.Optional},
+			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamGroupInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamGroupInlinePolicies},
@@ -117,11 +122,37 @@ func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
+	input := &iam.ListGroupsInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListGroupsPages(
-		&iam.ListGroupsInput{},
+		input,
 		func(page *iam.ListGroupsOutput, lastPage bool) bool {
 			for _, group := range page.Groups {
 				d.StreamListItem(ctx, group)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

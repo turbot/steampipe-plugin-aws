@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
@@ -15,12 +15,19 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_training_job",
 		Description: "AWS SageMaker Training Job",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerTrainingJob,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerTrainingJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerTrainingJobs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+				{Name: "last_modified_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+				{Name: "training_job_status", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -297,12 +304,63 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &sagemaker.ListTrainingJobsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["training_job_status"] != nil {
+		input.StatusEquals = aws.String(equalQuals["training_job_status"].GetStringValue())
+	}
+
+	quals := d.Quals
+	if quals["creation_time"] != nil {
+		for _, q := range quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.CreationTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	if quals["last_modified_time"] != nil {
+		for _, q := range quals["last_modified_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.LastModifiedTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.LastModifiedTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListTrainingJobsPages(
-		&sagemaker.ListTrainingJobsInput{},
+		input,
 		func(page *sagemaker.ListTrainingJobsOutput, isLast bool) bool {
 			for _, job := range page.TrainingJobSummaries {
 				d.StreamListItem(ctx, job)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

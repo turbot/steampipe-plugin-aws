@@ -6,9 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,13 +19,29 @@ func tableAwsBackupRecoveryPoint(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_recovery_point",
 		Description: "AWS Backup Recovery Point",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"backup_vault_name", "recovery_point_arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "AccessDeniedException"}),
-			Hydrate:           getAwsBackupRecoveryPoint,
+			KeyColumns: plugin.AllColumns([]string{"backup_vault_name", "recovery_point_arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getAwsBackupRecoveryPoint,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsBackupVaults,
 			Hydrate:       listAwsBackupRecoveryPoints,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "recovery_point_arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "resource_type",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "completion_date",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -148,11 +165,45 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
+	input := &backup.ListRecoveryPointsByBackupVaultInput{
+		MaxResults: aws.Int64(1000),
+	}
+	input.BackupVaultName = vault.BackupVaultName
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["recovery_point_arn"] != nil {
+		input.ByResourceArn = types.String(equalQuals["recovery_point_arn"].GetStringValue())
+	}
+	if equalQuals["resource_type"] != nil {
+		input.ByResourceType = types.String(equalQuals["resource_type"].GetStringValue())
+	}
+	if equalQuals["completion_date"] != nil {
+		input.ByCreatedAfter = types.Time(equalQuals["completion_date"].GetTimestampValue().AsTime())
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListRecoveryPointsByBackupVaultPages(
-		&backup.ListRecoveryPointsByBackupVaultInput{BackupVaultName: vault.BackupVaultName},
+		input,
 		func(page *backup.ListRecoveryPointsByBackupVaultOutput, lastPage bool) bool {
 			for _, point := range page.RecoveryPoints {
 				d.StreamListItem(ctx, point)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

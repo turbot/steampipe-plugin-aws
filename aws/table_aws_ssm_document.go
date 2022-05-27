@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSSMDocument(_ context.Context) *plugin.Table {
@@ -17,12 +17,18 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_document",
 		Description: "AWS SSM Document",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidDocument"}),
-			Hydrate:           getAwsSSMDocument,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidDocument"}),
+			},
+			Hydrate: getAwsSSMDocument,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMDocuments,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "owner", Require: plugin.Optional},
+				{Name: "document_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -224,13 +230,38 @@ func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &ssm.ListDocumentsInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	filters := buildSsmDocumentFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListDocumentsPages(
-		&ssm.ListDocumentsInput{},
+		input,
 		func(page *ssm.ListDocumentsOutput, isLast bool) bool {
 			for _, documentIdentifier := range page.DocumentIdentifiers {
 				d.StreamListItem(ctx, documentIdentifier)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -364,4 +395,34 @@ func resourceTags(item interface{}) []*ssm.Tag {
 		return item.Tags
 	}
 	return nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm documant list call input filter
+func buildSsmDocumentFilter(quals plugin.KeyColumnQualMap) []*ssm.DocumentKeyValuesFilter {
+	filters := make([]*ssm.DocumentKeyValuesFilter, 0)
+
+	filterQuals := map[string]string{
+		"owner":         "Owner",
+		"document_type": "DocumentType",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.DocumentKeyValuesFilter{
+				Key: aws.String(filterName),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{&val}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
@@ -15,14 +15,16 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticsearch_domain",
 		Description: "AWS Elasticsearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("domain_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsElasticsearchDomain,
+			KeyColumns: plugin.SingleColumn("domain_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsElasticsearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listAwsElasticsearchDomainTags,
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
@@ -232,6 +234,11 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 		d.StreamListItem(ctx, &elasticsearchservice.ElasticsearchDomainStatus{
 			DomainName: domainname.DomainName,
 		})
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

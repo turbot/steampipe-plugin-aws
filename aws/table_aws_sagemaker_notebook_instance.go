@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,19 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerNotebookInstance,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerNotebookInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "default_code_repository", Require: plugin.Optional},
+				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},
+				{Name: "notebook_instance_status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -182,12 +189,51 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &sagemaker.ListNotebookInstancesInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["default_code_repository"] != nil {
+		if equalQuals["default_code_repository"].GetStringValue() != "" {
+			input.DefaultCodeRepositoryContains = aws.String(equalQuals["default_code_repository"].GetStringValue())
+		}
+	}
+	if equalQuals["notebook_instance_lifecycle_config_name"] != nil {
+		if equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue() != "" {
+			input.NotebookInstanceLifecycleConfigNameContains = aws.String(equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue())
+		}
+	}
+	if equalQuals["notebook_instance_status"] != nil {
+		if equalQuals["notebook_instance_status"].GetStringValue() != "" {
+			input.StatusEquals = aws.String(equalQuals["notebook_instance_status"].GetStringValue())
+		}
+
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListNotebookInstancesPages(
-		&sagemaker.ListNotebookInstancesInput{},
+		input,
 		func(page *sagemaker.ListNotebookInstancesOutput, isLast bool) bool {
 			for _, notebookInstance := range page.NotebookInstances {
 				d.StreamListItem(ctx, notebookInstance)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

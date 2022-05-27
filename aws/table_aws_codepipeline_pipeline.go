@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
-			Hydrate:           getCodepipelinePipeline,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"PipelineNotFoundException"}),
+			},
+			Hydrate: getCodepipelinePipeline,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodepipelinePipelines,
@@ -127,12 +129,34 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
+	input := &codepipeline.ListPipelinesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListPipelinesPages(
-		&codepipeline.ListPipelinesInput{},
+		input,
 		func(page *codepipeline.ListPipelinesOutput, isLast bool) bool {
 			for _, result := range page.Pipelines {
 				d.StreamListItem(ctx, result)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

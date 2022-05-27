@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,8 +16,10 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_codecommit_repository",
 		Description: "AWS CodeCommit Repository",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listCodeCommitRepositories,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
+			},
+			Hydrate: listCodeCommitRepositories,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -116,18 +118,39 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	// Build params
-	params := &codecommit.BatchGetRepositoriesInput{
-		RepositoryNames: repositoryNames,
-	}
+	passedRepositoryNames := 0
+	nameLeft := true
+	for nameLeft {
+		// BatchGetRepositories api can take maximum 25 number of repository name at a time.
+		var names []*string
+		if len(repositoryNames) > passedRepositoryNames {
+			if (len(repositoryNames) - passedRepositoryNames) >= 25 {
+				names = repositoryNames[passedRepositoryNames : passedRepositoryNames+25]
+				passedRepositoryNames += 25
+			} else {
+				names = repositoryNames[passedRepositoryNames:]
+				nameLeft = false
+			}
+		}
 
-	// Get details for all available repositories
-	result, err := svc.BatchGetRepositories(params)
-	if err != nil {
-		return nil, err
-	}
-	for _, repository := range result.Repositories {
-		d.StreamListItem(ctx, repository)
+		// Build params
+		params := &codecommit.BatchGetRepositoriesInput{
+			RepositoryNames: names,
+		}
+
+		// Get details for all available repositories
+		result, err := svc.BatchGetRepositories(params)
+		if err != nil {
+			return nil, err
+		}
+		for _, repository := range result.Repositories {
+			d.StreamListItem(ctx, repository)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, nil

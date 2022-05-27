@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 )
 
 func tableAwsRoute53Record(_ context.Context) *plugin.Table {
@@ -19,8 +20,12 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_record",
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("zone_id"),
-			Hydrate:    listRoute53Records,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "zone_id", Require: plugin.Required},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
+			Hydrate: listRoute53Records,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -140,13 +145,46 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: &hostedZoneID,
+		MaxItems:     aws.String("1000"),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		if equalQuals["name"].GetStringValue() != "" {
+			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
+		}
+	}
+	if equalQuals["type"] != nil {
+		if equalQuals["type"].GetStringValue() != "" {
+			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
+		}
+	}
+	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
+	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < 1000 {
+			if *limit < 1 {
+				input.MaxItems = aws.String("1")
+			} else {
+				input.MaxItems = aws.String(fmt.Sprint(*limit))
+			}
+		}
+	}
+
 	err = svc.ListResourceRecordSetsPages(
-		&route53.ListResourceRecordSetsInput{
-			HostedZoneId: &hostedZoneID,
-		},
+		input,
 		func(page *route53.ListResourceRecordSetsOutput, isLast bool) bool {
 			for _, record := range page.ResourceRecordSets {
 				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

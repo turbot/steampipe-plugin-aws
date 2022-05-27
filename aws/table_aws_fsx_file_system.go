@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 		Name:        "aws_fsx_file_system",
 		Description: "AWS FSx File System",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("file_system_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
-			Hydrate:           getFsxFileSystem,
+			KeyColumns: plugin.SingleColumn("file_system_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
+			},
+			Hydrate: getFsxFileSystem,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFsxFileSystems,
@@ -165,12 +167,34 @@ func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	// https://docs.aws.amazon.com/fsx/latest/APIReference/API_DescribeFileSystems.html
+	input := &fsx.DescribeFileSystemsInput{
+		MaxResults: aws.Int64(2147483647),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeFileSystemsPages(
-		&fsx.DescribeFileSystemsInput{},
+		input,
 		func(page *fsx.DescribeFileSystemsOutput, isLast bool) bool {
 			for _, fileSystem := range page.FileSystems {
 				d.StreamListItem(ctx, fileSystem)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

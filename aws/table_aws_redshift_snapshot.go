@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,20 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_snapshot",
 		Description: "AWS Redshift Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
-			Hydrate:           getAwsRedshiftSnapshot,
+			KeyColumns: plugin.SingleColumn("snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
+			},
+			Hydrate: getAwsRedshiftSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "cluster_identifier", Require: plugin.Optional},
+				{Name: "owner_account", Require: plugin.Optional},
+				{Name: "snapshot_type", Require: plugin.Optional},
+				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -232,12 +240,53 @@ func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &redshift.DescribeClusterSnapshotsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["cluster_identifier"] != nil {
+		if equalQuals["cluster_identifier"].GetStringValue() != "" {
+			input.ClusterIdentifier = aws.String(equalQuals["cluster_identifier"].GetStringValue())
+		}
+	}
+	if equalQuals["owner_account"] != nil {
+		if equalQuals["owner_account"].GetStringValue() != "" {
+			input.OwnerAccount = aws.String(equalQuals["owner_account"].GetStringValue())
+		}
+	}
+	if equalQuals["snapshot_type"] != nil {
+		if equalQuals["snapshot_type"].GetStringValue() != "" {
+			input.SnapshotType = aws.String(equalQuals["snapshot_type"].GetStringValue())
+		}
+	}
+	if equalQuals["snapshot_create_time"] != nil {
+		input.StartTime = aws.Time(equalQuals["snapshot_create_time"].GetTimestampValue().AsTime())
+	}
+
 	// List call
 	err = svc.DescribeClusterSnapshotsPages(
-		&redshift.DescribeClusterSnapshotsInput{},
+		input,
 		func(page *redshift.DescribeClusterSnapshotsOutput, isLast bool) bool {
 			for _, snapshot := range page.Snapshots {
 				d.StreamListItem(ctx, snapshot)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

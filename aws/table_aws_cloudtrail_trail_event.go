@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -202,7 +202,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 		// CloudWatch fields
 		{Name: "log_group_name"},
 		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional, CacheMatch: "exact"},
 		{Name: "region", Require: plugin.Optional},
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 
@@ -282,7 +282,7 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	if input.FilterPattern != nil {
-		plugin.Logger(ctx).Error("listCloudwatchLogTrailEvents", "input.FilterPattern", *input.FilterPattern)
+		plugin.Logger(ctx).Debug("aws_cloudtrail_trail_event.listCloudwatchLogTrailEvents", "region", d.KeyColumnQualString(matrixKeyRegion), "filter query", *input.FilterPattern)
 	}
 
 	err = svc.FilterLogEventsPages(
@@ -290,6 +290,11 @@ func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, _ *p
 		func(page *cloudwatchlogs.FilterLogEventsOutput, _ bool) bool {
 			for _, logEvent := range page.Events {
 				d.StreamListItem(ctx, logEvent)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			// Abort if we've been cancelled, which probably means we've reached the requested limit
 			select {

@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +19,20 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_transit_gateway_route_table",
 		Description: "AWS EC2 Transit Gateway Route Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
-			Hydrate:           getEc2TransitGatewayRouteTable,
+			KeyColumns: plugin.SingleColumn("transit_gateway_route_table_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
+			},
+			Hydrate: getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayRouteTable,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "default_association_route_table", Require: plugin.Optional},
+				{Name: "default_propagation_route_table", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -97,12 +106,52 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &ec2.DescribeTransitGatewayRouteTablesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := []*ec2.Filter{}
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["transit_gateway_id"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("transit-gateway-id"), Values: []*string{aws.String(equalQuals["transit_gateway_id"].GetStringValue())}})
+	}
+	if equalQuals["state"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("state"), Values: []*string{aws.String(equalQuals["state"].GetStringValue())}})
+	}
+	if equalQuals["default_association_route_table"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("default-association-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_association_route_table"].GetBoolValue()))}})
+	}
+	if equalQuals["default_propagation_route_table"] != nil {
+		filters = append(filters, &ec2.Filter{Name: aws.String("default-propagation-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_propagation_route_table"].GetBoolValue()))}})
+	}
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTransitGatewayRouteTablesPages(
-		&ec2.DescribeTransitGatewayRouteTablesInput{},
+		input,
 		func(page *ec2.DescribeTransitGatewayRouteTablesOutput, isLast bool) bool {
 			for _, transitGatewayRouteTable := range page.TransitGatewayRouteTables {
 				d.StreamListItem(ctx, transitGatewayRouteTable)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -16,7 +16,6 @@ from
   aws_lambda_version;
 ```
 
-
 ### List of lambda versions where code run timout is more than 2 mins
 
 ```sql
@@ -30,7 +29,6 @@ where
   timeout :: int > 120;
 ```
 
-
 ### VPC info of each lambda version
 
 ```sql
@@ -40,6 +38,16 @@ select
   vpc_id,
   vpc_security_group_ids,
   vpc_subnet_ids
+from
+  aws_lambda_version;
+```
+
+### List policy details
+
+```sql
+select
+  jsonb_pretty(policy) as policy,
+  jsonb_pretty(policy_std) as policy_std
 from
   aws_lambda_version;
 ```

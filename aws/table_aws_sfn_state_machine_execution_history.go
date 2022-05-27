@@ -2,15 +2,15 @@ package aws
 
 import (
 	"context"
-	"sync"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugin.Table {
@@ -245,7 +245,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	var executions []sfn.ExecutionListItem
 
 	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(100),
+		MaxResults:      types.Int64(1000),
 		StateMachineArn: stateMachineArn,
 	}
 
@@ -297,6 +297,11 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	for item := range executionCh {
 		for _, data := range item {
 			d.StreamLeafListItem(ctx, historyInfo{data.HistoryEvent, data.ExecutionArn})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
@@ -321,7 +326,6 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
 	}
-
 
 	params := &sfn.GetExecutionHistoryInput{
 		ExecutionArn: types.String(arn),

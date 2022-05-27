@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/macie2"
 )
@@ -18,12 +19,19 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 		Name:        "aws_macie2_classification_job",
 		Description: "AWS Macie2 Classification Job",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("job_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter"}),
-			Hydrate:           getMacie2ClassificationJob,
+			KeyColumns: plugin.SingleColumn("job_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getMacie2ClassificationJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listMacie2ClassificationJobs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "job_status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "job_type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -152,12 +160,39 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &macie2.ListClassificationJobsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	filterCriteris := buildMacie2ClassificationJobsFilterCriteria(d.Quals)
+
+	if len(filterCriteris.Excludes) > 0 || len(filterCriteris.Includes) > 0 {
+		input.FilterCriteria = filterCriteris
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListClassificationJobsPages(
-		&macie2.ListClassificationJobsInput{},
+		input,
 		func(page *macie2.ListClassificationJobsOutput, isLast bool) bool {
 			for _, job := range page.Items {
 				d.StreamListItem(ctx, job)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -221,4 +256,66 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return op, nil
+}
+
+//// UTILITY FUNCTION
+//// Build macie2 list job classification job filter
+
+func buildMacie2ClassificationJobsFilterCriteria(quals plugin.KeyColumnQualMap) *macie2.ListJobsFilterCriteria {
+	filterCriteria := &macie2.ListJobsFilterCriteria{}
+
+	filterQuals := map[string]string{
+		"name":       "name",
+		"job_type":   "jobType",
+		"job_status": "jobStatus",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			for _, q := range quals[columnName].Quals {
+				value := getQualsValueByColumn(quals, columnName, "string")
+
+				filter := &macie2.ListJobsFilterTerm{
+					Comparator: aws.String(macie2.JobComparatorEq),
+				}
+
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					filter.Values = value.([]*string)
+				}
+
+				if filterName == "name" {
+					filter.Key = aws.String(macie2.ListJobsFilterKeyName)
+					switch q.Operator {
+					case "<>":
+						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)
+					case "=":
+						filterCriteria.Includes = append(filterCriteria.Includes, filter)
+					}
+				}
+				if filterName == "jobType" {
+					filter.Key = aws.String(macie2.ListJobsFilterKeyJobType)
+					switch q.Operator {
+					case "<>":
+						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)
+					case "=":
+						filterCriteria.Includes = append(filterCriteria.Includes, filter)
+					}
+				}
+				if filterName == "jobStatus" {
+					filter.Key = aws.String(macie2.ListJobsFilterKeyJobStatus)
+					switch q.Operator {
+					case "<>":
+						filterCriteria.Excludes = append(filterCriteria.Excludes, filter)
+					case "=":
+						filterCriteria.Includes = append(filterCriteria.Includes, filter)
+					}
+				}
+			}
+		}
+	}
+
+	return filterCriteria
 }

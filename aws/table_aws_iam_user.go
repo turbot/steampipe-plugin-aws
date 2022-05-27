@@ -8,27 +8,33 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
 
-func tableAwsIamUser(_ context.Context) *plugin.Table {
+func tableAwsIamUser(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_user",
 		Description: "AWS IAM User",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamUser,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
+			Hydrate: getIamUser,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamUsers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path", Require: plugin.Optional},
+			},
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    getAwsIamUserInlinePolicies,
 				Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
@@ -85,6 +91,13 @@ func tableAwsIamUser(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsIamUserMfaDevices,
 				Transform:   transform.From(userMfaStatus),
+			},
+			{
+				Name:        "login_profile",
+				Description: "Contains the user name and password create date for a user.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsIamUserLoginProfile,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "mfa_devices",
@@ -159,11 +172,37 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
+	input := &iam.ListUsersInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListUsersPages(
-		&iam.ListUsersInput{},
+		input,
 		func(page *iam.ListUsersOutput, lastPage bool) bool {
 			for _, user := range page.Users {
 				d.StreamListItem(ctx, user)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -201,6 +240,35 @@ func getIamUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	return op.User, nil
 }
 
+func getAwsIamUserLoginProfile(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsIamUserLoginProfile")
+
+	name := h.Item.(*iam.User).UserName
+
+	// Create Session
+	svc, err := IAMService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &iam.GetLoginProfileInput{
+		UserName: name,
+	}
+
+	op, err := svc.GetLoginProfile(params)
+	if err != nil {
+		// If the user does not exist or does not have a password, the operation returns a 404 (NoSuchEntity) error.
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "NoSuchEntity" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+
+	return op.LoginProfile, nil
+}
+
 func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsIamUserData")
 	user := h.Item.(*iam.User)
@@ -225,7 +293,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	PermissionsBoundaryArn := ""
 	PermissionsBoundaryType := ""
 
-	if userData.User.Tags != nil {
+	if userData.User != nil && userData.User.Tags != nil {
 		tags = userData.User.Tags
 		turbotTags = map[string]string{}
 		for _, t := range userData.User.Tags {
@@ -233,7 +301,7 @@ func getAwsIamUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 	}
 
-	if userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
+	if userData.User != nil && userData.User.PermissionsBoundary != nil && userData.User.PermissionsBoundary.PermissionsBoundaryArn != nil {
 		v := userData.User.PermissionsBoundary
 		PermissionsBoundaryArn = *v.PermissionsBoundaryArn
 		PermissionsBoundaryType = *v.PermissionsBoundaryType
@@ -346,7 +414,9 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
+
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
+	var userPolicies []map[string]interface{}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
@@ -374,13 +444,12 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	var userPolicies []map[string]interface{}
-
 	for userPolicy := range policyCh {
 		userPolicies = append(userPolicies, userPolicy)
 	}
 
 	return userPolicies, nil
+
 }
 
 func getUserPolicyDataAsync(policy *string, userName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {

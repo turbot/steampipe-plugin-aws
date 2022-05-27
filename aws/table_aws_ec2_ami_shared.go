@@ -2,13 +2,16 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +21,35 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ami_shared",
 		Description: "AWS EC2 AMI - All public, private, and shared AMIs",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("image_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
-			Hydrate:           getEc2Ami,
+			KeyColumns: plugin.SingleColumn("image_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			},
+			Hydrate: getEc2Ami,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listAmisByOwner,
-			KeyColumns:        plugin.SingleColumn("owner_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			Hydrate: listAmisByOwner,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "owner_id", Require: plugin.Required},
+				{Name: "architecture", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "ena_support", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "image_type", Require: plugin.Optional},
+				{Name: "public", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "kernel_id", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "platform", Require: plugin.Optional},
+				{Name: "ramdisk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "sriov_net_support", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,6 +107,8 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 				Name:        "image_owner_alias",
 				Description: "The AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getImageOwnerAlias,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "kernel_id",
@@ -182,7 +208,7 @@ func tableAwsEc2AmiShared(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAmisByOwner", "AWS_REGION", region)
 
@@ -194,11 +220,114 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	resp, err := svc.DescribeImages(&ec2.DescribeImagesInput{
+	input := &ec2.DescribeImagesInput{
 		Owners: []*string{aws.String(owner_id)},
-	})
+	}
+
+	filters := buildAmisWithOwnerFilter(d.Quals, "SHARED_AMI", ctx, d, h)
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// There is no MaxResult property in param, through which we can limit the number of results
+	resp, err := svc.DescribeImages(input)
 	for _, image := range resp.Images {
 		d.StreamListItem(ctx, image)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
+}
+
+func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	image := h.Item.(*ec2.Image)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	if image.ImageOwnerAlias == nil && commonColumnData.AccountId != *image.OwnerId {
+		return *image.OwnerId, nil
+	} else if image.ImageOwnerAlias == nil {
+		return "self", nil
+	} else {
+		return *image.ImageOwnerAlias, nil
+	}
+}
+
+//// UTILITY FUNCTION
+// Build AMI's list call input filter
+func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"architecture":        "architecture",
+		"description":         "description",
+		"ena_support":         "ena-support",
+		"hypervisor":          "hypervisor",
+		"image_id ":           "image-id ",
+		"image_type":          "image-type",
+		"kernel_id":           "kernel-id",
+		"name":                "name",
+		"platform":            "platform",
+		"public":              "is-public",
+		"ramdisk_id":          "ramdisk-id",
+		"root_device_name":    "root-device-name",
+		"root_device_type":    "root-device-type",
+		"state":               "state",
+		"sriov_net_support":   "sriov-net-support",
+		"virtualization_type": "virtualization-type",
+	}
+
+	columnsBool := []string{"ena_support", "public"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					v := value.([]*string)
+					filter.Values = v
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+
+	ownerFilter := ec2.Filter{}
+	if amiType != "SHARED_AMI" {
+		if quals["owner_id"] != nil {
+			ownerFilter.Name = types.String("owner-id")
+			ownerFilter.Values = []*string{types.String(getQualsValueByColumn(quals, "owner_id", "string").(string))}
+		} else {
+			// Use this section later and compare the results
+			getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+			c, err := getCommonColumnsCached(ctx, d, h)
+			if err != nil {
+				return filters
+			}
+			commonColumnData := c.(*awsCommonColumnData)
+			ownerFilter.Name = types.String("owner-id")
+			ownerFilter.Values = []*string{aws.String(commonColumnData.AccountId)}
+		}
+
+		filters = append(filters, &ownerFilter)
+	}
+	return filters
 }

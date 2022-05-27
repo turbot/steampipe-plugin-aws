@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
@@ -30,6 +30,12 @@ func tableAwsCloudwatchLogStream(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudwatchLogGroups,
 			Hydrate:       listCloudwatchLogStreams,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -109,13 +115,40 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
+	input := &cloudwatchlogs.DescribeLogStreamsInput{
+		Limit: aws.Int64(50),
+	}
+	input.LogGroupName = logGroup.LogGroupName
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.LogStreamNamePrefix = types.String(equalQuals["name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.DescribeLogStreamsPages(
-		&cloudwatchlogs.DescribeLogStreamsInput{
-			LogGroupName: logGroup.LogGroupName,
-		},
+		input,
 		func(page *cloudwatchlogs.DescribeLogStreamsOutput, _ bool) bool {
 			for _, logStream := range page.LogStreams {
 				d.StreamLeafListItem(ctx, logStreamInfo{logStream, logGroup.LogGroupName})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return true
 		},

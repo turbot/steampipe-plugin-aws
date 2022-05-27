@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
@@ -66,6 +66,10 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// stream the results...
 	for _, r := range output.ForecastResultsByTime {
 		d.StreamListItem(ctx, r)
+
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil
@@ -75,6 +79,11 @@ func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *
 
 	// TO DO - specify metric as qual?   get all cost metrics in parallel?
 	//metric := strings.ToUpper(keyQuals["metric"].GetStringValue())
+
+	// As the response of the api call doesn't return metric value so we do not have a column for it,
+	// If we will have a column for it, then we need to get the value from quals only(we may get the null value if it has not been passed), so we have not added it as optional quals.
+	// We can add it as required param, but there is a bug with "in" clause so we cann't iterate the value properly in param.
+
 	metric := "UNBLENDED_COST"
 
 	timeFormat := "2006-01-02"

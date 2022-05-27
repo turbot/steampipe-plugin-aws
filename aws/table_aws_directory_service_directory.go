@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +18,20 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 		Name:        "aws_directory_service_directory",
 		Description: "AWS Directory Service Directory",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("directory_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
-			Hydrate:           getDirectoryServiceDirectory,
+			KeyColumns: plugin.SingleColumn("directory_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "EntityDoesNotExistException"}),
+			},
+			Hydrate: getDirectoryServiceDirectory,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDirectoryServiceDirectories,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "directory_id",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -154,6 +163,13 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "shared_directories",
+				Description: "Details about the shared directory in the directory owner account for which the share request in the directory consumer account has been accepted.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDirectoryServiceSharedDirectory,
+				Transform:   transform.FromValue().NullIfZero(),
+			},
+			{
 				Name:        "vpc_settings",
 				Description: "A DirectoryVpcSettingsDescription object that contains additional information about a directory.",
 				Type:        proto.ColumnType_JSON,
@@ -201,12 +217,30 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Build the params
-	params := &directoryservice.DescribeDirectoriesInput{}
+	input := &directoryservice.DescribeDirectoriesInput{
+		Limit: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			input.Limit = limit
+		}
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["directory_id"] != nil {
+		input.DirectoryIds = []*string{aws.String(equalQuals["directory_id"].GetStringValue())}
+	}
+
 	pagesLeft := true
 
 	// List call
 	for pagesLeft {
-		result, err := svc.DescribeDirectories(params)
+		result, err := svc.DescribeDirectories(input)
 		if err != nil {
 			plugin.Logger(ctx).Error("DescribeDirectories", "list", err)
 			return nil, err
@@ -214,10 +248,15 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 
 		for _, directory := range result.DirectoryDescriptions {
 			d.StreamListItem(ctx, directory)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 
 		if result.NextToken != nil {
-			params.NextToken = result.NextToken
+			input.NextToken = result.NextToken
 		} else {
 			pagesLeft = false
 		}
@@ -253,6 +292,44 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 		return op.DirectoryDescriptions[0], nil
 	}
 	return nil, nil
+}
+
+func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	directory := h.Item.(*directoryservice.DirectoryDescription)
+
+	// DescribeSharedDirectories Operation is only supported for MicrosoftAD directories.
+	// Ignore if not a MicrosoftAD directory
+	if *directory.Type != "MicrosoftAD" {
+		return nil, nil
+	}
+
+	// Create service
+	svc, err := DirectoryService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "service_creation_error", err)
+		return nil, err
+	}
+	params := &directoryservice.DescribeSharedDirectoriesInput{
+		OwnerDirectoryId: directory.DirectoryId,
+	}
+
+	var directories []*directoryservice.SharedDirectory
+
+	for {
+		response, err := svc.DescribeSharedDirectories(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "api_error", err)
+			return nil, err
+		}
+		if response.SharedDirectories != nil {
+			directories = append(directories, response.SharedDirectories...)
+		}
+		if response.NextToken == nil {
+			break
+		}
+		params.NextToken = response.NextToken
+	}
+	return directories, nil
 }
 
 func getDirectoryARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

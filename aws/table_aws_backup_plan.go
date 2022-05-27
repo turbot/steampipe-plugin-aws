@@ -7,9 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/backup"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +20,11 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"backup_plan_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsBackupPlan,
+			KeyColumns: plugin.SingleColumn("backup_plan_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException"}),
+			},
+			Hydrate: getAwsBackupPlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupPlans,
@@ -32,7 +35,7 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The display name of a saved backup plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "arn",
@@ -87,13 +90,13 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BackupPlanName"),
+				Transform:   transform.FromField("BackupPlanName", "BackupPlan.BackupPlanName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("BackupPlanArn").Transform(arnToAkas),
+				Transform:   transform.FromField("BackupPlanArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -108,12 +111,33 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	includeDeleted := true
+	input := &backup.ListBackupPlansInput{
+		MaxResults: aws.Int64(1000),
+	}
+	input.IncludeDeleted = aws.Bool(true)
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListBackupPlansPages(
-		&backup.ListBackupPlansInput{IncludeDeleted: &includeDeleted},
+		input,
 		func(page *backup.ListBackupPlansOutput, lastPage bool) bool {
 			for _, plan := range page.BackupPlansList {
 				d.StreamListItem(ctx, plan)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -138,6 +162,11 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		id = d.KeyColumnQuals["backup_plan_id"].GetStringValue()
 	}
 
+	// check if id is empty
+	if id == "" {
+		return nil, nil
+	}
+
 	params := &backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(id),
 	}
@@ -146,7 +175,7 @@ func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "ResourceNotFoundException" {
-				return backup.GetBackupPlanOutput{}, nil
+				return nil, nil
 			}
 		}
 		return nil, err

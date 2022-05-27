@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_origin_request_policy",
 		Description: "AWS CloudFront Origin Request Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
-			Hydrate:           getCloudFrontOriginRequestPolicy,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
+			},
+			Hydrate: getCloudFrontOriginRequestPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginRequestPolicies,
@@ -105,8 +108,24 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
 	// List call
-	params := &cloudfront.ListOriginRequestPoliciesInput{}
+	params := &cloudfront.ListOriginRequestPoliciesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = types.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListOriginRequestPolicies(params)
@@ -115,6 +134,11 @@ func listCloudFrontOriginRequestPolicies(ctx context.Context, d *plugin.QueryDat
 		}
 		for _, policy := range response.OriginRequestPolicyList.Items {
 			d.StreamListItem(ctx, policy)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 		if response.OriginRequestPolicyList.NextMarker != nil {
 			pagesLeft = true

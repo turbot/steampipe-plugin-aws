@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
@@ -15,12 +15,19 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_network_acl",
 		Description: "AWS VPC Network ACL",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("network_acl_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidNetworkAclID.NotFound"}),
-			Hydrate:           getVpcNetworkACL,
+			KeyColumns: plugin.SingleColumn("network_acl_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidNetworkAclID.NotFound"}),
+			},
+			Hydrate: getVpcNetworkACL,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcNetworkACLs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "is_default", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -102,12 +109,44 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &ec2.DescribeNetworkAclsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "is_default", FilterName: "default", ColumnType: "boolean"},
+		{ColumnName: "owner_id", FilterName: "owner-id", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeNetworkAclsPages(
-		&ec2.DescribeNetworkAclsInput{},
+		input,
 		func(page *ec2.DescribeNetworkAclsOutput, isLast bool) bool {
 			for _, networkACL := range page.NetworkAcls {
 				d.StreamListItem(ctx, networkACL)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

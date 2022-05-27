@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -46,6 +47,13 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 				Description: "The status of the standard subscription.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     GetEnabledStandards,
+			},
+			{
+				Name:        "standards_status_reason_code",
+				Description: "The reason code that represents the reason for the current status of a standard subscription.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     GetEnabledStandards,
+				Transform:   transform.FromField("StandardsStatusReason.StatusReasonCode"),
 			},
 			{
 				Name:        "standards_subscription_arn",
@@ -89,11 +97,32 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
+	input := &securityhub.DescribeStandardsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.DescribeStandardsPages(
-		&securityhub.DescribeStandardsInput{},
+		input,
 		func(page *securityhub.DescribeStandardsOutput, isLast bool) bool {
 			for _, standards := range page.Standards {
 				d.StreamListItem(ctx, standards)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

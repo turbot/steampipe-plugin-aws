@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_sns_topic_subscription",
 		Description: "AWS SNS Topic Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("subscription_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			Hydrate:           getSubscriptionAttributes,
+			KeyColumns: plugin.SingleColumn("subscription_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+			},
+			Hydrate: getSubscriptionAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopicSubscriptions,
@@ -147,6 +149,11 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 						"TopicArn":        subscription.TopicArn,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

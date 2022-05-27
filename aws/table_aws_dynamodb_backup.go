@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -16,12 +17,28 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 		Name:        "aws_dynamodb_backup",
 		Description: "AWS DynamoDB Backup",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getDynamodbBackup,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+			},
+			Hydrate: getDynamodbBackup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamodbBackups,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "backup_type",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "arn",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "table_name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -104,8 +121,37 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &dynamodb.ListBackupsInput{
+		Limit: aws.Int64(100),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["backup_type"] != nil {
+		input.BackupType = aws.String(equalQuals["backup_type"].GetStringValue())
+	}
+	if equalQuals["arn"] != nil {
+		input.ExclusiveStartBackupArn = aws.String(equalQuals["arn"].GetStringValue())
+	}
+	if equalQuals["table_name"] != nil {
+		input.TableName = aws.String(equalQuals["table_name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	// Pagination not supported as of date
-	results, err := svc.ListBackups(&dynamodb.ListBackupsInput{})
+	results, err := svc.ListBackups(input)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +159,11 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if results.BackupSummaries != nil {
 		for _, backup := range results.BackupSummaries {
 			d.StreamListItem(ctx, backup)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 	}
 

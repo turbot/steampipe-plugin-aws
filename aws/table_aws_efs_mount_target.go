@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_efs_mount_target",
 		Description: "AWS EFS Mount Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("mount_target_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
-			Hydrate:           getAwsEfsMountTarget,
+			KeyColumns: plugin.SingleColumn("mount_target_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
+			},
+			Hydrate: getAwsEfsMountTarget,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listElasticFileSystem,
@@ -115,6 +117,18 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	data := h.Item.(*efs.FileSystemDescription)
 	params := &efs.DescribeMountTargetsInput{
 		FileSystemId: data.FileSystemId,
+		MaxItems:     aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = aws.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
 	}
 
 	// List call
@@ -127,6 +141,11 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 		for _, mountTarget := range result.MountTargets {
 			d.StreamListItem(ctx, mountTarget)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				pagesLeft = false
+			}
 		}
 		if result.NextMarker != nil {
 			params.Marker = result.NextMarker

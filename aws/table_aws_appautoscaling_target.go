@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 )
 
@@ -22,8 +23,21 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 			Hydrate:    getAwsApplicationAutoScalingTarget,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("service_namespace"),
-			Hydrate:    listAwsApplicationAutoScalingTargets,
+			Hydrate: listAwsApplicationAutoScalingTargets,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "service_namespace",
+					Require: plugin.Required,
+				},
+				{
+					Name:    "resource_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "scalable_dimension",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -87,18 +101,50 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 	// Create Session
 	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listAwsApplicationAutoScalingTargets", "connection_error", err)
 		return nil, err
+	}
+
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
+	input := &applicationautoscaling.DescribeScalableTargetsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	input.ServiceNamespace = types.String(name)
+
+	if equalQuals["resource_id"] != nil {
+		input.ResourceIds = []*string{types.String(equalQuals["resource_id"].GetStringValue())}
+	}
+	if equalQuals["scalable_dimension"] != nil {
+		input.ScalableDimension = types.String(equalQuals["scalable_dimension"].GetStringValue())
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.DescribeScalableTargetsPages(
-		&applicationautoscaling.DescribeScalableTargetsInput{
-			ServiceNamespace: &name,
-		},
+		input,
 		func(page *applicationautoscaling.DescribeScalableTargetsOutput, isLast bool) bool {
 			for _, scalableTarget := range page.ScalableTargets {
 				d.StreamListItem(ctx, scalableTarget)
 
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -111,7 +157,7 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 
 func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsApplicationAutoScalingTarget")
-	
+
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 	id := d.KeyColumnQuals["resource_id"].GetStringValue()
 

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,9 +16,11 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_hub",
 		Description: "AWS Security Hub",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("hub_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
-			Hydrate:           getSecurityHub,
+			KeyColumns: plugin.SingleColumn("hub_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException"}),
+			},
+			Hydrate: getSecurityHub,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubs,

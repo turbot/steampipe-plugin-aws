@@ -8,21 +8,23 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
 
-func tableAwsKmsKey(_ context.Context) *plugin.Table {
+func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_kms_key",
 		Description: "AWS KMS Key",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
-			Hydrate:           getKmsKey,
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getKmsKey,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKmsKeys,
@@ -184,11 +186,32 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	input := &kms.ListKeysInput{
+		Limit: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.ListKeysPages(
-		&kms.ListKeysInput{},
+		input,
 		func(page *kms.ListKeysOutput, lastPage bool) bool {
 			for _, key := range page.Keys {
 				d.StreamListItem(ctx, key)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

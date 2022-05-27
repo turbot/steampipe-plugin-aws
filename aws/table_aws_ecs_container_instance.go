@@ -2,11 +2,12 @@ package aws
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
@@ -152,12 +153,27 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 	// ListContainerInstances returns the same and append to this in chunks not more then 100.
 	var containerInstanceArns [][]*string
 
+	input := &ecs.ListContainerInstancesInput{
+		Cluster:    aws.String(clusterArn),
+		MaxResults: aws.Int64(100),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// execute list call
 	err = svc.ListContainerInstancesPages(
-		&ecs.ListContainerInstancesInput{
-			Cluster:    aws.String(clusterArn),
-			MaxResults: aws.Int64(100),
-		},
+		input,
 		func(page *ecs.ListContainerInstancesOutput, isLast bool) bool {
 			if len(page.ContainerInstanceArns) != 0 {
 				containerInstanceArns = append(containerInstanceArns, page.ContainerInstanceArns)
@@ -182,6 +198,11 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 		for _, inst := range result.ContainerInstances {
 			d.StreamListItem(ctx, inst)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 	}

@@ -2,11 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,13 +25,18 @@ func tableAwsGuardDutyThreatIntelSet(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_threat_intel_set",
 		Description: "AWS GuardDuty ThreatIntelSet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
-			Hydrate:           getGuardDutyThreatIntelSet,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "threat_intel_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+			},
+			Hydrate: getGuardDutyThreatIntelSet,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
 			Hydrate:       listGuardDutyThreatIntelSets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "detector_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,16 +113,40 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	equalQuals := d.KeyColumnQuals
+
+	// Minimize the API call with the given detector_id
+	if equalQuals["detector_id"] != nil {
+		if equalQuals["detector_id"].GetStringValue() != "" {
+			if equalQuals["detector_id"].GetStringValue() != "" && equalQuals["detector_id"].GetStringValue() != detectorID {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["detector_id"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["detector_id"].GetListValue())), detectorID) {
+				return nil, nil
+			}
+		}
+	}
+
+	input := &guardduty.ListThreatIntelSetsInput{
+		DetectorId: &detectorID,
+		MaxResults: aws.Int64(50),
+	}
 
 	// List call
 	err = svc.ListThreatIntelSetsPages(
-		&guardduty.ListThreatIntelSetsInput{DetectorId: &detectorID},
+		input,
 		func(page *guardduty.ListThreatIntelSetsOutput, isLast bool) bool {
 			for _, result := range page.ThreatIntelSetIds {
 				d.StreamLeafListItem(ctx, threatIntelSetInfo{
 					ThreatIntelSetID: *result,
 					DetectorID:       detectorID,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

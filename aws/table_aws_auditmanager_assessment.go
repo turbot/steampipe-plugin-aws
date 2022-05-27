@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_assessment",
 		Description: "AWS Audit Manager Assessment",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsAuditManagerAssessment,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsAuditManagerAssessment,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAuditManagerAssessments,
@@ -156,13 +159,33 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	input := &auditmanager.ListAssessmentsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 
 	// List call
 	err = svc.ListAssessmentsPages(
-		&auditmanager.ListAssessmentsInput{},
+		input,
 		func(page *auditmanager.ListAssessmentsOutput, isLast bool) bool {
 			for _, assessment := range page.AssessmentMetadata {
 				d.StreamListItem(ctx, assessment)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

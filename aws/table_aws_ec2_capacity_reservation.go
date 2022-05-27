@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,27 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_capacity_reservation",
 		Description: "AWS EC2 Capacity Reservation",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("capacity_reservation_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
-			Hydrate:           getEc2CapacityReservation,
+			KeyColumns: plugin.SingleColumn("capacity_reservation_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidCapacityReservationId.NotFound", "InvalidCapacityReservationId.Unavailable", "InvalidCapacityReservationId.Malformed"}),
+			},
+			Hydrate: getEc2CapacityReservation,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2CapacityReservations,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "instance_type", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "availability_zone_id", Require: plugin.Optional},
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "instance_platform", Require: plugin.Optional},
+				{Name: "tenancy", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "start_date", Require: plugin.Optional},
+				{Name: "end_date", Require: plugin.Optional},
+				{Name: "end_date_type", Require: plugin.Optional},
+				{Name: "instance_match_criteria", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -159,12 +174,38 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &ec2.DescribeCapacityReservationsInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	filters := buildEc2CapacityReservationFilter(d.Quals)
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCapacityReservationsPages(
-		&ec2.DescribeCapacityReservationsInput{},
+		input,
 		func(page *ec2.DescribeCapacityReservationsOutput, isLast bool) bool {
 			for _, reservation := range page.CapacityReservations {
 				d.StreamListItem(ctx, reservation)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -218,4 +259,42 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 	}
 
 	return turbotTagsMap, nil
+}
+
+//// UTILITY FUNCTION
+// Build ec2 capacity reservation list call input filter
+func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"instance_type":           "instance-type",
+		"owner_id":                "owner-id",
+		"availability_zone_id":    "availability-zone-id",
+		"availability_zone":       "availability-zone",
+		"instance_platform":       "instance-platform",
+		"tenancy":                 "tenancy",
+		"state":                   "state",
+		"start_date":              "start-date",
+		"end_date":                "end-date",
+		"end_date_type":           "end-date-type",
+		"instance_match_criteria": "instance_match_criteria",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				valSlice := value.([]*string)
+				filter.Values = valSlice
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

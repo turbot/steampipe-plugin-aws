@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,12 +19,18 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task_definition",
 		Description: "AWS ECS Task Definition",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("task_definition_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
-			Hydrate:           getEcsTaskDefinition,
+			KeyColumns: plugin.SingleColumn("task_definition_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
+			},
+			Hydrate: getEcsTaskDefinition,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsTaskDefinitions,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "family", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -217,9 +223,32 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &ecs.ListTaskDefinitionsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuala := d.KeyColumnQuals
+	if equalQuala["family"] != nil {
+		input.FamilyPrefix = aws.String(equalQuala["family"].GetStringValue())
+	}
+	if equalQuala["status"] != nil {
+		input.Status = aws.String(equalQuala["status"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListTaskDefinitionsPages(
-		&ecs.ListTaskDefinitionsInput{},
+		input,
 		func(page *ecs.ListTaskDefinitionsOutput, isLast bool) bool {
 			for _, result := range page.TaskDefinitionArns {
 				d.StreamListItem(ctx, &ecs.DescribeTaskDefinitionOutput{
@@ -227,6 +256,11 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 						TaskDefinitionArn: result,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

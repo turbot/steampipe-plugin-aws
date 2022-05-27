@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ssl_policy",
 		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"SSLPolicyNotFound"}),
-			Hydrate:           getEc2SslPolicy,
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SSLPolicyNotFound"}),
+			},
+			Hydrate: getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,
@@ -73,7 +75,22 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// List call
-	params := &elbv2.DescribeSSLPoliciesInput{}
+	params := &elbv2.DescribeSSLPoliciesInput{
+		PageSize: aws.Int64(400),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.PageSize {
+			if *limit < 1 {
+				params.PageSize = aws.Int64(1)
+			} else {
+				params.PageSize = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.DescribeSSLPolicies(params)
@@ -83,6 +100,11 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		for _, sslPolicy := range response.SslPolicies {
 			d.StreamListItem(ctx, sslPolicy)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {
@@ -121,7 +143,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		Names: []*string{aws.String(name)},
 	}
 
-	if(matrixKeyRegion == regionName){
+	if matrixKeyRegion == regionName {
 		op, err := svc.DescribeSSLPolicies(params)
 		if err != nil {
 			return nil, err

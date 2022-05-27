@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
@@ -20,7 +20,9 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
-		// 	ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+		// IgnoreConfig: &plugin.IgnoreConfig{
+		// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+		// }
 		// 	Hydrate:           getAwsVpcRoute,
 		// },
 		List: &plugin.ListConfig{
@@ -31,7 +33,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
-				Description: "The ID of the route table conatining the route.",
+				Description: "The ID of the route table containing the route.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RouteTableID"),
 			},
@@ -155,6 +157,11 @@ func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	for _, route := range routeTable.Routes {
 		d.StreamLeafListItem(ctx, &routeTableRoute{routeTable.RouteTableId, route})
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

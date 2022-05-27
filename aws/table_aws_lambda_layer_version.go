@@ -2,13 +2,16 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
@@ -16,13 +19,18 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_layer_version",
 		Description: "AWS Lambda Layer Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"layer_name", "version"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
-			Hydrate:           getLambdaLayerVersion,
+			KeyColumns: plugin.AllColumns([]string{"layer_name", "version"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
+			},
+			Hydrate: getLambdaLayerVersion,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listLambdaLayerVersions,
-			ParentHydrate:     listLambdaLayers,
+			Hydrate:       listLambdaLayerVersions,
+			ParentHydrate: listLambdaLayers,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "layer_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -45,7 +53,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 			{
 				Name:        "created_date",
 				Description: "The date that the version was created, in ISO 8601 format.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "description",
@@ -135,6 +143,20 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	layerName := h.Item.(*lambda.LayersListItem).LayerName
 
+	equalQuals := d.KeyColumnQuals
+	// Minimize the API call with the given layer name
+	if equalQuals["layer_name"] != nil {
+		if equalQuals["layer_name"].GetStringValue() != "" {
+			if equalQuals["layer_name"].GetStringValue() != "" && equalQuals["layer_name"].GetStringValue() != *layerName {
+				return nil, nil
+			}
+		} else if len(getListValues(equalQuals["layer_name"].GetListValue())) > 0 {
+			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["layer_name"].GetListValue())), *layerName) {
+				return nil, nil
+			}
+		}
+	}
+
 	// Set MaxItems to the maximum number allowed
 	input := lambda.ListLayerVersionsInput{
 		LayerName: layerName,
@@ -146,7 +168,11 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxItems {
-			input.MaxItems = limit
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
 		}
 	}
 
@@ -163,6 +189,11 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 					LicenseInfo:             version.LicenseInfo,
 					Version:                 version.Version,
 				}})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

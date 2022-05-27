@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 )
 
 func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
@@ -17,7 +17,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 		Description: "AWS Cloud Control Resource",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "type_name"},
+				{Name: "type_name", Require: plugin.Required},
 				{Name: "resource_model", Require: plugin.Optional},
 			},
 			Hydrate: listCloudControlResources,

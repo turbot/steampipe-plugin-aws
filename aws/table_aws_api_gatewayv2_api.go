@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_api",
 		Description: "AWS API Gateway Version 2 API",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("api_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIGatewayV2API,
+			KeyColumns: plugin.SingleColumn("api_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIGatewayV2API,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,
@@ -86,9 +88,12 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create Session
 	svc, err := APIGatewayV2Service(ctx, d)
 	if err != nil {
+		logger.Trace("listAPIGatewayV2API", "connection error", err)
 		return nil, err
 	}
 
@@ -103,6 +108,11 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 		for _, apiGatewayV2Api := range result.Items {
 			d.StreamListItem(ctx, apiGatewayV2Api)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

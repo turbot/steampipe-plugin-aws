@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +19,20 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_association",
 		Description: "AWS SSM Association",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("association_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
-			Hydrate:           getAwsSSMAssociation,
+			KeyColumns: plugin.SingleColumn("association_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
+			},
+			Hydrate: getAwsSSMAssociation,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMAssociations,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "association_name", Require: plugin.Optional},
+				{Name: "instance_id", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
+				{Name: "last_execution_date", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -196,12 +205,55 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &ssm.ListAssociationsInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	filters := buildSsmAssociationFilter(d.Quals)
+
+	quals := d.Quals
+	if quals["last_execution_date"] != nil {
+		f := &ssm.AssociationFilter{}
+		for _, q := range quals["last_execution_date"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				f.Key = aws.String(ssm.AssociationFilterKeyLastExecutedAfter)
+				f.Value = aws.String(fmt.Sprint(timestamp))
+			case "<", "<=":
+				f.Key = aws.String(ssm.AssociationFilterKeyLastExecutedBefore)
+				f.Value = aws.String(fmt.Sprint(timestamp))
+			}
+		}
+		filters = append(filters, f)
+	}
+
+	if len(filters) > 0 {
+		input.AssociationFilterList = filters
+	}
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListAssociationsPages(
-		&ssm.ListAssociationsInput{},
+		input,
 		func(page *ssm.ListAssociationsOutput, isLast bool) bool {
 			for _, association := range page.Associations {
 				d.StreamListItem(ctx, association)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -265,4 +317,32 @@ func associationID(item interface{}) string {
 		return *item.AssociationId
 	}
 	return ""
+}
+
+//// UTILITY FUNCTION
+// Build ssm association list call input filter
+func buildSsmAssociationFilter(quals plugin.KeyColumnQualMap) []*ssm.AssociationFilter {
+	filters := make([]*ssm.AssociationFilter, 0)
+
+	filterQuals := map[string]string{
+		"association_name": ssm.AssociationFilterKeyAssociationName,
+		"instance_id":      ssm.AssociationFilterKeyInstanceId,
+		"status":           ssm.AssociationFilterKeyAssociationStatusName,
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.AssociationFilter{
+				Key: aws.String(filterName),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Value = aws.String(val)
+				filters = append(filters, &filter)
+			}
+		}
+	}
+	return filters
 }

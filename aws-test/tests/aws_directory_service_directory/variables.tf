@@ -71,11 +71,13 @@ resource "aws_vpc" "my_vpc" {
 
 resource "aws_subnet" "my_subnet1" {
   cidr_block = "10.1.1.0/24"
+  availability_zone = "${var.aws_region}a"
   vpc_id     = aws_vpc.my_vpc.id
 }
 
 resource "aws_subnet" "my_subnet2" {
   cidr_block = "10.1.2.0/24"
+  availability_zone = "${var.aws_region}b"
   vpc_id     = aws_vpc.my_vpc.id
 }
 

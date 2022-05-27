@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/identitystore"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 		Name:        "aws_identitystore_user",
 		Description: "AWS Identity Store User",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"identity_store_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getIdentityStoreUser,
+			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getIdentityStoreUser,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "name"}),
@@ -76,6 +78,19 @@ func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 				AttributeValue: aws.String(name),
 			},
 		},
+		MaxResults: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	err = svc.ListUsersPages(
@@ -87,6 +102,11 @@ func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 					User:            user,
 				}
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

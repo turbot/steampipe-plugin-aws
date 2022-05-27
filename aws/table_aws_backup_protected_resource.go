@@ -6,9 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +19,11 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_protected_resource",
 		Description: "AWS Backup Protected Resource",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("resource_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
-			Hydrate:           getAwsBackupProtectedResource,
+			KeyColumns: plugin.SingleColumn("resource_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
+			},
+			Hydrate: getAwsBackupProtectedResource,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupProtectedResources,
@@ -65,11 +68,32 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &backup.ListProtectedResourcesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListProtectedResourcesPages(
-		&backup.ListProtectedResourcesInput{},
+		input,
 		func(page *backup.ListProtectedResourcesOutput, lastPage bool) bool {
 			for _, resource := range page.Results {
 				d.StreamListItem(ctx, resource)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

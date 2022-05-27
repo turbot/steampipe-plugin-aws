@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,25 @@ func tableAwsVpcVpnConnection(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_vpn_connection",
 		Description: "AWS VPC VPN Connection",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpn_connection_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
-			Hydrate:           getVpcVpnConnection,
+			KeyColumns: plugin.SingleColumn("vpn_connection_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVpnConnectionID.NotFound", "InvalidVpnConnectionID.Malformed"}),
+			},
+			Hydrate: getVpcVpnConnection,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnConnections,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "customer_gateway_configuration", Require: plugin.Optional},
+				{Name: "customer_gateway_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+				{Name: "vpn_gateway_id", Require: plugin.Optional},
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -131,10 +144,31 @@ func listVpcVpnConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	input := &ec2.DescribeVpnConnectionsInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "customer_gateway_configuration", FilterName: "customer-gateway-configuration", ColumnType: "string"},
+		{ColumnName: "customer_gateway_id", FilterName: "customer-gateway-id", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "type", FilterName: "type", ColumnType: "string"},
+		{ColumnName: "vpn_gateway_id", FilterName: "vpn-gateway-id", ColumnType: "string"},
+		{ColumnName: "transit_gateway_id", FilterName: "transit-gateway-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeVpnConnections(&ec2.DescribeVpnConnectionsInput{})
+	resp, err := svc.DescribeVpnConnections(input)
 	for _, vpnConnection := range resp.VpnConnections {
 		d.StreamListItem(ctx, vpnConnection)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

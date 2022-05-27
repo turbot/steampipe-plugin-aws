@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acm"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,6 +26,12 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAcmCertificates,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "status",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -87,6 +93,12 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Name:        "signature_algorithm",
 				Description: "The algorithm that was used to sign the certificate",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsAcmCertificateAttributes,
+			},
+			{
+				Name:        "extended_key_usages",
+				Description: "Specify one or more ExtendedKeyUsage extension values.",
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsAcmCertificateAttributes,
 			},
 			{
@@ -217,14 +229,41 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &acm.ListCertificatesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["status"] != nil {
+		input.CertificateStatuses = []*string{types.String(equalQuals["status"].GetStringValue())}
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListCertificatesPages(
-		&acm.ListCertificatesInput{},
+		input,
 		func(page *acm.ListCertificatesOutput, lastPage bool) bool {
 			for _, certificate := range page.CertificateSummaryList {
 				d.StreamListItem(ctx, &acm.CertificateDetail{
 					CertificateArn: certificate.CertificateArn,
 				})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

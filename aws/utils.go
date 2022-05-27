@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
@@ -77,54 +80,6 @@ func handleNilString(_ context.Context, d *transform.TransformData) (interface{}
 	return value, nil
 }
 
-func rowSourceFromIPPermission(group *ec2.SecurityGroup, permission *ec2.IpPermission, groupType string) []interface{} {
-	var rowSource []interface{}
-
-	// create 1 row per ip-range
-	if permission.IpRanges != nil {
-		for _, r := range permission.IpRanges {
-			rowSource = append(rowSource, &vpcSecurityGroupRulesRowData{
-				Group:           group,
-				Permission:      permission,
-				IPRange:         r,
-				Ipv6Range:       nil,
-				UserIDGroupPair: nil,
-				Type:            groupType,
-			})
-		}
-	}
-
-	// create 1 row per ipv6-range
-	if permission.Ipv6Ranges != nil {
-		for _, r := range permission.Ipv6Ranges {
-			rowSource = append(rowSource, &vpcSecurityGroupRulesRowData{
-				Group:           group,
-				Permission:      permission,
-				IPRange:         nil,
-				Ipv6Range:       r,
-				UserIDGroupPair: nil,
-				Type:            groupType,
-			})
-		}
-	}
-
-	// create 1 row per user id group pair
-	if permission.UserIdGroupPairs != nil {
-		for _, r := range permission.UserIdGroupPairs {
-			rowSource = append(rowSource, &vpcSecurityGroupRulesRowData{
-				Group:           group,
-				Permission:      permission,
-				IPRange:         nil,
-				Ipv6Range:       nil,
-				UserIDGroupPair: r,
-				Type:            groupType,
-			})
-		}
-	}
-
-	return rowSource
-}
-
 func resourceInterfaceDescription(key string) string {
 	switch key {
 	case "akas":
@@ -151,8 +106,12 @@ func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}
 
 func base64DecodedData(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data, err := base64.StdEncoding.DecodeString(types.SafeString(d.Value))
+	// check if CorruptInputError or invalid UTF-8
+	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
+	} else if !utf8.Valid(data) {
+		return types.SafeString(d.Value), nil
 	}
 	return data, nil
 }
@@ -171,4 +130,80 @@ func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	}
 
 	return nil, nil
+}
+
+func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string, dataType string) interface{} {
+	var value interface{}
+	for _, q := range equalQuals[columnName].Quals {
+		if dataType == "string" {
+			if q.Value.GetStringValue() != "" {
+				value = q.Value.GetStringValue()
+			} else {
+				valList := getListValues(q.Value.GetListValue())
+				if len(valList) > 0 {
+					value = valList
+				}
+			}
+		}
+		if dataType == "boolean" {
+			switch q.Operator {
+			case "<>":
+				value = "false"
+			case "=":
+				value = "true"
+			}
+		}
+		if dataType == "int64" {
+			value = q.Value.GetInt64Value()
+			if q.Value.GetInt64Value() == 0 {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := strconv.FormatInt(value.GetInt64Value(), 10)
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+		}
+		if dataType == "double" {
+			value = q.Value.GetDoubleValue()
+			if q.Value.GetDoubleValue() == 0 {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := strconv.FormatFloat(value.GetDoubleValue(), 'f', 4, 64)
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+
+		}
+		if dataType == "ipaddr" {
+			value = q.Value.GetInetValue().Addr
+			if q.Value.GetInetValue().Addr == "" {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := value.GetInetValue().Addr
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+		}
+		if dataType == "cidr" {
+			value = q.Value.GetInetValue().Cidr
+			if q.Value.GetInetValue().Addr == "" {
+				valueSlice := make([]*string, 0)
+				for _, value := range q.Value.GetListValue().Values {
+					val := value.GetInetValue().Cidr
+					valueSlice = append(valueSlice, &val)
+				}
+				value = valueSlice
+			}
+		}
+		if dataType == "time" {
+			value = getListValues(q.Value.GetListValue())
+			if len(getListValues(q.Value.GetListValue())) == 0 {
+				value = q.Value.GetTimestampValue().AsTime()
+			}
+		}
+	}
+	return value
 }

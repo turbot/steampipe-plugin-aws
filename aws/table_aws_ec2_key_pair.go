@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,18 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_key_pair",
 		Description: "AWS EC2 Key Pair",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("key_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
-			Hydrate:           getEc2KeyPair,
+			KeyColumns: plugin.SingleColumn("key_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidKeyPair.NotFound", "InvalidKeyPair.Unavailable", "InvalidKeyPair.Malformed"}),
+			},
+			Hydrate: getEc2KeyPair,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2KeyPairs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "key_pair_id", Require: plugin.Optional},
+				{Name: "key_fingerprint", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,10 +89,23 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	resp, err := svc.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+	input := &ec2.DescribeKeyPairsInput{}
+
+	filters := buildEc2KeyPairFilter(d.Quals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	resp, err := svc.DescribeKeyPairs(input)
 
 	for _, keyPair := range resp.KeyPairs {
 		d.StreamListItem(ctx, keyPair)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, err
 }
@@ -140,4 +159,33 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	keyPair := d.HydrateItem.(*ec2.KeyPairInfo)
 	return ec2TagsToMap(keyPair.Tags)
+}
+
+//// UTILITY FUNCTION
+// Build ec2 key-pair list call input filter
+func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"key_pair_id":     "key-pair-id",
+		"key_fingerprint": "fingerprint",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

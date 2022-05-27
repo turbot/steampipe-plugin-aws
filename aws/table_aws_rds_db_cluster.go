@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,18 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_cluster",
 		Description: "AWS RDS DB Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_cluster_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
-			Hydrate:           getRDSDBCluster,
+			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBClusterNotFoundFault"}),
+			},
+			Hydrate: getRDSDBCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBClusters,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "clone_group_id", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -340,12 +346,40 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
+	input := &rds.DescribeDBClustersInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
+	filters := buildRdsDbClusterFilter(d.Quals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
 	err = svc.DescribeDBClustersPages(
-		&rds.DescribeDBClustersInput{},
+		input,
 		func(page *rds.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
 				d.StreamListItem(ctx, dbCluster)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -392,4 +426,33 @@ func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (i
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// build rdds db cluster list call input filter
+func buildRdsDbClusterFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
+	filters := make([]*rds.Filter, 0)
+	filterQuals := map[string]string{
+		"clone_group_id": "clone-group-id",
+		"engine":         "engine",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := rds.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

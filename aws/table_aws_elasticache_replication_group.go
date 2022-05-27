@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_replication_group",
 		Description: "AWS ElastiCache Replication Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("replication_group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheReplicationGroup,
+			KeyColumns: plugin.SingleColumn("replication_group_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReplicationGroups,
@@ -171,12 +173,32 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
+	input := &elasticache.DescribeReplicationGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeReplicationGroupsPages(
-		&elasticache.DescribeReplicationGroupsInput{},
+		input,
 		func(page *elasticache.DescribeReplicationGroupsOutput, isLast bool) bool {
 			for _, replicationGroup := range page.ReplicationGroups {
 				d.StreamListItem(ctx, replicationGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

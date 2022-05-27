@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,20 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 		Name:        "aws_efs_access_point",
 		Description: "AWS EFS Access Point",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("access_point_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AccessPointNotFound"}),
-			Hydrate:           getEfsAccessPoint,
+			KeyColumns: plugin.SingleColumn("access_point_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccessPointNotFound"}),
+			},
+			Hydrate: getEfsAccessPoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEfsAccessPoints,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "file_system_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -110,12 +118,37 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &efs.DescribeAccessPointsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["file_system_id"] != nil {
+		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeAccessPointsPages(
-		&efs.DescribeAccessPointsInput{},
+		input,
 		func(page *efs.DescribeAccessPointsOutput, isLast bool) bool {
 			for _, accessPoint := range page.AccessPoints {
 				d.StreamListItem(ctx, accessPoint)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

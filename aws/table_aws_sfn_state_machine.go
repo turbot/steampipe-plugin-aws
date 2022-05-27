@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
@@ -15,9 +16,11 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		Name:        "aws_sfn_state_machine",
 		Description: "AWS Step Functions State Machine",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
-			Hydrate:           getStepFunctionsStateMachine,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
+			},
+			Hydrate: getStepFunctionsStateMachine,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listStepFunctionsStateManchines,
@@ -117,11 +120,29 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &sfn.ListStateMachinesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			input.MaxResults = limit
+		}
+	}
+
 	err = svc.ListStateMachinesPages(
-		&sfn.ListStateMachinesInput{},
+		input,
 		func(page *sfn.ListStateMachinesOutput, isLast bool) bool {
 			for _, stateMachine := range page.StateMachines {
 				d.StreamListItem(ctx, stateMachine)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

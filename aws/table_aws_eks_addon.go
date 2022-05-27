@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -17,9 +18,11 @@ func tableAwsEksAddon(_ context.Context) *plugin.Table {
 		Name:        "aws_eks_addon",
 		Description: "AWS EKS Addon",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"addon_name", "cluster_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
-			Hydrate:           getEksAddon,
+			KeyColumns: plugin.AllColumns([]string{"addon_name", "cluster_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
+			},
+			Hydrate: getEksAddon,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEksClusters,
@@ -118,14 +121,35 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
+	input := &eks.ListAddonsInput{
+		ClusterName: &clusterName,
+		MaxResults:  aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListAddonsPages(
-		&eks.ListAddonsInput{ClusterName: &clusterName},
+		input,
 		func(page *eks.ListAddonsOutput, _ bool) bool {
 			for _, addon := range page.Addons {
 				d.StreamListItem(ctx, &eks.Addon{
 					AddonName:   addon,
 					ClusterName: &clusterName,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return true
 		},

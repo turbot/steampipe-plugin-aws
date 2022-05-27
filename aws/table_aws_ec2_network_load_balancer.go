@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,12 +19,23 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_network_load_balancer",
 		Description: "AWS EC2 Network Load Balancer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			Hydrate:           getEc2NetworkLoadBalancer,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
+			},
+			Hydrate: getEc2NetworkLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkLoadBalancers,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -151,14 +162,41 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elbv2.DescribeLoadBalancersInput{}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	} else {
+		// If the names will be provided in param then page limit can not be set, api throws error
+		// ValidationError: Pagination is not supported when specifying load balancers
+		input.PageSize = aws.Int64(400)
+		// Limiting the results
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < *input.PageSize {
+				if *limit < 1 {
+					input.PageSize = aws.Int64(1)
+				} else {
+					input.PageSize = limit
+				}
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elbv2.DescribeLoadBalancersInput{},
+		input,
 		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, networkLoadBalancer := range page.LoadBalancers {
 				// Filtering the response to return only network load balancers
 				if strings.ToLower(*networkLoadBalancer.Type) == "network" {
 					d.StreamListItem(ctx, networkLoadBalancer)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !isLast

@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 const maxRetries = 20
@@ -83,7 +85,7 @@ func tableAwsIamAccessAdvisor(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAccessAdvisor")
 
@@ -92,6 +94,20 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// performance impact is minimal
 	granularity := "ACTION_LEVEL"
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// check if principalArn is empty or if the account id in the principalArn is not same with the account
+	if principalArn == "" || len(strings.Split(principalArn, ":")) < 4 {
+		return nil, nil
+	} else if strings.Split(principalArn, ":")[4] != "aws" && strings.Split(principalArn, ":")[4] != commonColumnData.AccountId {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := IAMService(ctx, d)
@@ -107,8 +123,22 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	logger.Debug("listAccessAdvisor generateResp", "jobId", *generateResp.JobId, "resp", *generateResp)
 
 	params := &iam.GetServiceLastAccessedDetailsInput{
-		JobId: generateResp.JobId,
+		JobId:    generateResp.JobId,
+		MaxItems: aws.Int64(1000),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxItems {
+			if *limit < 1 {
+				params.MaxItems = aws.Int64(1)
+			} else {
+				params.MaxItems = limit
+			}
+		}
+	}
+
 	retryNumber := 0
 	for {
 		resp, err := svc.GetServiceLastAccessedDetails(params)
@@ -138,6 +168,11 @@ func listAccessAdvisor(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 				TotalAuthenticatedEntities: serviceLastAccessed.TotalAuthenticatedEntities,
 				TrackedActionsLastAccessed: serviceLastAccessed.TrackedActionsLastAccessed,
 			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 		if !*resp.IsTruncated {
 			break

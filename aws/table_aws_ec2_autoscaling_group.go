@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEc2ASG(_ context.Context) *plugin.Table {
@@ -16,9 +16,11 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_autoscaling_group",
 		Description: "AWS EC2 Autoscaling Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError"}),
-			Hydrate:           getAwsEc2AutoscalingGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError"}),
+			},
+			Hydrate: getAwsEc2AutoscalingGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2AutoscalingGroup,
@@ -267,12 +269,33 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
+	input := &autoscaling.DescribeAutoScalingGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 1 {
+				input.MaxRecords = aws.Int64(1)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeAutoScalingGroupsPages(
-		&autoscaling.DescribeAutoScalingGroupsInput{},
+		input,
 		func(page *autoscaling.DescribeAutoScalingGroupsOutput, isLast bool) bool {
 			for _, autoscalingGroup := range page.AutoScalingGroups {
 				d.StreamListItem(ctx, autoscalingGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

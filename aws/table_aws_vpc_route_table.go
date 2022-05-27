@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,18 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_route_table",
 		Description: "AWS VPC Route table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
-			Hydrate:           getVpcRouteTable,
+			KeyColumns: plugin.SingleColumn("route_table_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+			},
+			Hydrate: getVpcRouteTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcRouteTables,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -99,12 +105,43 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &ec2.DescribeRouteTablesInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "owner_id", FilterName: "owner-id", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeRouteTablesPages(
-		&ec2.DescribeRouteTablesInput{},
+		input,
 		func(page *ec2.DescribeRouteTablesOutput, isLast bool) bool {
 			for _, routeTable := range page.RouteTables {
 				d.StreamListItem(ctx, routeTable)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -149,7 +186,7 @@ func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	plugin.Logger(ctx).Trace("getVpcRouteTableTurbotAkas")
 	routeTable := h.Item.(*ec2.RouteTable)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {

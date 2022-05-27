@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
-			Hydrate:           getAuditManagerFramework,
+			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
+			},
+			Hydrate: getAuditManagerFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
@@ -147,6 +149,11 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
 			for _, framework := range page.FrameworkMetadataList {
 				d.StreamListItem(ctx, framework)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

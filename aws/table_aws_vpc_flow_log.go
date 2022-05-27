@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +19,21 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_flowlog",
 		Description: "AWS VPC Flowlog",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("flow_log_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
-			Hydrate:           getVpcFlowlog,
+			KeyColumns: plugin.SingleColumn("flow_log_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"Client.InvalidInstanceID.NotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getVpcFlowlog,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcFlowlogs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "deliver_logs_status", Require: plugin.Optional},
+				{Name: "log_destination_type", Require: plugin.Optional},
+				{Name: "log_group_name", Require: plugin.Optional},
+				{Name: "resource_id", Require: plugin.Optional},
+				{Name: "traffic_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -142,11 +152,47 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	// The max page limit is not mentioned in the doc, so here the max limt set to 1000 and min to 1
+	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html
+	input := &ec2.DescribeFlowLogsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "deliver_logs_status", FilterName: "deliver-log-status", ColumnType: "string"},
+		{ColumnName: "log_destination_type", FilterName: "log-destination-type", ColumnType: "string"},
+		{ColumnName: "log_group_name", FilterName: "log-group-name", ColumnType: "string"},
+		{ColumnName: "resource_id", FilterName: "resource-id", ColumnType: "string"},
+		{ColumnName: "traffic_type", FilterName: "traffic-type", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filter = filters
+	}
+
 	err = svc.DescribeFlowLogsPages(
-		&ec2.DescribeFlowLogsInput{},
+		input,
 		func(page *ec2.DescribeFlowLogsOutput, lastPage bool) bool {
 			for _, item := range page.FlowLogs {
 				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

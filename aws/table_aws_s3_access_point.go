@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3control"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,11 +20,16 @@ func tableAwsS3AccessPoint(_ context.Context) *plugin.Table {
 		Description: "AWS S3 Access Point",
 		List: &plugin.ListConfig{
 			Hydrate: listS3AccessPoints,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "bucket_name", Require: plugin.Optional},
+			},
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			Hydrate:           getS3AccessPoint,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchAccessPoint", "AccessDenied", "InvalidParameter"}),
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			Hydrate:    getS3AccessPoint,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchAccessPoint", "InvalidParameter"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -152,13 +157,37 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	input := &s3control.ListAccessPointsInput{
+		AccountId:  aws.String(commonColumnData.AccountId),
+		MaxResults: aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["bucket_name"] != nil {
+		if equalQuals["bucket_name"].GetStringValue() != "" {
+			input.Bucket = aws.String(equalQuals["bucket_name"].GetStringValue())
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			// Minimum limit is 0 as per the doc https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_ListAccessPoints.html#API_control_ListAccessPoints_RequestSyntax
+			input.MaxResults = limit
+		}
+	}
+
 	err = svc.ListAccessPointsPages(
-		&s3control.ListAccessPointsInput{
-			AccountId: aws.String(commonColumnData.AccountId),
-		},
+		input,
 		func(page *s3control.ListAccessPointsOutput, isLast bool) bool {
 			for _, accessPoint := range page.AccessPointList {
 				d.StreamListItem(ctx, accessPoint)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_usage_plan",
 		Description: "AWS API Gateway Usage Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getUsagePlan,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getUsagePlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listUsagePlans,
@@ -86,17 +89,41 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create service
 	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
+		logger.Trace("listUsagePlans", "connection error", err)
 		return nil, err
 	}
 
+	input := &apigateway.GetUsagePlansInput{
+		Limit: aws.Int64(500),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
 	err = svc.GetUsagePlansPages(
-		&apigateway.GetUsagePlansInput{},
+		input,
 		func(page *apigateway.GetUsagePlansOutput, lastPage bool) bool {
 			for _, plan := range page.Items {
 				d.StreamListItem(ctx, plan)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

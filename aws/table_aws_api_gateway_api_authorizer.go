@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_authorizer",
 		Description: "AWS API Gateway Authorizer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getRestAPIAuthorizer,
+			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getRestAPIAuthorizer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
@@ -116,7 +119,20 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &apigateway.GetAuthorizersInput{
+		Limit:     aws.Int64(500),
 		RestApiId: restAPI.Id,
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = types.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
 	}
 
 	op, err := svc.GetAuthorizers(params)
@@ -126,6 +142,11 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	for _, authorizer := range op.Items {
 		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 	return nil, nil
 }

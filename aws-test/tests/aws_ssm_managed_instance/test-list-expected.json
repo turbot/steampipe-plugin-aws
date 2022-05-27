@@ -5,7 +5,7 @@
     "instance_id": "{{ output.resource_id.value }}",
     "platform_name": "Amazon Linux",
     "platform_type": "Linux",
-    "platform_version": 2,
+    "platform_version": "2",
     "resource_type": "EC2Instance"
   }
 ]

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
@@ -15,12 +15,17 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		Name:        "aws_eventbridge_bus",
 		Description: "AWS EventBridge Bus",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getAwsEventBridgeBus,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
+			},
+			Hydrate: getAwsEventBridgeBus,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeBuses,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -96,11 +101,20 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		Limit: aws.Int64(100),
 	}
 
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.Limit {
-			input.Limit = limit
+			if *limit < 1 {
+				input.Limit = aws.Int64(1)
+			} else {
+				input.Limit = limit
+			}
 		}
 	}
 
@@ -117,6 +131,10 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 				Arn:    bus.Arn,
 				Policy: bus.Policy,
 			})
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				break
+			}
 		}
 
 		if response.NextToken == nil {

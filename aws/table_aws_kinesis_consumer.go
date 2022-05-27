@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,9 +17,11 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_consumer",
 		Description: "AWS Kinesis Consumer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("consumer_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsKinesisConsumer,
+			KeyColumns: plugin.SingleColumn("consumer_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsKinesisConsumer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listStreams,
@@ -95,11 +98,33 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
+	input := &kinesis.ListStreamConsumersInput{
+		StreamARN:  &arn,
+		MaxResults: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListStreamConsumersPages(
-		&kinesis.ListStreamConsumersInput{StreamARN: &arn},
+		input,
 		func(page *kinesis.ListStreamConsumersOutput, isLast bool) bool {
 			for _, consumerData := range page.Consumers {
 				d.StreamLeafListItem(ctx, consumerData)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -2,6 +2,7 @@
   {
     "artifacts": {
       "ArtifactIdentifier": null,
+      "BucketOwnerAccess": null,
       "EncryptionDisabled": null,
       "Location": null,
       "Name": null,

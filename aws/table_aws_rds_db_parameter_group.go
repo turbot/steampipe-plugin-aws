@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_parameter_group",
 		Description: "AWS RDS DB Parameter Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBParameterGroupNotFound"}),
-			Hydrate:           getRDSDBParameterGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBParameterGroupNotFound"}),
+			},
+			Hydrate: getRDSDBParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBParameterGroups,
@@ -100,12 +102,34 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	input := &rds.DescribeDBParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeDBParameterGroupsPages(
-		&rds.DescribeDBParameterGroupsInput{},
+		input,
 		func(page *rds.DescribeDBParameterGroupsOutput, isLast bool) bool {
 			for _, dbParameterGroup := range page.DBParameterGroups {
 				d.StreamListItem(ctx, dbParameterGroup)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

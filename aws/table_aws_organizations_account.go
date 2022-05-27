@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Name:        "aws_organizations_account",
 		Description: "AWS Organizations Account",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
-			Hydrate:           getOrganizationsAccount,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
+			},
+			Hydrate: getOrganizationsAccount,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
@@ -28,9 +30,10 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Description: "The description of the permission set.",
 				Type:        proto.ColumnType_STRING,
 			},
+			// This description has added text for better clarification on ID type
 			{
 				Name:        "id",
-				Description: "The unique identifier (ID) of the account.",
+				Description: "The unique identifier (account ID) of the member account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -100,13 +103,32 @@ func listOrganizationsAccounts(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := &organizations.ListAccountsInput{}
+	params := &organizations.ListAccountsInput{
+		MaxResults: aws.Int64(20),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
+	}
 
 	err = svc.ListAccountsPages(
 		params,
 		func(page *organizations.ListAccountsOutput, isLast bool) bool {
 			for _, account := range page.Accounts {
 				d.StreamListItem(ctx, account)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

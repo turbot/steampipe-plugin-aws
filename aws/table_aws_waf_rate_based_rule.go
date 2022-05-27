@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,9 +16,11 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 		Name:        "aws_waf_rate_based_rule",
 		Description: "AWS WAF Rate Based Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
-			Hydrate:           getAwsWafRateBasedRule,
+			KeyColumns: plugin.SingleColumn("rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
+			},
+			Hydrate: getAwsWafRateBasedRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafRateBasedRules,
@@ -103,7 +105,20 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// List call
-	params := &waf.ListRateBasedRulesInput{}
+	params := &waf.ListRateBasedRulesInput{
+		Limit: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	// Minimunm limit is 0
+	// https://docs.aws.amazon.com/waf/latest/APIReference/API_waf_ListRateBasedRules.html
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			params.Limit = limit
+		}
+	}
+
 	pagesLeft := true
 	for pagesLeft {
 		response, err := svc.ListRateBasedRules(params)
@@ -112,6 +127,11 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 		for _, rule := range response.Rules {
 			d.StreamListItem(ctx, rule)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 		if response.NextMarker != nil {
 			pagesLeft = true

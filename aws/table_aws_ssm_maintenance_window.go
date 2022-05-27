@@ -3,12 +3,16 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
@@ -16,12 +20,18 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_maintenance_window",
 		Description: "AWS SSM Maintenance Window",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("window_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException"}),
-			Hydrate:           getAwsSSMMaintenanceWindow,
+			KeyColumns: plugin.SingleColumn("window_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DoesNotExistException"}),
+			},
+			Hydrate: getAwsSSMMaintenanceWindow,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMMaintenanceWindow,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -163,13 +173,39 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &ssm.DescribeMaintenanceWindowsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	filters := buildSsmMentenanceWindowFilter(d.Quals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 10 {
+				input.MaxResults = aws.Int64(10)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeMaintenanceWindowsPages(
-		&ssm.DescribeMaintenanceWindowsInput{},
+		input,
 		func(page *ssm.DescribeMaintenanceWindowsOutput, isLast bool) bool {
 			for _, parameter := range page.WindowIdentities {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -337,4 +373,39 @@ func maintenanceWindowID(item interface{}) *string {
 		return item.WindowId
 	}
 	return nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm maintenance window list call input filter
+func buildSsmMentenanceWindowFilter(quals plugin.KeyColumnQualMap) []*ssm.MaintenanceWindowFilter {
+	filters := make([]*ssm.MaintenanceWindowFilter, 0)
+
+	filterQuals := map[string]string{
+		"name":    "Name",
+		"enabled": "Enabled",
+	}
+	columnBool := []string{"enabled"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.MaintenanceWindowFilter{
+				Key: aws.String(filterName),
+			}
+			if helpers.StringSliceContains(columnBool, columnName) {
+				value := getQualsValueByColumn(quals, columnName, "boolean").(string)
+				filter.Values = []*string{aws.String(cases.Title(language.English, cases.NoLower).String(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{&val}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

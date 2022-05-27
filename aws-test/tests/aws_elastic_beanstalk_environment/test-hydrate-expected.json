@@ -2,20 +2,11 @@
   {
     "akas": ["{{output.resource_aka.value}}"],
     "environment_name": "{{ output.resource_name.value }}",
-    "tags": [
-      {
-        "Key": "elasticbeanstalk:environment-name",
-        "Value": "{{ output.resource_name.value }}"
-      },
-      {
-        "Key": "elasticbeanstalk:environment-id",
-        "Value": "{{ output.resource_id.value }}"
-      },
-      {
-        "Key": "Name",
-        "Value": "{{ output.resource_name.value }}"
-      }
-    ],
+    "tags": {
+      "Name": "{{ output.resource_name.value }}",
+      "elasticbeanstalk:environment-id": "{{ output.resource_id.value }}",
+      "elasticbeanstalk:environment-name": "{{ output.resource_name.value }}"
+    },
     "title": "{{ output.resource_name.value }}"
   }
 ]
