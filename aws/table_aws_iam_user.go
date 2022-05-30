@@ -440,7 +440,6 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	user := h.Item.(*iam.User)
 
 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
-	plugin.Logger(ctx).Error("getAwsIamUserInlinePolicies", "listUserPoliciesOutput", listUserPoliciesOutput.PolicyNames)
 	var userPolicies []map[string]interface{}
 
 	// Create Session
