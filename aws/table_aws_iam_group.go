@@ -34,12 +34,12 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:    getAwsIamGroupInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamGroupInlinePolicies},
-			},
-		},
+		// HydrateConfig: []plugin.HydrateConfig{
+		// 	{
+		// 		Func:    getAwsIamGroupInlinePolicies,
+		// 		Depends: []plugin.HydrateFunc{listAwsIamGroupInlinePolicies},
+		// 	},
+		// },
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -70,14 +70,14 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamGroupInlinePolicies,
+				Hydrate:     listAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamGroupInlinePolicies,
+				Hydrate:     listAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -247,7 +247,7 @@ func getAwsIamGroupUsers(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupInlinePolicies")
+	plugin.Logger(ctx).Trace("listAwsIamGroupInlinePolicies")
 	group := h.Item.(*iam.Group)
 
 	// Create Session
@@ -265,7 +265,33 @@ func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	return groupData, nil
+	var wg sync.WaitGroup
+	policyCh := make(chan map[string]interface{}, len(groupData.PolicyNames))
+	errorCh := make(chan error, len(groupData.PolicyNames))
+	for _, policy := range groupData.PolicyNames {
+		wg.Add(1)
+		go getGroupPolicyDataAsync(policy, group.GroupName, svc, &wg, policyCh, errorCh)
+	}
+
+	// wait for all inline policies to be processed
+	wg.Wait()
+
+	// NOTE: close channel before ranging over results
+	close(policyCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		return nil, err
+	}
+
+	var groupPolicies []map[string]interface{}
+
+	for groupPolicy := range policyCh {
+		groupPolicies = append(groupPolicies, groupPolicy)
+	}
+
+	return groupPolicies, nil
 }
 
 func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

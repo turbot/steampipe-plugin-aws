@@ -35,11 +35,11 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:    getAwsIamRoleInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
-			}},
+		// HydrateConfig: []plugin.HydrateConfig{
+		// 	{
+		// 		Func:    getAwsIamRoleInlinePolicies,
+		// 		Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
+		// 	}},
 		Columns: awsColumns([]*plugin.Column{
 			// "Key" Columns
 			{
@@ -130,14 +130,14 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the role..",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the role.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -349,8 +349,32 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	var wg sync.WaitGroup
+	policyCh := make(chan map[string]interface{}, len(roleData.PolicyNames))
+	errorCh := make(chan error, len(roleData.PolicyNames))
+	for _, policy := range roleData.PolicyNames {
+		wg.Add(1)
+		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
+	}
 
-	return roleData, nil
+	// wait for all inline policies to be processed
+	wg.Wait()
+	// NOTE: close channel before ranging over results
+	close(policyCh)
+	close(errorCh)
+
+	for err := range errorCh {
+		// return the first error
+		return nil, err
+	}
+
+	var rolePolicies []map[string]interface{}
+
+	for rolePolicy := range policyCh {
+		rolePolicies = append(rolePolicies, rolePolicy)
+	}
+
+	return rolePolicies, nil
 }
 
 func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
