@@ -34,12 +34,6 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		// HydrateConfig: []plugin.HydrateConfig{
-		// 	{
-		// 		Func:    getAwsIamUserInlinePolicies,
-		// 		Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
-		// 	},
-		// },
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -434,47 +428,6 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	return userPolicies, nil
 }
-
-// func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
-// 	user := h.Item.(*iam.User)
-
-// 	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
-// 	var userPolicies []map[string]interface{}
-
-// 	// Create Session
-// 	svc, err := IAMService(ctx, d)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var wg sync.WaitGroup
-// 	policyCh := make(chan map[string]interface{}, len(listUserPoliciesOutput.PolicyNames))
-// 	errorCh := make(chan error, len(listUserPoliciesOutput.PolicyNames))
-// 	for _, policy := range listUserPoliciesOutput.PolicyNames {
-// 		wg.Add(1)
-// 		go getUserPolicyDataAsync(policy, user.UserName, svc, &wg, policyCh, errorCh)
-// 	}
-
-// 	// wait for all inline policies to be processed
-// 	wg.Wait()
-
-// 	// NOTE: close channel before ranging over results
-// 	close(policyCh)
-// 	close(errorCh)
-
-// 	for err := range errorCh {
-// 		// return the first error
-// 		return nil, err
-// 	}
-
-// 	for userPolicy := range policyCh {
-// 		userPolicies = append(userPolicies, userPolicy)
-// 	}
-
-// 	return userPolicies, nil
-
-// }
 
 func getUserPolicyDataAsync(policy *string, userName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
 	defer wg.Done()
