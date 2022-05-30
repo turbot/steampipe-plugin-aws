@@ -1,3 +1,14 @@
+## v0.61.0 [2022-05-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_route53_health_check](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_health_check) ([#1045](https://github.com/turbot/steampipe-plugin-aws/pull/1045))
+
+_Bug fixes_
+
+- Fixed the `inline_policies` column in `aws_iam_role`, `aws_iam_group` and `aws_iam_user` tables to correctly return results instead of an error. ([#1048](https://github.com/turbot/steampipe-plugin-aws/pull/1048))
+
 ## v0.60.0 [2022-05-25]
 
 _What's new?_
