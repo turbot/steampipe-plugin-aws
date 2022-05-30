@@ -34,12 +34,6 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				{Name: "path", Require: plugin.Optional},
 			},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func:    getAwsIamUserInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamUserInlinePolicies},
-			},
-		},
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -116,14 +110,14 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the user.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamUserInlinePolicies,
+				Hydrate:     listAwsIamUserInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the user.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamUserInlinePolicies,
+				Hydrate:     listAwsIamUserInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -392,7 +386,7 @@ func getAwsIamUserMfaDevices(ctx context.Context, d *plugin.QueryData, h *plugin
 func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsIamUserInlinePolicies")
 	user := h.Item.(*iam.User)
-
+	var userPolicies []map[string]interface{}
 	// Create Session
 	svc, err := IAMService(ctx, d)
 	if err != nil {
@@ -408,26 +402,10 @@ func listAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	return userData, nil
-}
-
-func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamUserInlinePolicies")
-	user := h.Item.(*iam.User)
-
-	listUserPoliciesOutput := h.HydrateResults["listAwsIamUserInlinePolicies"].(*iam.ListUserPoliciesOutput)
-	var userPolicies []map[string]interface{}
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
 	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listUserPoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listUserPoliciesOutput.PolicyNames))
-	for _, policy := range listUserPoliciesOutput.PolicyNames {
+	policyCh := make(chan map[string]interface{}, len(userData.PolicyNames))
+	errorCh := make(chan error, len(userData.PolicyNames))
+	for _, policy := range userData.PolicyNames {
 		wg.Add(1)
 		go getUserPolicyDataAsync(policy, user.UserName, svc, &wg, policyCh, errorCh)
 	}
@@ -449,7 +427,6 @@ func getAwsIamUserInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	return userPolicies, nil
-
 }
 
 func getUserPolicyDataAsync(policy *string, userName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
