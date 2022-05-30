@@ -377,46 +377,46 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	return rolePolicies, nil
 }
 
-func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamRoleInlinePolicies")
-	role := h.Item.(*iam.Role)
+// func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	logger := plugin.Logger(ctx)
+// 	logger.Trace("getAwsIamRoleInlinePolicies")
+// 	role := h.Item.(*iam.Role)
 
-	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
+// 	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
+// 	// Create Session
+// 	svc, err := IAMService(ctx, d)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
-	for _, policy := range listRolePoliciesOutput.PolicyNames {
-		wg.Add(1)
-		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
-	}
+// 	var wg sync.WaitGroup
+// 	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
+// 	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
+// 	for _, policy := range listRolePoliciesOutput.PolicyNames {
+// 		wg.Add(1)
+// 		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
+// 	}
 
-	// wait for all inline policies to be processed
-	wg.Wait()
-	// NOTE: close channel before ranging over results
-	close(policyCh)
-	close(errorCh)
+// 	// wait for all inline policies to be processed
+// 	wg.Wait()
+// 	// NOTE: close channel before ranging over results
+// 	close(policyCh)
+// 	close(errorCh)
 
-	for err := range errorCh {
-		// return the first error
-		return nil, err
-	}
+// 	for err := range errorCh {
+// 		// return the first error
+// 		return nil, err
+// 	}
 
-	var rolePolicies []map[string]interface{}
+// 	var rolePolicies []map[string]interface{}
 
-	for rolePolicy := range policyCh {
-		rolePolicies = append(rolePolicies, rolePolicy)
-	}
+// 	for rolePolicy := range policyCh {
+// 		rolePolicies = append(rolePolicies, rolePolicy)
+// 	}
 
-	return rolePolicies, nil
-}
+// 	return rolePolicies, nil
+// }
 
 func getRolePolicyDataAsync(policy *string, roleName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
 	defer wg.Done()

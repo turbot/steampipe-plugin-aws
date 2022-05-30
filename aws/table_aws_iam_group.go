@@ -294,45 +294,45 @@ func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *
 	return groupPolicies, nil
 }
 
-func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupInlinePolicies")
-	group := h.Item.(*iam.Group)
-	listGroupPoliciesOutput := h.HydrateResults["listAwsIamGroupInlinePolicies"].(*iam.ListGroupPoliciesOutput)
+// func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+// 	plugin.Logger(ctx).Trace("getAwsIamGroupInlinePolicies")
+// 	group := h.Item.(*iam.Group)
+// 	listGroupPoliciesOutput := h.HydrateResults["listAwsIamGroupInlinePolicies"].(*iam.ListGroupPoliciesOutput)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
+// 	// Create Session
+// 	svc, err := IAMService(ctx, d)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listGroupPoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listGroupPoliciesOutput.PolicyNames))
-	for _, policy := range listGroupPoliciesOutput.PolicyNames {
-		wg.Add(1)
-		go getGroupPolicyDataAsync(policy, group.GroupName, svc, &wg, policyCh, errorCh)
-	}
+// 	var wg sync.WaitGroup
+// 	policyCh := make(chan map[string]interface{}, len(listGroupPoliciesOutput.PolicyNames))
+// 	errorCh := make(chan error, len(listGroupPoliciesOutput.PolicyNames))
+// 	for _, policy := range listGroupPoliciesOutput.PolicyNames {
+// 		wg.Add(1)
+// 		go getGroupPolicyDataAsync(policy, group.GroupName, svc, &wg, policyCh, errorCh)
+// 	}
 
-	// wait for all inline policies to be processed
-	wg.Wait()
+// 	// wait for all inline policies to be processed
+// 	wg.Wait()
 
-	// NOTE: close channel before ranging over results
-	close(policyCh)
-	close(errorCh)
+// 	// NOTE: close channel before ranging over results
+// 	close(policyCh)
+// 	close(errorCh)
 
-	for err := range errorCh {
-		// return the first error
-		return nil, err
-	}
+// 	for err := range errorCh {
+// 		// return the first error
+// 		return nil, err
+// 	}
 
-	var groupPolicies []map[string]interface{}
+// 	var groupPolicies []map[string]interface{}
 
-	for groupPolicy := range policyCh {
-		groupPolicies = append(groupPolicies, groupPolicy)
-	}
+// 	for groupPolicy := range policyCh {
+// 		groupPolicies = append(groupPolicies, groupPolicy)
+// 	}
 
-	return groupPolicies, nil
-}
+// 	return groupPolicies, nil
+// }
 
 func getGroupPolicyDataAsync(policy *string, groupName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
 	defer wg.Done()
