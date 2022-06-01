@@ -28,4 +28,10 @@ connection "aws" {
   # List of additional AWS error codes to ignore for all queries.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+
+  # Specifies the URL to send the AWS request to. In order to make Steampipe to work with Localstack
+  # it will be required to provide custom url that Steampipe will use:
+  #  1. The `AWS_ENDPOINT_URL` environment variable
+  #  2. The endpoint url specified for the particular connection
+  #endpoint_url = "http://localhost:4566"
 }
