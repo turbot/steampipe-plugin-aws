@@ -15,30 +15,29 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ssm_inventory",
 		Description: "AWS SSM Inventory",
-		// Get: &plugin.GetConfig{
-		// 	KeyColumns:        plugin.SingleColumn("name"),
-		// 	ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidDocument"}),
-		// 	Hydrate:           getAwsSSMInventory,
-		// },
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMInventories,
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "instance_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "type_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
-			{
-				Name:        "type_name",
-				Description: "The type of inventory item returned by the request.",
-				Type:        proto.ColumnType_STRING,
-			},
 			{
 				Name:        "instance_id",
 				Description: "The managed node ID targeted by the request to query inventory information.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "type_name",
+				Description: "The type of inventory item returned by the request.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "capture_time",
 				Description: "The time that inventory information was collected for the managed node(s).",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "schema_version",
@@ -46,17 +45,19 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "entry",
-				Description: "An inventory item on the managed node(s).",
+				Name:        "content",
+				Description: "Contains all the inventory data of the item type. Results include attribute names and values.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "data",
-				Description: "An inventory item on the managed node(s).",
+				Name:        "schema",
+				Description: "The inventory item schema definition. Users can use this to compose inventory query filters.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsSSMInventorySchema,
+				Transform:   transform.FromValue(),
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -69,7 +70,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 
 type InventoryInfo struct {
 	CaptureTime   *string
-	Entry         map[string]*string
+	Content       interface{}
 	InstanceId    *string
 	SchemaVersion *string
 	TypeName      *string
@@ -86,14 +87,7 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	input := &ssm.GetInventoryInput{
-		MaxResults: aws.Int64(50),
-	}
-
-	// filters := buildSsmDocumentFilter(d.Quals)
-	// if len(filters) > 0 {
-	// 	input.Filters = filters
-	// }
+	input := buildSsmInventoryFilter(ctx, d.Quals)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
@@ -112,7 +106,17 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *ssm.GetInventoryOutput, isLast bool) bool {
 			for _, inventory := range page.Entities {
-				d.StreamListItem(ctx, inventory)
+				if inventory.Data != nil {
+					for _, v := range inventory.Data {
+						d.StreamListItem(ctx, &InventoryInfo{
+							InstanceId:    inventory.Id,
+							CaptureTime:   v.CaptureTime,
+							SchemaVersion: v.SchemaVersion,
+							TypeName:      v.TypeName,
+							Content:       v.Content,
+						})
+					}
+				}
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -126,159 +130,78 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, err
 }
 
-//// HYDRATE FUNCTIONS
+func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsSSMInventorySchema")
 
-// func getAwsSSMInventory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	logger := plugin.Logger(ctx)
-// 	logger.Trace("getAwsSSMInventory")
+	// Create session
+	svc, err := SsmService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "connection_error", err)
+		return nil, err
+	}
 
-// 	var name string
-// 	if h.Item != nil {
-// 		name = documentName(h.Item)
-// 	} else {
-// 		name = d.KeyColumnQuals["name"].GetStringValue()
-// 	}
+	inventory := h.Item.(*InventoryInfo)
 
-// 	// Create Session
-// 	svc, err := SsmService(ctx, d)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	input := &ssm.GetInventorySchemaInput{
+		TypeName: inventory.TypeName,
+	}
 
-// 	// Build the params
-// 	params := &ssm.GetInventoryInput{
+	var schemas []*ssm.InventoryItemSchema
 
-// 	}
+	err = svc.GetInventorySchemaPages(
+		input,
+		func(page *ssm.GetInventorySchemaOutput, isLast bool) bool {
 
-// 	// Get call
-// 	data, err := svc.GetInventory(params)
-// 	if err != nil {
-// 		logger.Debug("getAwsSSMDocument", "ERROR", err)
-// 		return nil, err
-// 	}
+			schemas = append(schemas, page.Schemas...)
+			return !isLast
+		},
+	)
 
-// 	return data.Document, nil
-// }
+	if err != nil {
+		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "ap_error", err)
+		return nil, err
+	}
 
-// func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	logger := plugin.Logger(ctx)
-// 	logger.Trace("getAwsSSMDocumentPermissionDetail")
-
-// 	var name string
-// 	if h.Item != nil {
-// 		name = documentName(h.Item)
-// 	} else {
-// 		name = d.KeyColumnQuals["name"].GetStringValue()
-// 	}
-
-// 	// Create Session
-// 	svc, err := SsmService(ctx, d)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Build the params
-// 	params := &ssm.DescribeDocumentPermissionInput{
-// 		Name:           &name,
-// 		PermissionType: aws.String("Share"),
-// 	}
-
-// 	// Get call
-// 	data, err := svc.DescribeDocumentPermission(params)
-// 	if err != nil {
-// 		logger.Debug("getAwsSSMDocumentPermissionDetail", "ERROR", err)
-// 		return nil, err
-// 	}
-
-// 	return data, nil
-// }
-
-// func getAwsSSMDocumentAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("getAwsSSMDocumentAkas")
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	name := documentName(h.Item)
-// 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-// 	c, err := getCommonColumnsCached(ctx, d, h)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	commonColumnData := c.(*awsCommonColumnData)
-// 	aka := "arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":document"
-
-// 	if strings.HasPrefix(name, "/") {
-// 		aka = aka + name
-// 	} else {
-// 		aka = aka + "/" + name
-// 	}
-
-// 	return []string{aka}, nil
-// }
-
-// func ssmDocumentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-// 	plugin.Logger(ctx).Trace("ssmDocumentTagListToTurbotTags")
-// 	data := resourceTags(d.HydrateItem)
-
-// 	if data == nil {
-// 		return nil, nil
-// 	}
-// 	// Mapping the resource tags inside turbotTags
-// 	var turbotTagsMap map[string]string
-// 	if data != nil {
-// 		turbotTagsMap = map[string]string{}
-// 		for _, i := range data {
-// 			turbotTagsMap[*i.Key] = *i.Value
-// 		}
-// 	}
-
-// 	return turbotTagsMap, nil
-// }
-
-// func documentName(item interface{}) string {
-// 	switch item := item.(type) {
-// 	case *ssm.DocumentDescription:
-// 		return *item.Name
-// 	case *ssm.DocumentIdentifier:
-// 		return *item.Name
-// 	}
-// 	return ""
-// }
-
-// func resourceTags(item interface{}) []*ssm.Tag {
-// 	switch item := item.(type) {
-// 	case *ssm.DocumentDescription:
-// 		return item.Tags
-// 	case *ssm.DocumentIdentifier:
-// 		return item.Tags
-// 	}
-// 	return nil
-// }
+	return schemas, nil
+}
 
 //// UTILITY FUNCTION
 
 // Build ssm documant list call input filter
-// func buildSsmDocumentFilter(quals plugin.KeyColumnQualMap) []*ssm.DocumentKeyValuesFilter {
-// 	filters := make([]*ssm.DocumentKeyValuesFilter, 0)
+func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap) *ssm.GetInventoryInput {
 
-// 	filterQuals := map[string]string{
-// 		"owner":         "Owner",
-// 		"document_type": "DocumentType",
-// 	}
+	input := &ssm.GetInventoryInput{
+		MaxResults: aws.Int64(50),
+	}
+	inventoryFilter := &ssm.InventoryFilter{}
+	resultAttribute := &ssm.ResultAttribute{}
 
-// 	for columnName, filterName := range filterQuals {
-// 		if quals[columnName] != nil {
-// 			filter := ssm.DocumentKeyValuesFilter{
-// 				Key: aws.String(filterName),
-// 			}
+	filterQuals := []string{"instance_id", "type_name"}
 
-// 			value := getQualsValueByColumn(quals, columnName, "string")
-// 			val, ok := value.(string)
-// 			if ok {
-// 				filter.Values = []*string{&val}
-// 			} else {
-// 				filter.Values = value.([]*string)
-// 			}
-// 			filters = append(filters, &filter)
-// 		}
-// 	}
-// 	return filters
-// }
+	for _, columnName := range filterQuals {
+		if quals[columnName] != nil {
+			value := getQualsValueByColumn(quals, columnName, "string")
+			for _, q := range quals[columnName].Quals {
+				switch columnName {
+				case "instance_id":
+					if q.Operator == "=" {
+						inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
+						inventoryFilter.Values = []*string{aws.String(value.(string))}
+						inventoryFilter.Type = aws.String("Equal")
+					} else if q.Operator == "<>" {
+						inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
+						inventoryFilter.Values = []*string{aws.String(value.(string))}
+						inventoryFilter.Type = aws.String("NotEqual")
+					}
+					input.Filters = append(input.Filters, inventoryFilter)
+				case "type_name":
+					if q.Operator == "=" {
+						resultAttribute.TypeName = aws.String(value.(string))
+						input.ResultAttributes = append(input.ResultAttributes, resultAttribute)
+					}
+				}
+			}
+		}
+	}
+	return input
+}
