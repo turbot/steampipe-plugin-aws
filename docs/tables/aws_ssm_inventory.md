@@ -44,10 +44,10 @@ where
 ```sql
 select
   instance_id,
-	s ->> 'Version' as schema_version,
-	s ->> 'TypeName' as type_name,
-	s ->> 'DisplayName' as display_name,
-	jsonb_pretty(s -> 'Attributes') as attributes
+  s ->> 'Version' as schema_version,
+  s ->> 'TypeName' as type_name,
+  s ->> 'DisplayName' as display_name,
+  jsonb_pretty(s -> 'Attributes') as attributes
 from
   aws_ssm_inventory,
   jsonb_array_elements(schema) as s
@@ -61,7 +61,7 @@ order by
 select
   instance_id,
   type_name,
-	capture_time,
+  capture_time,
   schema_version,
   content
 from
@@ -74,8 +74,8 @@ where
 
 ```sql
 select
-	v.instance_id,
-	i.instance_state,
+  v.instance_id,
+  i.instance_state,
   i.instance_type,
 	c ->> 'AgentType' as agent_type,
   c ->> 'IpAddress' as ip_address,
@@ -87,11 +87,11 @@ select
   c ->> 'InstanceStatus' as instance_status,
   c ->> 'PlatformVersion' as platform_version
 from
-	aws_ssm_inventory as v,
-	aws_ec2_instance as i,
-	jsonb_array_elements(content) as c
+  aws_ssm_inventory as v,
+  aws_ec2_instance as i,
+  jsonb_array_elements(content) as c
 where
-	v.instance_id = i.instance_id
+  v.instance_id = i.instance_id
 and
-	i.instance_state = 'running';
+  i.instance_state = 'running';
 ```

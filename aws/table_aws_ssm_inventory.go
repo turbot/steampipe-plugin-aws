@@ -167,7 +167,7 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// UTILITY FUNCTION
 
-// Build ssm documant list call input filter
+// Build ssm inventory list call input filter
 func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap) *ssm.GetInventoryInput {
 
 	input := &ssm.GetInventoryInput{
