@@ -158,7 +158,7 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "ap_error", err)
+		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "api_error", err)
 		return nil, err
 	}
 
@@ -184,13 +184,11 @@ func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap)
 			for _, q := range quals[columnName].Quals {
 				switch columnName {
 				case "instance_id":
+					inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
+					inventoryFilter.Values = []*string{aws.String(value.(string))}
 					if q.Operator == "=" {
-						inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
-						inventoryFilter.Values = []*string{aws.String(value.(string))}
 						inventoryFilter.Type = aws.String("Equal")
 					} else if q.Operator == "<>" {
-						inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
-						inventoryFilter.Values = []*string{aws.String(value.(string))}
 						inventoryFilter.Type = aws.String("NotEqual")
 					}
 					input.Filters = append(input.Filters, inventoryFilter)
