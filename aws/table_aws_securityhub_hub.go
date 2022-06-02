@@ -33,6 +33,13 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "administrator_account",
+				Description: "Provides the details for the Security Hub administrator account for the current member account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecurityHubAdministratorAccount,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "auto_enable_controls",
 				Description: "Whether to automatically enable new controls when they are added to standards that are enabled.",
 				Type:        proto.ColumnType_BOOL,
@@ -114,6 +121,26 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 	return op, nil
+}
+
+func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// get service
+	svc, err := SecurityHubService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &securityhub.GetAdministratorAccountInput{}
+
+	// Get call
+	op, err := svc.GetAdministratorAccount(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "api_error", err)
+		return nil, err
+	}
+	return op.Administrator, nil
 }
 
 func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
