@@ -1,0 +1,10 @@
+[
+	{
+		"hosted_zone_id": "{{ output.hosted_zone_id.value }}",
+		"id": "{{ output.id.value }}",
+		"name": "{{ resourceName }}.{{ resourceName }}.com.",
+		"traffic_policy_id": "{{ output.traffic_policy_id.value }}",
+		"traffic_policy_version": "{{ output.traffic_policy_version.value }}",
+		"ttl": "{{ output.ttl.value }}"
+	}
+]
