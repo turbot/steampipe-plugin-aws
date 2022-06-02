@@ -29,9 +29,7 @@ select
   h.private_zone
 from 
   aws_route53_traffic_policy_instance i
-join
-  aws_route53_zone h
-on i.hosted_zone_id = h.id;
+  join aws_route53_zone h on i.hosted_zone_id = h.id;
 ```
 
 ### List associated traffic policy details for each instance
@@ -47,10 +45,8 @@ select
   p.document
 from 
   aws_route53_traffic_policy_instance i
-join
-  aws_route53_traffic_policy p
-on i.traffic_policy_id = p.id
-and i.traffic_policy_version = p.version;
+  join aws_route53_traffic_policy p on i.traffic_policy_id = p.id 
+  and i.traffic_policy_version = p.version;
 ```
 
 ### List instances that failed creation
