@@ -77,7 +77,7 @@ select
   v.id,
   i.instance_state,
   i.instance_type,
-	c ->> 'AgentType' as agent_type,
+  c ->> 'AgentType' as agent_type,
   c ->> 'IpAddress' as ip_address,
   c ->> 'AgentVersion' as agent_version,
   c ->> 'ComputerName' as computer_name,
