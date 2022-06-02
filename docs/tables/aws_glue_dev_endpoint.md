@@ -86,15 +86,15 @@ from
 where
   e.endpoint_name = 'test5'
 and
-  e.subnet_id = s.subnet_id
+  e.subnet_id = s.subnet_id;
 ```
 
-### Get dev endpoint extra jars s3 bucket details
+### Get extra jars s3 bucket details for a dev endpoint 
 
 ```sql
 select
   e.endpoint_name,
-  split_part(e.extra_jars_s3_path, '/', '3') as extra_jars_s3_bucket,
+  split_part(j, '/', '3') as extra_jars_s3_bucket,
   b.versioning_enabled,
   b.policy,
   b.object_lock_configuration,
@@ -102,7 +102,10 @@ select
   b.policy
 from
   aws_glue_dev_endpoint as e,
-  aws_s3_bucket as b
+  aws_s3_bucket as b,
+  unnest (string_to_array(e.extra_jars_s3_path, ',')) as j
 where
-  b.name = split_part(e.extra_jars_s3_path, '/', '3')
+  b.name = split_part(j, '/', '3')
+and
+  e.endpoint_name = 'test34';
 ```
