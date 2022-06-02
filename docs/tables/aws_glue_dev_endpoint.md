@@ -45,7 +45,7 @@ select
   title,
   arn,
   status,
-	glue_version,
+  glue_version,
   last_modified_timestamp
 from
   aws_glue_dev_endpoint
@@ -60,7 +60,7 @@ select
   endpoint_name,
   arn,
   status,
-	glue_version,
+  glue_version,
   created_timestamp
 from
   aws_glue_dev_endpoint
@@ -72,37 +72,37 @@ where
 
 ```sql
 select
-	e.endpoint_name,
-	s.availability_zone,
-	s.available_ip_address_count,
-	s.cidr_block,
-	s.default_for_az,
-	s.map_customer_owned_ip_on_launch,
-	s.map_public_ip_on_launch,
-	s.state
+  e.endpoint_name,
+  s.availability_zone,
+  s.available_ip_address_count,
+  s.cidr_block,
+  s.default_for_az,
+  s.map_customer_owned_ip_on_launch,
+  s.map_public_ip_on_launch,
+  s.state
 from
-	aws_glue_dev_endpoint as e,
-	aws_vpc_subnet as s
+  aws_glue_dev_endpoint as e,
+  aws_vpc_subnet as s
 where
-	e.endpoint_name = 'test5'
+  e.endpoint_name = 'test5'
 and
-	e.subnet_id = s.subnet_id
+  e.subnet_id = s.subnet_id
 ```
 
 ### Get dev endpoint extra jars s3 bucket details
 
 ```sql
 select
-	e.endpoint_name,
-	split_part(e.extra_jars_s3_path, '/', '3') as extra_jars_s3_bucket,
-	b.versioning_enabled,
-	b.policy,
-	b.object_lock_configuration,
-	b.restrict_public_buckets,
-	b.policy
+  e.endpoint_name,
+  split_part(e.extra_jars_s3_path, '/', '3') as extra_jars_s3_bucket,
+  b.versioning_enabled,
+  b.policy,
+  b.object_lock_configuration,
+  b.restrict_public_buckets,
+  b.policy
 from
-	aws_glue_dev_endpoint as e,
-	aws_s3_bucket as b
+  aws_glue_dev_endpoint as e,
+  aws_s3_bucket as b
 where
-	b.name = split_part(e.extra_jars_s3_path, '/', '3')
+  b.name = split_part(e.extra_jars_s3_path, '/', '3')
 ```

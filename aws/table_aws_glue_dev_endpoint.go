@@ -36,7 +36,7 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "arn",
-				Description: "The Amazon Resource Name of the DevEndpoint.",
+				Description: "The Amazon Resource Name (ARN) of the DevEndpoint.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getGlueDevEndpointArn,
 				Transform:   transform.FromValue(),
