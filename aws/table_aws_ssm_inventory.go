@@ -18,15 +18,15 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMInventories,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "instance_id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "id", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "type_name", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "instance_id",
-				Description: "The managed node ID targeted by the request to query inventory information.",
+				Name:        "id",
+				Description: "ID of the inventory result entity.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -62,7 +62,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("InstanceId"),
+				Transform:   transform.FromField("Id"),
 			},
 		}),
 	}
@@ -71,7 +71,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 type InventoryInfo struct {
 	CaptureTime   *string
 	Content       interface{}
-	InstanceId    *string
+	Id            *string
 	SchemaVersion *string
 	TypeName      *string
 }
@@ -109,7 +109,7 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 				if inventory.Data != nil {
 					for _, v := range inventory.Data {
 						d.StreamListItem(ctx, &InventoryInfo{
-							InstanceId:    inventory.Id,
+							Id:            inventory.Id,
 							CaptureTime:   v.CaptureTime,
 							SchemaVersion: v.SchemaVersion,
 							TypeName:      v.TypeName,
@@ -176,14 +176,14 @@ func buildSsmInventoryFilter(ctx context.Context, quals plugin.KeyColumnQualMap)
 	inventoryFilter := &ssm.InventoryFilter{}
 	resultAttribute := &ssm.ResultAttribute{}
 
-	filterQuals := []string{"instance_id", "type_name"}
+	filterQuals := []string{"id", "type_name"}
 
 	for _, columnName := range filterQuals {
 		if quals[columnName] != nil {
 			value := getQualsValueByColumn(quals, columnName, "string")
 			for _, q := range quals[columnName].Quals {
 				switch columnName {
-				case "instance_id":
+				case "id":
 					inventoryFilter.Key = aws.String("AWS:InstanceInformation.InstanceId")
 					inventoryFilter.Values = []*string{aws.String(value.(string))}
 					if q.Operator == "=" {

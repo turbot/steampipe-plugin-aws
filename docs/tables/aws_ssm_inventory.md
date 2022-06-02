@@ -8,7 +8,7 @@ AWS Systems Manager Inventory provides visibility into your AWS computing enviro
 
 ```sql
 select
-  instance_id,
+  id,
   type_name,
   capture_time,
   schema_version,
@@ -22,7 +22,7 @@ from
 
 ```sql
 select
-  instance_id,
+  id,
   c ->> 'AgentType' as agent_type,
   c ->> 'IpAddress' as ip_address,
   c ->> 'AgentVersion' as agent_version,
@@ -36,14 +36,14 @@ from
   aws_ssm_inventory,
   jsonb_array_elements(content) as c
 where
-  instance_id = 'i-0665a65b1a1c2b47g';
+  id = 'i-0665a65b1a1c2b47g';
 ```
 
 ### List schema definitions for inventories
 
 ```sql
 select
-  instance_id,
+  id,
   s ->> 'Version' as schema_version,
   s ->> 'TypeName' as type_name,
   s ->> 'DisplayName' as display_name,
@@ -52,14 +52,14 @@ from
   aws_ssm_inventory,
   jsonb_array_elements(schema) as s
 order by 
-  instance_id;
+  id;
 ```
 
 ### Get inventory details from the last 10 days
 
 ```sql
 select
-  instance_id,
+  id,
   type_name,
   capture_time,
   schema_version,
@@ -74,7 +74,7 @@ where
 
 ```sql
 select
-  v.instance_id,
+  v.id,
   i.instance_state,
   i.instance_type,
 	c ->> 'AgentType' as agent_type,
@@ -91,7 +91,7 @@ from
   aws_ec2_instance as i,
   jsonb_array_elements(content) as c
 where
-  v.instance_id = i.instance_id
+  v.id = i.instance_id
 and
   i.instance_state = 'running';
 ```
