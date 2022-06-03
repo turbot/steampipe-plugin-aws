@@ -4,12 +4,13 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsSSMParameter(_ context.Context) *plugin.Table {
@@ -17,12 +18,20 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_parameter",
 		Description: "AWS SSM Parameter",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getAwsSSMParameter,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+			},
+			Hydrate: getAwsSSMParameter,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMParameters,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "type", Require: plugin.Optional},
+				{Name: "key_id", Require: plugin.Optional},
+				{Name: "tier", Require: plugin.Optional},
+				{Name: "data_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -144,13 +153,38 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	input := &ssm.DescribeParametersInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	filters := buildSsmParameterFilter(d.Quals, ctx)
+	if len(filters) > 0 {
+		input.ParameterFilters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeParametersPages(
-		&ssm.DescribeParametersInput{},
+		input,
 		func(page *ssm.DescribeParametersOutput, isLast bool) bool {
 			for _, parameter := range page.Parameters {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -292,4 +326,37 @@ func ssmTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (in
 	}
 
 	return turbotTagsMap, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm parameter list call input filter
+func buildSsmParameterFilter(quals plugin.KeyColumnQualMap, ctx context.Context) []*ssm.ParameterStringFilter {
+	filters := make([]*ssm.ParameterStringFilter, 0)
+
+	filterQuals := map[string]string{
+		"type":      "Type",
+		"key_id":    "KeyId",
+		"tier":      "Tier",
+		"data_type": "DataType",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.ParameterStringFilter{
+				Key:    aws.String(filterName),
+				Option: aws.String("Equals"),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{&val}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

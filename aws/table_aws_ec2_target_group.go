@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +19,20 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_target_group",
 		Description: "AWS EC2 Target Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("target_group_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
-			Hydrate:           getEc2TargetGroup,
+			KeyColumns: plugin.SingleColumn("target_group_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "TargetGroupNotFound"}),
+			},
+			Hydrate: getEc2TargetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TargetGroups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"TargetGroupNotFound"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "target_group_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -159,12 +168,39 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &elbv2.DescribeTargetGroupsInput{
+		PageSize: aws.Int64(400),
+	}
+
+	// Additional Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["target_group_name"] != nil {
+		input.Names = []*string{aws.String(equalQuals["target_group_name"].GetStringValue())}
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.PageSize {
+			if *limit < 1 {
+				input.PageSize = types.Int64(1)
+			} else {
+				input.PageSize = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTargetGroupsPages(
-		&elbv2.DescribeTargetGroupsInput{},
+		input,
 		func(page *elbv2.DescribeTargetGroupsOutput, isLast bool) bool {
 			for _, targetGroup := range page.TargetGroups {
 				d.StreamListItem(ctx, targetGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

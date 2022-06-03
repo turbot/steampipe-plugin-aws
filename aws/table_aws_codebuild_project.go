@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codebuild"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 		Name:        "aws_codebuild_project",
 		Description: "AWS CodeBuild Project",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException"}),
-			Hydrate:           getCodeBuildProject,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+			},
+			Hydrate: getCodeBuildProject,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildProjects,
@@ -134,6 +136,12 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "project_visibility",
+				Description: "Visibility of the build project.",
+				Hydrate:     getCodeBuildProject,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "secondary_artifacts",
 				Description: "An array of ProjectArtifacts objects.",
 				Hydrate:     getCodeBuildProject,
@@ -219,6 +227,11 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 				d.StreamListItem(ctx, &codebuild.Project{
 					Name: result,
 				})
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

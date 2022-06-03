@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 type integrationInfo = struct {
@@ -22,9 +22,11 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_integration",
 		Description: "AWS API Gateway Version 2 Integration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"integration_id", "api_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "TooManyRequestsException"}),
-			Hydrate:           getAPIGatewayV2Integration,
+			KeyColumns: plugin.AllColumns([]string{"integration_id", "api_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "TooManyRequestsException"}),
+			},
+			Hydrate: getAPIGatewayV2Integration,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAPIGatewayV2API,
@@ -188,6 +190,11 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 		for _, integration := range result.Items {
 			d.StreamLeafListItem(ctx, integrationInfo{*integration, *api.ApiId})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

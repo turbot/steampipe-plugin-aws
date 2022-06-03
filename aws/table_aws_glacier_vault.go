@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/glacier"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -20,9 +21,11 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 		Name:        "aws_glacier_vault",
 		Description: "AWS Glacier Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vault_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getGlacierVault,
+			KeyColumns: plugin.SingleColumn("vault_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getGlacierVault,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlacierVault,
@@ -136,15 +139,36 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 	accountID := commonColumnData.AccountId
+	maxLimit := "10"
+
+	input := &glacier.ListVaultsInput{
+		AccountId: aws.String(accountID),
+		Limit:     &maxLimit,
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < 10 {
+			if *limit < 1 {
+				input.Limit = aws.String("1")
+			} else {
+				input.Limit = aws.String(fmt.Sprint(*limit))
+			}
+		}
+	}
 
 	// List call
 	err = svc.ListVaultsPages(
-		&glacier.ListVaultsInput{
-			AccountId: aws.String(accountID),
-		},
+		input,
 		func(page *glacier.ListVaultsOutput, isLast bool) bool {
 			for _, vaults := range page.VaultList {
 				d.StreamListItem(ctx, vaults)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

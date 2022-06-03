@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_cluster",
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheCluster,
+			KeyColumns: plugin.SingleColumn("cache_cluster_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,
@@ -190,12 +192,32 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheClustersInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheClustersPages(
-		&elasticache.DescribeCacheClustersInput{},
+		input,
 		func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
 			for _, cacheCluster := range page.CacheClusters {
 				d.StreamListItem(ctx, cacheCluster)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

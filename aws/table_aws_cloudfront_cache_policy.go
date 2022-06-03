@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsCloudFrontCachePolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_cache_policy",
 		Description: "AWS CloudFront Cache Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchCachePolicy"}),
-			Hydrate:           getCloudFrontCachePolicy,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchCachePolicy"}),
+			},
+			Hydrate: getCloudFrontCachePolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontCachePolicies,
@@ -110,11 +113,46 @@ func listCloudFrontCachePolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	// The maximum number for MaxItems parameter is not defined by the API
+	// We have set the MaxItems to 1000 based on our test
 	// List call
-	result, err := svc.ListCachePolicies(&cloudfront.ListCachePoliciesInput{})
+	input := &cloudfront.ListCachePoliciesInput{
+		MaxItems: aws.Int64(1000),
+	}
 
-	for _, policy := range result.CachePolicyList.Items {
-		d.StreamListItem(ctx, policy)
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = types.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
+	pagesLeft := true
+	for pagesLeft {
+		result, err := svc.ListCachePolicies(input)
+		if err != nil {
+			plugin.Logger(ctx).Error("listCloudFrontCachePolicies", "ListCachePolicies_error", err)
+			return nil, err
+		}
+		for _, policy := range result.CachePolicyList.Items {
+			d.StreamListItem(ctx, policy)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+		if result.CachePolicyList.NextMarker != nil {
+			input.Marker = result.CachePolicyList.NextMarker
+		} else {
+			pagesLeft = false
+		}
 	}
 
 	return nil, err
@@ -144,6 +182,7 @@ func getCloudFrontCachePolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	op, err := svc.GetCachePolicy(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getCloudFrontCachePolicy", "GetCachePolicy_error", err)
 		return nil, err
 	}
 

@@ -1,0 +1,7 @@
+[
+  {
+    "accepter_vpc_id": "{{ output.peer_vpc_id.value }}",
+    "id": "{{ output.id.value }}",
+    "requester_vpc_id": "{{ output.vpc_id.value }}"
+  }
+]

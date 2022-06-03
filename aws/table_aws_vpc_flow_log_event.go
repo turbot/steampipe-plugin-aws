@@ -7,16 +7,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcFlowLogEventListKeyColumns() []*plugin.KeyColumn {
 	return []*plugin.KeyColumn{
 		{Name: "log_group_name"},
 		{Name: "log_stream_name", Require: plugin.Optional},
-		{Name: "filter", Require: plugin.Optional},
+		{Name: "filter", Require: plugin.Optional, CacheMatch: "exact"},
 		{Name: "region", Require: plugin.Optional},
 		{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 

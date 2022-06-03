@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_launch_configuration",
 		Description: "AWS EC2 Launch Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
-			Hydrate:           getAwsEc2LaunchConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
+			},
+			Hydrate: getAwsEc2LaunchConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
@@ -174,12 +176,32 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	input := &autoscaling.DescribeLaunchConfigurationsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 1 {
+				input.MaxRecords = aws.Int64(1)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeLaunchConfigurationsPages(
-		&autoscaling.DescribeLaunchConfigurationsInput{},
+		input,
 		func(page *autoscaling.DescribeLaunchConfigurationsOutput, isLast bool) bool {
 			for _, launchConfiguration := range page.LaunchConfigurations {
 				d.StreamListItem(ctx, launchConfiguration)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

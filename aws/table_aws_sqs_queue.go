@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -19,9 +19,11 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Name:        "aws_sqs_queue",
 		Description: "AWS SQS Queue",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("queue_url"),
-			ShouldIgnoreError: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
-			Hydrate:           getQueueAttributes,
+			KeyColumns: plugin.SingleColumn("queue_url"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+			},
+			Hydrate: getQueueAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
@@ -78,6 +80,13 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.ReceiveMessageWaitTimeSeconds"),
 			},
 			{
+				Name:        "sqs_managed_sse_enabled",
+				Description: "Returns true if the queue is using SSE-SQS encryption with SQS-owned encryption keys.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getQueueAttributes,
+				Transform:   transform.FromField("Attributes.SqsManagedSseEnabled"),
+			},
+			{
 				Name:        "visibility_timeout_seconds",
 				Description: "The visibility timeout for the queue in seconds.",
 				Type:        proto.ColumnType_STRING,
@@ -115,7 +124,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "kms_master_key_id",
-				Description: "the ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK.",
+				Description: "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getQueueAttributes,
 				Transform:   transform.FromField("Attributes.KmsMasterKeyId"),
@@ -153,8 +162,25 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+
+	input := &sqs.ListQueuesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListQueuesPages(
-		&sqs.ListQueuesInput{},
+		input,
 		func(page *sqs.ListQueuesOutput, lastPage bool) bool {
 			for _, queueURL := range page.QueueUrls {
 				d.StreamListItem(ctx, &sqs.GetQueueAttributesOutput{
@@ -162,6 +188,11 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 						"QueueUrl": queueURL,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

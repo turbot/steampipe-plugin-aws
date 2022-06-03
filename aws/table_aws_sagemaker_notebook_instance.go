@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,19 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerNotebookInstance,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerNotebookInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "default_code_repository", Require: plugin.Optional},
+				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},
+				{Name: "notebook_instance_status", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -144,7 +151,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the notebook instance.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Standard columns
@@ -159,7 +166,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerNotebookInstanceTags,
-				Transform:   transform.FromField("Tags").Transform(getAwsSageMakerNotebookInstanceTurbotTags),
+				Transform:   transform.From(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -182,12 +189,51 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &sagemaker.ListNotebookInstancesInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["default_code_repository"] != nil {
+		if equalQuals["default_code_repository"].GetStringValue() != "" {
+			input.DefaultCodeRepositoryContains = aws.String(equalQuals["default_code_repository"].GetStringValue())
+		}
+	}
+	if equalQuals["notebook_instance_lifecycle_config_name"] != nil {
+		if equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue() != "" {
+			input.NotebookInstanceLifecycleConfigNameContains = aws.String(equalQuals["notebook_instance_lifecycle_config_name"].GetStringValue())
+		}
+	}
+	if equalQuals["notebook_instance_status"] != nil {
+		if equalQuals["notebook_instance_status"].GetStringValue() != "" {
+			input.StatusEquals = aws.String(equalQuals["notebook_instance_status"].GetStringValue())
+		}
+
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListNotebookInstancesPages(
-		&sagemaker.ListNotebookInstancesInput{},
+		input,
 		func(page *sagemaker.ListNotebookInstancesOutput, isLast bool) bool {
 			for _, notebookInstance := range page.NotebookInstances {
 				d.StreamListItem(ctx, notebookInstance)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -242,31 +288,27 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 		ResourceArn: aws.String(resourceArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		logger.Debug("listAwsSageMakerNotebookInstanceTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsSageMakerNotebookInstanceTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTION
-
-func getAwsSageMakerNotebookInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
 
 func notebookInstanceARN(item interface{}) string {
 	switch item := item.(type) {

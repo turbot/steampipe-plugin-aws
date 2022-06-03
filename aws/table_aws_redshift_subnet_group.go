@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_subnet_group",
 		Description: "AWS Redshift Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_subnet_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterSubnetGroupNotFoundFault"}),
-			Hydrate:           getRedshiftSubnetGroup,
+			KeyColumns: plugin.SingleColumn("cluster_subnet_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getRedshiftSubnetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftSubnetGroup,
@@ -95,12 +97,33 @@ func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &redshift.DescribeClusterSubnetGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeClusterSubnetGroupsPages(
-		&redshift.DescribeClusterSubnetGroupsInput{},
+		input,
 		func(page *redshift.DescribeClusterSubnetGroupsOutput, isLast bool) bool {
 			for _, subnetGroup := range page.ClusterSubnetGroups {
 				d.StreamListItem(ctx, subnetGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

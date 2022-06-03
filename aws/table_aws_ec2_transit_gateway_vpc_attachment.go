@@ -6,21 +6,33 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name: "aws_ec2_transit_gateway_vpc_attachment",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("transit_gateway_attachment_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
-			Hydrate:           getEc2TransitGatewayVpcAttachment,
+			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
+			},
+			Hydrate: getEc2TransitGatewayVpcAttachment,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayVpcAttachment,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "association_state", Require: plugin.Optional},
+				{Name: "association_transit_gateway_route_table_id", Require: plugin.Optional},
+				{Name: "resource_id", Require: plugin.Optional},
+				{Name: "resource_owner_id", Require: plugin.Optional},
+				{Name: "resource_type", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "transit_gateway_id", Require: plugin.Optional},
+				{Name: "transit_gateway_owner_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -119,12 +131,38 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 		return nil, err
 	}
 
+	input := &ec2.DescribeTransitGatewayAttachmentsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filters := buildEc2TransitGatewayVpcAttachmentFilter(d.Quals)
+
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeTransitGatewayAttachmentsPages(
-		&ec2.DescribeTransitGatewayAttachmentsInput{},
+		input,
 		func(page *ec2.DescribeTransitGatewayAttachmentsOutput, isLast bool) bool {
 			for _, transitGatewayAttachment := range page.TransitGatewayAttachments {
 				d.StreamListItem(ctx, transitGatewayAttachment)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -200,4 +238,39 @@ func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.Transfo
 		}
 	}
 	return title, nil
+}
+
+//// UTILITY FUNCTION
+// Build ec2 transit gateway VPC attachment list call input filter
+func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"association_state":                          "association.state",
+		"association_transit_gateway_route_table_id": "association.transit-gateway-route-table-id",
+		"resource_id":                                "resource-id",
+		"resource_owner_id":                          "resource-owner-id",
+		"resource_type":                              "resource-type",
+		"state":                                      "state",
+		"transit_gateway_id":                         "transit-gateway-id",
+		"transit_gateway_owner_id":                   "transit-gateway-owner-id",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

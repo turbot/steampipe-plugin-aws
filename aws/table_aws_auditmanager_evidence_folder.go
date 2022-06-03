@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_evidence_folder",
 		Description: "AWS Audit Manager Evidence Folder",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAuditManagerEvidenceFolder,
+			KeyColumns: plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getAuditManagerEvidenceFolder,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
@@ -158,12 +161,34 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 	// Get assessment details
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
+	input := &auditmanager.GetEvidenceFoldersByAssessmentInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	input.AssessmentId = &assessmentID
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.GetEvidenceFoldersByAssessmentPages(
-		&auditmanager.GetEvidenceFoldersByAssessmentInput{AssessmentId: &assessmentID},
+		input,
 		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
 			for _, folder := range page.EvidenceFolders {
 				d.StreamListItem(ctx, folder)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

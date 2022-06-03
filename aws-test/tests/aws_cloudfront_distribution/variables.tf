@@ -48,7 +48,6 @@ data "null_data_source" "resource" {
 
 resource "aws_s3_bucket" "test_bucket" {
   bucket = var.resource_name
-  acl    = "private"
   force_destroy = true
 }
 

@@ -2,11 +2,18 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
+	"math/rand"
+	"os"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -19,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -32,6 +40,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/aws/aws-sdk-go/service/dlm"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -47,10 +56,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/aws/aws-sdk-go/service/firehose"
+	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/identitystore"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
@@ -58,8 +69,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie2"
+	"github.com/aws/aws-sdk-go/service/mediastore"
+	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/aws/aws-sdk-go/service/networkfirewall"
+	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/aws/aws-sdk-go/service/ram"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
@@ -71,16 +88,23 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
+	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssoadmin"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
+	"github.com/aws/aws-sdk-go/service/workspaces"
 
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 // AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
@@ -256,6 +280,33 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	return svc, nil
 }
 
+// CloudControlService returns the service connection for AWS Cloud Control API service
+func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontrolapi.CloudControlApi, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CloudControlService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudcontrolapi-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudcontrolapi.CloudControlApi), nil
+	}
+
+	// CloudControl returns GeneralServiceException, which appears to be retryable
+	// We deliberately reduce the number of retries to avoid long delays
+	sess, err := getSessionWithMaxRetries(ctx, d, region, 8, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := cloudcontrolapi.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // CodeBuildService returns the service connection for AWS CodeBuild service
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -403,8 +454,8 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 }
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, d *plugin.QueryData) (*cloudtrail.CloudTrail, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
+
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -503,6 +554,28 @@ func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservi
 		return nil, err
 	}
 	svc := directoryservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DLMService returns the service connection for AWS DLM Service
+func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DLMService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("dlm-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*dlm.DLM), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := dlm.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -638,6 +711,29 @@ func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
 		return nil, err
 	}
 	svc := efs.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// FsxService returns the service connection for AWS FSx File System service
+func FsxService(ctx context.Context, d *plugin.QueryData) (*fsx.FSx, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed FsxService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("fsx-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*fsx.FSx), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := fsx.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -931,8 +1027,30 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 	if err != nil {
 		return nil, err
 	}
-	// svc := iam.New(session.New(&aws.Config{MaxRetries: aws.Int(10)}))
+
 	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// IdentityStoreService returns the service connection for AWS IdentityStore service
+func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identitystore.IdentityStore, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed IdentityStoreService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("identitystore-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*identitystore.IdentityStore), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := identitystore.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1092,6 +1210,118 @@ func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, er
 	return svc, nil
 }
 
+// MediaStoreService returns the service connection for AWS Media Store Service
+func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.MediaStore, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed MediaStoreService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("mediastore-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*mediastore.MediaStore), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := mediastore.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// NeptuneService returns the service connection for AWS Neptune service
+func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed NeptuneService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("neptune-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*neptune.Neptune), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := neptune.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// NetworkFirewallService returns the service connection for AWS Network Firewall service
+func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed NetworkFirewallService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("networkfirewall-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*networkfirewall.NetworkFirewall), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := networkfirewall.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// PinpointService returns the service connection for AWS Pinpoint service
+func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed PinpointService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("pinpoint-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*pinpoint.Pinpoint), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := pinpoint.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// OpenSearchService returns the service connection for AWS OpenSearch service
+func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed OpenSearchService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("opensearch-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*opensearchservice.OpenSearchService), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := opensearchservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // OrganizationService returns the service connection for AWS Organization service
 func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
 	// have we already created and cached the service?
@@ -1149,6 +1379,30 @@ func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing,
 		return nil, err
 	}
 	svc := pricing.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// RAMService returns the service connection for AWS RAM Service
+func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed RAMService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ram-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ram.RAM), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ram.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1365,6 +1619,47 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 	return svc, nil
 }
 
+// ServerlessApplicationRepositoryService returns the service connection for AWS Serverless Application Repository service
+func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ServerlessApplicationRepositoryService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("serverlessapplicationrepository-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*serverlessapplicationrepository.ServerlessApplicationRepository), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := serverlessapplicationrepository.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SESService returns the service connection for AWS SES service
+func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "ses" + region
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ses.SES), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ses.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // SNSService returns the service connection for AWS SNS service
 func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -1382,6 +1677,46 @@ func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
 		return nil, err
 	}
 	svc := sns.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ServiceQuotasService returns the service connection for AWS ServiceQuotas service
+func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("servicequotas-%s", "region")
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*servicequotas.ServiceQuotas), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, "")
+	if err != nil {
+		return nil, err
+	}
+	svc := servicequotas.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ServiceQuotasRegionalService returns the service connection for AWS ServiceQuotas regional service
+func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed ServiceQuotasRegionalService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("servicequotas-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*servicequotas.ServiceQuotas), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := servicequotas.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1426,6 +1761,51 @@ func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
 		return nil, err
 	}
 	svc := ssm.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// SSOAdminService returns the service connection for AWS SSM service
+func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SSOAdminService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ssoadmin-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ssoadmin.SSOAdmin), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ssoadmin.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// StepFunctionsService returns the service connection for AWS Step Functions service
+func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed StepFunctionsService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("stepfunctions-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*sfn.SFN), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := sfn.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1492,6 +1872,30 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 	return svc, nil
 }
 
+// WAFRegionalService returns the service connection for AWS WAF Regional service
+func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
+	// have we already created and cached the service?
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed WAF Regional")
+	}
+	serviceCacheKey := "wafregional"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*wafregional.WAFRegional), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := wafregional.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // WAFv2Service returns the service connection for AWS WAFv2 service
 func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.WAFV2, error) {
 	if region == "" {
@@ -1535,13 +1939,70 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return svc, nil
 }
 
-func getSession(_ context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+// WorkspacesService returns the service connection for AWS Workspaces service
+func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed WorkspacesService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("workspaces-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*workspaces.WorkSpaces), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := workspaces.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+func getSession(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
+	awsConfig := GetConfig(d.Connection)
+
+	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
+	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
+	// waiting too long to return results
+	maxRetries := 9
+	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+
+	// Set max retry count from config file or env variable (config file has precedence)
+	if awsConfig.MaxErrorRetryAttempts != nil {
+		maxRetries = *awsConfig.MaxErrorRetryAttempts
+	} else if os.Getenv("AWS_MAX_ATTEMPTS") != "" {
+		maxRetriesEnvVar, err := strconv.Atoi(os.Getenv("AWS_MAX_ATTEMPTS"))
+		if err != nil || maxRetriesEnvVar < 1 {
+			panic("invalid value for environment variable \"AWS_MAX_ATTEMPTS\". It should be an integer value greater than or equal to 1")
+		}
+		maxRetries = maxRetriesEnvVar
+	}
+
+	// Set min delay time from config file
+	if awsConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	}
+
+	if maxRetries < 1 {
+		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+	if minRetryDelay < 1 {
+		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
+
+	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+}
+
+func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*session.Session, error) {
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*session.Session), nil
 	}
 
-	// If seesion was not in cache - create a session and saave to cache
+	// If session was not in cache - create a session and save to cache
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
@@ -1551,8 +2012,8 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 		SharedConfigState: session.SharedConfigEnable,
 		Config: aws.Config{
 			Region:     &region,
-			MaxRetries: aws.Int(10),
-			Retryer:    NewConnectionErrRetryer(10),
+			MaxRetries: aws.Int(maxRetries),
+			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
 		},
 	}
 
@@ -1578,6 +2039,7 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
+		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
 		return nil, err
 	}
 
@@ -1591,7 +2053,7 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 // if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
 
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
@@ -1624,7 +2086,6 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 	}
 
-	validPatterns := []string{}
 	invalidPatterns := []string{}
 	for _, namePattern := range regions {
 		validRegions := []string{}
@@ -1635,16 +2096,14 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		}
 		if len(validRegions) == 0 {
 			invalidPatterns = append(invalidPatterns, namePattern)
-		} else {
-			validPatterns = append(validPatterns, namePattern)
 		}
 	}
 
-	if len(validPatterns) == 0 {
-		panic("\nconnection config have invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe")
+	if len(invalidPatterns) > 0 {
+		panic("\nconnection config has invalid \"regions\": " + strings.Join(invalidPatterns, ", ") + ". Edit your connection configuration file and then restart Steampipe.")
 	}
 
-	// most of the global services (like IAM, s3, Route53, etc..) in both cloud are the targeting the respective regions
+	// most of the global services like IAM, S3, Route 53, etc. in all cloud types target these regions
 	if strings.HasPrefix(region, "us-gov") && !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
@@ -1658,10 +2117,13 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 }
 
 // Function from https://github.com/panther-labs/panther/blob/v1.16.0/pkg/awsretry/connection_retryer.go
-func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
+func NewConnectionErrRetryer(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryer {
+	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
 	return &ConnectionErrRetryer{
+		ctx: ctx,
 		DefaultRetryer: client.DefaultRetryer{
-			NumMaxRetries: maxRetries, // MUST be set or all retrying is skipped!
+			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
+			MinRetryDelay: minRetryDelay, // Set minimum retry delay
 		},
 	}
 }
@@ -1673,6 +2135,7 @@ func NewConnectionErrRetryer(maxRetries int) *ConnectionErrRetryer {
 // See also: https://github.com/aws/aws-sdk-go/issues/3027#issuecomment-567269161
 type ConnectionErrRetryer struct {
 	client.DefaultRetryer
+	ctx context.Context
 }
 
 func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
@@ -1680,8 +2143,49 @@ func (r ConnectionErrRetryer) ShouldRetry(req *request.Request) bool {
 		if strings.Contains(req.Error.Error(), "connection reset by peer") {
 			return true
 		}
+
+		var awsErr awserr.Error
+		if errors.As(req.Error, &awsErr) {
+			/*
+				If no credentials are set or an invalid profile is provided, the AWS SDK
+				will attempt to authenticate using all known methods. This takes a while
+				since it will attempt to reach the EC2 metadata service and will continue
+				to retry on connection errors, e.g.,
+				awsErr.OrigErr()="Put "http://169.254.169.254/latest/api/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+				awsErr.OrigErr()="Get "http://169.254.169.254/latest/meta-data/iam/security-credentials/": dial tcp 169.254.169.254:80: connect: no route to host"
+				To reduce the time to fail, limit the number of retries for these errors specifically.
+			*/
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "http://169.254.169.254/latest") && req.RetryCount > 3 {
+					return false
+				}
+			}
+		}
 	}
 
 	// Fallback to SDK's built in retry rules
 	return r.DefaultRetryer.ShouldRetry(req)
+}
+
+// Customize the RetryRules to implement exponential backoff retry
+func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
+	retryCount := r.RetryCount
+	minDelay := d.MinRetryDelay
+
+	// If errors are caused by load, retries can be ineffective if all API request retry at the same time.
+	// To avoid this problem added a jitter of "+/-20%" with delay time.
+	// For example, if the delay is 25ms, the final delay could be between 20 and 30ms.
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	// Creates a new exponential backoff using the starting value of
+	// minDelay and (minDelay * 3^retrycount) * jitter on each failure
+	// For example, with a min delay time of 25ms: 23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s..., up to max.
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
+
+	// Cap retry time at 5 minuets to avoid too long a wait
+	if retryTime > time.Duration(5*time.Minute) {
+		retryTime = time.Duration(5 * time.Minute)
+	}
+
+	return retryTime
 }

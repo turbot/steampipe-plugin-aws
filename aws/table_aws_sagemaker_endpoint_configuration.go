@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,17 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_endpoint_configuration",
 		Description: "AWS Sagemaker Endpoint Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
-			Hydrate:           getSagemakerEndpointConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
+			},
+			Hydrate: getSagemakerEndpointConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSagemakerEndpointConfigurations,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -65,7 +70,7 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the endpoint configuration.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listSageMakerEndpointConfigurationTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -80,7 +85,7 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listSageMakerEndpointConfigurationTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerEndpointConfigurationTurbotTags),
+				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -103,12 +108,46 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
+	input := &sagemaker.ListEndpointConfigsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	quals := d.Quals
+	if quals["timestamp"] != nil {
+		for _, q := range quals["timestamp"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.CreationTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List Call
 	err = svc.ListEndpointConfigsPages(
-		&sagemaker.ListEndpointConfigsInput{},
+		input,
 		func(page *sagemaker.ListEndpointConfigsOutput, isLast bool) bool {
 			for _, config := range page.EndpointConfigs {
 				d.StreamListItem(ctx, config)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -163,31 +202,27 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 		ResourceArn: aws.String(configArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		plugin.Logger(ctx).Debug("listSageMakerEndpointConfigurationTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listSageMakerEndpointConfigurationTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTIONS
-
-func sageMakerEndpointConfigurationTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap := map[string]string{}
-	for _, i := range data.Tags {
-		turbotTagsMap[*i.Key] = *i.Value
-	}
-	return turbotTagsMap, nil
-}
 
 func endpointConfigARN(item interface{}) string {
 	switch item := item.(type) {

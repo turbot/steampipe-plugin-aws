@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,18 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_option_group",
 		Description: "AWS RDS DB Option Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			Hydrate:           getRDSDBOptionGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
+			},
+			Hydrate: getRDSDBOptionGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "engine_name", Require: plugin.Optional},
+				{Name: "major_engine_version", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -113,12 +119,44 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	input := &rds.DescribeOptionGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["engine_name"] != nil {
+		input.EngineName = aws.String(equalQuals["engine_name"].GetStringValue())
+	}
+
+	// We must need to pass engine name if we are passing the major engine version
+	if equalQuals["engine_name"] != nil && equalQuals["major_engine_version"] != nil {
+		input.MajorEngineVersion = aws.String(equalQuals["major_engine_version"].GetStringValue())
+	}
+
 	// List call
 	err = svc.DescribeOptionGroupsPages(
-		&rds.DescribeOptionGroupsInput{},
+		input,
 		func(page *rds.DescribeOptionGroupsOutput, isLast bool) bool {
 			for _, optionGroup := range page.OptionGroupsList {
 				d.StreamListItem(ctx, optionGroup)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

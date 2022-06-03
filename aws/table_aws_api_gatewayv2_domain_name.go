@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_domain_name",
 		Description: "AWS API Gateway Version 2 Domain Name",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"domain_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getDomainName,
+			KeyColumns: plugin.AllColumns([]string{"domain_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getDomainName,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDomainNames,
@@ -83,6 +85,11 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 		for _, domainName := range result.Items {
 			d.StreamListItem(ctx, domainName)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if result.NextToken != nil {

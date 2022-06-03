@@ -2,11 +2,14 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,12 +19,22 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_resolver_endpoint",
 		Description: "AWS Route53 Resolver Endpoint",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsRoute53ResolverEndpoint,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsRoute53ResolverEndpoint,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRoute53ResolverEndpoint,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creator_request_id", Require: plugin.Optional},
+				{Name: "direction", Require: plugin.Optional},
+				{Name: "host_vpc_id", Require: plugin.Optional},
+				{Name: "ip_address_count", Require: plugin.Optional},
+				{Name: "status", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -134,13 +147,38 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	input := &route53resolver.ListResolverEndpointsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	filter := buildRoute53ResolverEndpointFilter(d.Quals)
+	if len(filter) > 0 {
+		input.Filters = filter
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListResolverEndpointsPages(
-		&route53resolver.ListResolverEndpointsInput{},
+		input,
 		func(page *route53resolver.ListResolverEndpointsOutput, isLast bool) bool {
 			for _, parameter := range page.ResolverEndpoints {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -249,4 +287,48 @@ func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.Transf
 	}
 
 	return turbotTagsMap, nil
+}
+
+//// UTILITY FUNCTION
+// Build route53resolver endpoint list call input filter
+func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
+	filters := make([]*route53resolver.Filter, 0)
+
+	filterQuals := map[string]string{
+		"creator_request_id": "CreatorRequestId",
+		"direction":          "Direction",
+		"host_vpc_id":        "HostVPCId",
+		"ip_address_count":   "IpAddressCount",
+		"status":             "Status",
+		"name":               "Name",
+	}
+
+	columnsInt := []string{"ip_address_count"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := route53resolver.Filter{
+				Name: aws.String(filterName),
+			}
+			if helpers.StringSliceContains(columnsInt, columnName) { //check Int columns
+				value := getQualsValueByColumn(quals, columnName, "int64")
+				val, ok := value.(int64)
+				if ok {
+					filter.Values = []*string{aws.String(fmt.Sprint(val))}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{aws.String(val)}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

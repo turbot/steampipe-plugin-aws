@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -20,12 +20,18 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_patch_baseline",
 		Description: "AWS SSM Patch Baseline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("baseline_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
-			Hydrate:           getPatchBaseline,
+			KeyColumns: plugin.SingleColumn("baseline_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
+			},
+			Hydrate: getPatchBaseline,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: describePatchBaselines,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "operating_system", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -171,12 +177,27 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Build the params
 	// Adding a filter to filter out all the predefined patch baseline, that does not belongs to the user or account
 	params := &ssm.DescribePatchBaselinesInput{
-		Filters: []*ssm.PatchOrchestratorFilter{
-			{
-				Key:    aws.String("OWNER"),
-				Values: []*string{aws.String("Self")},
-			},
-		},
+		MaxResults: aws.Int64(100),
+	}
+
+	ownerFilter := &ssm.PatchOrchestratorFilter{
+		Key:    aws.String("OWNER"),
+		Values: []*string{aws.String("Self")},
+	}
+
+	filters := append(buildSsmPatchBaselineFilter(d.Quals), ownerFilter)
+	params.Filters = filters
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
@@ -195,6 +216,10 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 				}
 				d.StreamListItem(ctx, rowData)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -288,4 +313,34 @@ func getAwsSSMPatchBaselineAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return []string{aka}, nil
+}
+
+//// UTILITY FUNCTION
+
+// Build ssm patch baseline list call input filter
+func buildSsmPatchBaselineFilter(quals plugin.KeyColumnQualMap) []*ssm.PatchOrchestratorFilter {
+	filters := make([]*ssm.PatchOrchestratorFilter, 0)
+
+	filterQuals := map[string]string{
+		"name":             "NAME_PREFIX",
+		"operating_system": "OPERATING_SYSTEM",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ssm.PatchOrchestratorFilter{
+				Key: aws.String(filterName),
+			}
+
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{&val}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

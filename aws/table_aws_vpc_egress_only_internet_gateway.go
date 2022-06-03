@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_egress_only_internet_gateway",
 		Description: "AWS VPC Egress Only Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
-			Hydrate:           getVpcEgressOnlyInternetGateway,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
+			},
+			Hydrate: getVpcEgressOnlyInternetGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
@@ -76,14 +78,36 @@ func listVpcEgressOnlyInternetGateways(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &ec2.DescribeEgressOnlyInternetGatewaysInput{
+		MaxResults: aws.Int64(255),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeEgressOnlyInternetGatewaysPages(
-		&ec2.DescribeEgressOnlyInternetGatewaysInput{},
+		input,
 		func(page *ec2.DescribeEgressOnlyInternetGatewaysOutput, isLast bool) bool {
 			for _, egressOnlyInternetGateway := range page.EgressOnlyInternetGateways {
 				d.StreamListItem(ctx, egressOnlyInternetGateway)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
+
 		},
 	)
 

@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_parameter_group",
 		Description: "AWS ElastiCache Parameter Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_parameter_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
-			Hydrate:           getElastiCacheParameterGroup,
+			KeyColumns: plugin.SingleColumn("cache_parameter_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheParameterGroupNotFound", "InvalidParameterValueException"}),
+			},
+			Hydrate: getElastiCacheParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheParameterGroup,
@@ -80,12 +82,32 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheParameterGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheParameterGroupsPages(
-		&elasticache.DescribeCacheParameterGroupsInput{},
+		input,
 		func(page *elasticache.DescribeCacheParameterGroupsOutput, isLast bool) bool {
 			for _, parameterGroup := range page.CacheParameterGroups {
 				d.StreamListItem(ctx, parameterGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

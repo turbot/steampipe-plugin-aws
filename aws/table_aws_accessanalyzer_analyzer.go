@@ -3,11 +3,13 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +19,20 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 		Name:        "aws_accessanalyzer_analyzer",
 		Description: "AWS Access Analyzer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAccessAnalyzer,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAccessAnalyzer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAccessAnalyzers,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "type",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -100,18 +110,51 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create session
 	svc, err := AccessAnalyzerService(ctx, d)
 	if err != nil {
+		logger.Trace("listAccessAnalyzers", "connection error", err)
 		return nil, err
+	}
+
+	// The maximum number for MaxResults parameter is not defined by the API
+	// We have set the MaxResults to 1000 based on our test
+	input := &accessanalyzer.ListAnalyzersInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["type"] != nil {
+		input.Type = types.String(equalQuals["type"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.ListAnalyzersPages(
-		&accessanalyzer.ListAnalyzersInput{},
+		input,
 		func(page *accessanalyzer.ListAnalyzersOutput, isLast bool) bool {
 			for _, analyzer := range page.Analyzers {
 				d.StreamListItem(ctx, analyzer)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

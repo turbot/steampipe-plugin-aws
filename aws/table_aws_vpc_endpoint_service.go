@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
@@ -16,9 +16,11 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_endpoint_service",
 		Description: "AWS VPC Endpoint Service",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("service_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidServiceName"}),
-			Hydrate:           getVpcEndpointService,
+			KeyColumns: plugin.SingleColumn("service_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidServiceName"}),
+			},
+			Hydrate: getVpcEndpointService,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpointServices,
@@ -121,11 +123,47 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	// List call
-	data, err := svc.DescribeVpcEndpointServices(&ec2.DescribeVpcEndpointServicesInput{})
-	for _, endpointService := range data.ServiceDetails {
-		d.StreamListItem(ctx, endpointService)
+	pagesLeft := true
+	params := &ec2.DescribeVpcEndpointServicesInput{
+		MaxResults: aws.Int64(1000),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
+	}
+
+	// List call
+	for pagesLeft {
+		result, err := svc.DescribeVpcEndpointServices(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listVpcEndpointServices", "DescribeVpcEndpointServices_error", err)
+			return nil, err
+		}
+
+		for _, endpointService := range result.ServiceDetails {
+			d.StreamListItem(ctx, endpointService)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		if result.NextToken != nil {
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
+
 	return nil, err
 }
 

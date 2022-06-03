@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		Name:        "aws_sns_topic",
 		Description: "AWS SNS Topic",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("topic_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			Hydrate:           getTopicAttributes,
+			KeyColumns: plugin.SingleColumn("topic_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+			},
+			Hydrate: getTopicAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
@@ -155,6 +157,11 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 						"TopicArn": topic.TopicArn,
 					},
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -224,6 +231,9 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*sns.ListTagsForResourceOutput)
+	// if !ok {
+	// 	return nil, nil
+	// }
 	var turbotTagsMap map[string]string
 	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}

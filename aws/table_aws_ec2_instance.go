@@ -7,12 +7,12 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -22,12 +22,34 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance",
 		Description: "AWS EC2 Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2Instance,
+			KeyColumns: plugin.SingleColumn("instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "hypervisor", Require: plugin.Optional},
+				{Name: "iam_instance_profile_arn", Require: plugin.Optional},
+				{Name: "image_id", Require: plugin.Optional},
+				{Name: "instance_lifecycle", Require: plugin.Optional},
+				{Name: "instance_state", Require: plugin.Optional},
+				{Name: "instance_type", Require: plugin.Optional},
+				{Name: "monitoring_state", Require: plugin.Optional},
+				{Name: "outpost_arn", Require: plugin.Optional},
+				{Name: "placement_availability_zone", Require: plugin.Optional},
+				{Name: "placement_group_name", Require: plugin.Optional},
+				{Name: "public_dns_name", Require: plugin.Optional},
+				{Name: "ram_disk_id", Require: plugin.Optional},
+				{Name: "root_device_name", Require: plugin.Optional},
+				{Name: "root_device_type", Require: plugin.Optional},
+				{Name: "subnet_id", Require: plugin.Optional},
+				{Name: "placement_tenancy", Require: plugin.Optional},
+				{Name: "virtualization_type", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -327,20 +349,53 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	input := ec2.DescribeInstancesInput{
+		MaxResults: types.Int64(1000),
+	}
+	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			// select * from aws_ec2_instance limit 1
+			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
+			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
-	err = svc.DescribeInstancesPages(
-		&ec2.DescribeInstancesInput{},
-		func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
-			if page.Reservations != nil && len(page.Reservations) > 0 {
-				for _, reservation := range page.Reservations {
-					for _, instance := range reservation.Instances {
-						d.StreamListItem(ctx, instance)
+	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
+		if page.Reservations != nil && len(page.Reservations) > 0 {
+			for _, reservation := range page.Reservations {
+				for _, instance := range reservation.Instances {
+					d.StreamListItem(ctx, instance)
+					// Check if context has been cancelled or if the limit has been hit (if specified)
+					// if there is a limit, it will return the number of rows required to reach this limit
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
 					}
 				}
 			}
-			return !isLast
-		},
+		}
+
+		return !isLast
+	},
 	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("listEc2Instance", "DescribeInstancesPages_error", err)
+	}
 
 	return nil, err
 }
@@ -365,6 +420,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	op, err := svc.DescribeInstances(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getEc2Instance", "DescribeInstances_error", err)
 		return nil, err
 	}
 
@@ -384,6 +440,7 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("getEc2InstanceARN", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -411,6 +468,7 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceDisableAPITerminationData", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -435,6 +493,7 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceInitiatedShutdownBehavior", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -459,6 +518,7 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceKernelID", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -483,6 +543,7 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceRAMDiskID", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -507,6 +568,7 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceSriovNetSupport", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -531,6 +593,7 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	instanceData, err := svc.DescribeInstanceAttribute(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceUserData", "DescribeInstanceAttribute_error", err)
 		return nil, err
 	}
 
@@ -555,6 +618,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	instanceData, err := svc.DescribeInstanceStatus(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getInstanceStatus", "DescribeInstanceStatus_error", err)
 		return nil, err
 	}
 
@@ -596,4 +660,60 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 		}
 	}
 	return data.LaunchTime, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// Build ec2 instance list call input filter
+func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"hypervisor":                  "hypervisor",
+		"iam_instance_profile_arn":    "iam-instance-profile.arn",
+		"image_id":                    "image-id",
+		"instance_lifecycle":          "instance-lifecycle",
+		"instance_state":              "instance-state-name",
+		"instance_type":               "instance-type",
+		"monitoring_state":            "monitoring-state",
+		"outpost_arn":                 "outpost-arn",
+		"placement_availability_zone": "availability-zone",
+		"placement_group_name":        "placement-group-name",
+		"public_dns_name":             "dns-name",
+		"ram_disk_id":                 "ramdisk-id",
+		"root_device_name":            "root-device-name",
+		"root_device_type":            "root-device-type",
+		"subnet_id":                   "subnet-id",
+		"placement_tenancy":           "tenancy",
+		"virtualization_type":         "virtualization-type",
+		"vpc_id":                      "vpc-id",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
+}
+
+func getListValues(listValue *proto.QualValueList) []*string {
+	values := make([]*string, 0)
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, types.String(value.GetStringValue()))
+			}
+		}
+	}
+	return values
 }

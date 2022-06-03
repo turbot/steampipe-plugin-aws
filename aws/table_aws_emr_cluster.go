@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,17 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_emr_cluster",
 		Description: "AWS EMR Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRequestException"}),
-			Hydrate:           getEmrCluster,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRequestException"}),
+			},
+			Hydrate: getEmrCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEmrClusters,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "state", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -41,6 +46,12 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_arn",
 				Description: "The Amazon Resource Name of the cluster.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "state",
+				Description: "The current state of the cluster.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Status.State"),
 			},
 			{
 				Name:        "status",
@@ -237,12 +248,24 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	input := &emr.ListClustersInput{}
+
+	euqalQuals := d.KeyColumnQuals
+	if euqalQuals["state"] != nil {
+		input.ClusterStates = []*string{aws.String(euqalQuals["state"].GetStringValue())}
+	}
+
 	// List call
 	err = svc.ListClustersPages(
-		&emr.ListClustersInput{},
+		input,
 		func(page *emr.ListClustersOutput, isLast bool) bool {
 			for _, cluster := range page.Clusters {
 				d.StreamListItem(ctx, cluster)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

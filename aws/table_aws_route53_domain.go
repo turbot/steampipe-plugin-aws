@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53domains"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -205,12 +206,33 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &route53domains.ListDomainsInput{
+		MaxItems: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 20 {
+				input.MaxItems = aws.Int64(20)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListDomainsPages(
-		&route53domains.ListDomainsInput{},
+		input,
 		func(page *route53domains.ListDomainsOutput, isLast bool) bool {
 			for _, domain := range page.Domains {
 				d.StreamListItem(ctx, domain)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

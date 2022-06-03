@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -76,7 +76,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			{
 				Name:        "last_modified",
 				Description: "The date and time that the function was last updated.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("Configuration.LastModified", "LastModified"),
 			},
 			{
@@ -90,6 +90,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Description: "The version of the Lambda function.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Configuration.Version", "Version"),
+			},
+			{
+				Name:        "package_type",
+				Description: "The type of deployment package.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Configuration.PackageType", "PackageType"),
 			},
 			{
 				Name:        "master_arn",
@@ -171,16 +177,15 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.VpcConfig.VpcId", "VpcConfig.VpcId"),
 			},
 			{
-				Name:        "vpc_security_group_ids",
-				Description: "A list of VPC security groups IDs attached to Lambda function.",
+				Name:        "architectures",
+				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.VpcConfig.SecurityGroupIds", "VpcConfig.SecurityGroupIds"),
 			},
 			{
-				Name:        "vpc_subnet_ids",
-				Description: "A list of VPC subnet IDs attached to Lambda function.",
+				Name:        "environment_variables",
+				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.VpcConfig.SubnetIds", "VpcConfig.SubnetIds"),
+				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
 			},
 			{
 				Name:        "policy",
@@ -195,6 +200,18 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "vpc_security_group_ids",
+				Description: "A list of VPC security groups IDs attached to Lambda function.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.VpcConfig.SecurityGroupIds", "VpcConfig.SecurityGroupIds"),
+			},
+			{
+				Name:        "vpc_subnet_ids",
+				Description: "A list of VPC subnet IDs attached to Lambda function.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.VpcConfig.SubnetIds", "VpcConfig.SubnetIds"),
 			},
 
 			// Steampipe standard columns
@@ -232,11 +249,32 @@ func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &lambda.ListFunctionsInput{
+		MaxItems: aws.Int64(10000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListFunctionsPages(
-		&lambda.ListFunctionsInput{},
+		input,
 		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
 			for _, function := range page.Functions {
 				d.StreamListItem(ctx, function)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

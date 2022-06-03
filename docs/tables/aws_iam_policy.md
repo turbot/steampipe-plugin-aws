@@ -15,11 +15,10 @@ select
 from
   aws_iam_policy
 where
-  arn not like 'arn:aws:iam::aws:policy%';
+  not is_aws_managed;
 ```
 
-
-### List AWS-defined policies
+### List customer-defined policies with a path prefix
 
 ```sql
 select
@@ -28,11 +27,24 @@ select
 from
   aws_iam_policy
 where
-  arn like 'arn:aws:iam::aws:policy%';
+  not is_aws_managed
+  and path = '/turbot/';
 ```
 
+### Find attached customer-managed policies
 
-### Find unused (unattached) customer-managed policies
+```sql
+select
+  name,
+  arn,
+  permissions_boundary_usage_count
+from
+  aws_iam_policy
+where
+  is_attached;
+```
+
+### Find unused customer-managed policies
 
 ```sql
 select
@@ -42,10 +54,10 @@ select
 from
   aws_iam_policy
 where
-  arn not like 'arn:aws:iam::aws:policy%'
-  and attachment_count + permissions_boundary_usage_count = 0;
+  not is_aws_managed
+  and not is_attached
+  and permissions_boundary_usage_count = 0;
 ```
-
 
 ### Find policy statements that grant Full Control (*:*) access
 
@@ -64,11 +76,9 @@ where
   and s ->> 'Effect' = 'Allow';
 ```
 
-
 ### Find policy statements that grant service level full access
 
 ```sql
-
 select
   name,
   arn,
@@ -86,8 +96,8 @@ where
   );
 ```
 
-
 ### Expand wildcards to list all actions granted by a policy
+
 ```sql
 select
   a.action,

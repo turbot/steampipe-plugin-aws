@@ -6,9 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 type evidenceInfo struct {
@@ -24,9 +25,11 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_evidence",
 		Description: "AWS Audit Manager Evidence",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAuditManagerEvidence,
+			KeyColumns: plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getAuditManagerEvidence,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
@@ -178,16 +181,33 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
-	evidenceFolderList, err := svc.GetEvidenceFoldersByAssessment(&auditmanager.GetEvidenceFoldersByAssessmentInput{
-		AssessmentId: aws.String(assessmentID),
-	})
-	if err != nil {
-		return nil, err
+	input := &auditmanager.GetEvidenceFoldersByAssessmentInput{
+		MaxResults: aws.Int64(1000),
+	}
+	input.AssessmentId = aws.String(assessmentID)
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
 	}
 
-	for _, evidenceFolder := range evidenceFolderList.EvidenceFolders {
-		evidenceFolders = append(evidenceFolders, *evidenceFolder)
-	}
+	// List call
+	err = svc.GetEvidenceFoldersByAssessmentPages(
+		input,
+		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
+			for _, evidenceFolder := range page.EvidenceFolders {
+				evidenceFolders = append(evidenceFolders, *evidenceFolder)
+			}
+			return !isLast
+		},
+	)
 
 	var wg sync.WaitGroup
 	evidenceCh := make(chan []evidenceInfo, len(evidenceFolders))
@@ -211,6 +231,11 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	for item := range evidenceCh {
 		for _, data := range item {
 			d.StreamLeafListItem(ctx, evidenceInfo{data.Evidence, data.AssessmentID, data.ControlSetID})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 

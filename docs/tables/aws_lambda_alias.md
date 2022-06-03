@@ -10,12 +10,10 @@ A Lambda alias is like a pointer to a specific function version.
 select
   name,
   function_name,
-  function_version,
-  authorizer_credentials
+  function_version
 from
   aws_lambda_alias;
 ```
-
 
 ### Count of lambda alias per Lambda function
 
@@ -27,4 +25,14 @@ from
   aws_lambda_alias
 group by
   function_name;
+```
+
+### List policy details
+
+```sql
+select
+  jsonb_pretty(policy) as policy,
+  jsonb_pretty(policy_std) as policy_std
+from
+  aws_lambda_alias;
 ```

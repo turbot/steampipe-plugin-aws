@@ -3,10 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -149,6 +150,18 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 
 	param := &eks.ListIdentityProviderConfigsInput{
 		ClusterName: cluster.Name,
+		MaxResults:  aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *param.MaxResults {
+			if *limit < 1 {
+				param.MaxResults = aws.Int64(1)
+			} else {
+				param.MaxResults = limit
+			}
+		}
 	}
 
 	err = svc.ListIdentityProviderConfigsPages(
@@ -158,6 +171,11 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 				d.StreamListItem(ctx, &IdentityProviderConfig{providerConfig.Name, providerConfig.Type, eks.OidcIdentityProviderConfig{
 					ClusterName: cluster.Name,
 				}})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return true
 		},

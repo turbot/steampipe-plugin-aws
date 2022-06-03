@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,20 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		Name:        "aws_config_rule",
 		Description: "AWS Config Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getConfigRule,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
+			},
+			Hydrate: getConfigRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigRules,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -64,6 +72,13 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Name:        "maximum_execution_frequency",
 				Description: "The maximum frequency with which AWS Config runs evaluations for a rule.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "compliance_by_config_rule",
+				Description: "The compliance information of the config rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getComplianceByConfigRules,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "input_parameters",
@@ -121,14 +136,28 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
-	op, err := svc.DescribeConfigRules(&configservice.DescribeConfigRulesInput{})
-	if err != nil {
-		return nil, err
+	input := &configservice.DescribeConfigRulesInput{}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ConfigRuleNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
 	}
 
-	for _, rule := range op.ConfigRules {
-		d.StreamListItem(ctx, rule)
-	}
+	err = svc.DescribeConfigRulesPages(
+		input,
+		func(page *configservice.DescribeConfigRulesOutput, lastPage bool) bool {
+			for _, rule := range page.ConfigRules {
+				d.StreamListItem(ctx, rule)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
+			}
+			return !lastPage
+		},
+	)
 
 	return nil, err
 }
@@ -183,6 +212,31 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return op, nil
+}
+
+func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
+
+	// Create Session
+	svc, err := ConfigService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
+		return nil, err
+	}
+	ruleName := h.Item.(*configservice.ConfigRule).ConfigRuleName
+
+	// Build params
+	params := &configservice.DescribeComplianceByConfigRuleInput{
+		ConfigRuleNames: []*string{ruleName},
+	}
+
+	op, err := svc.DescribeComplianceByConfigRule(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
+		return nil, err
+	}
+
+	return op.ComplianceByConfigRules, nil
 }
 
 //// TRANSFORM FUNCTIONS

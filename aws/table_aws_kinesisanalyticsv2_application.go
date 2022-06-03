@@ -3,11 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesisanalyticsv2_application",
 		Description: "AWS Kinesis Analytics V2 Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("application_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getKinesisAnalyticsV2Application,
+			KeyColumns: plugin.SingleColumn("application_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getKinesisAnalyticsV2Application,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisAnalyticsV2Applications,
@@ -130,9 +133,48 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	}
 
 	// List call
-	resp, err := svc.ListApplications(&kinesisanalyticsv2.ListApplicationsInput{})
-	for _, application := range resp.ApplicationSummaries {
-		d.StreamListItem(ctx, application)
+	pagesLeft := true
+	params := &kinesisanalyticsv2.ListApplicationsInput{
+		Limit: aws.Int64(50),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
+
+	for pagesLeft {
+		result, err := svc.ListApplications(params)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, application := range result.ApplicationSummaries {
+			d.StreamListItem(ctx, application)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		if result.NextToken != nil {
+			pagesLeft = true
+			params.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
+
+	if err != nil {
+		plugin.Logger(ctx).Error("listKinesisAnalyticsV2Applications", "ListApplications_error", err)
 	}
 
 	return nil, err
@@ -166,7 +208,7 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	// Get call
 	data, err := svc.DescribeApplication(params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2Application", "ERROR", err)
+		logger.Debug("getKinesisAnalyticsV2Application", "DescribeApplication_error", err)
 		return nil, err
 	}
 

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	pb "github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_video_stream",
 		Description: "AWS Kinesis Video Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("stream_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getKinesisVideoStream,
+			KeyColumns: plugin.SingleColumn("stream_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getKinesisVideoStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisVideoStreams,
@@ -107,12 +109,33 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &kinesisvideo.ListStreamsInput{
+		MaxResults: aws.Int64(10000),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListStreamsPages(
-		&kinesisvideo.ListStreamsInput{},
+		input,
 		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
 			for _, stream := range page.StreamInfoList {
 				d.StreamListItem(ctx, stream)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

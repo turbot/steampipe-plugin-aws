@@ -2,6 +2,10 @@
 
 Amazon Elastic Container Registry (Amazon ECR) is a managed container image registry service.
 
+**Note**
+
+Users having Read-only access to the console need to attach the AWS managed policy `AmazonInspector2ReadOnlyAccess` to their role to be able to query the `image_scanning_findings` column of the table.
+
 ## Examples
 
 ### Basic info
@@ -120,11 +124,14 @@ where
 ```sql
 select
   repository_name,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
-  detail -> 'ImageScanFindingsSummary' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts
-from
+  detail -> 'ImageId' ->> 'ImageDigest' as image_digest,
+  detail -> 'ImageId' ->> 'ImageTag' as image_tag,
+  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'INFORMATIONAL' as informational_severity_counts,
+  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'LOW' as low_severity_counts,
+  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'MEDIUM' as medium_severity_counts,
+  detail -> 'ImageScanFindings' -> 'FindingSeverityCounts' ->> 'UNDEFINED' as undefined_severity_counts
+from 
   aws_ecr_repository,
-  jsonb_array_elements(image_details) as details,
-  jsonb(details) as detail;
+  jsonb_array_elements(image_scanning_findings) as details, jsonb(details) as detail;
+
 ```

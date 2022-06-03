@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,14 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_managed_instance_compliance",
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
-			KeyColumns:        plugin.SingleColumn("resource_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
-			Hydrate:           listSsmManagedInstanceCompliances,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
+			},
+			Hydrate: listSsmManagedInstanceCompliances,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "resource_id", Require: plugin.Required},
+				{Name: "resource_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -105,15 +110,46 @@ func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData,
 	// Build the params
 	params := &ssm.ListComplianceItemsInput{
 		ResourceIds: []*string{aws.String(instanceId)},
+		MaxResults:  aws.Int64(50),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["resource_type"] != nil {
+		if equalQuals["resource_type"].GetStringValue() != "" {
+			params.ResourceTypes = []*string{aws.String(equalQuals["resource_type"].GetStringValue())}
+		} else {
+			params.ResourceTypes = getListValues(equalQuals["resource_type"].GetListValue())
+		}
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.MaxResults {
+			if *limit < 1 {
+				params.MaxResults = aws.Int64(1)
+			} else {
+				params.MaxResults = limit
+			}
+		}
 	}
 
 	// List call
-	data, err := svc.ListComplianceItems(params)
+	err = svc.ListComplianceItemsPages(
+		params,
+		func(page *ssm.ListComplianceItemsOutput, isLast bool) bool {
+			for _, item := range page.ComplianceItems {
+				d.StreamListItem(ctx, item)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
+			}
+			return !isLast
+		},
+	)
 	if err != nil {
-		return nil, err
-	}
-	for _, item := range data.ComplianceItems {
-		d.StreamListItem(ctx, item)
+		plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances", "ListComplianceItemsPages_error", err)
 	}
 
 	return nil, err
@@ -134,7 +170,7 @@ func getSSMManagedInstanceComplianceAkas(ctx context.Context, d *plugin.QueryDat
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	akas := []string{"arn:" + commonColumnData.Partition + ":ssm:" + region + ":" + commonColumnData.AccountId + ":managed-instance/" + *data.ResourceId + "/compliance-item/" + *data.Id + ":" + *data.ComplianceType}
-  
+
 	return akas, nil
 }
 

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -17,12 +17,20 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 		Name:        "aws_dynamodb_global_table",
 		Description: "AWS DynamoDB Global Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("global_table_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getDynamboDbGlobalTable,
+			KeyColumns: plugin.SingleColumn("global_table_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getDynamboDbGlobalTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDynamboDbGlobalTables,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "global_table_name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -81,12 +89,40 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	tables, err := svc.ListGlobalTables(&dynamodb.ListGlobalTablesInput{})
+	input := &dynamodb.ListGlobalTablesInput{
+		Limit: aws.Int64(100),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["global_table_name"] != nil {
+		input.ExclusiveStartGlobalTableName = types.String(equalQuals["global_table_name"].GetStringValue())
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
+	}
+
+	tables, err := svc.ListGlobalTables(input)
 
 	for _, globalTable := range tables.GlobalTables {
 		d.StreamListItem(ctx, &dynamodb.GlobalTableDescription{
 			GlobalTableName: globalTable.GlobalTableName,
 		})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			break
+		}
 	}
 
 	return nil, err

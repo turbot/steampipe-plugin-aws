@@ -8,32 +8,31 @@ import (
 	"sync"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
 
-func tableAwsIamRole(_ context.Context) *plugin.Table {
+func tableAwsIamRole(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamRole,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			Hydrate:    getIamRole,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
-		},
-		HydrateDependencies: []plugin.HydrateDependencies{
-			{
-				Func:    getAwsIamRoleInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "path", Require: plugin.Optional},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -105,11 +104,15 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 					"Activity is only reported for the trailing 400 days. This period can be " +
 					"shorter if your Region began supporting these features within the last year. " +
 					"The role might have been used more than 400 days ago.",
+				Hydrate:   getIamRole,
+				Transform: transform.FromField("RoleLastUsed.LastUsedDate"),
 			},
 			{
 				Name:        "role_last_used_region",
 				Description: "Contains the region in which the IAM role was used.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getIamRole,
+				Transform:   transform.FromField("RoleLastUsed.Region"),
 			},
 			{
 				Name:        "tags_src",
@@ -122,14 +125,14 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the role..",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the role.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -187,11 +190,38 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
+	input := &iam.ListRolesInput{
+		MaxItems: aws.Int64(1000),
+	}
+
+	equalQual := d.KeyColumnQuals
+	if equalQual["path"] != nil {
+		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
 	err = svc.ListRolesPages(
-		&iam.ListRolesInput{},
+		input,
 		func(page *iam.ListRolesOutput, lastPage bool) bool {
+
 			for _, role := range page.Roles {
 				d.StreamListItem(ctx, role)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -314,26 +344,10 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
-
-	return roleData, nil
-}
-
-func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamRoleInlinePolicies")
-	role := h.Item.(*iam.Role)
-	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
 	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
-	for _, policy := range listRolePoliciesOutput.PolicyNames {
+	policyCh := make(chan map[string]interface{}, len(roleData.PolicyNames))
+	errorCh := make(chan error, len(roleData.PolicyNames))
+	for _, policy := range roleData.PolicyNames {
 		wg.Add(1)
 		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
 	}
@@ -405,12 +419,11 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*iam.Role)
+	tags := d.HydrateItem.(*iam.Role)
 	var turbotTagsMap map[string]string
-
-	if data.Tags != nil {
+	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

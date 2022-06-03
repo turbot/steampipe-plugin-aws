@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,10 +19,18 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
-			Hydrate:    describeSecretsManagerSecret,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "name", Require: plugin.Optional},
+				{Name: "description", Require: plugin.Optional},
+				{Name: "primary_region", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -83,6 +92,20 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				Description: "The Region where Secrets Manager originated the secret.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     describeSecretsManagerSecret,
+			},
+			{
+				Name:        "policy",
+				Description: "A JSON-formatted string that describes the permissions that are associated with the attached secret.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecretsManagerSecretPolicy,
+				Transform:   transform.FromField("ResourcePolicy"),
+			},
+			{
+				Name:        "policy_std",
+				Description: "Contains the permissions that are associated with the attached secret in a canonical form for easier searching.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecretsManagerSecretPolicy,
+				Transform:   transform.FromField("ResourcePolicy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
 				Name:        "replication_status",
@@ -153,12 +176,38 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
+	input := &secretsmanager.ListSecretsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	filters := buildSecretManagerSecretFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListSecretsPages(
-		&secretsmanager.ListSecretsInput{},
+		input,
 		func(page *secretsmanager.ListSecretsOutput, lastPage bool) bool {
 			for _, secret := range page.SecretList {
 				d.StreamListItem(ctx, secret)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
@@ -167,7 +216,7 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 	return nil, err
 }
 
-//// HYDRATE FUNCTION
+//// HYDRATE FUNCTIONS
 
 func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("describeSecretsManagerSecret")
@@ -201,6 +250,38 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	return op, nil
 }
 
+func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getSecretsManagerSecretPolicy")
+
+	var arn string
+	if h.Item != nil {
+		data := secretData(h.Item)
+		arn = data["ARN"]
+	}
+
+	// Create Session
+	svc, err := SecretsManagerService(ctx, d)
+	if err != nil {
+		logger.Error("getSecretsManagerSecretPolicy", "error_SecretsManagerService", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &secretsmanager.GetResourcePolicyInput{
+		SecretId: &arn,
+	}
+
+	// Get call
+	data, err := svc.GetResourcePolicy(params)
+	if err != nil {
+		logger.Error("getSecretsManagerSecretPolicy", "error_GetResourcePolicy", err)
+		return nil, err
+	}
+
+	return data, nil
+}
+
 //// TRANSFORM FUNCTION
 
 func secretsManagerSecretTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
@@ -228,4 +309,33 @@ func secretData(item interface{}) map[string]string {
 		data["ARN"] = *item.ARN
 	}
 	return data
+}
+
+//// UTILITY FUNCTION
+
+// Build secret manager secret list call input filter
+func buildSecretManagerSecretFilter(quals plugin.KeyColumnQualMap) []*secretsmanager.Filter {
+	filters := make([]*secretsmanager.Filter, 0)
+
+	filterQuals := map[string]string{
+		"description":    "description",
+		"name":           "name",
+		"primary_region": "primary-region",
+	}
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := secretsmanager.Filter{
+				Key: types.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				filter.Values = value.([]*string)
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

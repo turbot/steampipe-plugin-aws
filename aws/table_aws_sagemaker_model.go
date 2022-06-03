@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +17,17 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_model",
 		Description: "AWS Sagemaker Model",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerModel,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerModel,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerModels,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -84,7 +89,7 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 				Description: "The list of tags for the model.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerModelTags,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -99,7 +104,7 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsSageMakerModelTags,
-				Transform:   transform.FromField("Tags").Transform(sageMakerModelTurbotTags),
+				Transform:   transform.FromValue().Transform(sageMakerTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -122,12 +127,45 @@ func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	input := &sagemaker.ListModelsInput{
+		MaxResults: aws.Int64(100),
+	}
+
+	quals := d.Quals
+	if quals["creation_time"] != nil {
+		for _, q := range quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = aws.Time(timestamp)
+			case "<", "<=":
+				input.CreationTimeBefore = aws.Time(timestamp)
+			}
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 	// List call
 	err = svc.ListModelsPages(
-		&sagemaker.ListModelsInput{},
+		input,
 		func(page *sagemaker.ListModelsOutput, isLast bool) bool {
 			for _, model := range page.Models {
 				d.StreamListItem(ctx, model)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -188,35 +226,27 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 		ResourceArn: aws.String(modelArn),
 	}
 
-	// Get call
-	op, err := svc.ListTags(params)
-	if err != nil {
-		logger.Debug("listAwsSageMakerModelTags", "ERROR", err)
-		return nil, err
+	pagesLeft := true
+	tags := []*sagemaker.Tag{}
+	for pagesLeft {
+		keyTags, err := svc.ListTags(params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsSageMakerModelTags", "ListTags_error", err)
+			return nil, err
+		}
+		tags = append(tags, keyTags.Tags...)
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
 	}
 
-	return op, nil
+	return tags, nil
 }
 
 //// TRANSFORM FUNCTION
-
-func sageMakerModelTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	data := d.HydrateItem.(*sagemaker.ListTagsOutput)
-
-	if data.Tags == nil {
-		return nil, nil
-	}
-
-	if data.Tags != nil {
-		turbotTagsMap := map[string]string{}
-		for _, i := range data.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
-		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
 
 func modelName(item interface{}) string {
 	switch item := item.(type) {

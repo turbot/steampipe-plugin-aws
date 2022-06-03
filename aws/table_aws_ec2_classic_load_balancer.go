@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_classic_load_balancer",
 		Description: "AWS EC2 Classic Load Balancer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			Hydrate:           getEc2ClassicLoadBalancer,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			},
+			Hydrate: getEc2ClassicLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,
@@ -268,12 +270,33 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elb.DescribeLoadBalancersInput{
+		PageSize: aws.Int64(400),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.PageSize {
+			if *limit < 1 {
+				input.PageSize = aws.Int64(1)
+			} else {
+				input.PageSize = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elb.DescribeLoadBalancersInput{},
+		input,
 		func(page *elb.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, classicLoadBalancer := range page.LoadBalancerDescriptions {
 				d.StreamListItem(ctx, classicLoadBalancer)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

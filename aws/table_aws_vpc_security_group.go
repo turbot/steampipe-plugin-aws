@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
@@ -15,12 +15,20 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_security_group",
 		Description: "AWS VPC Security Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
-			Hydrate:           getVpcSecurityGroup,
+			KeyColumns: plugin.SingleColumn("group_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidGroupId.Malformed", "InvalidGroupId.NotFound", "InvalidGroup.NotFound"}),
+			},
+			Hydrate: getVpcSecurityGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcSecurityGroups,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "description", Require: plugin.Optional},
+				{Name: "group_name", Require: plugin.Optional},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "vpc_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -109,12 +117,45 @@ func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	input := &ec2.DescribeSecurityGroupsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "description", FilterName: "description", ColumnType: "string"},
+		{ColumnName: "group_name", FilterName: "group-name", ColumnType: "string"},
+		{ColumnName: "owner_id", FilterName: "owner-id", ColumnType: "string"},
+		{ColumnName: "vpc_id", FilterName: "vpc-id", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeSecurityGroupsPages(
-		&ec2.DescribeSecurityGroupsInput{},
+		input,
 		func(page *ec2.DescribeSecurityGroupsOutput, isLast bool) bool {
 			for _, securityGroup := range page.SecurityGroups {
 				d.StreamListItem(ctx, securityGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

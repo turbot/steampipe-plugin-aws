@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
@@ -15,12 +15,20 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_customer_gateway",
 		Description: "AWS VPC Customer Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("customer_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
-			Hydrate:           getVpcCustomerGateway,
+			KeyColumns: plugin.SingleColumn("customer_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidCustomerGatewayID.NotFound", "InvalidCustomerGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcCustomerGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcCustomerGateways,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "ip_address", Require: plugin.Optional},
+				{Name: "bgp_asn", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -99,10 +107,29 @@ func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
+	input := &ec2.DescribeCustomerGatewaysInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "ip_address", FilterName: "ip-address", ColumnType: "ipaddr"},
+		{ColumnName: "bgp_asn", FilterName: "bgp-asn", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "type", FilterName: "type", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeCustomerGateways(&ec2.DescribeCustomerGatewaysInput{})
+	resp, err := svc.DescribeCustomerGateways(input)
 	for _, customerGateway := range resp.CustomerGateways {
 		d.StreamListItem(ctx, customerGateway)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

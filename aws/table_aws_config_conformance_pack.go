@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
@@ -15,12 +15,20 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		Name:        "aws_config_conformance_pack",
 		Description: "AWS Config Conformance Pack",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConformancePackException"}),
-			Hydrate:           getConfigConformancePack,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConformancePackException"}),
+			},
+			Hydrate: getConfigConformancePack,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConformancePacks,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -94,16 +102,41 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	op, err := svc.DescribeConformancePacks(
-		&configservice.DescribeConformancePacksInput{})
-	if err != nil {
-		return nil, err
+	input := &configservice.DescribeConformancePacksInput{
+		Limit: aws.Int64(20),
 	}
-	if op.ConformancePackDetails != nil {
-		for _, ConformancePackDetails := range op.ConformancePackDetails {
-			d.StreamListItem(ctx, ConformancePackDetails)
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			input.Limit = limit
 		}
 	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.ConformancePackNames = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	}
+
+	err = svc.DescribeConformancePacksPages(
+		input,
+		func(page *configservice.DescribeConformancePacksOutput, lastPage bool) bool {
+			if page.ConformancePackDetails != nil {
+				for _, ConformancePackDetails := range page.ConformancePackDetails {
+					d.StreamListItem(ctx, ConformancePackDetails)
+
+					// Context can be cancelled due to manual cancellation or the limit has been hit
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
+				}
+			}
+			return !lastPage
+		},
+	)
 
 	return nil, err
 }

@@ -2,25 +2,36 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpc(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_vpc",
 		Description: "AWS VPC",
-
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpc_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
-			Hydrate:           getVpc,
+			KeyColumns: plugin.SingleColumn("vpc_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "InvalidVpcID.NotFound"}),
+			},
+			Hydrate: getVpc,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcs,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "cidr_block", Require: plugin.Optional},
+				{Name: "dhcp_options_id", Require: plugin.Optional},
+				{Name: "is_default", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "owner_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -111,7 +122,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Warn("listVpcs", "AWS_REGION", region)
+	plugin.Logger(ctx).Trace("listVpcs", "AWS_REGION", region)
 
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
@@ -119,12 +130,46 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 		return nil, err
 	}
 
+	input := &ec2.DescribeVpcsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "cidr_block", FilterName: "cidr", ColumnType: "cidr"},
+		{ColumnName: "dhcp_options_id", FilterName: "dhcp-options-id", ColumnType: "string"},
+		{ColumnName: "is_default", FilterName: "is-default", ColumnType: "boolean"},
+		{ColumnName: "owner_id", FilterName: "owner-id", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeVpcsPages(
-		&ec2.DescribeVpcsInput{},
+		input,
 		func(page *ec2.DescribeVpcsOutput, isLast bool) bool {
 			for _, vpc := range page.Vpcs {
 				d.StreamListItem(ctx, vpc)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -212,4 +257,78 @@ func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface
 	}
 
 	return vpc.VpcId, nil
+}
+
+//// UTILITY FUNCTION
+
+//Build vpc resources filter parameter
+
+type VpcFilterKeyMap struct {
+	ColumnName string
+	FilterName string
+	ColumnType string
+}
+
+func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+	for _, keyDetail := range keyMap {
+		if quals[keyDetail.ColumnName] != nil {
+			filter := &ec2.Filter{
+				Name: aws.String(keyDetail.FilterName),
+			}
+
+			value := getQualsValueByColumn(quals, keyDetail.ColumnName, keyDetail.ColumnType)
+			switch keyDetail.ColumnType {
+			case "string":
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{&val}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "int64":
+				val, ok := value.(int64)
+				if ok {
+					filter.Values = []*string{aws.String(fmt.Sprint(val))}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "double":
+				val, ok := value.(float64)
+				if ok {
+					filter.Values = []*string{aws.String(fmt.Sprint(val))}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "ipaddr":
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{&val}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "cidr": // Ip address with mask
+				val, ok := value.(string)
+				if ok {
+					filter.Values = []*string{&val}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "time":
+				val, ok := value.(time.Time)
+				if ok {
+					v := val.Format(time.RFC3339)
+					filter.Values = []*string{&v}
+				} else {
+					filter.Values = value.([]*string)
+				}
+			case "boolean":
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			}
+
+			filters = append(filters, filter)
+		}
+	}
+
+	return filters
 }

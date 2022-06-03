@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,12 +19,27 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_application_load_balancer",
 		Description: "AWS EC2 Application Load Balancer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"LoadBalancerNotFound"}),
-			Hydrate:           getEc2ApplicationLoadBalancer,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
+			},
+			Hydrate: getEc2ApplicationLoadBalancer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ApplicationLoadBalancers,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound"}),
+			},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "arn",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -151,14 +166,46 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
+	input := &elbv2.DescribeLoadBalancersInput{}
+
+	// Additional Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
+	} else {
+		// If the names will be provided in param then page limit cannot be set, API throws an error
+		// ValidationError: Pagination is not supported when specifying load balancers
+		input.PageSize = aws.Int64(400)
+		// Limiting the results
+		limit := d.QueryContext.Limit
+		if d.QueryContext.Limit != nil {
+			if *limit < *input.PageSize {
+				if *limit < 1 {
+					input.PageSize = aws.Int64(1)
+				} else {
+					input.PageSize = limit
+				}
+			}
+		}
+	}
+
+	if equalQuals["arn"] != nil {
+		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetStringValue())}
+	}
+
 	// List call
 	err = svc.DescribeLoadBalancersPages(
-		&elbv2.DescribeLoadBalancersInput{},
+		input,
 		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
 			for _, applicationLoadBalancer := range page.LoadBalancers {
 				// Filtering the response to return only application load balancers
 				if strings.ToLower(*applicationLoadBalancer.Type) == "application" {
 					d.StreamListItem(ctx, applicationLoadBalancer)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !isLast
@@ -171,6 +218,11 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 
 func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	// check if arn is empty
+	if loadBalancerArn == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d)

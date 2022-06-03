@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	pb "github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
+	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,8 +19,8 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_inspector_assessment_target",
 		Description: "AWS Inspector Assessment Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getInspectorAssessmentTarget,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getInspectorAssessmentTarget,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTargets,
@@ -76,20 +78,57 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
+	serviceId := endpoints.InspectorServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
+	input := &inspector.ListAssessmentTargetsInput{
+		MaxResults: aws.Int64(500),
+	}
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		if equalQuals["name"].GetStringValue() != "" {
+			input.Filter = &inspector.AssessmentTargetFilter{AssessmentTargetNamePattern: aws.String(equalQuals["name"].GetStringValue())}
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.ListAssessmentTargetsPages(
-		&inspector.ListAssessmentTargetsInput{},
+		input,
 		func(page *inspector.ListAssessmentTargetsOutput, isLast bool) bool {
 			for _, assessmentTarget := range page.AssessmentTargetArns {
 				d.StreamListItem(ctx, &inspector.AssessmentTarget{
 					Arn: assessmentTarget,
 				})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -101,6 +140,16 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
+	serviceId := endpoints.InspectorServiceID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
 	logger := plugin.Logger(ctx)
 	logger.Trace("getInspectorAssessmentTarget")
 

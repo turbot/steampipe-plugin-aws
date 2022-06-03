@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
@@ -16,9 +16,11 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_event_subscription",
 		Description: "AWS Redshift Event Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cust_subscription_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"SubscriptionNotFound"}),
-			Hydrate:           getAwsRedshiftEventSubscription,
+			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SubscriptionNotFound"}),
+			},
+			Hydrate: getAwsRedshiftEventSubscription,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftEventSubscriptions,
@@ -117,13 +119,33 @@ func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
+	input := &redshift.DescribeEventSubscriptionsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeEventSubscriptionsPages(
-		&redshift.DescribeEventSubscriptionsInput{},
+		input,
 		func(page *redshift.DescribeEventSubscriptionsOutput, isLast bool) bool {
 			for _, parameter := range page.EventSubscriptionsList {
 				d.StreamListItem(ctx, parameter)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

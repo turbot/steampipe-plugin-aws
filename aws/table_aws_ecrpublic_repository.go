@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecrpublic"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,17 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_ecrpublic_repository",
 		Description: "AWS ECR Public Repository",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("repository_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
-			Hydrate:           getAwsEcrpublicRepository,
+			KeyColumns: plugin.SingleColumn("repository_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
+			},
+			Hydrate: getAwsEcrpublicRepository,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "registry_id", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -67,6 +72,13 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("PolicyText"),
 			},
 			{
+				Name:        "policy_std",
+				Description: "Contains the policy in a canonical form for easier searching.",
+				Hydrate:     getAwsEcrpublicRepositoryPolicy,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("PolicyText").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the repository.",
 				Type:        proto.ColumnType_JSON,
@@ -101,19 +113,51 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
+	// DescribeRepositories command is only supported in us-east-1
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region != "us-east-1" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
+	input := &ecrpublic.DescribeRepositoriesInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["registry_id"] != nil {
+		input.RegistryId = aws.String(equalQuals["registry_id"].GetStringValue())
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeRepositoriesPages(
-		&ecrpublic.DescribeRepositoriesInput{},
+		input,
 		func(page *ecrpublic.DescribeRepositoriesOutput, isLast bool) bool {
 			for _, repository := range page.Repositories {
 				d.StreamListItem(ctx, repository)
 
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -127,6 +171,14 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicRepository")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
+	// DescribeRepositories command is only supported in us-east-1
+	if region != "us-east-1" {
+		return nil, nil
+	}
 
 	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 

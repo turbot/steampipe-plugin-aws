@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,9 +20,11 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_rest_api",
 		Description: "AWS API Gateway Rest API ",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("api_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getRestAPI,
+			KeyColumns: plugin.SingleColumn("api_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getRestAPI,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRestAPI,
@@ -133,18 +135,42 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
 	// Create service
 	svc, err := APIGatewayService(ctx, d)
 	if err != nil {
+		logger.Trace("listRestAPI", "connection error", err)
 		return nil, err
+	}
+
+	input := &apigateway.GetRestApisInput{
+		Limit: aws.Int64(500),
+	}
+
+	// Limiting the results
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.Limit {
+			if *limit < 1 {
+				input.Limit = types.Int64(1)
+			} else {
+				input.Limit = limit
+			}
+		}
 	}
 
 	// List call
 	err = svc.GetRestApisPages(
-		&apigateway.GetRestApisInput{},
+		input,
 		func(page *apigateway.GetRestApisOutput, lastPage bool) bool {
 			for _, items := range page.Items {
 				d.StreamListItem(ctx, items)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

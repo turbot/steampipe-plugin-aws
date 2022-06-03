@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
@@ -15,12 +15,20 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_vpn_gateway",
 		Description: "AWS VPC VPN Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpn_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
-			Hydrate:           getVpcVpnGateway,
+			KeyColumns: plugin.SingleColumn("vpn_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcVpnGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnGateways,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "amazon_side_asn", Require: plugin.Optional},
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -95,10 +103,29 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &ec2.DescribeVpnGatewaysInput{}
+
+	filterKeyMap := []VpcFilterKeyMap{
+		{ColumnName: "amazon_side_asn", FilterName: "amazon-side-asn", ColumnType: "int64"},
+		{ColumnName: "availability_zone", FilterName: "availability-zone", ColumnType: "string"},
+		{ColumnName: "state", FilterName: "state", ColumnType: "string"},
+		{ColumnName: "type", FilterName: "type", ColumnType: "string"},
+	}
+
+	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
-	resp, err := svc.DescribeVpnGateways(&ec2.DescribeVpnGatewaysInput{})
+	resp, err := svc.DescribeVpnGateways(input)
 	for _, vpnGateway := range resp.VpnGateways {
 		d.StreamListItem(ctx, vpnGateway)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, err

@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,12 +18,20 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_snapshot",
 		Description: "AWS RDS DB Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound"}),
-			Hydrate:           getRDSDBSnapshot,
+			KeyColumns: plugin.SingleColumn("db_snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSnapshotNotFound"}),
+			},
+			Hydrate: getRDSDBSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "db_instance_identifier", Require: plugin.Optional},
+				{Name: "dbi_resource_id", Require: plugin.Optional},
+				{Name: "engine", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -223,12 +231,39 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	input := &rds.DescribeDBSnapshotsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
+	filters := buildRdsDbSnapshotFilter(d.Quals)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
+
 	// List call
 	err = svc.DescribeDBSnapshotsPages(
-		&rds.DescribeDBSnapshotsInput{},
+		input,
 		func(page *rds.DescribeDBSnapshotsOutput, isLast bool) bool {
 			for _, dbSnapshot := range page.DBSnapshots {
 				d.StreamListItem(ctx, dbSnapshot)
+
+				// Check if context has been cancelled or if the limit has been reached (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -298,4 +333,35 @@ func getRDSDBSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+//// UTILITY FUNCTIONS
+
+// build snapshots list call input filter
+func buildRdsDbSnapshotFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
+	filters := make([]*rds.Filter, 0)
+	filterQuals := map[string]string{
+		"db_instance_identifier": "db-instance-id",
+		"dbi_resource_id":        "dbi-resource-id",
+		"engine":                 "engine",
+		"type":                   "snapshot-type",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := rds.Filter{
+				Name: aws.String(filterName),
+			}
+			value := getQualsValueByColumn(quals, columnName, "string")
+			val, ok := value.(string)
+			if ok {
+				filter.Values = []*string{aws.String(val)}
+			} else {
+				v := value.([]*string)
+				filter.Values = v
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

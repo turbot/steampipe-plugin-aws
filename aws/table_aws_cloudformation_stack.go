@@ -6,10 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,12 +20,20 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudformation_stack",
 		Description: "AWS CloudFormation Stack",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
-			Hydrate:           getCloudFormationStack,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
+			},
+			Hydrate: getCloudFormationStack,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStacks,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -179,11 +188,25 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	// We can not pass the MaxResult value in param so we can't limit the result per page
+	input := &cloudformation.DescribeStacksInput{}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.StackName = types.String(equalQuals["name"].GetStringValue())
+	}
+
 	err = svc.DescribeStacksPages(
-		&cloudformation.DescribeStacksInput{},
+		input,
 		func(page *cloudformation.DescribeStacksOutput, lastPage bool) bool {
 			for _, stack := range page.Stacks {
 				d.StreamListItem(ctx, stack)
+
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},

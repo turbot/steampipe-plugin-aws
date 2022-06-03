@@ -2,16 +2,17 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 )
 
 func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
@@ -19,9 +20,11 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_zone",
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			Hydrate:           getHostedZone,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchHostedZone"}),
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getHostedZone,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchHostedZone"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
@@ -136,11 +139,34 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListHostedZones.html
+	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
+	input := &route53.ListHostedZonesInput{
+		MaxItems: aws.String("1000"),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < 1000 {
+			if *limit < 1 {
+				input.MaxItems = aws.String("1")
+			} else {
+				input.MaxItems = aws.String(fmt.Sprint(*limit))
+			}
+		}
+	}
+
 	err = svc.ListHostedZonesPages(
-		&route53.ListHostedZonesInput{},
+		input,
 		func(page *route53.ListHostedZonesOutput, isLast bool) bool {
 			for _, hostedZone := range page.HostedZones {
 				d.StreamListItem(ctx, hostedZone)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_ip_set",
 		Description: "AWS WAFv2 IP Set",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
-			Hydrate:           getAwsWafv2IpSet,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
+			},
+			Hydrate: getAwsWafv2IpSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
@@ -146,7 +148,21 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	pagesLeft := true
 	params := &wafv2.ListIPSetsInput{
 		Scope: scope,
+		Limit: aws.Int64(100),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
+
 	for pagesLeft {
 		response, err := svc.ListIPSets(params)
 		if err != nil {
@@ -155,6 +171,11 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		for _, ipSets := range response.IPSets {
 			d.StreamListItem(ctx, ipSets)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {
@@ -233,6 +254,9 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return op.IPSet, nil
 }
 
+// ListTagsForResource.NextMarker return empty string in API call
+// due to which pagination will not work properly
+// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
 
@@ -255,9 +279,10 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	ipSetTags, err := svc.ListTagsForResource(param)

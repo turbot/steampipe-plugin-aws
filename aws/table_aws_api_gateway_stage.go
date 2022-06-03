@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsAPIGatewayStage(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_stage",
 		Description: "AWS API Gateway Stage",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIGatewayStage,
+			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIGatewayStage,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
@@ -189,6 +191,11 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	for _, stage := range op.Item {
 		d.StreamLeafListItem(ctx, &stageRowData{stage, restAPI.Id})
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

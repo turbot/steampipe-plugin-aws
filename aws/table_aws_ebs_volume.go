@@ -2,12 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +20,25 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_volume",
 		Description: "AWS EBS Volume",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("volume_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			Hydrate:           getEBSVolume,
+			KeyColumns: plugin.SingleColumn("volume_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getEBSVolume,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "availability_zone", Require: plugin.Optional},
+				{Name: "encrypted", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "fast_restored", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "multi_attach_enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "size", Require: plugin.Optional},
+				{Name: "snapshot_id", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "volume_id", Require: plugin.Optional},
+				{Name: "volume_type", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -159,13 +175,41 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
+	input := &ec2.DescribeVolumesInput{
+		MaxResults: aws.Int64(500),
+	}
+
+	filters := buildEbsVolumeFilter(d.Quals)
+
+	if len(filters) != 0 {
+		input.Filters = filters
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = aws.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeVolumesPages(
-		&ec2.DescribeVolumesInput{},
+		input,
 		func(page *ec2.DescribeVolumesOutput, isLast bool) bool {
 			for _, volume := range page.Volumes {
 				d.StreamListItem(ctx, volume)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
+
 			return !isLast
 		},
 	)
@@ -295,4 +339,53 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 	}
 
 	return title, nil
+}
+
+//// UTILITY FUNCTION
+// Build ebs volume list call input filter
+func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"availability_zone":    "availability-zone",
+		"encrypted":            "encrypted",
+		"fast_restored":        "fast-restored",
+		"multi_attach_enabled": "multi-attach-enabled",
+		"size":                 "size",
+		"snapshot_id":          "snapshot-id",
+		"state":                "status",
+		"volume_id":            "volume-id",
+		"volume_type":          "volume-type",
+	}
+
+	columnsBool := []string{"encrypted", "fast_restored", "multi_attach_enabled"}
+	columnsInt := []string{"size"}
+
+	for columnName, filterName := range filterQuals {
+		if quals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			if strings.Contains(fmt.Sprint(columnsBool), columnName) { //check Bool columns
+				value := getQualsValueByColumn(quals, columnName, "boolean")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else if strings.Contains(fmt.Sprint(columnsInt), columnName) { //check Int columns
+				value := getQualsValueByColumn(quals, columnName, "int64")
+				filter.Values = []*string{aws.String(fmt.Sprint(value))}
+			} else {
+				value := getQualsValueByColumn(quals, columnName, "string")
+				if value != nil {
+					val, ok := value.(string)
+					if ok {
+						filter.Values = []*string{aws.String(val)}
+					} else {
+						valSlice := value.([]*string)
+						filter.Values = valSlice
+					}
+				}
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	return filters
 }

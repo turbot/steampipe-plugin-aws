@@ -2,12 +2,15 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,12 +20,17 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		Name:        "aws_wellarchitected_workload",
 		Description: "AWS Well-Architected Workload",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workload_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getWellArchitectedWorkload,
+			KeyColumns: plugin.SingleColumn("workload_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getWellArchitectedWorkload,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedWorkloads,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "workload_name", Require: plugin.Optional},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -185,17 +193,60 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	input := &wellarchitected.ListWorkloadsInput{
+		MaxResults: aws.Int64(50),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["workload_name"] != nil {
+		if equalQuals["workload_name"].GetStringValue() != "" {
+			input.WorkloadNamePrefix = aws.String(equalQuals["workload_name"].GetStringValue())
+		}
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	err = svc.ListWorkloadsPages(
-		&wellarchitected.ListWorkloadsInput{},
+		input,
 		func(page *wellarchitected.ListWorkloadsOutput, lastPage bool) bool {
 			for _, Workload := range page.WorkloadSummaries {
 				d.StreamListItem(ctx, Workload)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !lastPage
 		},
 	)
 
-	return nil, err
+	if err != nil {
+		var awsErr awserr.Error
+		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
+		if errors.As(err, &awsErr) {
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
+					return nil, nil
+				}
+			}
+		}
+		logger.Error("listWellArchitectedWorkloads", "list", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -224,7 +275,17 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetWorkload(params)
 	if err != nil {
-		logger.Debug("getWellArchitectedWorkload", "ERROR", err)
+		var awsErr awserr.Error
+		// AWS Well-Architected Tool is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+		// Post "https://wellarchitected.ap-northeast-3.amazonaws.com/workloadsSummaries": dial tcp: lookup wellarchitected.ap-northeast-3.amazonaws.com: no such host
+		if errors.As(err, &awsErr) {
+			if awsErr.OrigErr() != nil {
+				if strings.Contains(awsErr.OrigErr().Error(), "no such host") {
+					return nil, nil
+				}
+			}
+		}
+		logger.Error("getWellArchitectedWorkload", "get", err)
 		return nil, err
 	}
 

@@ -63,7 +63,6 @@ resource "aws_subnet" "my_subnet2" {
 
 resource "aws_s3_bucket" "test_bucket" {
   bucket        = var.resource_name
-  acl           = "private"
   force_destroy = true
 }
 

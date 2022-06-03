@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_subnet_group",
 		Description: "AWS ElastiCache Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_subnet_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
-			Hydrate:           getElastiCacheSubnetGroup,
+			KeyColumns: plugin.SingleColumn("cache_subnet_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getElastiCacheSubnetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheSubnetGroups,
@@ -80,12 +82,32 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
+	input := &elasticache.DescribeCacheSubnetGroupsInput{
+		MaxRecords: aws.Int64(100),
+	}
+
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxRecords {
+			if *limit < 20 {
+				input.MaxRecords = aws.Int64(20)
+			} else {
+				input.MaxRecords = limit
+			}
+		}
+	}
+
 	// List call
 	err = svc.DescribeCacheSubnetGroupsPages(
-		&elasticache.DescribeCacheSubnetGroupsInput{},
+		input,
 		func(page *elasticache.DescribeCacheSubnetGroupsOutput, isLast bool) bool {
 			for _, cacheSubnetGroup := range page.CacheSubnetGroups {
 				d.StreamListItem(ctx, cacheSubnetGroup)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},

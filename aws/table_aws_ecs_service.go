@@ -4,10 +4,11 @@ import (
 	"context"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +18,11 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_service",
 		Description: "AWS ECS Service",
 		List: &plugin.ListConfig{
-			Hydrate:           listEcsServices,
-			ParentHydrate:     listEcsClusters,
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundException"}),
+			Hydrate:       listEcsServices,
+			ParentHydrate: listEcsClusters,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException"}),
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -174,7 +177,8 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The metadata that you apply to the service to help you categorize and organize them.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getEcsServiceTags,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -188,6 +192,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEcsServiceTags,
 				Transform:   transform.From(getEcsServiceTurbotTags),
 			},
 			{
@@ -212,12 +217,29 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	// Get cluster details
 	cluster := h.Item.(*ecs.Cluster)
 
+	// DescribeServices API can describe up to 10 services in a single operation. Default MaxResults is 10 for ListServicesInput
+	input := &ecs.ListServicesInput{
+		Cluster:    cluster.ClusterArn,
+		MaxResults: aws.Int64(10),
+	}
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
 	// List all available ECS services
 	var serviceNames [][]*string
 	err = svc.ListServicesPages(
-		&ecs.ListServicesInput{
-			Cluster: cluster.ClusterArn,
-		},
+		input,
 		func(page *ecs.ListServicesOutput, isLast bool) bool {
 			if len(page.ServiceArns) != 0 {
 				// Create a chunk of array of size 10
@@ -254,6 +276,11 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	for result := range serviceCh {
 		for _, service := range result.Services {
 			d.StreamListItem(ctx, service)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 	return nil, nil
@@ -283,18 +310,46 @@ func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ec
 	return response, nil
 }
 
+// List api call is not returning the tags for the service, so we need to make a separate api call for getting the tag details
+func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := h.Item.(*ecs.Service)
+
+	if data.ServiceArn == nil {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := EcsService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("getEcsServiceTags", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ecs.ListTagsForResourceInput{
+		ResourceArn: data.ServiceArn,
+	}
+
+	response, err := svc.ListTagsForResource(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getEcsServiceTags", err)
+		return nil, err
+	}
+
+	return response.Tags, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func getEcsServiceTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.(*ecs.Service)
+	tags := d.HydrateItem.([]*ecs.Tag)
 
-	if data.Tags == nil {
+	if len(tags) == 0 {
 		return nil, nil
 	}
 
 	turbotTagsMap := map[string]string{}
-	for _, i := range data.Tags {
+	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 	return turbotTagsMap, nil

@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/go-kit/types"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -16,12 +17,52 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_snapshot",
 		Description: "AWS EBS Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed"}),
-			Hydrate:           getAwsEBSSnapshot,
+			KeyColumns: plugin.SingleColumn("snapshot_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
+			},
+			Hydrate: getAwsEBSSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "description",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "encrypted",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "owner_alias",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "owner_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "snapshot_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "state",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "progress",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "volume_id",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "volume_size",
+					Require: plugin.Optional,
+				},
+			},
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -136,7 +177,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
 
@@ -146,15 +187,37 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	input := &ec2.DescribeSnapshotsInput{
+		MaxResults: aws.Int64(1000),
+	}
+
+	// Build filter for ebs snapshot
+	filters := buildEbsSnapshotFilter(ctx, d, h, d.KeyColumnQuals)
+	input.Filters = filters
+
+	// If the requested number of items is less than the paging max limit
+	// set the limit to that instead
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 5 {
+				input.MaxResults = types.Int64(5)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 	// List call
 	err = svc.DescribeSnapshotsPages(
-		&ec2.DescribeSnapshotsInput{
-			OwnerIds: []*string{aws.String("self")},
-		},
+		input,
 		func(page *ec2.DescribeSnapshotsOutput, isLast bool) bool {
 			for _, snapshot := range page.Snapshots {
 				d.StreamListItem(ctx, snapshot)
 
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
 			return !isLast
 		},
@@ -200,7 +263,15 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	plugin.Logger(ctx).Trace("getAwsEBSSnapshotCreateVolumePermissions")
 	snapshotData := h.Item.(*ec2.Snapshot)
 	region := d.KeyColumnQualString(matrixKeyRegion)
-
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	c, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+	if *snapshotData.OwnerId != commonColumnData.AccountId {
+		return nil, nil
+	}
 	// Create session
 	svc, err := Ec2Service(ctx, d, region)
 	if err != nil {
@@ -233,7 +304,7 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	commonColumnData := c.(*awsCommonColumnData)
 
 	// Get the resource arn
-	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":snapshot/" + *snapshotData.SnapshotId
+	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *snapshotData.OwnerId + ":snapshot/" + *snapshotData.SnapshotId
 
 	return arn, nil
 }
@@ -243,4 +314,54 @@ func getEBSSnapshotARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	snapshot := d.HydrateItem.(*ec2.Snapshot)
 	return ec2TagsToMap(snapshot.Tags)
+}
+
+//// UTILITY FUNCTION
+// build ebs snapshot list call input filter
+func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
+	filters := make([]*ec2.Filter, 0)
+
+	filterQuals := map[string]string{
+		"description": "description",
+		"encrypted":   "encrypted",
+		"owner_alias": "owner-alias",
+		"snapshot_id": "snapshot-id",
+		"state":       "status",
+		"progress":    "progress",
+		"volume_id":   "volume-id",
+		"volume_size": "volume-size",
+	}
+
+	for columnName, filterName := range filterQuals {
+		if equalQuals[columnName] != nil {
+			filter := ec2.Filter{
+				Name: types.String(filterName),
+			}
+			value := equalQuals[columnName]
+			if value.GetStringValue() != "" {
+				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
+			} else if value.GetListValue() != nil {
+				filter.Values = getListValues(value.GetListValue())
+			}
+			filters = append(filters, &filter)
+		}
+	}
+	ownerFilter := ec2.Filter{}
+	if equalQuals["owner_id"] != nil {
+		ownerFilter.Name = types.String("owner-id")
+		ownerFilter.Values = []*string{types.String(equalQuals["owner_id"].GetStringValue())}
+	} else {
+		// Use this section later and compare the results
+		getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+		c, err := getCommonColumnsCached(ctx, d, h)
+		if err != nil {
+			return filters
+		}
+		commonColumnData := c.(*awsCommonColumnData)
+		ownerFilter.Name = types.String("owner-id")
+		ownerFilter.Values = []*string{aws.String(commonColumnData.AccountId)}
+	}
+
+	filters = append(filters, &ownerFilter)
+	return filters
 }

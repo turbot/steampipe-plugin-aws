@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_rule_group",
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsWafv2RuleGroup,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsWafv2RuleGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
@@ -158,7 +160,21 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	pagesLeft := true
 	params := &wafv2.ListRuleGroupsInput{
 		Scope: scope,
+		Limit: aws.Int64(100),
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *params.Limit {
+			if *limit < 1 {
+				params.Limit = aws.Int64(1)
+			} else {
+				params.Limit = limit
+			}
+		}
+	}
+
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(params)
 		if err != nil {
@@ -167,6 +183,11 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 		for _, ruleGroups := range response.RuleGroups {
 			d.StreamListItem(ctx, ruleGroups)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 
 		if response.NextMarker != nil {
@@ -245,6 +266,9 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	return op, nil
 }
 
+// ListTagsForResource.NextMarker return empty string in API call
+// due to which pagination will not work properly
+// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RuleGroup")
 
@@ -267,9 +291,10 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	// Build param
+	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
+		Limit:       aws.Int64(100),
 	}
 
 	ruleGroupTags, err := svc.ListTagsForResource(param)
