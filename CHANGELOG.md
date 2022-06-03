@@ -1,3 +1,18 @@
+## v0.62.0 [2022-06-02]
+
+_What's new?_
+
+- New tables added
+  - [aws_route53_traffic_policy_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_route53_traffic_policy_instance) ([#1047](https://github.com/turbot/steampipe-plugin-aws/pull/1047))
+
+_Enhancements_
+
+- Added column `administrator_account` to `aws_securityhub_hub` table. ([#1046](https://github.com/turbot/steampipe-plugin-aws/pull/1046))
+
+_Bug fixes_
+
+- Fixed the `is_logging` column of `aws_cloudtrail_trail` table to return `true` instead of `null` for shadow trails when the source trail has logging enabled. ([#986](https://github.com/turbot/steampipe-plugin-aws/pull/986))
+
 ## v0.61.0 [2022-05-30]
 
 _What's new?_

@@ -453,8 +453,8 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 }
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, d *plugin.QueryData) (*cloudtrail.CloudTrail, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
+	
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
