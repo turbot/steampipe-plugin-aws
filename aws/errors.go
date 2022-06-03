@@ -4,7 +4,7 @@ import (
 	"context"
 	"path"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 

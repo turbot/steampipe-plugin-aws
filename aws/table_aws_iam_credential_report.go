@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go-v2/aws/awserr"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/gocarina/gocsv"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"

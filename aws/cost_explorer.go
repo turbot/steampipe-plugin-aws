@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
@@ -157,7 +157,8 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		if output.NextPageToken == nil {
 			break
 		}
-		params.SetNextPageToken(*output.NextPageToken)
+		// params.SetNextPageToken(*output.NextPageToken)
+		params.NextPageToken = output.NextPageToken
 	}
 
 	return nil, nil
@@ -174,7 +175,7 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 		if len(result.Groups) == 0 {
 			var row CEMetricRow
 
-			row.Estimated = result.Estimated
+			row.Estimated = &result.Estimated
 			row.PeriodStart = result.TimePeriod.Start
 			row.PeriodEnd = result.TimePeriod.End
 
@@ -185,14 +186,14 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 		for _, group := range result.Groups {
 			var row CEMetricRow
 
-			row.Estimated = result.Estimated
+			row.Estimated = &result.Estimated
 			row.PeriodStart = result.TimePeriod.Start
 			row.PeriodEnd = result.TimePeriod.End
 
 			if len(group.Keys) > 0 {
-				row.Dimension1 = group.Keys[0]
+				row.Dimension1 = &group.Keys[0]
 				if len(group.Keys) > 1 {
-					row.Dimension2 = group.Keys[1]
+					row.Dimension2 = &group.Keys[1]
 				}
 			}
 			row.setRowMetrics(group.Metrics)
@@ -231,7 +232,7 @@ type CEMetricRow struct {
 	NormalizedUsageUnit  *string
 }
 
-func (row *CEMetricRow) setRowMetrics(metrics map[string]*costexplorer.MetricValue) {
+func (row *CEMetricRow) setRowMetrics(metrics map[string]*costexplorer.) {
 
 	if metrics["BlendedCost"] != nil {
 		row.BlendedCostAmount = metrics["BlendedCost"].Amount

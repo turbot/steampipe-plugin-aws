@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
@@ -19,14 +19,14 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_insight",
 		Description: "AWS Securityhub Insight",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getSecurityHubInsight,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getSecurityHubInsight,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listSecurityHubInsights,
+			Hydrate: listSecurityHubInsights,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
 			},

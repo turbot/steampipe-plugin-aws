@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -118,7 +119,7 @@ func getCWStartDateForGranularity(granularity string) time.Time {
 	return time.Now().AddDate(0, 0, -5)
 }
 
-func getCWPeriodForGranularity(granularity string) int64 {
+func getCWPeriodForGranularity(granularity string) int32 {
 	switch strings.ToUpper(granularity) {
 	case "DAILY":
 		// 24 hours
@@ -150,18 +151,18 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		MetricName: aws.String(metricName),
 		StartTime:  aws.Time(startTime),
 		EndTime:    aws.Time(endTime),
-		Period:     aws.Int64(period),
-		Statistics: []*string{
-			aws.String("Average"),
-			aws.String("SampleCount"),
-			aws.String("Sum"),
-			aws.String("Minimum"),
-			aws.String("Maximum"),
+		Period:     aws.Int32(period),
+		Statistics: []types.Statistic{
+			"Average",
+			"SampleCount",
+			"Sum",
+			"Minimum",
+			"Maximum",
 		},
 	}
 
 	if dimensionName != "" && dimensionValue != "" {
-		params.Dimensions = []*cloudwatch.Dimension{
+		params.Dimensions = []types.Dimension{
 			{
 				Name:  aws.String(dimensionName),
 				Value: aws.String(dimensionValue),
