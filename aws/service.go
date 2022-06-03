@@ -454,7 +454,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
 func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-	
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -1984,13 +1983,6 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
 
-	// handle custom endpoint url, if any
-	awsEndpointUrl := os.Getenv("AWS_ENDPOINT_URL")
-
-	if awsConfig.EndpointUrl != nil {
-		awsEndpointUrl = *awsConfig.EndpointUrl
-	}
-
 	// session default configuration
 	sessionOptions := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -1998,8 +1990,20 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			Region:     &region,
 			MaxRetries: aws.Int(maxRetries),
 			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
-			Endpoint:   aws.String(awsEndpointUrl),
 		},
+	}
+
+	// handle custom endpoint URL, if any
+	var awsEndpointUrl string
+
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
+
+	if awsEndpointUrl != "" {
+		sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
 	}
 
 	if awsConfig.Profile != nil {

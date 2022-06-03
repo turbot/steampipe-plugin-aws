@@ -97,10 +97,16 @@ connection "aws" {
   # List of additional AWS error codes to ignore for all queries.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+
+  # Specify the endpoint URL used when making requests to AWS services.
+  # If not set, the default AWS generated endpoint will be used.
+  # Can also be set with the AWS_ENDPOINT_URL environment variable.
+  #endpoint_url = "http://localhost:4566"
 }
 ```
 
 - `access_key` - (Optional) AWS access key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
+- `endpoint_url` - (Optional) The endpoint URL used when making requests to AWS services. If not set, the default AWS generated endpoint will be used. Can also be set with the `AWS_ENDPOINT_URL` environment variable.
 - `ignore_error_codes` - (Optional) List of additional AWS error codes to ignore for all queries. By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
 - `max_error_retry_attempts` - (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
 - `min_error_retry_delay` - (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
