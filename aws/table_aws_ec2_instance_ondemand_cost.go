@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsEc2InstanceCostHourly(_ context.Context) *plugin.Table {
@@ -191,7 +191,6 @@ func tableAwsEc2InstanceCostHourly(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Product.attributes.processorFeatures"),
 			},
-
 			{
 				Name:        "storage",
 				Description: "The name of the AWS service.",
@@ -296,11 +295,6 @@ func tableAwsEc2InstanceCostHourly(_ context.Context) *plugin.Table {
 	}
 }
 
-type AttributeNameWithServiceCode struct {
-	AttributeNames []*string
-	ServiceCode    *string
-}
-
 type PricingInfo struct {
 	ServiceCode     interface{}
 	PriceCurrency   interface{}
@@ -315,7 +309,7 @@ type PricingInfo struct {
 
 func ListEc2InstanceCostHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// region := d.KeyColumnQualString(matrixKeyRegion)
-	// logger := plugin.Logger(ctx)
+	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := PricingService(ctx, d)
@@ -323,11 +317,20 @@ func ListEc2InstanceCostHourly(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	var pricInfo PricingInfo
+	var priceInfo PricingInfo
+	filter := []*pricing.Filter{
+		{
+			Type:  aws.String("TERM_MATCH"),
+			Field: aws.String("instanceType"),
+			Value: aws.String("r5d.16xlarge"),
+		},
+	}
 	err = svc.GetProductsPages(
 		&pricing.GetProductsInput{
+			Filters:       filter,
 			FormatVersion: aws.String("aws_v1"),
 			ServiceCode:   aws.String("AmazonEC2"),
+			MaxResults:    aws.Int64(100),
 		}, func(pages *pricing.GetProductsOutput, isLast bool) bool {
 			for _, price := range pages.PriceList {
 				terms := price["terms"]
@@ -335,32 +338,33 @@ func ListEc2InstanceCostHourly(ctx context.Context, d *plugin.QueryData, h *plug
 					if terms.(map[string]interface{})["OnDemand"] != nil {
 						data := terms.(map[string]interface{})["OnDemand"].(map[string]interface{})
 						for _, v := range data {
-							pricInfo.OnDemandInfo = v
+							priceInfo.OnDemandInfo = v
 							break
 						}
-						if pricInfo.OnDemandInfo.(map[string]interface{})["priceDimensions"] != nil {
-							pricingData := pricInfo.OnDemandInfo.(map[string]interface{})["priceDimensions"].(map[string]interface{})
+						if priceInfo.OnDemandInfo.(map[string]interface{})["priceDimensions"] != nil {
+							pricingData := priceInfo.OnDemandInfo.(map[string]interface{})["priceDimensions"].(map[string]interface{})
 							for _, v1 := range pricingData {
-								pricInfo.PriceDimensions = v1
+								priceInfo.PriceDimensions = v1
 								break
 							}
 						}
-						if pricInfo.PriceDimensions.(map[string]interface{})["pricePerUnit"] != nil {
-							priceCurrency := pricInfo.PriceDimensions.(map[string]interface{})["pricePerUnit"].(map[string]interface{})
+						if priceInfo.PriceDimensions.(map[string]interface{})["pricePerUnit"] != nil {
+							priceCurrency := priceInfo.PriceDimensions.(map[string]interface{})["pricePerUnit"].(map[string]interface{})
 							for k2, v2 := range priceCurrency {
-								pricInfo.PriceCurrency = k2
-								pricInfo.Price = v2
+								priceInfo.PriceCurrency = k2
+								priceInfo.Price = v2
 								break
 							}
 						}
 					}
 				}
 
-				pricInfo.Product = price["product"]
-				pricInfo.ServiceCode = price["serviceCode"]
-				pricInfo.PublicationDate = price["publicationDate"]
-				d.StreamListItem(ctx, pricInfo)
+				priceInfo.Product = price["product"]
+				priceInfo.ServiceCode = price["serviceCode"]
+				priceInfo.PublicationDate = price["publicationDate"]
+				d.StreamListItem(ctx, priceInfo)
 			}
+			logger.Error("ListEc2InstanceCostHourly")
 			return !isLast
 		},
 	)
