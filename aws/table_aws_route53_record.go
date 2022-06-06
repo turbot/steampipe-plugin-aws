@@ -20,6 +20,9 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_record",
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInput"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
 			},
@@ -143,7 +146,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	// Optional parameters not included due to incorrect api response for `name` and `type`
+	// Optional parameters not included due to incorrect API response for `name` and `type`
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &hostedZoneID,
 		MaxItems:     aws.String("1000"),
