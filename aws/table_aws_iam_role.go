@@ -18,25 +18,21 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsIamRole(_ context.Context) *plugin.Table {
+func tableAwsIamRole(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamRole,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			Hydrate:    getIamRole,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
-			},
-		},
-		HydrateDependencies: []plugin.HydrateDependencies{
-			{
-				Func:    getAwsIamRoleInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -129,14 +125,14 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the role..",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the role.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -348,26 +344,10 @@ func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
-
-	return roleData, nil
-}
-
-func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamRoleInlinePolicies")
-	role := h.Item.(*iam.Role)
-	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
 	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
-	for _, policy := range listRolePoliciesOutput.PolicyNames {
+	policyCh := make(chan map[string]interface{}, len(roleData.PolicyNames))
+	errorCh := make(chan error, len(roleData.PolicyNames))
+	for _, policy := range roleData.PolicyNames {
 		wg.Add(1)
 		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
 	}
@@ -439,12 +419,11 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*iam.Role)
+	tags := d.HydrateItem.(*iam.Role)
 	var turbotTagsMap map[string]string
-
-	if data.Tags != nil {
+	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

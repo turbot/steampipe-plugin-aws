@@ -177,16 +177,15 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.VpcConfig.VpcId", "VpcConfig.VpcId"),
 			},
 			{
-				Name:        "vpc_security_group_ids",
-				Description: "A list of VPC security groups IDs attached to Lambda function.",
+				Name:        "architectures",
+				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.VpcConfig.SecurityGroupIds", "VpcConfig.SecurityGroupIds"),
 			},
 			{
-				Name:        "vpc_subnet_ids",
-				Description: "A list of VPC subnet IDs attached to Lambda function.",
+				Name:        "environment_variables",
+				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Configuration.VpcConfig.SubnetIds", "VpcConfig.SubnetIds"),
+				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
 			},
 			{
 				Name:        "policy",
@@ -201,6 +200,18 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "vpc_security_group_ids",
+				Description: "A list of VPC security groups IDs attached to Lambda function.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.VpcConfig.SecurityGroupIds", "VpcConfig.SecurityGroupIds"),
+			},
+			{
+				Name:        "vpc_subnet_ids",
+				Description: "A list of VPC subnet IDs attached to Lambda function.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.VpcConfig.SubnetIds", "VpcConfig.SubnetIds"),
 			},
 
 			// Steampipe standard columns

@@ -17,9 +17,11 @@ func tableAwsSageMakerEndpointConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_endpoint_configuration",
 		Description: "AWS Sagemaker Endpoint Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
-			Hydrate:           getSagemakerEndpointConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
+			},
+			Hydrate: getSagemakerEndpointConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSagemakerEndpointConfigurations,

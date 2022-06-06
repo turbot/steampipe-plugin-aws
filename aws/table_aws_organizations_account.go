@@ -15,9 +15,11 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 		Name:        "aws_organizations_account",
 		Description: "AWS Organizations Account",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
-			Hydrate:           getOrganizationsAccount,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AccountNotFoundException", "InvalidInputException"}),
+			},
+			Hydrate: getOrganizationsAccount,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOrganizationsAccounts,
@@ -28,9 +30,10 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Description: "The description of the permission set.",
 				Type:        proto.ColumnType_STRING,
 			},
+			// This description has added text for better clarification on ID type
 			{
 				Name:        "id",
-				Description: "The unique identifier (ID) of the account.",
+				Description: "The unique identifier (account ID) of the member account.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

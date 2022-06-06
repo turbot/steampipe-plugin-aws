@@ -17,9 +17,11 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 		Name:        "aws_elastic_beanstalk_environment",
 		Description: "AWS ElasticBeanstalk Environment",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("environment_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsElasticBeanstalkEnvironment,
+			KeyColumns: plugin.SingleColumn("environment_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsElasticBeanstalkEnvironment,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticBeanstalkEnvironments,
@@ -51,7 +53,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "date-created",
+				Name:        "date_created",
 				Description: "The creation date for this environment.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},

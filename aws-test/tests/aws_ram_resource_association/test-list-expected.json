@@ -1,0 +1,7 @@
+[
+    {
+        "associated_entity": "{{ output.resource_id.value }}",
+        "resource_share_arn": "{{ output.resource_aka.value }}",
+        "resource_share_name": "{{ resourceName }}"
+    }
+]

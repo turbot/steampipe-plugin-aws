@@ -40,6 +40,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/aws/aws-sdk-go/service/dlm"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -69,8 +70,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/macie2"
 	"github.com/aws/aws-sdk-go/service/mediastore"
+	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
+	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/aws/aws-sdk-go/service/ram"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
@@ -84,6 +89,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -447,8 +453,7 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 }
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
-func CloudTrailService(ctx context.Context, d *plugin.QueryData) (*cloudtrail.CloudTrail, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -547,6 +552,28 @@ func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservi
 		return nil, err
 	}
 	svc := directoryservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DLMService returns the service connection for AWS DLM Service
+func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DLMService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("dlm-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*dlm.DLM), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := dlm.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1203,6 +1230,28 @@ func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.Me
 	return svc, nil
 }
 
+// NeptuneService returns the service connection for AWS Neptune service
+func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed NeptuneService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("neptune-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*neptune.Neptune), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := neptune.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
 // NetworkFirewallService returns the service connection for AWS Network Firewall service
 func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -1222,6 +1271,52 @@ func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkf
 	}
 	svc := networkfirewall.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// PinpointService returns the service connection for AWS Pinpoint service
+func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed PinpointService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("pinpoint-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*pinpoint.Pinpoint), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+
+	}
+	svc := pinpoint.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// OpenSearchService returns the service connection for AWS OpenSearch service
+func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed OpenSearchService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("opensearch-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*opensearchservice.OpenSearchService), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := opensearchservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
@@ -1260,6 +1355,30 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 		return nil, err
 	}
 	svc := configservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// RAMService returns the service connection for AWS RAM Service
+func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed RAMService")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ram-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ram.RAM), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ram.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -1494,6 +1613,26 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 	}
 	svc := serverlessapplicationrepository.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// SESService returns the service connection for AWS SES service
+func SESService(ctx context.Context, d *plugin.QueryData, region string) (*ses.SES, error) {
+
+	// have we already created and cached the service?
+	serviceCacheKey := "ses" + region
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ses.SES), nil
+	}
+
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := ses.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
 	return svc, nil
 }
 
@@ -1852,6 +1991,19 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			MaxRetries: aws.Int(maxRetries),
 			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
 		},
+	}
+
+	// handle custom endpoint URL, if any
+	var awsEndpointUrl string
+
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
+
+	if awsEndpointUrl != "" {
+		sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
 	}
 
 	if awsConfig.Profile != nil {

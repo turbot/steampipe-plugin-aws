@@ -20,9 +20,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_network_interface",
 		Description: "AWS EC2 Network Interface",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("network_interface_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
-			Hydrate:           getEc2NetworkInterface,
+			KeyColumns: plugin.SingleColumn("network_interface_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidNetworkInterfaceID.NotFound", "InvalidNetworkInterfaceID.Unavailable", "InvalidNetworkInterfaceID.Malformed"}),
+			},
+			Hydrate: getEc2NetworkInterface,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2NetworkInterfaces,
@@ -201,6 +203,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Name:        "source_dest_check",
 				Description: "Indicates whether traffic to or from the instance is validated.",
 				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "vpc_id",
+				Description: "The ID of the VPC.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "groups",

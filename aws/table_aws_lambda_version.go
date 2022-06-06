@@ -19,9 +19,11 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_version",
 		Description: "AWS Lambda Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"version", "function_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           getFunctionVersion,
+			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: getFunctionVersion,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -123,6 +125,12 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("VpcConfig.VpcId"),
+			},
+			{
+				Name:        "environment_variables",
+				Description: "The environment variables that are accessible from function code during execution.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Environment.Variables"),
 			},
 			{
 				Name:        "policy",
