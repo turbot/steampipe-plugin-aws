@@ -1,3 +1,9 @@
+## v0.63.0 [2022-06-03]
+
+_What's new?_
+
+- Added `endpoint_url` config arg to provide users the ability to set a custom endpoint URL when making requests to AWS services. For more information, please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration). ([#1053](https://github.com/turbot/steampipe-plugin-aws/pull/1053)) (Thanks to [@srgg](https://github.com/srgg) for the contribution!)
+
 ## v0.62.0 [2022-06-02]
 
 _What's new?_

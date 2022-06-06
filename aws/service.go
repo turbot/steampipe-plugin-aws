@@ -454,7 +454,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
 func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-	
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -1992,6 +1991,19 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			MaxRetries: aws.Int(maxRetries),
 			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
 		},
+	}
+
+	// handle custom endpoint URL, if any
+	var awsEndpointUrl string
+
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
+
+	if awsEndpointUrl != "" {
+		sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
 	}
 
 	if awsConfig.Profile != nil {

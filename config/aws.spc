@@ -28,4 +28,9 @@ connection "aws" {
   # List of additional AWS error codes to ignore for all queries.
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+
+  # Specify the endpoint URL used when making requests to AWS services.
+  # If not set, the default AWS generated endpoint will be used.
+  # Can also be set with the AWS_ENDPOINT_URL environment variable.
+  #endpoint_url = "http://localhost:4566"
 }
