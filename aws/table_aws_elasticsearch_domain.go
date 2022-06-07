@@ -282,6 +282,12 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsElasticsearchDomainTags")
 
+	// Domain will be nil if getAwsElasticsearchDomain returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getAwsElasticsearchDomain"] == nil {
+		return nil, nil
+	}
+
 	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*elasticsearchservice.ElasticsearchDomainStatus).ARN
 
 	// Create Session
