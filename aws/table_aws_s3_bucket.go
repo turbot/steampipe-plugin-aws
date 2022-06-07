@@ -304,6 +304,13 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getS3BucketEventNotificationConfigurations")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	name := h.Item.(*s3.Bucket).Name
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -367,6 +374,13 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketIsPublic")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -396,6 +410,13 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketVersioning")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -419,6 +440,13 @@ func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketEncryption")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -446,6 +474,13 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketPublicAccessBlock")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -483,6 +518,13 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 
 func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketACL")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -506,6 +548,13 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketLifecycle")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -534,6 +583,13 @@ func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketLogging")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -556,6 +612,13 @@ func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketPolicy")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -583,6 +646,13 @@ func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketReplication")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -610,6 +680,13 @@ func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getBucketTagging")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
@@ -649,6 +726,13 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getObjectLockConfiguration")
+
+	// Bucket location will be nil if getBucketLocation returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getBucketLocation"] == nil {
+		return nil, nil
+	}
+
 	bucket := h.Item.(*s3.Bucket)
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
