@@ -24,7 +24,7 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listOpenSearchDomains,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listOpenSearchDomainTags,
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
@@ -285,6 +285,12 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listOpenSearchDomainTags")
+
+	// Domain will be nil if getOpenSearchDomain returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getOpenSearchDomain"] == nil {
+		return nil, nil
+	}
 
 	arn := h.HydrateResults["getOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
 
