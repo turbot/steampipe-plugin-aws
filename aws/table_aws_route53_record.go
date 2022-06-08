@@ -20,9 +20,6 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_record",
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInput"}),
-			},
 
 			// Some optional key columns are disabled due to https://github.com/aws/aws-sdk-go/issues/4386
 			KeyColumns: []*plugin.KeyColumn{
