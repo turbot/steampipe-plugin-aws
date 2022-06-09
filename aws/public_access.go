@@ -179,8 +179,6 @@ func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) boo
 	return false
 }
 
-
-*/
 // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
 func CheckForAnyValuePrefix(key string) bool {
 	return strings.HasPrefix(key, "ForAnyValue")
