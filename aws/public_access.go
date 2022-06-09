@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
+
 	"github.com/turbot/go-kit/helpers"
 )
 
@@ -95,10 +97,28 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 		}
 	}
 
-	evaluation.AllowedOrganizationIds = StringSliceDistinct(evaluation.AllowedOrganizationIds)
-	evaluation.AllowedPrincipals = StringSliceDistinct(evaluation.AllowedPrincipals)
 	evaluation.AllowedPrincipalAccountIds = StringSliceDistinct(evaluation.AllowedPrincipalAccountIds)
+	accountIds := []string{}
+	for _, item := range StringSliceDistinct(evaluation.AllowedPrincipals) {
+		if arn.IsARN(item) {
+			awsARN, _ := arn.Parse(item)
+			if awsARN.AccountID != "" {
+				accountIds = append(accountIds, awsARN.AccountID)
+			}
+		} else {
+			// TODO - Should we add principals which doesn't have account ids
+			accountIds = append(accountIds, item)
+		}
+	}
+	evaluation.AllowedPrincipalAccountIds = accountIds
+
+	// Add all types of principals into allowed principals
+	evaluation.AllowedPrincipals = StringSliceDistinct(evaluation.AllowedPrincipals)
+	evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, evaluation.AllowedPrincipalServices...)
+	evaluation.AllowedPrincipals = StringSliceDistinct(append(evaluation.AllowedPrincipals, evaluation.AllowedPrincipalFederatedIdentities...))
+
 	evaluation.AllowedPrincipalFederatedIdentities = StringSliceDistinct(evaluation.AllowedPrincipalFederatedIdentities)
+	evaluation.AllowedOrganizationIds = StringSliceDistinct(evaluation.AllowedOrganizationIds)
 	evaluation.AllowedPrincipalServices = StringSliceDistinct(evaluation.AllowedPrincipalServices)
 	evaluation.PublicAccessLevels = StringSliceDistinct(evaluation.PublicAccessLevels)
 	evaluation.PublicStatementIds = StringSliceDistinct(evaluation.PublicStatementIds)
@@ -115,9 +135,9 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 
 	// Check for the allowed statement
 	if stmt.NotAction != nil {
-
 		return true
 	}
+
 	var awsPrincipals, servicePrincipals, federatedPrincipals []string
 	var hasPublicPrincipal = false
 	var isPublic = false
@@ -141,15 +161,20 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 	}
 
 	if stmt.Condition != nil {
+		// log.Println("[INFO] AM I REACHING HERE")
 		for key, value := range stmt.Condition {
 			// hasAnyValuePrefix := CheckForAnyValuePrefix(key)
 			// hasAllValuesPrefix := CheckForAllValuesPrefix(key)
 			hasIfExistsSuffix := CheckIfExistsSuffix(key)
+			// log.Println("[INFO] operator key:", key)
 
-			if helpers.StringSliceContains(conditionOperatorsToCheck, key) {
+			// if helpers.StringSliceContains(conditionOperatorsToCheck, key) {
 
-			}
-			if conditiionOperatorValueMap, ok := value.(map[string][]string); ok {
+			// }
+			// log.Println("[INFO] operator value:", value)
+			// log.Printf("[INFO] operator value type: %T\n", value)
+			if conditiionOperatorValueMap, ok := value.(map[string]interface{}); ok {
+				// log.Println("[INFO] operator key:", key)
 				for conditionKey, conditionValue := range conditiionOperatorValueMap {
 
 					// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
@@ -163,7 +188,9 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 					}
 					// If the policy have principal org or path to org need to add that in the evaluation
 					if helpers.StringSliceContains([]string{"aws:principalorgid", "aws:principalorgpaths"}, strings.ToLower(conditionKey)) {
-						evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, conditionValue...)
+						if val, ok := conditionValue.([]string); ok {
+							evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, val...)
+						}
 					}
 				}
 			}
