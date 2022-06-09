@@ -30,31 +30,6 @@ var (
 		"aws:principalarn",
 		"aws:principalorgid",
 		"aws:principalorgpaths", //["o-a1b2c3d4e5/*"]  , ["o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/ou-*"]
-		/*
-					"Condition" : { "ForAnyValue:StringEquals" : {
-			     "aws:PrincipalOrgPaths":["o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/"]
-					}}
-
-					"Condition" : { "ForAnyValue:StringLike" : {
-			     "aws:PrincipalOrgPaths":["o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"]
-					}}
-
-					"Condition" : { "ForAnyValue:StringLike" : {
-			     "aws:PrincipalOrgPaths":["o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"]
-					}}
-
-					"Condition" : { "ForAnyValue:StringLike" : {
-			     "aws:PrincipalOrgPaths":["o-a1b2c3d4e5/*"]
-					}}
-					{
-						"ForAnyValue:StringLike": {
-							"aws:PrincipalOrgPaths": [
-								"o-a1b2c3d4e5/r-ab12/ou-ab12-33333333/*",
-								"o-a1b2c3d4e5/r-ab12/ou-ab12-22222222/*"
-							]
-						}
-					}
-		*/
 	}
 	// AWS Global Keys to be checked for the trusted access for Service Principal
 	trustedServicePrincipalConditionKeys = []string{
@@ -204,7 +179,77 @@ func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) boo
 	return false
 }
 
-/*
+
+*/
+// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
+func CheckForAnyValuePrefix(key string) bool {
+	return strings.HasPrefix(key, "ForAnyValue")
+}
+func CheckForAllValuesPrefix(key string) bool {
+	return strings.HasPrefix(key, "ForAllValues")
+}
+func CheckIfExistsSuffix(key string) bool {
+	return strings.HasSuffix(key, "IfExists")
+}
+func hasAWSPrincipalConditionKey(conditionKey string) bool {
+	return helpers.StringSliceContains(trustedAWSPrincipalConditionKeys, strings.ToLower(conditionKey))
+}
+func hasServicePrincipalConditionKey(conditionKey string) bool {
+	return helpers.StringSliceContains(trustedServicePrincipalConditionKeys, strings.ToLower(conditionKey))
+}
+
+// StringSliceDistinct returns a slice with the unique elements the input string slice
+func StringSliceDistinct(slice []string) []string {
+	var res []string
+	countMap := make(map[string]int)
+	for _, item := range slice {
+		countMap[item]++
+	}
+	for item := range countMap {
+		res = append(res, item)
+	}
+	return res
+}
+
+/* USEFUL DATA - required while coding
+
+[
+  {
+    "ForAnyValue:StringEquals": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": ["o-a1b2c3d4e5/*"]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-33333333/*",
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-22222222/*"
+      ]
+    }
+  }
+]
+
 [
   {
     "Version": "2012-10-17",
@@ -236,32 +281,3 @@ func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) boo
   }
 ]
 */
-// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
-func CheckForAnyValuePrefix(key string) bool {
-	return strings.HasPrefix(key, "ForAnyValue")
-}
-func CheckForAllValuesPrefix(key string) bool {
-	return strings.HasPrefix(key, "ForAllValues")
-}
-func CheckIfExistsSuffix(key string) bool {
-	return strings.HasSuffix(key, "IfExists")
-}
-func hasAWSPrincipalConditionKey(conditionKey string) bool {
-	return helpers.StringSliceContains(trustedAWSPrincipalConditionKeys, strings.ToLower(conditionKey))
-}
-func hasServicePrincipalConditionKey(conditionKey string) bool {
-	return helpers.StringSliceContains(trustedServicePrincipalConditionKeys, strings.ToLower(conditionKey))
-}
-
-// StringSliceDistinct returns a slice with the unique elements the input string slice
-func StringSliceDistinct(slice []string) []string {
-	var res []string
-	countMap := make(map[string]int)
-	for _, item := range slice {
-		countMap[item]++
-	}
-	for item := range countMap {
-		res = append(res, item)
-	}
-	return res
-}
