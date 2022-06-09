@@ -1,3 +1,20 @@
+## v0.64.0 [2022-06-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_elasticache_redis_metric_engine_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_redis_metric_engine_cpu_utilization_daily) ([#1063](https://github.com/turbot/steampipe-plugin-aws/pull/1063))
+  - [aws_glue_dev_endpoint](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_dev_endpoint) ([#1057](https://github.com/turbot/steampipe-plugin-aws/pull/1057))
+  - [aws_ssm_inventory](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_inventory) ([#1054](https://github.com/turbot/steampipe-plugin-aws/pull/1054))
+
+_Enhancements_
+
+- Updated `aws_route53_record` table to temporarily disable `name` and `type` list key quals in order to fix duplicate rows issue. ([#972](https://github.com/turbot/steampipe-plugin-aws/pull/972))
+
+_Bug fixes_
+
+- Fixed `aws_elasticsearch_domain`, `aws_opensearch_domain`, and `aws_s3_bucket` tables to not panic when ignoring errors. ([#1064](https://github.com/turbot/steampipe-plugin-aws/pull/1064))
+
 ## v0.63.0 [2022-06-03]
 
 _What's new?_
