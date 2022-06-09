@@ -76,3 +76,42 @@
   }
 ]
 ```
+
+```json
+[
+  {
+    "ForAnyValue:StringEquals": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/*"
+      ]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": ["o-a1b2c3d4e5/*"]
+    }
+  },
+  {
+    "ForAnyValue:StringLike": {
+      "aws:PrincipalOrgPaths": [
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-33333333/*",
+        "o-a1b2c3d4e5/r-ab12/ou-ab12-22222222/*"
+      ]
+    }
+  }
+]
+```
