@@ -18,7 +18,7 @@ from
   aws_ssm_inventory;
 ```
 
-### Get content details for a managed instance 
+### Get content details of a managed instance 
 
 ```sql
 select
@@ -39,7 +39,7 @@ where
   id = 'i-0665a65b1a1c2b47g';
 ```
 
-### List schema definitions for inventories
+### List schema definitions of inventories
 
 ```sql
 select
@@ -70,7 +70,7 @@ where
   capture_time >= now() - interval '10' day;
 ```
 
-### Get inventory content for all running instances
+### Get inventory content of all running instances
 
 ```sql
 select
