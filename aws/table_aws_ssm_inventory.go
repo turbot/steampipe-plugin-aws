@@ -115,13 +115,13 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 							TypeName:      v.TypeName,
 							Content:       v.Content,
 						})
+						// Context may get cancelled due to manual cancellation or if the limit has been reached
+						if d.QueryStatus.RowsRemaining(ctx) == 0 {
+							return false
+						}
 					}
 				}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
 			}
 			return !isLast
 		},
