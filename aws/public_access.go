@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -62,21 +63,21 @@ var (
 )
 
 type PolicyEvaluation struct {
-	Policy                               Policy   `json:"policy"`
-	AccessLevel                          string   `json:"access_level"`
-	AllowedOrganizationIds               []string `json:"allowed_organization_ids"`
-	AllowedPrincipals                    []string `json:"allowed_principals"`
-	AllowedPrincipalsAccountIds          []string `json:"allowed_principal_account_ids"`
-	AllowedPrincipalsFederatedIdentities []string `json:"allowed_principal_federated_identities"`
-	AllowedPrincipalsServices            []string `json:"allowed_principal_services"`
-	IsPublic                             bool     `json:"is_public"`
-	PublicAccessLevels                   []string `json:"public_access_levels"`
-	PublicStatementIds                   []string `json:"public_statement_ids"`
+	// Policy                               Policy   `json:"policy"`
+	AccessLevel                         string   `json:"access_level"`
+	AllowedOrganizationIds              []string `json:"allowed_organization_ids"`
+	AllowedPrincipals                   []string `json:"allowed_principals"`
+	AllowedPrincipalAccountIds          []string `json:"allowed_principal_account_ids"`
+	AllowedPrincipalFederatedIdentities []string `json:"allowed_principal_federated_identities"`
+	AllowedPrincipalServices            []string `json:"allowed_principal_services"`
+	IsPublic                            bool     `json:"is_public"`
+	PublicAccessLevels                  []string `json:"public_access_levels"`
+	PublicStatementIds                  []string `json:"public_statement_ids"`
 }
 
 func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 
-	evaluation := PolicyEvaluation{Policy: *policy}
+	evaluation := PolicyEvaluation{}
 
 	if policy.Statements == nil {
 		return &evaluation, nil
@@ -87,7 +88,7 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 		if public {
 			evaluation.IsPublic = true
 			if stmt.Sid == "" {
-				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, strconv.Itoa(index))
+				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, fmt.Sprintf("Statement[%s]", strconv.Itoa(index+1)))
 			} else {
 				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, stmt.Sid)
 			}
@@ -96,9 +97,9 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 
 	evaluation.AllowedOrganizationIds = StringSliceDistinct(evaluation.AllowedOrganizationIds)
 	evaluation.AllowedPrincipals = StringSliceDistinct(evaluation.AllowedPrincipals)
-	evaluation.AllowedPrincipalsAccountIds = StringSliceDistinct(evaluation.AllowedPrincipalsAccountIds)
-	evaluation.AllowedPrincipalsFederatedIdentities = StringSliceDistinct(evaluation.AllowedPrincipalsFederatedIdentities)
-	evaluation.AllowedPrincipalsServices = StringSliceDistinct(evaluation.AllowedPrincipalsServices)
+	evaluation.AllowedPrincipalAccountIds = StringSliceDistinct(evaluation.AllowedPrincipalAccountIds)
+	evaluation.AllowedPrincipalFederatedIdentities = StringSliceDistinct(evaluation.AllowedPrincipalFederatedIdentities)
+	evaluation.AllowedPrincipalServices = StringSliceDistinct(evaluation.AllowedPrincipalServices)
 	evaluation.PublicAccessLevels = StringSliceDistinct(evaluation.PublicAccessLevels)
 	evaluation.PublicStatementIds = StringSliceDistinct(evaluation.PublicStatementIds)
 
@@ -127,11 +128,11 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		}
 		if data, ok := stmt.Principal["Service"]; ok {
 			servicePrincipals = data.([]string)
-			evaluation.AllowedPrincipalsServices = append(evaluation.AllowedPrincipalsServices, servicePrincipals...)
+			evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, servicePrincipals...)
 		}
 		if data, ok := stmt.Principal["Federated"]; ok {
 			federatedPrincipals = data.([]string)
-			evaluation.AllowedPrincipalsFederatedIdentities = append(evaluation.AllowedPrincipalsFederatedIdentities, federatedPrincipals...)
+			evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, federatedPrincipals...)
 		}
 	}
 	if helpers.StringSliceContains(awsPrincipals, "*") {
