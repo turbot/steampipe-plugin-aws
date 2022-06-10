@@ -98,10 +98,23 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	evaluation.PublicAccessLevels = StringSliceDistinct(evaluation.PublicAccessLevels)
 	evaluation.PublicStatementIds = StringSliceDistinct(evaluation.PublicStatementIds)
 
+	if evaluation.IsPublic {
+		evaluation.AccessLevel = "public"
+	} else {
+		if helpers.StringSliceContains(evaluation.AllowedPrincipals, "*") {
+			evaluation.AccessLevel = "shared"
+		}
+		// else if (evaluation.AllowedPrincipalAccountIds) {
+
+		// }
+	}
+
 	return &evaluation, nil
 }
 
 func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
+
+	stmtEvaluation := PolicyEvaluation{}
 	// Check for the deny statements separately
 	if stmt.Effect == "Deny" {
 		// TODO
@@ -119,15 +132,15 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 	if stmt.Principal != nil {
 		if data, ok := stmt.Principal["AWS"]; ok {
 			awsPrincipals = data.([]string)
-			evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, awsPrincipals...)
+			stmtEvaluation.AllowedPrincipals = awsPrincipals
 		}
 		if data, ok := stmt.Principal["Service"]; ok {
 			servicePrincipals = data.([]string)
-			evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, servicePrincipals...)
+			stmtEvaluation.AllowedPrincipalServices = servicePrincipals
 		}
 		if data, ok := stmt.Principal["Federated"]; ok {
 			federatedPrincipals = data.([]string)
-			evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, federatedPrincipals...)
+			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
 		}
 	}
 	if helpers.StringSliceContains(awsPrincipals, "*") {
@@ -135,36 +148,77 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		isPublic = true
 	}
 
+	var assessment ConditionAssessment
 	if stmt.Condition != nil {
 		// log.Println("[INFO] AM I REACHING HERE")
-		for key, value := range stmt.Condition {
-			// hasAnyValuePrefix := CheckForAnyValuePrefix(key)
-			// hasAllValuesPrefix := CheckForAllValuesPrefix(key)
-			hasIfExistsSuffix := CheckIfExistsSuffix(key)
-			// log.Println("[INFO] operator key:", key)
+		// { "StringEquals": { "aws:PrincipalAccount": "999988887777"}}
+		// { "operatorKey": "operatorValue" }
+		// { "operatorKey": { "conditionKey": "conditionValue"}}
+		// var conditionAssessment := map[string]map[string]interface{}
+		assessment.And = []*ConditionAssessment{}
+		for operatorKey, operatorValue := range stmt.Condition {
+
+			// intAssessment := ConditionAssessment{Operator: operatorKey}
+			// conditionAssessment[operatorKey] = map[string]interface{}
+			// hasAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
+			// hasAllValuesPrefix := CheckForAllValuesPrefix(operatorKey)
+			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
+			// log.Println("[INFO] operator key:", operatorKey)
 
 			// if helpers.StringSliceContains(conditionOperatorsToCheck, key) {
 
 			// }
-			// log.Println("[INFO] operator value:", value)
-			// log.Printf("[INFO] operator value type: %T\n", value)
-			if conditiionOperatorValueMap, ok := value.(map[string]interface{}); ok {
-				// log.Println("[INFO] operator key:", key)
+			// log.Println("[INFO] operator value:", operatorValue)
+			// log.Printf("[INFO] operator value type: %T\n", operatorValue)
+
+			if conditiionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
+
+				// log.Println("[INFO] operator key:", operatorKey)
+
+				// TODO with multiple conditions as they behave like an and operator
+				/*
+										"Condition": {
+											"StringEquals": {
+												"aws:PrincipalAccount": "999988887777"
+											},
+											"ArnLike": {
+												"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:560741234067:alarm:*"
+											}
+										}
+
+									"Condition": {
+										"ForAnyValue:StringEquals": {
+											"dynamodb:Attributes": ["ID", "PostDateTime"]
+					        	}
+					      	}
+				*/
+
 				for conditionKey, conditionValue := range conditiionOperatorValueMap {
+					// if hasAnyValuePrefix {
+					// 	intAssessment.Or = []*ConditionAssessment{
+					// 		{Value: conditionValue.([]string), Key: conditionKey},
+					// 	}
+					// }
 
 					// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
 					if hasPublicPrincipal {
 						if hasAWSPrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
+							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
+							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
 							isPublic = false
+							// conditionAssessment["isPublic"] = false
 						}
 						if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
+							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
+							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
 							isPublic = false
+							// conditionAssessment["isPublic"] = false
 						}
 					}
 					// If the policy have principal org or path to org need to add that in the evaluation
 					if helpers.StringSliceContains([]string{"aws:principalorgid", "aws:principalorgpaths"}, strings.ToLower(conditionKey)) {
 						if val, ok := conditionValue.([]string); ok {
-							evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, val...)
+							stmtEvaluation.AllowedOrganizationIds = val
 						}
 					}
 				}
@@ -172,6 +226,11 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 
 		}
 	}
+
+	evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, stmtEvaluation.AllowedOrganizationIds...)
+	evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, stmtEvaluation.AllowedPrincipals...)
+	evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, stmtEvaluation.AllowedPrincipalServices...)
+	evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, stmtEvaluation.AllowedPrincipalFederatedIdentities...)
 	return isPublic
 }
 
@@ -198,7 +257,7 @@ func hasServicePrincipalConditionKey(conditionKey string) bool {
 
 // StringSliceDistinct returns a slice with the unique elements the input string slice
 func StringSliceDistinct(slice []string) []string {
-	var res []string
+	var res = []string{}
 	countMap := make(map[string]int)
 	for _, item := range slice {
 		countMap[item]++
@@ -279,3 +338,28 @@ func StringSliceDistinct(slice []string) []string {
   }
 ]
 */
+
+// func listIAMActionFromParliament() {
+// 	permissionsData = getParliamentIamPermissions()
+// 	for _, service := range permissionsData {
+// 		for _, privilege := range service.Privileges {
+// 			a := strings.ToLower(service.Prefix + ":" + privilege.Privilege)
+// 			awsIamPermissionData{
+// 				AccessLevel: privilege.AccessLevel,
+// 				Action:      a,
+// 				Description: privilege.Description,
+// 				Prefix:      service.Prefix,
+// 				Privilege:   privilege.Privilege,
+// 			}
+// 		}
+// 	}
+// }
+
+type ConditionAssessment struct {
+	And      []*ConditionAssessment `type:"and"`
+	Not      *ConditionAssessment   `type:"not"`
+	Or       []*ConditionAssessment `type:"or"`
+	Operator string                 `type:"operator"`
+	Key      string                 `type:"key"`
+	Value    []string               `type:"value"`
+}
