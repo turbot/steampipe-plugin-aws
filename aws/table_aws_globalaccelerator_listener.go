@@ -1,0 +1,173 @@
+package aws
+
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
+
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+)
+
+//// TABLE DEFINITION
+
+func tableAwsGlobalacceleratorListener(_ context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "aws_globalaccelerator_listener",
+		Description: "AWS Global Accelerator Listener",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.SingleColumn("listener_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+			},
+			Hydrate: getGlobalacceleratorListener,
+		},
+		List: &plugin.ListConfig{
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "accelerator_arn", Require: plugin.Required},
+			},
+			Hydrate: listGlobalacceleratorListeners,
+		},
+		Columns: awsColumns([]*plugin.Column{
+			{
+				Name:        "listener_arn",
+				Description: "The Amazon Resource Name (ARN) of the listener.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Listener.ListenerArn"),
+			},
+			{
+				Name:        "accelerator_arn",
+				Description: "The Amazon Resource Name (ARN) of parent accelerator.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromGo(),
+			},
+			{
+				Name:        "client_affinity",
+				Description: "Client affinity setting for the listener.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Listener.ClientAffinity"),
+			},
+			{
+				Name:        "port_ranges",
+				Description: "The list of port ranges for the connections from clients to the accelerator.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Listener.PortRanges"),
+			},
+			{
+				Name:        "protocol",
+				Description: "The protocol for the connections from clients to the accelerator.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Listener.Protocol"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Listener.ListenerArn").Transform(arnToTitle),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Listener.ListenerArn").Transform(arnToAkas),
+			},
+		}),
+	}
+}
+
+type turbotListener struct {
+	AcceleratorArn *string
+	Listener       *globalaccelerator.Listener
+}
+
+//// LIST FUNCTION
+
+func listGlobalacceleratorListeners(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listGlobalacceleratorListeners")
+
+	acceleratorArn := d.KeyColumnQuals["accelerator_arn"].GetStringValue()
+
+	// Create session
+	svc, err := GlobalAcceleratorService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalacceleratorListeners", "service_creation_error", err)
+		return nil, err
+	}
+
+	input := &globalaccelerator.ListListenersInput{
+		MaxResults:     aws.Int64(100),
+		AcceleratorArn: aws.String(acceleratorArn),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
+
+	// List call
+	err = svc.ListListenersPages(
+		input,
+		func(page *globalaccelerator.ListListenersOutput, isLast bool) bool {
+			for _, listener := range page.Listeners {
+				d.StreamListItem(ctx, &turbotListener{&acceleratorArn, listener})
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
+			}
+			return !isLast
+		},
+	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalacceleratorListeners", "api_error", err)
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getGlobalacceleratorListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlobalacceleratorListener")
+
+	arn := d.KeyColumnQuals["listener_arn"].GetStringValue()
+
+	// check if arn is empty
+	if arn == "" {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := GlobalAcceleratorService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalacceleratorListener", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &globalaccelerator.DescribeListenerInput{
+		ListenerArn: aws.String(arn),
+	}
+
+	// Get call
+	data, err := svc.DescribeListener(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalacceleratorListener", "api_error", err)
+		return nil, err
+	}
+	return data.Listener, nil
+}

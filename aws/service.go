@@ -58,6 +58,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -960,6 +961,27 @@ func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier,
 		return nil, err
 	}
 	svc := glacier.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// GlobalAcceleratorService returns the service connection for AWS Global Accelerator service
+func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "globalaccelerator"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*globalaccelerator.GlobalAccelerator), nil
+	}
+
+	// so it was not in cache - create service
+	// NOTE: Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the US West (Oregon) Region to create or update accelerators.
+	sess, err := getSession(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	svc := globalaccelerator.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
