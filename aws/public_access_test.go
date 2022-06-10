@@ -6,16 +6,16 @@ import (
 	"testing"
 )
 
-type numberConversionTest struct {
+type publicAccessTest struct {
 	name     string
-	input    string
+	policy   string
 	expected string
 }
 
 // go test -v -run ^TestGetConditionalKeymapping$ github.com/turbot/steampipe-plugin-aws/aws
 
 func TestGetConditionalKeymapping(t *testing.T) {
-	testCases := []numberConversionTest{
+	testCases := []publicAccessTest{
 		{
 			`1. AWS S3 Multiple statements with public access`,
 			`{
@@ -180,7 +180,7 @@ func TestGetConditionalKeymapping(t *testing.T) {
 			``,
 		},
 		{
-			`#. single_statement`,
+			`3. single_statement`,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -364,9 +364,9 @@ func TestGetConditionalKeymapping(t *testing.T) {
 
 	for _, test := range testCases {
 
-		policy, err := canonicalPolicy(test.input)
+		policy, err := canonicalPolicy(test.policy)
 		if err != nil {
-			t.Errorf("Convert failed for case '%s': %v", test.input, err)
+			t.Errorf("Convert failed for case '%s': %v", test.policy, err)
 		}
 
 		policyObject, ok := policy.(Policy)
