@@ -101,6 +101,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cost_forecast_daily":                                      tableAwsCostForecastDaily(ctx),
 			"aws_cost_forecast_monthly":                                    tableAwsCostForecastMonthly(ctx),
 			"aws_cost_usage":                                               tableAwsCostAndUsage(ctx),
+			"aws_cost_usage_by_category":                                   tableAwsCostAndUsageByCategory(ctx),
 			"aws_dax_cluster":                                              tableAwsDaxCluster(ctx),
 			"aws_directory_service_directory":                              tableAwsDirectoryServiceDirectory(ctx),
 			"aws_dlm_lifecycle_policy":                                     tableAwsDLMLifecyclePolicy(ctx),
