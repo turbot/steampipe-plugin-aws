@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -461,6 +462,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_organization_ids": [],
 				"allowed_principals": [
 					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
+					"cloudwatch.amazonaws.com",
 					"999988887777"
 				],
 				"allowed_principal_account_ids": [
@@ -468,7 +470,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"999988887777"
 				],
 				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
 				"public_access_levels": [],
 				"public_statement_ids": []
@@ -511,13 +513,14 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"access_level": "",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*"
+					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
+					"cloudwatch.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
 					"111122223333"
 				],
 				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
 				"public_access_levels": [],
 				"public_statement_ids": []
@@ -541,9 +544,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
 			}
 
-			// strdata, _ := json.Marshal(evaluatedObj)
-			// _ = json.Unmarshal(strdata, &evaluatedObj)
-			// fmt.Println(string(strdata))
 			var expectedObj PolicyEvaluation
 			_ = json.Unmarshal([]byte(test.expected), &expectedObj)
 
@@ -563,7 +563,10 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			sort.Strings(evaluatedObj.PublicAccessLevels)
 			sort.Strings(evaluatedObj.PublicStatementIds)
 			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
-				t.Errorf(`FAILED: expected %v, got %v`, expectedObj, evaluatedObj)
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				data := new(bytes.Buffer)
+				_ = json.Indent(data, []byte(test.expected), "", "\t")
+				t.Errorf("FAILED: \nExpected:\n %v\n\nEvaluated \n%v\n", data.String(), string(strdata))
 			}
 		})
 	}
