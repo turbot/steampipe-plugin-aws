@@ -114,7 +114,7 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 	}
 	costCategoryDefinitions := c.([]*costexplorer.CostCategoryReference)
 
-	setCategoryKey := false
+	// setCategoryKey := false
 	for _, definition := range costCategoryDefinitions {
 
 		if categoryKey != "" {
@@ -124,13 +124,6 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 			if categoryKey == *definition.Name && categoryKeyOperator == "<>" {
 				continue
 			}
-		}
-
-		// If category_key has not been provided in optional qulas, then we need to get cost and usage for all cost category
-		if categoryKey == "" {
-			categoryKey = *definition.Name
-			categoryKeyOperator = "="
-			setCategoryKey = true
 		}
 
 		// Build the common param without filter
@@ -146,6 +139,10 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 		// Get cost category value based of optional quals "category_value"
 		values := getCategoryValuesForFilterParam(definition.Values, categoryValue, categoryValueOperator)
 
+		if categoryKey != "" && len(values) <= 0 {
+			return nil, nil
+		}
+		
 		// Empty check for the category value 
 		if len(values) <= 0 {
 			categoryKey = ""
@@ -162,11 +159,6 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 				},
 			}
 			params.SetFilter(filter)
-
-			// If we wants to get cost by category for all category key 
-			if setCategoryKey {
-				categoryKey = ""
-			}
 
 			streamCostAndUsageByCategory(ctx, d, h, params, *definition.Name, *value)
 		}
