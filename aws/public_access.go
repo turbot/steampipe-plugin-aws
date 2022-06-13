@@ -211,6 +211,18 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 						if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
 							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
 							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
+							for _, item := range conditionValue.([]string) {
+								if arn.IsARN(item) {
+									awsARN, _ := arn.Parse(item)
+									if awsARN.AccountID != "" {
+										stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, awsARN.AccountID)
+									}
+									if awsARN.Service != "" {
+										stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", awsARN.Service))
+									}
+								}
+							}
+
 							isPublic = false
 							// conditionAssessment["isPublic"] = false
 						}
