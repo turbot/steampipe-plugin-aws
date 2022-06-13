@@ -3,21 +3,31 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"sort"
+	"strconv"
 	"testing"
 )
 
 type publicAccessTest struct {
 	name     string
+	testNo   int
 	policy   string
 	expected string
 }
 
-// go test -v -run ^TestGetConditionalKeymapping$ github.com/turbot/steampipe-plugin-aws/aws
+// go test -v -run ^TestResourcePolicyPublicAccess$ github.com/turbot/steampipe-plugin-aws/aws
+// Run all tests
+// go test -v -run TestResourcePolicyPublicAccess/Test
 
-func TestGetConditionalKeymapping(t *testing.T) {
+// Run individual test case - I will run test with testNo 1
+// go test -v -run TestResourcePolicyPublicAccess/Test=1
+
+func TestResourcePolicyPublicAccess(t *testing.T) {
 	testCases := []publicAccessTest{
 		{
-			`1. AWS S3 Multiple statements with public access`,
+			`AWS S3 Multiple statements with public access`,
+			1,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -107,10 +117,44 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [
+					"o-123456"
+				],
+				"allowed_principals": [
+					"ecs.amazonaws.com",
+					"elasticloadbalancing.amazonaws.com",
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
+					"*",
+					"o-123456",
+					"arn:aws:iam::111122223333:root",
+					"arn:aws:iam::123456789012:user/victor@xyz.com"
+				],
+				"allowed_principal_account_ids": [
+					"*",
+					"o-123456",
+					"111122223333",
+					"123456789012"
+				],
+				"allowed_principal_federated_identities": [
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"
+				],
+				"allowed_principal_services": [
+					"ecs.amazonaws.com",
+					"elasticloadbalancing.amazonaws.com"
+				],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"PublicAccess",
+					"Statement[1]"
+				]
+			}`,
 		},
 		{
-			`2. AWS S3 Multiple statements without public access`,
+			`AWS S3 Multiple statements without public access`,
+			2,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -177,10 +221,39 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [
+					"o-123456"
+				],
+				"allowed_principals": [
+					"arn:aws:iam::123456789012:user/victor@xyz.com",
+					"ecs.amazonaws.com",
+					"elasticloadbalancing.amazonaws.com",
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
+					"o-123456",
+					"arn:aws:iam::111122223333:root"
+				],
+				"allowed_principal_account_ids": [
+					"o-123456",
+					"111122223333",
+					"123456789012"
+				],
+				"allowed_principal_federated_identities": [
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"
+				],
+				"allowed_principal_services": [
+					"ecs.amazonaws.com",
+					"elasticloadbalancing.amazonaws.com"
+				],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`3. single_statement`,
+			`single_statement`,
+			3,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -205,10 +278,27 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [
+					"o-123456"
+				],
+				"allowed_principals": [
+					"o-123456"
+				],
+				"allowed_principal_account_ids": [
+					"o-123456"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`4. single_statement_with_source_arn`,
+			`single_statement_with_source_arn`,
+			4,
 			`{
 				"Statement": [
 					{
@@ -226,10 +316,25 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`5. Allow Amazon SES to publish to a topic that is owned by another account`,
+			`Allow Amazon SES to publish to a topic that is owned by another account`,
+			5,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -250,10 +355,25 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"ses.amazonaws.com"
+				],
+				"allowed_principal_account_ids": [],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [
+					"ses.amazonaws.com"
+				],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`6. Allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
+			`Allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
+			6,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -284,10 +404,25 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"999988887777"
+				],
+				"allowed_principal_account_ids": [
+					"999988887777"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`7. Allow user from same account as the topic accout to publish message`,
+			`Allow user from same account as the topic accout to publish message`,
+			7,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -321,10 +456,27 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
+					"999988887777"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333",
+					"999988887777"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 		{
-			`8. Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
+			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
+			8,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -346,11 +498,8 @@ func TestGetConditionalKeymapping(t *testing.T) {
 							"SNS:Publish",
 							"SNS:Receive"
 						],
-						"Resource": "arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms",
+						"Resource": "arn:aws:sns:us-east-1:123456789012:MyTopic",
 						"Condition": {
-							"StringEquals": {
-								"aws:PrincipalAccount": "999988887777"
-							},
 							"ArnLike": {
 	             	"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:111122223333:alarm:*"
 	           	}
@@ -358,36 +507,64 @@ func TestGetConditionalKeymapping(t *testing.T) {
 					}
 				]
 			}`,
-			``,
+			`{
+				"access_level": "",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
 		},
 	}
 
 	for _, test := range testCases {
+		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+			policy, err := canonicalPolicy(test.policy)
+			if err != nil {
+				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
+			}
 
-		policy, err := canonicalPolicy(test.policy)
-		if err != nil {
-			t.Errorf("Convert failed for case '%s': %v", test.policy, err)
-		}
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy()
+			if err != nil {
+				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
+			}
 
-		policyObject, ok := policy.(Policy)
-		if !ok {
-			t.Errorf("Unable to parse input as policy")
-		}
+			// strdata, _ := json.Marshal(evaluatedObj)
+			// _ = json.Unmarshal(strdata, &evaluatedObj)
+			// fmt.Println(string(strdata))
+			var expectedObj PolicyEvaluation
+			_ = json.Unmarshal([]byte(test.expected), &expectedObj)
 
-		evaluation, err := policyObject.EvaluatePolicy()
-		if err != nil {
-			t.Errorf("Unable to parse input as policy")
-		}
-
-		// var input Policy
-		// _ = json.Unmarshal([]byte(test.expected), &input)
-		strdata, _ := json.MarshalIndent(evaluation, "", "\t")
-		// output, _ := json.MarshalIndent(newCondition, "", "\t")
-		fmt.Printf("\n%s:\n%s\n", test.name, string(strdata))
-
-		// if !reflect.DeepEqual(input, *newCondition) {
-		// 	t.Errorf("\nTest: '%s.%s' FAILED\nexpected:\n %v \ngot:\n %v \n", "TestConvertStatementCondition", test.name, input, *newCondition)
-		// }
-		// fmt.Printf("\nTest: '%s.%s' PASSED\noutput:\n %v\n", "TestConvertStatementCondition", test.name, input)
+			// Sort []string attributes to compare
+			sort.Strings(expectedObj.AllowedOrganizationIds)
+			sort.Strings(expectedObj.AllowedPrincipalAccountIds)
+			sort.Strings(expectedObj.AllowedPrincipalFederatedIdentities)
+			sort.Strings(expectedObj.AllowedPrincipalServices)
+			sort.Strings(expectedObj.AllowedPrincipals)
+			sort.Strings(expectedObj.PublicAccessLevels)
+			sort.Strings(expectedObj.PublicStatementIds)
+			sort.Strings(evaluatedObj.AllowedOrganizationIds)
+			sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
+			sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
+			sort.Strings(evaluatedObj.AllowedPrincipalServices)
+			sort.Strings(evaluatedObj.AllowedPrincipals)
+			sort.Strings(evaluatedObj.PublicAccessLevels)
+			sort.Strings(evaluatedObj.PublicStatementIds)
+			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
+				t.Errorf(`FAILED: expected %v, got %v`, expectedObj, evaluatedObj)
+			}
+		})
 	}
 }
