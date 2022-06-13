@@ -113,7 +113,6 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 	}
 	costCategoryDefinitions := c.([]*costexplorer.CostCategoryReference)
 
-	// setCategoryKey := false
 	for _, definition := range costCategoryDefinitions {
 
 		if categoryKey != "" {
@@ -135,7 +134,7 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 			Metrics:     aws.StringSlice(AllCostMetrics()),
 		}
 
-		// Get cost category value based of optional quals "category_value"
+		// Get cost category value based on optional quals "category_value"
 		values := getCategoryValuesForFilterParam(definition.Values, categoryValue, categoryValueOperator)
 
 		if categoryKey != "" && len(values) <= 0 {
@@ -153,7 +152,7 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 			filter := &costexplorer.Expression{
 				CostCategories: &costexplorer.CostCategoryValues{
 					Key:          definition.Name,
-					MatchOptions: []*string{aws.String("EQUALS")}, // The value will be EQUALS always because we are manipulating the data based on optional quals operator
+					MatchOptions: []*string{aws.String("EQUALS")}, // The value will be EQUALS always because we are manipulating the category key and category value based on optional quals value and operator
 					Values:       []*string{value},
 				},
 			}
