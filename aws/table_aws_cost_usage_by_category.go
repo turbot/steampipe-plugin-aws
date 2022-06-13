@@ -102,7 +102,6 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 
 			}
 		}
-
 	}
 
 	// List all cost category definitions
@@ -142,8 +141,8 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 		if categoryKey != "" && len(values) <= 0 {
 			return nil, nil
 		}
-		
-		// Empty check for the category value 
+
+		// Empty check for the category value
 		if len(values) <= 0 {
 			categoryKey = ""
 			continue
@@ -154,13 +153,16 @@ func buildInputParamAndStreamCostAndUsageByCategory(ctx context.Context, d *plug
 			filter := &costexplorer.Expression{
 				CostCategories: &costexplorer.CostCategoryValues{
 					Key:          definition.Name,
-					MatchOptions: []*string{aws.String("EQUALS")}, // The value will be EQUALS always because we are manipulating the data based on optional quals operator 
+					MatchOptions: []*string{aws.String("EQUALS")}, // The value will be EQUALS always because we are manipulating the data based on optional quals operator
 					Values:       []*string{value},
 				},
 			}
 			params.SetFilter(filter)
 
-			streamCostAndUsageByCategory(ctx, d, h, params, *definition.Name, *value)
+			_, err := streamCostAndUsageByCategory(ctx, d, h, params, *definition.Name, *value)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -240,7 +242,7 @@ func listCostCategoryDefinitions(ctx context.Context, d *plugin.QueryData, _ *pl
 func getCategoryValuesForFilterParam(values []*string, categoryValue string, categoryValueOperator string) []*string {
 	var filteredValues []*string
 	for _, value := range values {
-		if categoryValue == *value && categoryValueOperator == "=" { // List out cost and usage for given category value 
+		if categoryValue == *value && categoryValueOperator == "=" { // List out cost and usage for given category value
 			filteredValues = append(filteredValues, value)
 			return filteredValues
 		} else if categoryValue != *value && categoryValueOperator == "<>" { // List out cost and usage not for given category value
