@@ -2,10 +2,10 @@ package aws
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
@@ -15,9 +15,9 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 		Name:        "aws_resource_policy_analysis",
 		Description: "AWS Resource Policy Analysis",
 		List: &plugin.ListConfig{
-			// KeyColumns: plugin.KeyColumnSlice{
-			// 	{Name: "policy"},
-			// },
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "policy", CacheMatch: "exact"},
+			},
 			Hydrate: listResourcePolicyAnalysis,
 		},
 		Columns: []*plugin.Column{
@@ -36,7 +36,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 				Name:        "policy",
 				Description: "The input policy to be analysed.",
 				Type:        proto.ColumnType_JSON,
-				// Transform:   transform.FromQual("policy"),
+				Transform:   transform.FromQual("policy"),
 			},
 			{
 				Name:        "public_statement_ids",
@@ -82,29 +82,35 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listResourcePolicyAnalysis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// policy := d.KeyColumnQuals["policy"].GetJsonbValue()
-	policy, err := canonicalPolicy(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"*"},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test"},{"Sid":"OrganizationAccess","Effect":"Allow","Principal":{"AWS":"*"},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test","Condition":{"StringEquals":{"aws:PrincipalOrgID":["o-123456"]}}},{"Sid":"AccountPrincipals","Effect":"Allow","Principal":{"AWS":["arn:aws:iam::123456789012:user/victor@xyz.com","arn:aws:iam::111122223333:root"]},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test"},{"Sid":"FederatedPrincipals","Effect":"Allow","Principal":{"Federated":"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test"},{"Sid":"ServicePrincipals","Effect":"Allow","Principal":{"Service":["ecs.amazonaws.com","elasticloadbalancing.amazonaws.com"]},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test"},{"Sid":"PublicAccess","Effect":"Allow","Principal":{"AWS":"*"},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":"arn:aws:s3:::test"}]}`)
+	policyVal := d.KeyColumnQuals["policy"].GetJsonbValue()
+	if policyVal == "" {
+		return nil, nil
+	}
 
+	// convert input policy to canonical form for easier handling
+	policy, err := canonicalPolicy(policyVal)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_canonicalization_error", err)
 		return nil, err
 	}
 
 	policyObject, ok := policy.(Policy)
 	if !ok {
-		return nil, fmt.Errorf("Unable to parse input as policy")
+		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_coercion_error", err)
+		return nil, err
 	}
 
 	evaluation, err := policyObject.EvaluatePolicy()
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_evaluation_error", err)
 		return nil, err
 	}
 
 	d.StreamListItem(ctx, evaluation)
-
 	// Context can be cancelled due to manual cancellation or the limit has been hit
 	if d.QueryStatus.RowsRemaining(ctx) == 0 {
 		return nil, nil
-
 	}
+
 	return nil, nil
 }

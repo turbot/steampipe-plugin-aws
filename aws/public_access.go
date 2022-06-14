@@ -126,6 +126,7 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		return true
 	}
 
+	statementMap := ConditionAndPrincipalMap{}
 	var awsPrincipals, servicePrincipals, federatedPrincipals []string
 	var hasPublicPrincipal = false
 	var isPublic = false
@@ -133,14 +134,17 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		if data, ok := stmt.Principal["AWS"]; ok {
 			awsPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipals = awsPrincipals
+			statementMap.Principal.AWS = awsPrincipals
 		}
 		if data, ok := stmt.Principal["Service"]; ok {
 			servicePrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalServices = servicePrincipals
+			statementMap.Principal.Service = servicePrincipals
 		}
 		if data, ok := stmt.Principal["Federated"]; ok {
 			federatedPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
+			statementMap.Principal.Federated = federatedPrincipals
 		}
 	}
 	if helpers.StringSliceContains(awsPrincipals, "*") {
@@ -148,17 +152,18 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		isPublic = true
 	}
 
-	var assessment ConditionAssessment
+	conditionMap := ConditionMap{}
 	if stmt.Condition != nil {
+		conditionMap.And = map[string][]string{}
 		// log.Println("[INFO] AM I REACHING HERE")
 		// { "StringEquals": { "aws:PrincipalAccount": "999988887777"}}
 		// { "operatorKey": "operatorValue" }
 		// { "operatorKey": { "conditionKey": "conditionValue"}}
-		// var conditionAssessment := map[string]map[string]interface{}
-		assessment.And = []*ConditionAssessment{}
-		for operatorKey, operatorValue := range stmt.Condition {
 
-			// intAssessment := ConditionAssessment{Operator: operatorKey}
+		statementMap.Condition = ConditionMap{And: map[string][]string{}}
+		for operatorKey, operatorValue := range stmt.Condition {
+			// conditionMap.And = map[string][]string{}
+
 			// conditionAssessment[operatorKey] = map[string]interface{}
 			// hasAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
 			// hasAllValuesPrefix := CheckForAllValuesPrefix(operatorKey)
@@ -171,34 +176,11 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 			// log.Println("[INFO] operator value:", operatorValue)
 			// log.Printf("[INFO] operator value type: %T\n", operatorValue)
 
-			if conditiionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
+			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 
-				// log.Println("[INFO] operator key:", operatorKey)
-
-				// TODO with multiple conditions as they behave like an and operator
-				/*
-										"Condition": {
-											"StringEquals": {
-												"aws:PrincipalAccount": "999988887777"
-											},
-											"ArnLike": {
-												"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:560741234067:alarm:*"
-											}
-										}
-
-									"Condition": {
-										"ForAnyValue:StringEquals": {
-											"dynamodb:Attributes": ["ID", "PostDateTime"]
-					        	}
-					      	}
-				*/
-
-				for conditionKey, conditionValue := range conditiionOperatorValueMap {
-					// if hasAnyValuePrefix {
-					// 	intAssessment.Or = []*ConditionAssessment{
-					// 		{Value: conditionValue.([]string), Key: conditionKey},
-					// 	}
-					// }
+				for conditionKey, conditionValue := range conditionOperatorValueMap {
+					conditionMap.And[fmt.Sprintf("%s___%s", strings.ToLower(operatorKey), strings.ToLower(conditionKey))] = conditionValue.([]string)
+					statementMap.Condition.And[fmt.Sprintf("%s___%s", strings.ToLower(operatorKey), strings.ToLower(conditionKey))] = conditionValue.([]string)
 
 					// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
 					if hasPublicPrincipal {
@@ -235,14 +217,73 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 					}
 				}
 			}
-
 		}
+		fmt.Printf("\nconditionMap.AND: %v\n", conditionMap)
 	}
 
-	evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, stmtEvaluation.AllowedOrganizationIds...)
-	evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, stmtEvaluation.AllowedPrincipals...)
-	evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, stmtEvaluation.AllowedPrincipalServices...)
-	evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, stmtEvaluation.AllowedPrincipalFederatedIdentities...)
+	fmt.Printf("\nstatementMap: %v\n", statementMap)
+	// var conditionPublic = true
+	var conditionAccounts = []string{}
+	var conditionOrgs = []string{}
+	var conditionServices = []string{}
+	var conditionServiceAccounts = []string{}
+
+	if conditionMap.And != nil {
+		for k, v := range conditionMap.And {
+			sp := strings.Split(k, "___")
+			conditionOp := sp[0]
+			conditionKey := sp[1]
+			ConditionVal := v
+			fmt.Println("conditionOp:", conditionOp, "conditionKey:", conditionKey, "value:", ConditionVal)
+
+			if hasAWSPrincipalConditionKey(conditionKey) {
+				// "aws:principalaccount",
+				// "aws:principalarn", -  Single-valued
+				// "aws:principalorgid",
+				// "aws:principalorgpaths"
+				switch conditionKey {
+				case "aws:principalaccount":
+					conditionAccounts = append(conditionAccounts, v...)
+				case "aws:principalarn":
+					for _, pARN := range v {
+						if arn.IsARN(pARN) {
+							arnParts, _ := arn.Parse(pARN)
+							conditionAccounts = append(conditionAccounts, arnParts.AccountID)
+						}
+					}
+				case "aws:principalorgid":
+					conditionOrgs = append(conditionOrgs, v...)
+				case "aws:principalorgpaths":
+					for _, paths := range v {
+						conditionOrgs = append(conditionOrgs, strings.Split(paths, "/")[0])
+					}
+				}
+
+				if hasServicePrincipalConditionKey(conditionKey) {
+					// "aws:sourcearn",
+					// "aws:sourceaccount",
+					// "aws:sourceowner",
+					switch conditionKey {
+					case "aws:sourcearn":
+						for _, pARN := range v {
+							if arn.IsARN(pARN) {
+								arnParts, _ := arn.Parse(pARN)
+								conditionServices = append(conditionServices, arnParts.Service)
+								conditionServiceAccounts = append(conditionServiceAccounts, arnParts.AccountID)
+							}
+						}
+					case "aws:sourceaccount", "aws:sourceowner":
+						conditionServiceAccounts = append(conditionServiceAccounts, v...)
+					}
+				}
+			}
+		}
+
+		evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, stmtEvaluation.AllowedOrganizationIds...)
+		evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, stmtEvaluation.AllowedPrincipals...)
+		evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, stmtEvaluation.AllowedPrincipalServices...)
+		evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, stmtEvaluation.AllowedPrincipalFederatedIdentities...)
+	}
 	return isPublic
 }
 
@@ -349,6 +390,27 @@ func StringSliceDistinct(slice []string) []string {
     }
   }
 ]
+
+
+				// log.Println("[INFO] operator key:", operatorKey)
+
+				// TODO with multiple conditions as they behave like an and operator
+
+				"Condition": {
+					"StringEquals": {
+						"aws:PrincipalAccount": "999988887777"
+					},
+					"ArnLike": {
+						"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:560741234067:alarm:*"
+					}
+				}
+
+			"Condition": {
+				"ForAnyValue:StringEquals": {
+					"dynamodb:Attributes": ["ID", "PostDateTime"]
+				}
+			}
+
 */
 
 // func listIAMActionFromParliament() {
@@ -367,11 +429,20 @@ func StringSliceDistinct(slice []string) []string {
 // 	}
 // }
 
-type ConditionAssessment struct {
-	And      []*ConditionAssessment `type:"and"`
-	Not      *ConditionAssessment   `type:"not"`
-	Or       []*ConditionAssessment `type:"or"`
-	Operator string                 `type:"operator"`
-	Key      string                 `type:"key"`
-	Value    []string               `type:"value"`
+type ConditionMap struct {
+	And map[string][]string `type:"and"`
+	Not map[string][]string `type:"not"`
+	Or  map[string][]string `type:"or"`
 }
+
+type ConditionAndPrincipalMap struct {
+	Principal struct {
+		AWS, Service, Federated []string
+	}
+	Condition ConditionMap
+}
+
+// func evaluateCondition(stmt Statement) *ConditionAssessment {
+
+// 	return nil
+// }
