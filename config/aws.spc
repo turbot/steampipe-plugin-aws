@@ -33,4 +33,10 @@ connection "aws" {
   # If not set, the default AWS generated endpoint will be used.
   # Can also be set with the AWS_ENDPOINT_URL environment variable.
   #endpoint_url = "http://localhost:4566"
+
+  # Set to `true` to force S3 requests to use path-style addressing,
+  # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
+  # will use virtual hosted bucket addressing when possible
+  # (`http://BUCKET.s3.amazonaws.com/KEY`).
+  #s3_force_path_style = true
 }

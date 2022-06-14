@@ -15,6 +15,7 @@ type awsConfig struct {
 	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
 	IgnoreErrorCodes      []string `cty:"ignore_error_codes"`
 	EndpointUrl           *string  `cty:"endpoint_url"`
+	S3ForcePathStyle      *bool    `cty:"s3_force_path_style"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -46,6 +47,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"endpoint_url": {
 		Type: schema.TypeString,
+	},
+	"s3_force_path_style": {
+		Type: schema.TypeBool,
 	},
 }
 
