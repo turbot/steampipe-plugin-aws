@@ -134,7 +134,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				],
 				"allowed_principal_account_ids": [
 					"*",
-					"o-123456",
 					"111122223333",
 					"123456789012"
 				],
@@ -223,7 +222,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [
 					"o-123456"
 				],
@@ -236,7 +235,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"arn:aws:iam::111122223333:root"
 				],
 				"allowed_principal_account_ids": [
-					"o-123456",
 					"111122223333",
 					"123456789012"
 				],
@@ -280,16 +278,14 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [
 					"o-123456"
 				],
 				"allowed_principals": [
 					"o-123456"
 				],
-				"allowed_principal_account_ids": [
-					"o-123456"
-				],
+				"allowed_principal_account_ids": [],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
@@ -318,16 +314,19 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
+					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*",
+					"cloudwatch.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
 					"111122223333"
 				],
 				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_services": [
+					"cloudwatch.amazonaws.com"
+				],
 				"is_public": false,
 				"public_access_levels": [],
 				"public_statement_ids": []
@@ -357,12 +356,15 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
+					"111122223333",
 					"ses.amazonaws.com"
 				],
-				"allowed_principal_account_ids": [],
+				"allowed_principal_account_ids": [
+					"111122223333"
+				],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [
 					"ses.amazonaws.com"
@@ -406,7 +408,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
 					"999988887777"
@@ -458,7 +460,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
 					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
@@ -477,7 +479,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 		},
 		{
-			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
+			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 111122223333`,
 			8,
 			`{
 				"Version": "2008-10-17",
@@ -500,24 +502,24 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 							"SNS:Publish",
 							"SNS:Receive"
 						],
-						"Resource": "arn:aws:sns:us-east-1:123456789012:MyTopic",
+						"Resource": "arn:aws:sns:us-east-1:111122223333:MyTopic",
 						"Condition": {
 							"ArnLike": {
-	             	"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:111122223333:alarm:*"
+	             	"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:*"
 	           	}
 						}
 					}
 				]
 			}`,
 			`{
-				"access_level": "",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
+					"arn:aws:cloudwatch:us-east-1:123456789012:alarm:*",
 					"cloudwatch.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
-					"111122223333"
+					"123456789012"
 				],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
