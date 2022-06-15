@@ -137,3 +137,19 @@ from
 where
   parameter_value = '0'
 ```
+
+### List DB instance pending maintenance actions
+
+```sql
+select
+  actions ->> 'ResourceIdentifier' as db_instance_identifier,
+  details ->> 'Action' as action,
+  details ->> 'OptInStatus' as opt_in_status,
+  details ->> 'ForcedApplyDate' as forced_apply_date,
+  details ->> 'CurrentApplyDate' as current_apply_date,
+  details ->> 'AutoAppliedAfterDate' as auto_applied_after_date
+from
+  aws_rds_db_instance,
+  jsonb_array_elements(pending_maintenance_actions) as actions,
+  jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
+```
