@@ -363,6 +363,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "pending_maintenance_actions",
+				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "processor_features",
 				Description: "The number of CPU cores and the number of threads per core for the DB instance class of the DB instance.",
 				Type:        proto.ColumnType_JSON,
@@ -498,6 +505,35 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
 		return op.DBInstances[0], nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dbInstanceIdentifier := *h.Item.(*rds.DBInstance).DBInstanceIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := &rds.Filter{
+		Name:   aws.String("db-instance-id"),
+		Values: aws.StringSlice([]string{dbInstanceIdentifier}),
+	}
+	params := &rds.DescribePendingMaintenanceActionsInput{
+		Filters: []*rds.Filter{filter},
+	}
+
+	op, err := svc.DescribePendingMaintenanceActions(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstancePendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		return nil, err
+	}
+
+	if len(op.PendingMaintenanceActions) > 0 {
+		return op.PendingMaintenanceActions, nil
 	}
 	return nil, nil
 }
