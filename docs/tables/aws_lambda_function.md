@@ -103,11 +103,22 @@ where
 ### List runtime settings for each function
 
 ```sql
-select 
+select
   name,
-  runtime, 
-  handler, 
-  architectures 
+  runtime,
+  handler,
+  architectures
+from
+  aws_lambda_function;
+```
+
+### List url configuration details for each function
+
+```sql
+select
+  name,
+  arn,
+  jsonb_pretty(url_configs) as url_configs
 from
   aws_lambda_function;
 ```

@@ -202,6 +202,13 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
+				Name:        "url_configs",
+				Description: "A list of function URL configurations.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listFunctionUrlConfig,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "vpc_security_group_ids",
 				Description: "A list of VPC security groups IDs attached to Lambda function.",
 				Type:        proto.ColumnType_JSON,
@@ -340,6 +347,39 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 	return op, nil
+}
+
+func listFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listFunctionUrlConfig")
+
+	functionName := functionName(h.Item)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.ListFunctionUrlConfigsInput{
+		FunctionName: aws.String(functionName),
+	}
+
+	var urlConfigs []*lambda.FunctionUrlConfig
+
+	err = svc.ListFunctionUrlConfigsPages(
+		input,
+		func(page *lambda.ListFunctionUrlConfigsOutput, isLast bool) bool {
+			urlConfigs = append(urlConfigs, page.FunctionUrlConfigs...)
+			return !isLast
+		},
+	)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("listFunctionUrlConfig", "api_error", err)
+		return nil, err
+	}
+
+	return urlConfigs, nil
 }
 
 func functionName(item interface{}) string {
