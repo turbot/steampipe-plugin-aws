@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -52,7 +52,7 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on  = [aws_api_gateway_integration.test]
+  depends_on  = [aws_api_gateway_defaulttion.test]
   rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = "dev"
 }
@@ -77,7 +77,7 @@ resource "aws_api_gateway_method" "test" {
 }
 
 
-resource "aws_api_gateway_integration" "test" {
+resource "aws_api_gateway_defaulttion" "test" {
   rest_api_id = aws_api_gateway_rest_api.test.id
   resource_id = aws_api_gateway_resource.test.id
   http_method = aws_api_gateway_method.test.http_method

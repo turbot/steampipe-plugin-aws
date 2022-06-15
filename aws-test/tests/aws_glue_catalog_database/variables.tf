@@ -48,7 +48,7 @@ data "null_data_source" "resource" {
 
 resource "aws_glue_catalog_database" "named_test_resource" {
   name        = var.resource_name
-  description = "integration testing"
+  description = "defaulttion testing"
 }
 
 output "resource_aka" {

@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type    = string
-  default = "integration-tests"
+  default = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -57,7 +57,7 @@ resource "aws_apigatewayv2_api" "named_test_resource" {
 
 resource "local_file" "python_file" {
     filename = "${path.cwd}/../../test.py"
-    sensitive_content      = "def test (event, context):\n\tprint ('This is a test for integration testing to check creation of a lambda function')"
+    sensitive_content      = "def test (event, context):\n\tprint ('This is a test for defaulttion testing to check creation of a lambda function')"
 }
 
 data "archive_file" "zip" {
@@ -94,17 +94,17 @@ resource "aws_lambda_function" "named_test_resource" {
   }
 }
 
-resource "aws_apigatewayv2_integration" "named_test_resource" {
+resource "aws_apigatewayv2_defaulttion" "named_test_resource" {
   api_id           = aws_apigatewayv2_api.named_test_resource.id
-  integration_type = "AWS_PROXY"
+  defaulttion_type = "AWS_PROXY"
   description               = "Lambda example"
-  integration_uri           = aws_lambda_function.named_test_resource.invoke_arn
+  defaulttion_uri           = aws_lambda_function.named_test_resource.invoke_arn
 }
 
 data "template_file" "resource_aka" {
-  template = "arn:$${partition}:apigateway:$${region}::/apis/$${api_id}/integrations/$${integration_id}"
+  template = "arn:$${partition}:apigateway:$${region}::/apis/$${api_id}/defaulttions/$${defaulttion_id}"
   vars = {
-    integration_id = aws_apigatewayv2_integration.named_test_resource.id
+    defaulttion_id = aws_apigatewayv2_defaulttion.named_test_resource.id
     partition = data.aws_partition.current.partition
     api_id = aws_apigatewayv2_api.named_test_resource.id
     region = data.aws_region.primary.name
@@ -113,12 +113,12 @@ data "template_file" "resource_aka" {
 }
 
 output "resource_aka" {
-  depends_on = [ aws_apigatewayv2_integration.named_test_resource ]
+  depends_on = [ aws_apigatewayv2_defaulttion.named_test_resource ]
   value = data.template_file.resource_aka.rendered
 }
 
 output "resource_id" {
-  value = aws_apigatewayv2_integration.named_test_resource.id
+  value = aws_apigatewayv2_defaulttion.named_test_resource.id
 }
 
 output "api_id" {

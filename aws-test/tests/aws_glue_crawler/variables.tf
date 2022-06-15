@@ -89,7 +89,7 @@ resource "aws_glue_crawler" "named_test_resource" {
   database_name = aws_glue_catalog_database.named_test_resource.name
   name          = var.resource_name
   role          = aws_iam_role.named_test_resource.arn
-  description = "integration testing"
+  description = "defaulttion testing"
 
   dynamodb_target {
     path = var.resource_name

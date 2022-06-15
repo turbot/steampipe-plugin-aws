@@ -48,13 +48,13 @@ data "null_data_source" "resource" {
 
 resource "aws_glue_catalog_database" "named_test_resource" {
   name        = var.resource_name
-  description = "integration testing"
+  description = "defaulttion testing"
 }
 
 resource "aws_glue_catalog_table" "named_test_resource" {
   name          = var.resource_name
   database_name = aws_glue_catalog_database.named_test_resource.name
-  description   = "integration testing"
+  description   = "defaulttion testing"
 }
 
 output "database_name" {

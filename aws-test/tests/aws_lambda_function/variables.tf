@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -50,7 +50,7 @@ data "null_data_source" "resource" {
 # Create AWS > Lambda > Function
 resource "local_file" "python_file" {
   filename          = "${path.cwd}/../../test.py"
-  sensitive_content = "def test (event, context):\n\tprint ('This is a test for integration testing to check creation of a lambda function')"
+  sensitive_content = "def test (event, context):\n\tprint ('This is a test for defaulttion testing to check creation of a lambda function')"
 }
 
 data "archive_file" "zip" {
