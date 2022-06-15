@@ -45,6 +45,7 @@ where
 ```
 
 ### Find zones by subdomain name
+
 ```sql
 select
   name,
@@ -58,18 +59,20 @@ where
 ```
 
 ### List VPCs associated with zones
+
 ```sql
 select 
   name,
   id,
-  v ->> 'VPCId'as vpc_id,
-  v ->> 'VPCRegion'as vpc_region
+  v ->> 'VPCId' as vpc_id,
+  v ->> 'VPCRegion' as vpc_region
 from
   aws_route53_zone,
   jsonb_array_elements(vpcs) as v;
 ```
 
 ### Get VPC details associated with zones
+
 ```sql
 select 
   name,
