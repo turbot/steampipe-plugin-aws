@@ -1,3 +1,3 @@
 select akas
-from aws.aws_backup_plan
-where backup_plan_id = '{{ output.id.value }}';
+from aws.aws_backup_framework
+where framework_name = '{{ output.id.value }}';

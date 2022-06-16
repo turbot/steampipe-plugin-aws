@@ -1,3 +1,3 @@
-select backup_plan_id, arn
-from aws.aws_backup_plan
+select framework_name, arn
+from aws.aws_backup_framework
 where akas::text = '["{{ output.resource_aka.value }}"]';

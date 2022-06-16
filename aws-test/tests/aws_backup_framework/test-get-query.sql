@@ -1,3 +1,3 @@
-select backup_plan_id, arn
-from aws.aws_backup_plan
-where backup_plan_id = '{{ output.id.value }}';
+select framework_name, arn
+from aws.aws_backup_framework
+where framework_name = '{{ output.id.value }}';
