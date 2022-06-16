@@ -14,19 +14,19 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsRDSDBReservedInstance(_ context.Context) *plugin.Table {
+func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_rds_db_reserved_instance",
-		Description: "AWS RDS DB Reserved Instance",
+		Name:        "aws_rds_reserved_db_instance",
+		Description: "AWS RDS Reserved DB Instance",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("reserved_db_instance_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReservedDBInstanceNotFound"}),
 			},
-			Hydrate: getRDSDBReservedInstance,
+			Hydrate: getRDSReservedDBInstance,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listRDSDBReservedInstances,
+			Hydrate: listRDSReservedDBInstances,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "class", Require: plugin.Optional},
 				{Name: "duration", Require: plugin.Optional},
@@ -147,8 +147,8 @@ func tableAwsRDSDBReservedInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBReservedInstances")
+func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listRDSReservedDBInstances")
 
 	// Create Session
 	svc, err := RDSService(ctx, d)
@@ -218,7 +218,7 @@ func listRDSDBReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listRDSDBReservedInstances", "DescribeReservedDBInstancesPages", err)
+		plugin.Logger(ctx).Error("listRDSReservedDBInstances", "DescribeReservedDBInstancesPages", err)
 		return nil, err
 	}
 
@@ -227,7 +227,7 @@ func listRDSDBReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	dbInstanceIdentifier := d.KeyColumnQuals["reserved_db_instance_id"].GetStringValue()
 
 	// Create service
@@ -242,7 +242,7 @@ func getRDSDBReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	op, err := svc.DescribeReservedDBInstances(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRDSDBReservedInstance", "DescribeReservedDBInstances", err)
+		plugin.Logger(ctx).Error("getRDSReservedDBInstance", "DescribeReservedDBInstances", err)
 		return nil, err
 	}
 

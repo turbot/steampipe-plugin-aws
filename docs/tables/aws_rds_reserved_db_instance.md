@@ -1,4 +1,4 @@
-# Table: aws_rds_db_reserved_instance
+# Table: aws_rds_reserved_db_instance
 
 Amazon RDS Reserved Instances give you the option to reserve a DB instance for a one or three year term and in turn receive a significant discount compared to the On-Demand Instance pricing for the DB instance.
 
@@ -14,7 +14,7 @@ select
   state,
   class
 from
-  aws_rds_db_reserved_instance;
+  aws_rds_reserved_db_instance;
 ```
 
 ### List reserved DB instances with multi-AZ disabled
@@ -27,7 +27,7 @@ select
   state,
   class
 from
-  aws_rds_db_reserved_instance
+  aws_rds_reserved_db_instance
 where
   not multi_az;
 ```
@@ -42,7 +42,7 @@ select
   state,
   class
 from
-  aws_rds_db_reserved_instance
+  aws_rds_reserved_db_instance
 where
   offering_type = 'All Upfront';
 ```
@@ -57,7 +57,7 @@ select
   state,
   class
 from
-  aws_rds_db_reserved_instance
+  aws_rds_reserved_db_instance
 order by
   duration desc;
 ```
@@ -73,7 +73,7 @@ select
   class,
   usage_price
 from
-  aws_rds_db_reserved_instance
+  aws_rds_reserved_db_instance
 order by
   usage_price desc;
 ```
@@ -89,7 +89,7 @@ select
   class,
   usage_price
 from
-  aws_rds_db_reserved_instance
+  aws_rds_reserved_db_instance
 where
   state <> 'active';
 ```
