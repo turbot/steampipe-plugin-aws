@@ -7,7 +7,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `snapshot_create_time` column in `aws_redshift_snapshot` table to be of `TIMESTAMP` data type instead of `STRING`.  ([#1071](https://github.com/turbot/steampipe-plugin-aws/pull/1071))
+- Fixed the `snapshot_create_time` column in `aws_redshift_snapshot` table to be of `TIMESTAMP` data type instead of `STRING`. ([#1071](https://github.com/turbot/steampipe-plugin-aws/pull/1071))
 
 ## v0.64.0 [2022-06-09]
 
