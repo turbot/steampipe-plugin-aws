@@ -1,8 +1,8 @@
 # Table: aws_backup_framework
 
-AWS Backup plan is a policy expression that defines when and how you want to back up your AWS resources, such as Amazon DynamoDB tables or Amazon Elastic File System (Amazon EFS) file systems.
-
-You can assign resources to backup plans, and AWS Backup automatically backs up and retains backups for those resources according to the backup plan. You can create multiple backup plans if you have workloads with different backup requirements.
+AWS backup framework is a collection of controls that you can use to evaluate your backup practices.
+The AWS backup framework will then evaluate whether your backup practices comply with your policies and highlights which
+resources are not yet in compliance.
 
 ## Examples
 
@@ -10,44 +10,30 @@ You can assign resources to backup plans, and AWS Backup automatically backs up 
 
 ```sql
 select
-  name,
-  backup_plan_id,
+  framework_name,
   arn,
-  creation_date,
-  last_execution_date
+  framework_description,
+  deployment_status,
+  creation_time,
+  number_of_controls,
 from
-  aws_backup_plan;
+  aws_backup_framework;
 ```
 
-### List plans older than 90 days
+### List backup frameworks older than 90 days
 
 ```sql
 select
-  name,
-  backup_plan_id,
+  framework_name,
   arn,
-  creation_date,
-  last_execution_date
+  framework_description,
+  deployment_status,
+  creation_time,
+  number_of_controls,
 from
   aws_backup_plan
 where
   creation_date <= (current_date - interval '90' day)
 order by
   creation_date;
-```
-
-### List plans that were deleted in the last 7 days
-
-```sql
-select
-  name,
-  arn,
-  creation_date,
-  deletion_date
-from
-  aws_backup_plan
-where
-  deletion_date > current_date - 7
-order by
-  deletion_date;
 ```
