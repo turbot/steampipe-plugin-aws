@@ -43,5 +43,5 @@ func listEc2ApplicationLoadBalancerMetricRequestCount(ctx context.Context, d *pl
 			Value: aws.String(arn),
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ApplicationELB", "RequestCount", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "5_MIN", "AWS/ApplicationELB", "RequestCount", dimensions)
 }

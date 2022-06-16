@@ -47,5 +47,5 @@ func listS3BucketMetricBucketSizeBytes(ctx context.Context, d *plugin.QueryData,
 		},
 	}
 
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/S3", "BucketSizeBytes", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "5_MIN", "AWS/S3", "BucketSizeBytes", dimensions)
 }

@@ -44,5 +44,5 @@ func listEcsClusterMetricCpuUtilizationDaily(ctx context.Context, d *plugin.Quer
 			Value: aws.String(clusterName),
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/ECS", "CPUUtilization", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "DAILY", "AWS/ECS", "CPUUtilization", dimensions)
 }

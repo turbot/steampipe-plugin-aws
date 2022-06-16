@@ -70,10 +70,10 @@ type CWMetricRow struct {
 	// Dimensions
 	Dimensions []*cloudwatch.Dimension
 	// The (single) metric Dimension name
-	//DimensionName *string
+	DimensionName *string
 
 	// The value for the (single) metric Dimension
-	//DimensionValue *string
+	DimensionValue *string
 
 	// The namespace of the metric
 	Namespace *string
@@ -133,7 +133,73 @@ func getCWPeriodForGranularity(granularity string) int64 {
 	return 300
 }
 
-func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensions []*cloudwatch.Dimension) (*cloudwatch.GetMetricStatisticsOutput, error) {
+func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
+
+	plugin.Logger(ctx).Trace("getCWMetricStatistics")
+
+	// Create Session
+	svc, err := CloudWatchService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	endTime := time.Now()
+	startTime := getCWStartDateForGranularity(granularity)
+	period := getCWPeriodForGranularity(granularity)
+
+	params := &cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String(namespace),
+		MetricName: aws.String(metricName),
+		StartTime:  aws.Time(startTime),
+		EndTime:    aws.Time(endTime),
+		Period:     aws.Int64(period),
+		Statistics: []*string{
+			aws.String("Average"),
+			aws.String("SampleCount"),
+			aws.String("Sum"),
+			aws.String("Minimum"),
+			aws.String("Maximum"),
+		},
+	}
+
+	if dimensionName != "" && dimensionValue != "" {
+		params.Dimensions = []*cloudwatch.Dimension{
+			{
+				Name:  aws.String(dimensionName),
+				Value: aws.String(dimensionValue),
+			},
+		}
+	}
+
+	stats, err := svc.GetMetricStatistics(params)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, datapoint := range stats.Datapoints {
+		d.StreamLeafListItem(ctx, &CWMetricRow{
+			DimensionValue: aws.String(dimensionValue),
+			DimensionName:  aws.String(dimensionName),
+			Namespace:      aws.String(namespace),
+			MetricName:     aws.String(metricName),
+			Average:        datapoint.Average,
+			Maximum:        datapoint.Maximum,
+			Minimum:        datapoint.Minimum,
+			Timestamp:      datapoint.Timestamp,
+			SampleCount:    datapoint.SampleCount,
+			Sum:            datapoint.Sum,
+			Unit:           datapoint.Unit,
+		})
+
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func listCWMetricStatisticsTest(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensions []*cloudwatch.Dimension) (*cloudwatch.GetMetricStatisticsOutput, error) {
 
 	plugin.Logger(ctx).Trace("getCWMetricStatistics")
 
@@ -176,12 +242,18 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		}
 	*/
 
+	plugin.Logger(ctx).Warn("Params:", params)
+	plugin.Logger(ctx).Warn("Params name:", params.MetricName)
+	plugin.Logger(ctx).Warn("Params dimensions:", params.Dimensions)
+
 	stats, err := svc.GetMetricStatistics(params)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, datapoint := range stats.Datapoints {
+		plugin.Logger(ctx).Warn("Data point:", datapoint)
+
 		d.StreamLeafListItem(ctx, &CWMetricRow{
 			Dimensions: dimensions,
 			//DimensionValue: aws.String(dimensionValue),

@@ -41,5 +41,5 @@ func listEc2InstanceMetricCpuUtilizationDaily(ctx context.Context, d *plugin.Que
 			Value: instance.InstanceId,
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/EC2", "CPUUtilization", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "DAILY", "AWS/EC2", "CPUUtilization", dimensions)
 }

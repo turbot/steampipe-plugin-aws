@@ -41,5 +41,5 @@ func listEbsVolumeMetricReadOpsHourly(ctx context.Context, d *plugin.QueryData, 
 			Value: volume.VolumeId,
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/EBS", "VolumeReadOps", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "HOURLY", "AWS/EBS", "VolumeReadOps", dimensions)
 }

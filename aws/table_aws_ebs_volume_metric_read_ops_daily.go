@@ -41,5 +41,5 @@ func listEbsVolumeMetricReadOpsDaily(ctx context.Context, d *plugin.QueryData, h
 			Value: volume.VolumeId,
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/EBS", "VolumeReadOps", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "DAILY", "AWS/EBS", "VolumeReadOps", dimensions)
 }

@@ -41,5 +41,5 @@ func listEc2InstanceMetricCpuUtilization(ctx context.Context, d *plugin.QueryDat
 			Value: instance.InstanceId,
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/EC2", "CPUUtilization", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "5_MIN", "AWS/EC2", "CPUUtilization", dimensions)
 }

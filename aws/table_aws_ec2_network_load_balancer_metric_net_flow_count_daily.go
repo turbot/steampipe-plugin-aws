@@ -43,5 +43,5 @@ func listEc2NetworkLoadBalancerMetricNetFlowCountDaily(ctx context.Context, d *p
 			Value: aws.String(arn),
 		},
 	}
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/NetworkELB", "NewFlowCount", dimensions)
+	return listCWMetricStatisticsTest(ctx, d, "DAILY", "AWS/NetworkELB", "NewFlowCount", dimensions)
 }
