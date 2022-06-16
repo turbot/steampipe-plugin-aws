@@ -3,6 +3,8 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -33,5 +35,11 @@ func tableAwsEbsVolumeMetricReadOps(_ context.Context) *plugin.Table {
 
 func listEbsVolumeMetricReadOps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	volume := h.Item.(*ec2.Volume)
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/EBS", "VolumeReadOps", "VolumeId", *volume.VolumeId)
+	dimensions := []*cloudwatch.Dimension{
+		{
+			Name:  aws.String("VolumeId"),
+			Value: volume.VolumeId,
+		},
+	}
+	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/EBS", "VolumeReadOps", dimensions)
 }

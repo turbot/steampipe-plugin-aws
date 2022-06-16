@@ -67,11 +67,13 @@ func commonCwMetricColumns() []*plugin.Column {
 }
 
 type CWMetricRow struct {
+	// Dimensions
+	Dimensions []*cloudwatch.Dimension
 	// The (single) metric Dimension name
-	DimensionName *string
+	//DimensionName *string
 
 	// The value for the (single) metric Dimension
-	DimensionValue *string
+	//DimensionValue *string
 
 	// The namespace of the metric
 	Namespace *string
@@ -131,7 +133,7 @@ func getCWPeriodForGranularity(granularity string) int64 {
 	return 300
 }
 
-func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
+func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensions []*cloudwatch.Dimension) (*cloudwatch.GetMetricStatisticsOutput, error) {
 
 	plugin.Logger(ctx).Trace("getCWMetricStatistics")
 
@@ -160,14 +162,19 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		},
 	}
 
-	if dimensionName != "" && dimensionValue != "" {
-		params.Dimensions = []*cloudwatch.Dimension{
-			{
-				Name:  aws.String(dimensionName),
-				Value: aws.String(dimensionValue),
-			},
-		}
+	if dimensions != nil {
+		params.Dimensions = dimensions
 	}
+	/*
+		if dimensionName != "" && dimensionValue != "" {
+			params.Dimensions = []*cloudwatch.Dimension{
+				{
+					Name:  aws.String(dimensionName),
+					Value: aws.String(dimensionValue),
+				},
+			}
+		}
+	*/
 
 	stats, err := svc.GetMetricStatistics(params)
 	if err != nil {
@@ -176,17 +183,18 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 
 	for _, datapoint := range stats.Datapoints {
 		d.StreamLeafListItem(ctx, &CWMetricRow{
-			DimensionValue: aws.String(dimensionValue),
-			DimensionName:  aws.String(dimensionName),
-			Namespace:      aws.String(namespace),
-			MetricName:     aws.String(metricName),
-			Average:        datapoint.Average,
-			Maximum:        datapoint.Maximum,
-			Minimum:        datapoint.Minimum,
-			Timestamp:      datapoint.Timestamp,
-			SampleCount:    datapoint.SampleCount,
-			Sum:            datapoint.Sum,
-			Unit:           datapoint.Unit,
+			Dimensions: dimensions,
+			//DimensionValue: aws.String(dimensionValue),
+			//DimensionName:  aws.String(dimensionName),
+			Namespace:   aws.String(namespace),
+			MetricName:  aws.String(metricName),
+			Average:     datapoint.Average,
+			Maximum:     datapoint.Maximum,
+			Minimum:     datapoint.Minimum,
+			Timestamp:   datapoint.Timestamp,
+			SampleCount: datapoint.SampleCount,
+			Sum:         datapoint.Sum,
+			Unit:        datapoint.Unit,
 		})
 
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {

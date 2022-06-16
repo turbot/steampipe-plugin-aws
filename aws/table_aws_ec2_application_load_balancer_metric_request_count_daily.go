@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -35,5 +37,11 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCountDaily(_ context.Context
 func listEc2ApplicationLoadBalancerMetricRequestCountDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancer := h.Item.(*elbv2.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
+	dimensions := []*cloudwatch.Dimension{
+		{
+			Name:  aws.String("LoadBalancer"),
+			Value: aws.String(arn),
+		},
+	}
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/ApplicationELB", "RequestCount", dimensions)
 }

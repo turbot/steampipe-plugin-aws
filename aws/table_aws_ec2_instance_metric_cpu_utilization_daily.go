@@ -3,6 +3,8 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -33,5 +35,11 @@ func tableAwsEc2InstanceMetricCpuUtilizationDaily(_ context.Context) *plugin.Tab
 
 func listEc2InstanceMetricCpuUtilizationDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*ec2.Instance)
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
+	dimensions := []*cloudwatch.Dimension{
+		{
+			Name:  aws.String("InstanceId"),
+			Value: instance.InstanceId,
+		},
+	}
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/EC2", "CPUUtilization", dimensions)
 }

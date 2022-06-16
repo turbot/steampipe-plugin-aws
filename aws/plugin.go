@@ -280,6 +280,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_s3_access_point":                                          tableAwsS3AccessPoint(ctx),
 			"aws_s3_account_settings":                                      tableAwsS3AccountSettings(ctx),
 			"aws_s3_bucket":                                                tableAwsS3Bucket(ctx),
+			"aws_s3_bucket_metric_bucket_size_bytes":                       tableAwsS3BucketMetricBucketSizeBytes(ctx),
 			"aws_sagemaker_app":                                            tableAwsSageMakerApp(ctx),
 			"aws_sagemaker_domain":                                         tableAwsSageMakerDomain(ctx),
 			"aws_sagemaker_endpoint_configuration":                         tableAwsSageMakerEndpointConfiguration(ctx),

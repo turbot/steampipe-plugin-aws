@@ -23,5 +23,5 @@ func tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(_ context.C
 //// LIST FUNCTION
 
 func listDynamboDbMetricAccountProvisionedReadCapacityUtilization(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/DynamoDB", "AccountProvisionedReadCapacityUtilization", "", "")
+	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/DynamoDB", "AccountProvisionedReadCapacityUtilization", nil)
 }
