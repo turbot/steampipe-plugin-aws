@@ -1,5 +1,10 @@
 ## v0.65.0 [2022-06-16]
 
+_What's new?_
+
+- New tables added
+  - [aws_rds_reserved_db_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_reserved_db_instance) ([#1087](https://github.com/turbot/steampipe-plugin-aws/pull/1087))
+
 _Enhancements_
 
 - Added column `pending_maintenance_actions` to `aws_rds_db_cluster` and `aws_rds_db_instance` tables. ([#1083](https://github.com/turbot/steampipe-plugin-aws/pull/1083))
@@ -7,7 +12,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `snapshot_create_time` column in `aws_redshift_snapshot` table to be of `TIMESTAMP` data type instead of `STRING`. ([#1071](https://github.com/turbot/steampipe-plugin-aws/pull/1071))
+- Fixed the `snapshot_create_time` column in `aws_redshift_snapshot` table to be of `timestamp` data type instead of `string`. ([#1071](https://github.com/turbot/steampipe-plugin-aws/pull/1071))
 
 ## v0.64.0 [2022-06-09]
 
