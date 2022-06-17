@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -111,6 +112,14 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 		}
 	}
 
+	sort.Strings(evaluation.AllowedOrganizationIds)
+	sort.Strings(evaluation.AllowedPrincipalAccountIds)
+	sort.Strings(evaluation.AllowedPrincipalFederatedIdentities)
+	sort.Strings(evaluation.AllowedPrincipalServices)
+	sort.Strings(evaluation.AllowedPrincipals)
+	sort.Strings(evaluation.PublicAccessLevels)
+	sort.Strings(evaluation.PublicStatementIds)
+
 	return &evaluation, nil
 }
 
@@ -123,12 +132,12 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		return stmt.DenyStatementEvaluation(evaluation)
 	}
 
-	// Check for the allowed statement
+	// Check for the allowed statement - TODO
 	if stmt.NotAction != nil {
 		return true
 	}
 
-	statementMap := ConditionAndPrincipalMap{}
+	// statementMap := ConditionAndPrincipalMap{}
 	var awsPrincipals, servicePrincipals, federatedPrincipals []string
 	var hasPublicPrincipal = false
 	var isPublic = false
@@ -136,17 +145,17 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		if data, ok := stmt.Principal["AWS"]; ok {
 			awsPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipals = awsPrincipals
-			statementMap.Principal.AWS = awsPrincipals
+			// statementMap.Principal.AWS = awsPrincipals
 		}
 		if data, ok := stmt.Principal["Service"]; ok {
 			servicePrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalServices = servicePrincipals
-			statementMap.Principal.Service = servicePrincipals
+			// statementMap.Principal.Service = servicePrincipals
 		}
 		if data, ok := stmt.Principal["Federated"]; ok {
 			federatedPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
-			statementMap.Principal.Federated = federatedPrincipals
+			// statementMap.Principal.Federated = federatedPrincipals
 		}
 	}
 	if helpers.StringSliceContains(awsPrincipals, "*") {
@@ -156,59 +165,80 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 
 	// conditionMap := ConditionMap{}
 	if stmt.Condition != nil {
-		// conditionMap.And = map[string][]string{}
-		// log.Println("[INFO] AM I REACHING HERE")
-		// { "StringEquals": { "aws:PrincipalAccount": "999988887777"}}
-		// { "operatorKey": "operatorValue" }
-		// { "operatorKey": { "conditionKey": "conditionValue"}}
 
-		// statementMap.Condition = ConditionMap{And: map[string][]string{}}
 		for operatorKey, operatorValue := range stmt.Condition {
-			// conditionMap.And = map[string][]string{}
-
-			// conditionAssessment[operatorKey] = map[string]interface{}
-			// hasAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
-			// hasAllValuesPrefix := CheckForAllValuesPrefix(operatorKey)
 			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
-			// log.Println("[INFO] operator key:", operatorKey)
-
-			// if helpers.StringSliceContains(conditionOperatorsToCheck, key) {
-
-			// }
-			// log.Println("[INFO] operator value:", operatorValue)
-			// log.Printf("[INFO] operator value type: %T\n", operatorValue)
+			// hasForAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
 
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
 					// conditionMap.And[fmt.Sprintf("%s___%s", strings.ToLower(operatorKey), strings.ToLower(conditionKey))] = conditionValue.([]string)
-					// statementMap.Condition.And[fmt.Sprintf("%s___%s", strings.ToLower(operatorKey), strings.ToLower(conditionKey))] = conditionValue.([]string)
 
 					// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
 					if hasPublicPrincipal {
-						if hasAWSPrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
-							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-							isPublic = false
-						}
-						if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
-							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
+						if hasAWSPrincipalConditionKey(conditionKey) {
+							if !hasIfExistsSuffix {
+								stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
+								stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
+								fmt.Println("AM I INSIDE aws:principalarn")
 
-							switch strings.ToLower(conditionKey) {
-							case "aws:sourcearn":
-								for _, pARN := range conditionValue.([]string) {
-									if arn.IsARN(pARN) {
-										arnParts, _ := arn.Parse(pARN)
-										stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
-										stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
+								if conditionKey == "aws:principalarn" {
+									accounts := []string{}
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											accounts = append(accounts, arnParts.AccountID)
+										}
 									}
+									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
+								} else {
+									isPublic = false
 								}
-							case "aws:sourceaccount", "aws:sourceowner":
-								stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
+							} else {
+								switch conditionKey {
+								case "aws:principalaccount":
+									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
+									stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
+								case "aws:principalarn":
+									accounts := []string{}
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											accounts = append(accounts, arnParts.AccountID)
+										}
+									}
+									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
+								case "aws:principalorgid":
+									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, conditionValue.([]string)...)
+								case "aws:principalorgpaths":
+									orgs := []string{}
+									for _, paths := range conditionValue.([]string) {
+										orgs = append(orgs, strings.Split(paths, "/")[0])
+									}
+									fmt.Println("aws:principalorgid", orgs)
+									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, orgs...)
+								}
 							}
+							if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
+								stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
+								stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
 
-							isPublic = false
+								switch strings.ToLower(conditionKey) {
+								case "aws:sourcearn":
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
+											stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
+										}
+									}
+								case "aws:sourceaccount", "aws:sourceowner":
+									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
+								}
+
+								isPublic = false
+							}
 						}
 					}
 
@@ -242,15 +272,19 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 				}
 			}
 		}
-		// fmt.Printf("\nconditionMap.AND: %v\n", conditionMap)
 	}
 
-	// fmt.Printf("\nstatementMap: %v\n", statementMap)
-	// var conditionPublic = true
+	// // var conditionPublic = true
 	// var conditionAccounts = []string{}
 	// var conditionOrgs = []string{}
 	// var conditionServices = []string{}
-	// var conditionServiceAccounts = []string{}
+	// // var conditionServiceAccounts = []string{}
+	// copy(conditionAccounts, stmtEvaluation.AllowedPrincipalAccountIds)
+	// copy(conditionOrgs, stmtEvaluation.AllowedOrganizationIds)
+	// copy(conditionServices, stmtEvaluation.AllowedPrincipalServices)
+	// fmt.Println("conditionAccounts:", conditionAccounts)
+	// fmt.Println("conditionServices:", conditionServices)
+	// fmt.Println("conditionOrgs:", conditionOrgs)
 
 	// if conditionMap.And != nil {
 	// 	for k, v := range conditionMap.And {
@@ -263,40 +297,61 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 	// 		if hasAWSPrincipalConditionKey(conditionKey) {
 	// 			switch conditionKey {
 	// 			case "aws:principalaccount":
-	// 				conditionAccounts = append(conditionAccounts, v...)
+	// 				fmt.Println("aws:principalaccount", v)
+	// 				conditionAccounts = intersection(conditionAccounts, v)
+	// 				// conditionAccounts = append(conditionAccounts, v...)
 	// 			case "aws:principalarn":
+	// 				accounts := []string{}
 	// 				for _, pARN := range v {
 	// 					if arn.IsARN(pARN) {
 	// 						arnParts, _ := arn.Parse(pARN)
-	// 						conditionAccounts = append(conditionAccounts, arnParts.AccountID)
+	// 						accounts = append(accounts, arnParts.AccountID)
 	// 					}
 	// 				}
+	// 				fmt.Println("aws:principalarn", accounts)
+	// 				conditionAccounts = intersection(conditionAccounts, accounts)
 	// 			case "aws:principalorgid":
-	// 				conditionOrgs = append(conditionOrgs, v...)
+	// 				fmt.Println("aws:principalorgid", v)
+	// 				conditionOrgs = intersection(conditionOrgs, v)
+	// 				// conditionOrgs = append(conditionOrgs, v...)
 	// 			case "aws:principalorgpaths":
+	// 				orgs := []string{}
 	// 				for _, paths := range v {
-	// 					conditionOrgs = append(conditionOrgs, strings.Split(paths, "/")[0])
+	// 					orgs = append(orgs, strings.Split(paths, "/")[0])
 	// 				}
+	// 				fmt.Println("aws:principalorgid", orgs)
+	// 				conditionOrgs = intersection(conditionOrgs, orgs)
 	// 			}
 
 	// 			if hasServicePrincipalConditionKey(conditionKey) {
 	// 				switch conditionKey {
 	// 				case "aws:sourcearn":
+	// 					services := []string{}
+	// 					accounts := []string{}
 	// 					for _, pARN := range v {
 	// 						if arn.IsARN(pARN) {
 	// 							arnParts, _ := arn.Parse(pARN)
-	// 							conditionServices = append(conditionServices, arnParts.Service)
-	// 							conditionServiceAccounts = append(conditionServiceAccounts, arnParts.AccountID)
+	// 							services = append(services, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
+	// 							accounts = append(accounts, arnParts.AccountID)
 	// 						}
 	// 					}
+	// 					fmt.Println("aws:sourcearn", services)
+	// 					fmt.Println("aws:accounts", accounts)
+	// 					conditionServices = intersection(conditionServices, services)
+	// 					conditionAccounts = intersection(conditionAccounts, accounts)
 	// 				case "aws:sourceaccount", "aws:sourceowner":
-	// 					conditionServiceAccounts = append(conditionServiceAccounts, v...)
+	// 					fmt.Println("aws:sourceaccount or  aws:sourceowner", v)
+	// 					// conditionAccounts = append(conditionAccounts, v...)
+	// 					conditionAccounts = intersection(conditionAccounts, v)
 	// 				}
 	// 			}
 	// 		}
 	// 	}
 	// }
 
+	// evaluation.AllowedPrincipalAccountIds = conditionAccounts
+	// evaluation.AllowedPrincipalServices = conditionServices
+	// evaluation.AllowedOrganizationIds = conditionOrgs
 	evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, stmtEvaluation.AllowedOrganizationIds...)
 	evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, stmtEvaluation.AllowedPrincipals...)
 	evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, stmtEvaluation.AllowedPrincipalServices...)
@@ -305,13 +360,29 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 }
 
 func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) bool {
+	if stmt.NotPrincipal != nil {
+		// makes policy unsolvable as it denies access to only principals mentioned in `NotPrincipal` but allows access to everyone else.
+		return false
+	}
+	if stmt.Principal != nil && stmt.Principal["AWS"] != nil && helpers.StringSliceContains((stmt.Principal["AWS"]).([]string), "*") {
+		return true
+	}
 	return false
 }
 
-// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
+/*
+https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
+
+// ForAllValues – Use with multivalued condition keys. Tests whether the value of every member of the request set is a subset of the condition key set. The condition returns true if every key value in the request matches at least one value in the policy. It also returns true if there are no keys in the request, or if the key values resolve to a null data set, such as an empty string. Do not use ForAllValues with an Allow effect because it can be overly permissive.
+
+ForAnyValue – Use with multivalued condition keys. Tests whether at least one member of the set of request values matches at least one member of the set of condition key values. The condition returns true if any one of the key values in the request matches any one of the condition values in the policy. For no matching key or a null dataset, the condition returns false.
+
+The the difference between single-valued and multivalued condition keys depends on the number of values in the request context, not the number of values in the policy condition.
+*/
 func CheckForAnyValuePrefix(key string) bool {
 	return strings.HasPrefix(key, "ForAnyValue")
 }
+
 func CheckForAllValuesPrefix(key string) bool {
 	return strings.HasPrefix(key, "ForAllValues")
 }
@@ -323,6 +394,34 @@ func hasAWSPrincipalConditionKey(conditionKey string) bool {
 }
 func hasServicePrincipalConditionKey(conditionKey string) bool {
 	return helpers.StringSliceContains(trustedServicePrincipalConditionKeys, strings.ToLower(conditionKey))
+}
+
+func intersection(s1, s2 []string) (inter []string) {
+	hash := make(map[string]bool)
+	for _, e := range s1 {
+		hash[e] = true
+	}
+	for _, e := range s2 {
+		// If elements present in the hashmap then append intersection list.
+		if hash[e] {
+			inter = append(inter, e)
+		}
+	}
+	//Remove dups from slice.
+	inter = removeDups(inter)
+	return
+}
+
+//Remove dups from slice.
+func removeDups(elements []string) (nodups []string) {
+	encountered := make(map[string]bool)
+	for _, element := range elements {
+		if !encountered[element] {
+			nodups = append(nodups, element)
+			encountered[element] = true
+		}
+	}
+	return
 }
 
 // StringSliceDistinct returns a slice with the unique elements the input string slice
