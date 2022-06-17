@@ -557,13 +557,217 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			sort.Strings(expectedObj.AllowedPrincipals)
 			sort.Strings(expectedObj.PublicAccessLevels)
 			sort.Strings(expectedObj.PublicStatementIds)
-			sort.Strings(evaluatedObj.AllowedOrganizationIds)
-			sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
-			sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
-			sort.Strings(evaluatedObj.AllowedPrincipalServices)
-			sort.Strings(evaluatedObj.AllowedPrincipals)
-			sort.Strings(evaluatedObj.PublicAccessLevels)
-			sort.Strings(evaluatedObj.PublicStatementIds)
+
+			// Evaluated object slices already sorted
+			// sort.Strings(evaluatedObj.AllowedOrganizationIds)
+			// sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
+			// sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
+			// sort.Strings(evaluatedObj.AllowedPrincipalServices)
+			// sort.Strings(evaluatedObj.AllowedPrincipals)
+			// sort.Strings(evaluatedObj.PublicAccessLevels)
+			// sort.Strings(evaluatedObj.PublicStatementIds)
+			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				data := new(bytes.Buffer)
+				_ = json.Indent(data, []byte(test.expected), "", "\t")
+				t.Errorf("FAILED: \nExpected:\n %v\n\nEvaluated \n%v\n", data.String(), string(strdata))
+			}
+		})
+	}
+}
+
+func TestS3ResourcePublicPolicies(t *testing.T) {
+	testCases := []publicAccessTest{
+		{
+			`* principal public access`,
+			1,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with StringEqualsIfExists on aws:PrincipalAccount`,
+			2,
+			`{
+				"Statement": [
+					{
+					"Action": "s3:ListBucket",
+					"Condition": {
+						"StringEqualsIfExists": {
+						"aws:PrincipalAccount": "111122223333"
+						}
+					},
+					"Effect": "Allow",
+					"Principal": "*",
+					"Resource": "arn:aws:s3:::test-anonymous-access",
+					"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*",
+					"111122223333"
+				],
+				"allowed_principal_account_ids": [
+					"*",
+					"111122223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with StringEqualsIfExists on aws:PrincipalAccount and StringEquals on aws:username`,
+			3,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"StringEquals": {
+								"aws:username": "lalit"
+							},
+							"StringEqualsIfExists": {
+								"aws:PrincipalAccount": "111122223333"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*",
+					"111122223333"
+				],
+				"allowed_principal_account_ids": [
+					"*",
+					"111122223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with ArnLike on aws:PrincipalArn with arn for all iam users`,
+			4,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"ArnLike": {
+								"aws:PrincipalArn": "arn:aws:iam::*:user/*"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:iam::*:user/*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+			policy, err := canonicalPolicy(test.policy)
+			if err != nil {
+				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy()
+			if err != nil {
+				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
+			}
+
+			var expectedObj PolicyEvaluation
+			_ = json.Unmarshal([]byte(test.expected), &expectedObj)
+
+			// Sort []string attributes to compare
+			sort.Strings(expectedObj.AllowedOrganizationIds)
+			sort.Strings(expectedObj.AllowedPrincipalAccountIds)
+			sort.Strings(expectedObj.AllowedPrincipalFederatedIdentities)
+			sort.Strings(expectedObj.AllowedPrincipalServices)
+			sort.Strings(expectedObj.AllowedPrincipals)
+			sort.Strings(expectedObj.PublicAccessLevels)
+			sort.Strings(expectedObj.PublicStatementIds)
+
+			// Evaluated object slices already sorted
+			// sort.Strings(evaluatedObj.AllowedOrganizationIds)
+			// sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
+			// sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
+			// sort.Strings(evaluatedObj.AllowedPrincipalServices)
+			// sort.Strings(evaluatedObj.AllowedPrincipals)
+			// sort.Strings(evaluatedObj.PublicAccessLevels)
+			// sort.Strings(evaluatedObj.PublicStatementIds)
 			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
 				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
 				data := new(bytes.Buffer)
