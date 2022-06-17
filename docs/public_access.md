@@ -115,3 +115,146 @@
   }
 ]
 ```
+
+## Public policies
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "StringEqualsIfExists": {
+          "aws:PrincipalAccount": "111122223333"
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "StringEquals": {
+          "aws:username": "lalit"
+        },
+        "StringEqualsIfExists": {
+          "aws:PrincipalAccount": "111122223333"
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalArn": "arn:aws:iam::*:user/*\""
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:iam::*:*/*"
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:cloudwatch:us-east-1:*:alarm:*"
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+```json
+{
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Condition": {
+        "ForAnyValue:ArnLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:root",
+            "arn:aws:iam::444422223333:root"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::test-anonymous-access",
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
