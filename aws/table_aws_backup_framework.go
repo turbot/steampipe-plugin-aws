@@ -60,6 +60,8 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				Name:        "number_of_controls",
 				Description: "The number of controls contained by the framework.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getNumberOfControls,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "framework_status",
@@ -96,6 +98,19 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var value int
+
+	switch item := h.Item.(type) {
+	case *backup.DescribeFrameworkOutput:
+		value = len(item.FrameworkControls)
+	case *backup.Framework:
+		value = int(*item.NumberOfControls)
+	}
+
+	return value, nil
 }
 
 //// LIST FUNCTION
@@ -186,8 +201,14 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
-	framework := h.Item.(*backup.Framework)
-	arn := framework.FrameworkArn
+	var arn *string
+
+	switch item := h.Item.(type) {
+	case *backup.Framework:
+		arn = item.FrameworkArn
+	case *backup.DescribeFrameworkOutput:
+		arn = item.FrameworkArn
+	}
 
 	// Build the params
 	params := backup.ListTagsInput{
