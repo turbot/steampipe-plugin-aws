@@ -175,7 +175,12 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 		},
 	)
 
-	return nil, err
+	if err != nil {
+		plugin.Logger(ctx).Error("listElastiCacheReservedCacheNodes", "DescribeReservedCacheNodesPages", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -201,6 +206,7 @@ func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _
 
 	op, err := svc.DescribeReservedCacheNodes(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getElastiCacheReservedCacheNode", "DescribeReservedCacheNodes", err)
 		return nil, err
 	}
 
