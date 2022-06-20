@@ -15,7 +15,6 @@ import (
 
 //// TABLE DEFINITION
 func tableAwsBackupFramework(_ context.Context) *plugin.Table {
-
 	return &plugin.Table{
 		Name:        "aws_backup_framework",
 		Description: "AWS Backup Framework",
@@ -61,6 +60,25 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				Name:        "number_of_controls",
 				Description: "The number of controls contained by the framework.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "framework_status",
+				Description: "A framework consists of one or more controls. Each control governs a resource, such as backup plans, backup selections, backup vaults, or recovery points.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupFramework,
+			},
+			{
+				Name:        "framework_controls",
+				Description: "A list of the controls that make up the framework. Each control in the list has a name, input parameters, and scope.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsBackupFramework,
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listAwsBackupFrameworkTags,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -159,4 +177,43 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return op, nil
+}
+
+func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := BackupService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	framework := h.Item.(*backup.Framework)
+	arn := framework.FrameworkArn
+
+	// Build the params
+	params := backup.ListTagsInput{
+		ResourceArn: aws.String(*arn),
+		MaxResults:  aws.Int64(1000),
+	}
+
+	tags := make(map[string]string)
+	pagesLeft := true
+	for pagesLeft {
+		keyTags, err := svc.ListTags(&params)
+		if err != nil {
+			plugin.Logger(ctx).Error("listAwsBackupFrameworkTags", "ListTags_error", err)
+			return nil, err
+		}
+
+		for k, v := range keyTags.Tags {
+			tags[k] = *v
+		}
+
+		if keyTags.NextToken != nil {
+			params.NextToken = keyTags.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
+
+	return tags, nil
 }
