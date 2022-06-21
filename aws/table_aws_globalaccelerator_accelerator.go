@@ -80,6 +80,13 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 				Hydrate:     getGlobalacceleratorAcceleratorTags,
 				Transform:   transform.FromField("Tags"),
 			},
+			{
+				Name:        "accelerator_attributes",
+				Description: "Attributes of the accelerator.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlobalacceleratorAcceleratorAttributes,
+				Transform:   transform.FromField("AcceleratorAttributes"),
+			},
 
 			// Steampipe standard columns
 			{
@@ -93,7 +100,7 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getGlobalacceleratorAcceleratorTags,
-				Transform:   transform.FromField("TagList").Transform(globalacceleratorAcceleratorTurbotTags),
+				Transform:   transform.FromField("Tags").Transform(globalacceleratorAcceleratorTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -211,6 +218,32 @@ func getGlobalacceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryDat
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
 		logger.Debug("getGlobalacceleratorAcceleratorTags", "api_error", err)
+		return nil, err
+	}
+	return op, nil
+}
+
+func getGlobalacceleratorAcceleratorAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	logger.Trace("getGlobalacceleratorAcceleratorAttributes")
+
+	accelerator := h.Item.(*globalaccelerator.Accelerator)
+
+	// Create Session
+	svc, err := GlobalAcceleratorService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &globalaccelerator.DescribeAcceleratorAttributesInput{
+		AcceleratorArn: accelerator.AcceleratorArn,
+	}
+
+	// Get call
+	op, err := svc.DescribeAcceleratorAttributes(params)
+	if err != nil {
+		logger.Debug("getGlobalacceleratorAcceleratorAttributes", "api_error", err)
 		return nil, err
 	}
 	return op, nil
