@@ -727,7 +727,128 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_services": [],
 				"is_public": true,
 				"public_access_levels": [],
-				"public_statement_ids": []
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with ArnLike on aws:SourceArn with arn for all iam services`,
+			5,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:iam::*:*/*"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with ArnLike on aws:SourceArn with arn for all cloudwatch alarms`,
+			6,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:*:alarm:*"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+		{
+			`* principal public access with ArnLike on aws:PrincipalArn with arn`,
+			7,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"ForAnyValue:ArnLike": {
+								"aws:PrincipalArn": [
+									"arn:aws:iam::*:root",
+									"arn:aws:iam::444422223333:root"
+								]
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:iam::*:root",
+					"arn:aws:iam::444422223333:root"
+				],
+				"allowed_principal_account_ids": [
+					"*",
+					"444422223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
 			}`,
 		},
 	}
@@ -760,14 +881,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			sort.Strings(expectedObj.PublicAccessLevels)
 			sort.Strings(expectedObj.PublicStatementIds)
 
-			// Evaluated object slices already sorted
-			// sort.Strings(evaluatedObj.AllowedOrganizationIds)
-			// sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
-			// sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
-			// sort.Strings(evaluatedObj.AllowedPrincipalServices)
-			// sort.Strings(evaluatedObj.AllowedPrincipals)
-			// sort.Strings(evaluatedObj.PublicAccessLevels)
-			// sort.Strings(evaluatedObj.PublicStatementIds)
 			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
 				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
 				data := new(bytes.Buffer)
