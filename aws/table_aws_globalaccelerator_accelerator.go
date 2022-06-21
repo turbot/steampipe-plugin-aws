@@ -73,6 +73,13 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 				Description: "Describes the deployment status of the accelerator.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with the accelerator.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlobalacceleratorAcceleratorTags,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// Steampipe standard columns
 			{
