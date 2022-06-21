@@ -41,6 +41,19 @@ var (
 	}
 )
 
+type ConditionMap struct {
+	And map[string][]string `type:"and"`
+	Not map[string][]string `type:"not"`
+	Or  map[string][]string `type:"or"`
+}
+
+type ConditionAndPrincipalMap struct {
+	Principal struct {
+		AWS, Service, Federated []string
+	}
+	Condition ConditionMap
+}
+
 type PolicyEvaluation struct {
 	// Policy                               Policy   `json:"policy"`
 	AccessLevel                         string   `json:"access_level"`
@@ -137,33 +150,43 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		return true
 	}
 
-	// statementMap := ConditionAndPrincipalMap{}
 	var awsPrincipals, servicePrincipals, federatedPrincipals []string
 	var hasPublicPrincipal = false
 	var isPublic = false
+
 	if stmt.Principal != nil {
 		if data, ok := stmt.Principal["AWS"]; ok {
 			awsPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipals = awsPrincipals
-			// statementMap.Principal.AWS = awsPrincipals
 		}
 		if data, ok := stmt.Principal["Service"]; ok {
 			servicePrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalServices = servicePrincipals
-			// statementMap.Principal.Service = servicePrincipals
 		}
 		if data, ok := stmt.Principal["Federated"]; ok {
 			federatedPrincipals = data.([]string)
 			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
-			// statementMap.Principal.Federated = federatedPrincipals
 		}
 	}
+
 	if helpers.StringSliceContains(awsPrincipals, "*") {
 		hasPublicPrincipal = true
 		isPublic = true
 	}
 
 	// conditionMap := ConditionMap{}
+	// var condition map[string]map[string][]string
+	// for operatorKey, operatorValue := range stmt.Condition {
+	// 	// condition[operatorKey] = map[string][]string{}
+	// 	if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
+	// 		// condition[operatorKey][] = map[string]string{}
+	// 		for conditionKey, conditionValue := range conditionOperatorValueMap {
+	// 			condition[operatorKey][conditionKey] = []string{}
+	// 			condition[operatorKey][conditionKey] = append(condition[operatorKey][conditionKey], conditionValue.([]string)...)
+	// 		}
+	// 	}
+	// }
+
 	if stmt.Condition != nil {
 
 		for operatorKey, operatorValue := range stmt.Condition {
@@ -171,7 +194,6 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 			// hasForAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
 
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
-
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
 					// conditionMap.And[fmt.Sprintf("%s___%s", strings.ToLower(operatorKey), strings.ToLower(conditionKey))] = conditionValue.([]string)
 
@@ -181,7 +203,6 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 							if !hasIfExistsSuffix {
 								stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
 								stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-								fmt.Println("AM I INSIDE aws:principalarn")
 
 								if conditionKey == "aws:principalarn" {
 									accounts := []string{}
@@ -273,6 +294,11 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 			}
 		}
 	}
+
+	// evaluation
+	// for operator, value := range condition {
+
+	// }
 
 	// // var conditionPublic = true
 	// var conditionAccounts = []string{}
@@ -544,19 +570,6 @@ func StringSliceDistinct(slice []string) []string {
 // 		}
 // 	}
 // }
-
-type ConditionMap struct {
-	And map[string][]string `type:"and"`
-	Not map[string][]string `type:"not"`
-	Or  map[string][]string `type:"or"`
-}
-
-type ConditionAndPrincipalMap struct {
-	Principal struct {
-		AWS, Service, Federated []string
-	}
-	Condition ConditionMap
-}
 
 // func evaluateCondition(stmt Statement) *ConditionAssessment {
 
