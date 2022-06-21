@@ -2006,6 +2006,10 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 		sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
 	}
 
+	if awsConfig.S3ForcePathStyle != nil {
+		sessionOptions.Config.S3ForcePathStyle = awsConfig.S3ForcePathStyle
+	}
+
 	if awsConfig.Profile != nil {
 		sessionOptions.Profile = *awsConfig.Profile
 	}
