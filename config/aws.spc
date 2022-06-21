@@ -36,7 +36,6 @@ connection "aws" {
 
   # Set to `true` to force S3 requests to use path-style addressing,
   # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
-  # will use virtual hosted bucket addressing when possible
-  # (`http://BUCKET.s3.amazonaws.com/KEY`).
-  #s3_force_path_style = true
+  # will use virtual hosted bucket addressing when possible (`http://BUCKET.s3.amazonaws.com/KEY`).
+  #s3_force_path_style = false
 }
