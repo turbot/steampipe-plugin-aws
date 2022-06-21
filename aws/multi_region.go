@@ -84,7 +84,7 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 
 func getInvalidRegions(regions []string) []string {
 	awsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1", "us-iso-east-1", "us-isob-east-1"}
 
 	invalidRegions := []string{}
 	for _, region := range regions {
@@ -123,6 +123,8 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
 	awsUsGovRegions := []string{"us-gov-east-1", "us-gov-west-1"}
 	awsChinaRegions := []string{"cn-north-1", "cn-northwest-1"}
+	awsUsIsoRegions := []string{"us-iso-east-1"}
+	awsUsIsobRegions := []string{"us-isob-east-1"}
 	defaultRegions := awsCommercialRegions
 
 	defaultRegion := GetDefaultAwsRegion(pluginQueryData)
@@ -130,6 +132,10 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 		defaultRegions = awsUsGovRegions
 	} else if strings.HasPrefix(defaultRegion, "cn") {
 		defaultRegions = awsChinaRegions
+	} else if strings.HasPrefix(defaultRegion, "us-isob") {
+		defaultRegions = awsUsIsobRegions
+	} else if strings.HasPrefix(defaultRegion, "us-iso") {
+		defaultRegions = awsUsIsoRegions
 	}
 
 	data := map[string][]string{
