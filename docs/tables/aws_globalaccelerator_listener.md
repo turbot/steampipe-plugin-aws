@@ -20,7 +20,7 @@ select
 from
   aws_globalaccelerator_listener
 where
-  accelerator_arn = 'arn:aws:globalaccelerator::012345678901:accelerator/1234abcd'
+  accelerator_arn = 'arn:aws:globalaccelerator::012345678901:accelerator/1234abcd';
 ```
 
 ### Basic info for all accelerators and listeners
@@ -37,7 +37,7 @@ from
   aws_globalaccelerator_accelerator a,
   aws_globalaccelerator_listener l
 where
-  l.accelerator_arn = a.accelerator_arn
+  l.accelerator_arn = a.accelerator_arn;
 ```
 
 ### List accelerators listening on TCP port 443

@@ -2,7 +2,7 @@
 
 Each endpoint group is associated with a specific AWS Region. Endpoint groups include one or more endpoints in the
 Region. With a standard accelerator, you can increase or reduce the percentage of traffic that would be otherwise
-directed to an endpoint group by adjusting a setting called a traffic dial . The traffic dial lets you easily do
+directed to an endpoint group by adjusting a setting called a traffic dial. The traffic dial lets you easily do
 performance testing or blue/green deployment testing, for example, for new releases across different AWS Regions.
 
 ## Examples

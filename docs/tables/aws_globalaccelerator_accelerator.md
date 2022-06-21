@@ -24,17 +24,17 @@ from
 
 ```sql
  select
-  name,
-  created_time,
-  dns_name,
-  enabled,
-  ip_address_type,
-  last_modified_time,
-  status,
-  anycast_ip
+   name,
+   created_time,
+   dns_name,
+   enabled,
+   ip_address_type,
+   last_modified_time,
+   status,
+   anycast_ip
 from
   aws_globalaccelerator_accelerator,
-  jsonb_array_elements(ip_sets->0->'IpAddresses') as anycast_ip
+  jsonb_array_elements(ip_sets -> 0 -> 'IpAddresses') as anycast_ip;
 ```
 
 ### List  global accelerators without owner tag key
