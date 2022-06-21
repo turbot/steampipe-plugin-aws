@@ -18,7 +18,7 @@ const _targetGlobs = function () {
   if (args.length == 0) {
     args.push("*");
   }
-  var targets = args.map(i => {
+  var targets = args.map((i) => {
     var tmp;
     if (i.includes("/")) {
       tmp = i;
@@ -35,7 +35,7 @@ const _targetGlobs = function () {
 };
 
 const _targetDirs = function (targetGlobs) {
-  var targetDirs = targetGlobs.map(i => {
+  var targetDirs = targetGlobs.map((i) => {
     return i.split("/")[0];
   });
   return [...new Set(targetDirs)];
@@ -45,7 +45,7 @@ const _availableTests = function (targetDirs) {
   var result = [];
   for (const d of targetDirs) {
     result = result.concat(
-      fs.readdirSync(d).map(i => {
+      fs.readdirSync(d).map((i) => {
         return d + "/" + i;
       })
     );
@@ -66,7 +66,7 @@ const _testPrerequisites = function (testDir) {
   var dependencies = dependenciesSrc.split(/\s+/g);
   var testsDir = path.resolve(testDir, "..");
   var integrationTestsDir = path.resolve(testsDir, "..");
-  var prereqs = _.compact(dependencies).map(i => {
+  var prereqs = _.compact(dependencies).map((i) => {
     return path.relative(integrationTestsDir, path.resolve(testsDir, i));
   });
   return prereqs;
@@ -86,7 +86,7 @@ const _testsWithPrerequisites = function (tests) {
       pretest: {},
       test: {},
       posttest: {},
-      teardown: {}
+      teardown: {},
     };
     result.push(_testsWithPrerequisites(prereqs));
     result.push(testObj);
@@ -128,21 +128,21 @@ const _runTerraformInit = async function (test, phase) {
 
     var result = {
       stdout: "",
-      stderr: ""
+      stderr: "",
     };
     var resultSent = false;
 
     console.log(chalk.yellow("Running terraform"));
-    cmd.stdout.on("data", data => {
+    cmd.stdout.on("data", (data) => {
       result.stdout += data;
     });
 
-    cmd.stderr.on("data", data => {
+    cmd.stderr.on("data", (data) => {
       process.stdout.write(chalk.gray(data));
       result.stderr += data;
     });
 
-    cmd.on("exit", code => {
+    cmd.on("exit", (code) => {
       if (resultSent) {
         return;
       }
@@ -158,7 +158,7 @@ const _runTerraformInit = async function (test, phase) {
       resolve(test);
     });
 
-    cmd.on("error", err => {
+    cmd.on("error", (err) => {
       if (resultSent) {
         return;
       }
@@ -175,32 +175,32 @@ const _runTerraformApply = function (test, phase) {
     let environment = Object.assign(process.env, {
       TF_VAR_resource_name: process.env.TURBOT_TEST_RESOURCE_NAME,
       TF_VAR_resource_name_1: process.env.TURBOT_TEST_RESOURCE_NAME_1,
-      TF_VAR_resource_name_2: process.env.TURBOT_TEST_RESOURCE_NAME_2
+      TF_VAR_resource_name_2: process.env.TURBOT_TEST_RESOURCE_NAME_2,
     });
     const args = ["apply", "-auto-approve", "-no-color"];
     const cmd = spawn("terraform", args, {
       encoding: "utf8",
       cwd: tfDir,
-      env: environment
+      env: environment,
     });
 
     var result = {
       stdout: "",
-      stderr: ""
+      stderr: "",
     };
     var resultSent = false;
 
-    cmd.stdout.on("data", data => {
+    cmd.stdout.on("data", (data) => {
       process.stdout.write(chalk.dim(data));
       result.stdout += data;
     });
 
-    cmd.stderr.on("data", data => {
+    cmd.stderr.on("data", (data) => {
       process.stdout.write(chalk.gray(data));
       result.stderr += data;
     });
 
-    cmd.on("exit", code => {
+    cmd.on("exit", (code) => {
       if (resultSent) {
         return;
       }
@@ -216,7 +216,7 @@ const _runTerraformApply = function (test, phase) {
       resolve(test);
     });
 
-    cmd.on("error", err => {
+    cmd.on("error", (err) => {
       if (resultSent) {
         return;
       }
@@ -234,25 +234,25 @@ const _runTerraformDestroy = function (test, phase = "test") {
 
     const cmd = spawn("terraform", args, {
       encoding: "utf8",
-      cwd: tfDir
+      cwd: tfDir,
     });
 
     var result = {
       stdout: "",
-      stderr: ""
+      stderr: "",
     };
     var resultSent = false;
 
-    cmd.stdout.on("data", data => {
+    cmd.stdout.on("data", (data) => {
       result.stdout += data;
     });
 
-    cmd.stderr.on("data", data => {
+    cmd.stderr.on("data", (data) => {
       process.stdout.write(chalk.gray(data));
       result.stderr += data;
     });
 
-    cmd.on("exit", code => {
+    cmd.on("exit", (code) => {
       if (resultSent) {
         return;
       }
@@ -269,7 +269,7 @@ const _runTerraformDestroy = function (test, phase = "test") {
       resolve(test);
     });
 
-    cmd.on("error", err => {
+    cmd.on("error", (err) => {
       if (resultSent) {
         return;
       }
@@ -287,20 +287,20 @@ const _runTerraformOutput = async function (test, phase) {
 
     var result = {
       stdout: "",
-      stderr: ""
+      stderr: "",
     };
     var resultSent = false;
 
-    cmd.stdout.on("data", data => {
+    cmd.stdout.on("data", (data) => {
       result.stdout += data;
     });
 
-    cmd.stderr.on("data", data => {
+    cmd.stderr.on("data", (data) => {
       process.stdout.write(chalk.gray(data));
       result.stderr += data;
     });
 
-    cmd.on("exit", code => {
+    cmd.on("exit", (code) => {
       if (resultSent) {
         return;
       }
@@ -309,16 +309,16 @@ const _runTerraformOutput = async function (test, phase) {
       try {
         let terraformOutput = JSON.parse(result.stdout);
         Object.assign(test.output, {
-          resourceId: _.get(terraformOutput, "resource_id.value", "")
+          resourceId: _.get(terraformOutput, "resource_id.value", ""),
         });
         Object.assign(test.output, {
-          resourceName: _.get(terraformOutput, "resource_name.value", "")
+          resourceName: _.get(terraformOutput, "resource_name.value", ""),
         });
         Object.assign(test, {
-          resourceId: _.get(terraformOutput, "resource_id.value", "")
+          resourceId: _.get(terraformOutput, "resource_id.value", ""),
         });
         Object.assign(test, {
-          resourceName: _.get(terraformOutput, "resource_name.value", "")
+          resourceName: _.get(terraformOutput, "resource_name.value", ""),
         });
         Object.assign(test.output, terraformOutput);
       } catch (e) {
@@ -327,7 +327,7 @@ const _runTerraformOutput = async function (test, phase) {
       resolve(test);
     });
 
-    cmd.on("error", err => {
+    cmd.on("error", (err) => {
       if (resultSent) {
         return;
       }
@@ -341,7 +341,7 @@ const _runTerraformApplyForTestPhase = async function (test, phase) {
   const files = fs
     .readdirSync(test.dir)
     .sort()
-    .filter(i => {
+    .filter((i) => {
       if (![".tf", ".tfvars"].includes(path.extname(i))) {
         return false;
       }
@@ -384,7 +384,7 @@ const _runGraphqlQuery = function (test, query) {
   return new Promise((resolve, reject) => {
     try {
       var queryTmp = _renderToTmp(test, query.query);
-      var variablesTmp = _renderToTmp(test, query.variables, {});
+      var variablesTmp = _renderToTmp(test, query.variables, "{}");
       var expectedTmp = _renderToTmp(test, query.expected);
     } catch (e) {
       console.log(chalk.red(`Template Error: ${e.sourcePath}`));
@@ -421,27 +421,27 @@ const _runGraphqlQuery = function (test, query) {
       "query",
       "--output",
       "json",
-      q
+      q,
       //"select name from aws_s3_bucket whe order by name"
     ];
     const cmd = spawn("steampipe", args, { encoding: "utf8" });
 
     var result = {
       stdout: "",
-      stderr: ""
+      stderr: "",
     };
     var resultSent = false;
 
-    cmd.stdout.on("data", data => {
+    cmd.stdout.on("data", (data) => {
       result.stdout += data;
     });
 
-    cmd.stderr.on("data", data => {
+    cmd.stderr.on("data", (data) => {
       process.stdout.write(chalk.dim(data));
       result.stderr += data;
     });
 
-    cmd.on("exit", code => {
+    cmd.on("exit", (code) => {
       // console.log(result);
       if (resultSent) {
         return;
@@ -461,12 +461,12 @@ const _runGraphqlQuery = function (test, query) {
           "\n";
         var differences = diff.diffJson(outputStr, expectedStr);
 
-        differences.forEach(part => {
+        differences.forEach((part) => {
           if (part.added) {
-            result.status = 1
+            result.status = 1;
             process.stdout.write(chalk.green(part.value));
           } else if (part.removed) {
-            result.status = 1
+            result.status = 1;
             process.stdout.write(chalk.red(part.value));
           } else {
             process.stdout.write(chalk.dim(part.value));
@@ -476,7 +476,7 @@ const _runGraphqlQuery = function (test, query) {
       resolve(result);
     });
 
-    cmd.on("error", err => {
+    cmd.on("error", (err) => {
       if (resultSent) {
         return;
       }
@@ -494,14 +494,14 @@ const _runGraphqlQueriesForTestPhase = async function (
   const queries = fs
     .readdirSync(test.dir)
     .sort()
-    .map(i => {
+    .map((i) => {
       if (phase == "test" && i == "query.sql") {
         return {
           name: "",
           phase,
           query: `${test.dir}/query.sql`,
           variables: `${test.dir}/variables.json`,
-          expected: `${test.dir}/expected.json`
+          expected: `${test.dir}/expected.json`,
         };
       }
       if (i.startsWith(phase + "-") && i.endsWith("-query.sql")) {
@@ -511,12 +511,12 @@ const _runGraphqlQueriesForTestPhase = async function (
           phase,
           query: `${test.dir}/${phase}-${name}-query.sql`,
           variables: `${test.dir}/${phase}-${name}-variables.json`,
-          expected: `${test.dir}/${phase}-${name}-expected.json`
+          expected: `${test.dir}/${phase}-${name}-expected.json`,
         };
       }
       return null;
     })
-    .filter(i => !!i);
+    .filter((i) => !!i);
 
   // console.log({queries: queries})
   for (const q of queries) {
@@ -531,7 +531,7 @@ const _runGraphqlQueriesForTestPhase = async function (
       );
       // TODO: Do we need additional info in the queryResult object?
       queryResult = {
-        status: 1
+        status: 1,
       };
     }
     // console.log({status: queryResult.status})
@@ -553,7 +553,7 @@ const _runGraphqlQueriesForTestPhase = async function (
 };
 
 const _run = async function (tests) {
-  var testNames = tests.map(i => i.dir);
+  var testNames = tests.map((i) => i.dir);
   var results = _.keyBy(tests, "dir");
 
   // Set the test resource names before running any steps to allow same name
@@ -665,10 +665,12 @@ async function main() {
     console.log(JSON.stringify(result, null, 2));
   }
   var numTests = resolvedTargets.length;
-  var numTestsPassing = _.filter(result, testResult => !testResult.failed)
-    .length;
+  var numTestsPassing = _.filter(
+    result,
+    (testResult) => !testResult.failed
+  ).length;
   var failingTests = _.chain(result)
-    .map(i => {
+    .map((i) => {
       return i.failed ? i : null;
     })
     .compact()

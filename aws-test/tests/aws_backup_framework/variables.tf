@@ -1,6 +1,6 @@
 variable "resource_name" {
   type        = string
-  default     = "turbot-test-20200125-create-update"
+  default     = "turbot_test_20200125_create_update"
   description = "Name of the resource used throughout the test."
 }
 
@@ -102,9 +102,9 @@ resource "aws_backup_framework" "named_test_resource" {
 }
 
 output "id" {
-  value = aws_backup_plan.named_test_resource.id
+  value = aws_backup_framework.named_test_resource.id
 }
 
 output "resource_aka" {
-  value = aws_backup_plan.named_test_resource.arn
+  value = aws_backup_framework.named_test_resource.arn
 }
