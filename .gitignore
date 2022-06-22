@@ -31,9 +31,3 @@ node_modules
 
 # Ignore file types
 .vscode/
-
-# Ignore Terraform local files
-.terraform.lock.hcl
-
-# Ignore custom prettier files
-.prettierrc.yaml
