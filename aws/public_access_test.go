@@ -528,6 +528,47 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"public_statement_ids": []
 			}`,
 		},
+		{
+			`Private access with the use of aws:SourceIp condition key`,
+			9,
+			`{
+				"Statement": [
+					{
+						"Action": [
+							"s3:GetBucketLocation",
+							"s3:ListBucket"
+						],
+						"Condition": {
+							"ForAnyValue:IpAddress": {
+								"aws:SourceIp": "122.161.78.130"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": {
+							"AWS": "*"
+						},
+						"Resource": "arn:aws:s3:::osborn-shaktiman-bucket-share",
+						"Sid": "Example permissions"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "shared",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
+		},
 	}
 
 	for _, test := range testCases {

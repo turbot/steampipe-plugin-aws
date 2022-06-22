@@ -39,6 +39,62 @@ var (
 		"aws:sourceaccount", // SourceAccount is used for giving IAM roles access from an account to the topic.
 		"aws:sourceowner",   // SourceOwner is used for giving access to other AWS Services from a specific account
 	}
+
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_String
+	StringConditionalOperators = []string{
+		"StringEquals",
+		"StringNotEquals",
+		"StringEqualsIgnoreCase",
+		"StringNotEqualsIgnoreCase",
+		"StringLike",
+		"StringNotLike",
+	}
+
+	// Numeric condition operators
+	NumericConditionalOperators = []string{
+		"NumericEquals",
+		"NumericNotEquals",
+		"NumericLessThan",
+		"NumericLessThanEquals",
+		"NumericGreaterThan",
+		"NumericGreaterThanEquals",
+	}
+
+	// Date condition operators
+	DateConditionalOperators = []string{
+		"DateEquals",
+		"DateNotEquals",
+		"DateLessThan",
+		"DateLessThanEquals",
+		"DateGreaterThan",
+		"DateGreaterThanEquals",
+	}
+
+	// Bool condition operators
+	BoolConditionalOperators = []string{"Bool"}
+
+	// Binary condition operators
+	BinaryConditionalOperators = []string{"BinaryEquals"}
+
+	// IP address condition operators
+	IPAddressConditionalOperators = []string{
+		"IpAddress",
+		"NotIpAddress",
+	}
+
+	// ARNConditionalOperators = []string{
+	// 	"ArnEquals",
+	// 	"ArnLike",
+	// 	"ArnNotEquals",
+	// 	"ArnNotLike",
+	// }
+
+	// ARNConditionalOperators = []string{
+	// 	"ArnEquals",
+	// 	"ArnLike",
+	// 	"ArnNotEquals",
+	// 	"ArnNotLike",
+	// }
 )
 
 type ConditionMap struct {
@@ -69,7 +125,7 @@ type PolicyEvaluation struct {
 
 func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	//TODO - bring source account information for getting public, private or shared level access info
-	var sourceAccountId string = "444455556666"
+	// var sourceAccountId string = "444455556666"
 	re := regexp.MustCompile(`[0-9]{12}`)
 
 	evaluation := PolicyEvaluation{}
@@ -116,12 +172,14 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	evaluation.PublicAccessLevels = StringSliceDistinct(evaluation.PublicAccessLevels)
 	evaluation.PublicStatementIds = StringSliceDistinct(evaluation.PublicStatementIds)
 
-	evaluation.AccessLevel = "shared"
+	evaluation.AccessLevel = "private"
 	if evaluation.IsPublic {
 		evaluation.AccessLevel = "public"
 	} else {
-		if (len(evaluation.AllowedPrincipalAccountIds) == 0 && len(evaluation.AllowedOrganizationIds) == 0) || (len(evaluation.AllowedPrincipalAccountIds) > 0 && evaluation.AllowedPrincipalAccountIds[0] == sourceAccountId) {
+		if len(evaluation.AllowedPrincipalAccountIds) == 0 && len(evaluation.AllowedOrganizationIds) == 0 {
 			evaluation.AccessLevel = "private"
+		} else {
+			evaluation.AccessLevel = "shared"
 		}
 	}
 
@@ -183,6 +241,8 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		// Code to detect public
 		for operatorKey, operatorValue := range stmt.Condition {
 			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
+			hasNotInOperator := CheckNotInOperator(operatorKey)
+			operatorKey = removeNotFromOperator(operatorKey)
 
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				internalPublicPrincipalKey := true
@@ -232,6 +292,13 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 							if !hasIfExistsSuffix {
 								internalPublicPrincipalKey = false
 							}
+						}
+					}
+
+					switch strings.ToLower(conditionKey) {
+					case "aws:sourceip":
+						if !hasNotInOperator {
+							internalPublicPrincipalOperator = false
 						}
 					}
 					if !internalPublicPrincipalKey {
@@ -392,11 +459,18 @@ func CheckForAllValuesPrefix(key string) bool {
 func CheckIfExistsSuffix(key string) bool {
 	return strings.HasSuffix(key, "IfExists")
 }
+func CheckNotInOperator(operator string) bool {
+	return strings.Contains(operator, "Not")
+}
 func hasAWSPrincipalConditionKey(conditionKey string) bool {
 	return helpers.StringSliceContains(trustedAWSPrincipalConditionKeys, strings.ToLower(conditionKey))
 }
 func hasServicePrincipalConditionKey(conditionKey string) bool {
 	return helpers.StringSliceContains(trustedServicePrincipalConditionKeys, strings.ToLower(conditionKey))
+}
+
+func removeNotFromOperator(operatorKey string) string {
+	return strings.ReplaceAll(operatorKey, "Not", "")
 }
 
 func intersection(s1, s2 []string) (inter []string) {
