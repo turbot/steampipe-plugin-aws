@@ -29,8 +29,6 @@ from
 select
   framework_name,
   arn,
-  framework_description,
-  deployment_status,
   creation_time,
   number_of_controls
 from
@@ -68,7 +66,7 @@ from
   jsonb_array_elements(framework_controls) as controls,
   json_array_elements_text(coalesce(controls -> 'ControlScope' ->> 'ComplianceResourceTypes', '[""]')::json) as control_scope
 where
-  framework_name = 'framework_name'
+  framework_name = 'framework_name';
 ```
 
 ### Querying framework controls that have non-compliant resources
