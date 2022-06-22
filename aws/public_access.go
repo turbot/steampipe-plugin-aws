@@ -241,25 +241,25 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, orgs...)
 								}
 							}
-							if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
-								stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-								stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
+						}
+						if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
+							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
+							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
 
-								switch strings.ToLower(conditionKey) {
-								case "aws:sourcearn":
-									for _, pARN := range conditionValue.([]string) {
-										if arn.IsARN(pARN) {
-											arnParts, _ := arn.Parse(pARN)
-											stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
-											stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
-										}
+							switch strings.ToLower(conditionKey) {
+							case "aws:sourcearn":
+								for _, pARN := range conditionValue.([]string) {
+									if arn.IsARN(pARN) {
+										arnParts, _ := arn.Parse(pARN)
+										stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
+										stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
 									}
-								case "aws:sourceaccount", "aws:sourceowner":
-									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
 								}
-
-								isPublic = false
+							case "aws:sourceaccount", "aws:sourceowner":
+								stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
 							}
+
+							isPublic = false
 						}
 					}
 
