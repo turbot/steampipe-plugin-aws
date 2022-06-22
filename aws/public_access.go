@@ -180,9 +180,9 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 	if stmt.Condition != nil {
 		internalPublicPrincipalOperator := true
 
+		// Code to detect public
 		for operatorKey, operatorValue := range stmt.Condition {
 			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
-			// hasForAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
 
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				internalPublicPrincipalKey := true
@@ -204,9 +204,7 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 								}
 							}
 							if !principalArnPublic {
-								if !hasIfExistsSuffix {
-									internalPublicPrincipalKey = false
-								}
+								internalPublicPrincipalKey = false
 							}
 						case "aws:principalorgid", "aws:principalorgpaths":
 							if !hasIfExistsSuffix {
@@ -228,9 +226,7 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 								}
 							}
 							if !sourceArnPublic {
-								if !hasIfExistsSuffix {
-									internalPublicPrincipalKey = false
-								}
+								internalPublicPrincipalKey = false
 							}
 						case "aws:sourceaccount", "aws:sourceowner":
 							if !hasIfExistsSuffix {
@@ -273,9 +269,10 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 										}
 									}
 									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
-								} else {
-									isPublic = false
 								}
+								// else {
+								// 	isPublic = false
+								// }
 							} else {
 								switch conditionKey {
 								case "aws:principalaccount":
@@ -297,7 +294,6 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 									for _, paths := range conditionValue.([]string) {
 										orgs = append(orgs, strings.Split(paths, "/")[0])
 									}
-									fmt.Println("aws:principalorgid", orgs)
 									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, orgs...)
 								}
 							}
@@ -319,14 +315,14 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 								stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
 							}
 
-							isPublic = false
+							// isPublic = false
 						}
 					}
 
-					if stmt.Principal != nil &&
-						stmt.Principal["AWS"] == nil &&
-						stmt.Principal["Service"] != nil &&
-						len(stmt.Principal["Service"].([]string)) != 0 && hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
+					if len(awsPrincipals) == 0 &&
+						len(servicePrincipals) != 0 &&
+						hasServicePrincipalConditionKey(conditionKey) &&
+						!hasIfExistsSuffix {
 						stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
 						stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
 						isPublic = false
