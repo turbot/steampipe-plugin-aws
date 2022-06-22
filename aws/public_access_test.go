@@ -479,8 +479,63 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 		},
 		{
-			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 111122223333`,
+			`Allow alarms from specific account to publish message to topic`,
 			8,
+			`{
+				"Version": "2008-10-17",
+				"Id": "__default_policy_ID",
+				"Statement": [
+					{
+						"Sid": "__default_statement_ID",
+						"Effect": "Allow",
+						"Principal": {
+							"AWS": "*"
+						},
+						"Action": [
+							"SNS:GetTopicAttributes",
+							"SNS:SetTopicAttributes",
+							"SNS:AddPermission",
+							"SNS:RemovePermission",
+							"SNS:DeleteTopic",
+							"SNS:Subscribe",
+							"SNS:ListSubscriptionsByTopic",
+							"SNS:Publish",
+							"SNS:Receive"
+						],
+						"Resource": "arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms",
+						"Condition": {
+							"StringEquals": {
+								"aws:PrincipalAccount": "999988887777"
+							},
+							"ArnLike": {
+	             	"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:*:alarm:*"
+	           	}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "shared1",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
+					"cloudwatch.amazonaws.com",
+					"999988887777"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333",
+					"999988887777"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
+		},
+		{
+			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 111122223333`,
+			9,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -530,7 +585,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Private access with the use of aws:SourceIp condition key`,
-			9,
+			10,
 			`{
 				"Statement": [
 					{
@@ -571,7 +626,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Shared access with the use of aws:PrincipalArn condition key`,
-			10,
+			11,
 			`{
 				"Statement": [
 					{
@@ -922,6 +977,173 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 					"*",
 					"444422223333"
 				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"Statement1"
+				]
+			}`,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+			policy, err := canonicalPolicy(test.policy)
+			if err != nil {
+				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy()
+			if err != nil {
+				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
+			}
+
+			var expectedObj PolicyEvaluation
+			_ = json.Unmarshal([]byte(test.expected), &expectedObj)
+
+			// Sort []string attributes to compare
+			sort.Strings(expectedObj.AllowedOrganizationIds)
+			sort.Strings(expectedObj.AllowedPrincipalAccountIds)
+			sort.Strings(expectedObj.AllowedPrincipalFederatedIdentities)
+			sort.Strings(expectedObj.AllowedPrincipalServices)
+			sort.Strings(expectedObj.AllowedPrincipals)
+			sort.Strings(expectedObj.PublicAccessLevels)
+			sort.Strings(expectedObj.PublicStatementIds)
+
+			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				data := new(bytes.Buffer)
+				_ = json.Indent(data, []byte(test.expected), "", "\t")
+				t.Errorf("FAILED: \nExpected:\n %v\n\nEvaluated \n%v\n", data.String(), string(strdata))
+			}
+		})
+	}
+}
+
+// https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies.html
+func TestS3ExampleResourcePolicies(t *testing.T) {
+	testCases := []publicAccessTest{
+		{
+			`Granting permissions to multiple accounts with added conditions`,
+			1,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "AddCannedAcl",
+						"Effect": "Allow",
+						"Principal": {
+							"AWS": [
+								"arn:aws:iam::111122223333:root",
+								"arn:aws:iam::444455556666:root"
+							]
+						},
+						"Action": [
+							"s3:PutObject",
+							"s3:PutObjectAcl"
+						],
+						"Resource": "arn:aws:s3:::DOC-EXAMPLE-BUCKET/*",
+						"Condition": {
+							"StringEquals": {
+								"s3:x-amz-acl": [
+									"public-read"
+								]
+							}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "shared",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:iam::111122223333:root",
+					"arn:aws:iam::444455556666:root"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333",
+					"444455556666"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
+		},
+		{
+			`Granting read-only permission to an anonymous user`,
+			2,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "PublicRead",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": [
+							"s3:GetObject",
+							"s3:GetObjectVersion"
+						],
+						"Resource": [
+							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
+						]
+					}
+				]
+			}`,
+			`{
+				"access_level": "public",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"*"
+				],
+				"allowed_principal_account_ids": [
+					"*"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": true,
+				"public_access_levels": [],
+				"public_statement_ids": [
+					"PublicRead"
+				]
+			}`,
+		},
+		{
+			`Limiting access to specific IP addresses`,
+			3,
+			`{
+				"Version": "2012-10-17",
+				"Id": "S3PolicyId1",
+				"Statement": [
+					{
+						"Sid": "IPAllow",
+						"Effect": "Deny",
+						"Principal": "*",
+						"Action": "s3:*",
+						"Resource": [
+							"arn:aws:s3:::DOC-EXAMPLE-BUCKET",
+							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
+						],
+						"Condition": {
+							"NotIpAddress": {
+								"aws:SourceIp": "54.240.143.0/24"
+							}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "private",
+				"allowed_organization_ids": [],
+				"allowed_principals": [],
+				"allowed_principal_account_ids": [],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,

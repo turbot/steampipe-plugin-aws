@@ -203,6 +203,19 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 		return stmt.DenyStatementEvaluation(evaluation)
 	}
 
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
+	if stmt.NotPrincipal != nil {
+		if data, ok := stmt.NotPrincipal["AWS"]; ok {
+			awsNotPrincipals := data.([]string)
+			if helpers.StringSliceContains(awsNotPrincipals, "*") {
+				return false
+			} else {
+				fmt.Println("NotPrincipal With Allow")
+				return true
+			}
+		}
+	}
+
 	// Check for the allowed statement - TODO
 	if stmt.NotAction != nil {
 		return true
@@ -429,9 +442,9 @@ func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) boo
 		// makes policy unsolvable as it denies access to only principals mentioned in `NotPrincipal` but allows access to everyone else.
 		return false
 	}
-	if stmt.Principal != nil && stmt.Principal["AWS"] != nil && helpers.StringSliceContains((stmt.Principal["AWS"]).([]string), "*") {
-		return true
-	}
+	// if stmt.Principal != nil && stmt.Principal["AWS"] != nil && helpers.StringSliceContains((stmt.Principal["AWS"]).([]string), "*") {
+	// 	return true
+	// }
 	return false
 }
 

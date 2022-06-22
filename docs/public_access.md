@@ -1,3 +1,19 @@
+### Docs
+
+## Situation evaluted
+
+1. If `PrincipalArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
+2. If `SourceArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
+3. If **`wildcard "*"`** in the statement principals but limited with `PrincipalAccount`, `SourceAccount`, `SourceOwner`, `PrincipalOrgID` and `PrincipalOrgPaths`.
+4. Working for multiple condition keys `{"StringEquals":{"aws:PrincipalAccount":"999988887777"},"ArnLike":{"aws:SourceArn":"arn:aws:cloudwatch:us-east-1:*:alarm:*"}}`
+
+   - `{"aws:SourceArn":"arn:aws:cloudwatch:us-east-1:*:alarm:*"}` is a public condition but what makes it `shared` but not `public` is the limitation imposed through `{"StringEquals":{"aws:PrincipalAccount":"999988887777"}` condition.
+
+5. Handles `NotPrincipal With Allow`
+6. For `effect = "Deny"`, just not evaluating the statement and marking the statement as blocking public access.
+
+### Sample policies
+
 ```json
 [
   {
@@ -116,7 +132,7 @@
 ]
 ```
 
-## Public policies
+### Public policies
 
 ```json
 {
@@ -258,5 +274,3 @@
   "Version": "2012-10-17"
 }
 ```
-
-### Docs
