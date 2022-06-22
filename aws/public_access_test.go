@@ -753,21 +753,22 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"Version": "2012-10-17"
 			}`,
 			`{
-				"access_level": "public",
+				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"*"
+					"arn:aws:iam::*:*/*",
+					"iam.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
 					"*"
 				],
 				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
-				"is_public": true,
+				"allowed_principal_services": [
+					"iam.amazonaws.com"
+				],
+				"is_public": false,
 				"public_access_levels": [],
-				"public_statement_ids": [
-					"Statement1"
-				]
+				"public_statement_ids": []
 			}`,
 		},
 		{
