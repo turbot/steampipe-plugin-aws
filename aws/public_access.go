@@ -337,9 +337,6 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 									}
 									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
 								}
-								// else {
-								// 	isPublic = false
-								// }
 							} else {
 								switch conditionKey {
 								case "aws:principalaccount":
@@ -381,8 +378,6 @@ func (stmt *Statement) EvaluateStatement(evaluation *PolicyEvaluation) bool {
 							case "aws:sourceaccount", "aws:sourceowner":
 								stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
 							}
-
-							// isPublic = false
 						}
 					}
 
