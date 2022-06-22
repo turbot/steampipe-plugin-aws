@@ -5,7 +5,7 @@ The AWS Backup framework will then evaluate whether your backup practices comply
 
 ## Examples
 
-### Basic Info
+### Basic info
 
 ```sql
 select
