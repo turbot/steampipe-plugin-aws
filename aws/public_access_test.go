@@ -569,6 +569,47 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"public_statement_ids": []
 			}`,
 		},
+		{
+			`Shared access with the use of aws:PrincipalArn condition key`,
+			10,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:ListBucket",
+						"Condition": {
+							"ForAnyValue:ArnLike": {
+								"aws:PrincipalArn": [
+									"arn:aws:iam::111122223333:root",
+									"arn:aws:iam::111122224444:root"
+								]
+							}
+						},
+						"Effect": "Allow",
+						"Principal": "*",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "Statement1"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+				"access_level": "shared",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:iam::111122223333:root",
+					"arn:aws:iam::111122224444:root"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333",
+					"111122224444"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [],
+				"is_public": false,
+				"public_access_levels": [],
+				"public_statement_ids": []
+			}`,
+		},
 	}
 
 	for _, test := range testCases {
@@ -599,14 +640,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			sort.Strings(expectedObj.PublicAccessLevels)
 			sort.Strings(expectedObj.PublicStatementIds)
 
-			// Evaluated object slices already sorted
-			// sort.Strings(evaluatedObj.AllowedOrganizationIds)
-			// sort.Strings(evaluatedObj.AllowedPrincipalAccountIds)
-			// sort.Strings(evaluatedObj.AllowedPrincipalFederatedIdentities)
-			// sort.Strings(evaluatedObj.AllowedPrincipalServices)
-			// sort.Strings(evaluatedObj.AllowedPrincipals)
-			// sort.Strings(evaluatedObj.PublicAccessLevels)
-			// sort.Strings(evaluatedObj.PublicStatementIds)
 			if !reflect.DeepEqual(&expectedObj, evaluatedObj) {
 				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
 				data := new(bytes.Buffer)
