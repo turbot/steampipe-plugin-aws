@@ -463,10 +463,10 @@ const _runGraphqlQuery = function (test, query) {
 
         differences.forEach(part => {
           if (part.added) {
-            result.status = 1;
+            result.status = 1
             process.stdout.write(chalk.green(part.value));
           } else if (part.removed) {
-            result.status = 1;
+            result.status = 1
             process.stdout.write(chalk.red(part.value));
           } else {
             process.stdout.write(chalk.dim(part.value));
@@ -665,10 +665,8 @@ async function main() {
     console.log(JSON.stringify(result, null, 2));
   }
   var numTests = resolvedTargets.length;
-  var numTestsPassing = _.filter(
-    result,
-    testResult => !testResult.failed
-  ).length;
+  var numTestsPassing = _.filter(result, testResult => !testResult.failed)
+    .length;
   var failingTests = _.chain(result)
     .map(i => {
       return i.failed ? i : null;
