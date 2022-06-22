@@ -23,7 +23,7 @@ from
   aws_backup_framework;
 ```
 
-### List AWS Backup frameworks within the last 90 days
+### List AWS frameworks created within the last 90 days
 
 ```sql
 select
@@ -39,7 +39,7 @@ order by
   creation_time;
 ```
 
-### List AWS Backup frameworks that are using a specific control
+### List frameworks that are using a specific control (`BACKUP_RESOURCES_PROTECTED_BY_BACKUP_VAULT_LOCK`)
 
 ```sql
 select
@@ -51,7 +51,7 @@ where
   controls ->> 'ControlName' = 'BACKUP_RESOURCES_PROTECTED_BY_BACKUP_VAULT_LOCK';
 ```
 
-### List control name and scope for a specific framework
+### List control names and scopes for each framework
 
 This query will return an empty control scope if the control doesn't apply to a specific AWS resource type.
 Otherwise, the query will list the control name and the AWS resource type.
@@ -69,7 +69,7 @@ where
   framework_name = 'framework_name';
 ```
 
-### Querying framework controls that have non-compliant resources
+### List framework controls that have non-compliant resources
 
 ```sql
 select
@@ -105,7 +105,7 @@ where
   compliance_result -> 'Compliance' ->> 'ComplianceType' = 'NON_COMPLIANT';
 ```
 
-### Querying framework controls that are compliant
+### List framework controls that are compliant
 
 ```sql
 select
