@@ -753,23 +753,25 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"Version": "2012-10-17"
 			}`,
 			`{
-				"access_level": "shared",
-				"allowed_organization_ids": [],
-				"allowed_principals": [
-					"arn:aws:iam::*:*/*",
-					"iam.amazonaws.com"
-				],
-				"allowed_principal_account_ids": [
-					"*"
-				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [
-					"iam.amazonaws.com"
-				],
-				"is_public": false,
-				"public_access_levels": [],
-				"public_statement_ids": []
-			}`,
+        	"access_level": "public",
+        	"allowed_organization_ids": [],
+        	"allowed_principals": [
+        		"arn:aws:iam::*:*/*",
+        		"iam.amazonaws.com"
+        	],
+        	"allowed_principal_account_ids": [
+        		"*"
+        	],
+        	"allowed_principal_federated_identities": [],
+        	"allowed_principal_services": [
+        		"iam.amazonaws.com"
+        	],
+        	"is_public": true,
+        	"public_access_levels": [],
+        	"public_statement_ids": [
+        		"Statement1"
+        	]
+        }`,
 		},
 		{
 			`* principal public access with ArnLike on aws:SourceArn with arn for all cloudwatch alarms`,
@@ -792,22 +794,25 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"Version": "2012-10-17"
 			}`,
 			`{
-				"access_level": "public",
-				"allowed_organization_ids": [],
-				"allowed_principals": [
-					"*"
-				],
-				"allowed_principal_account_ids": [
-					"*"
-				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
-				"is_public": true,
-				"public_access_levels": [],
-				"public_statement_ids": [
-					"Statement1"
-				]
-			}`,
+					"access_level": "public",
+					"allowed_organization_ids": [],
+					"allowed_principals": [
+						"arn:aws:cloudwatch:us-east-1:*:alarm:*",
+						"cloudwatch.amazonaws.com"
+					],
+					"allowed_principal_account_ids": [
+						"*"
+					],
+					"allowed_principal_federated_identities": [],
+					"allowed_principal_services": [
+						"cloudwatch.amazonaws.com"
+					],
+					"is_public": true,
+					"public_access_levels": [],
+					"public_statement_ids": [
+						"Statement1"
+					]
+				}`,
 		},
 		{
 			`* principal public access with ArnLike on aws:PrincipalArn with arn`,
