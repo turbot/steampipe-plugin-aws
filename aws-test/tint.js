@@ -86,7 +86,7 @@ const _testsWithPrerequisites = function (tests) {
       pretest: {},
       test: {},
       posttest: {},
-      teardown: {},
+      teardown: {}
     };
     result.push(_testsWithPrerequisites(prereqs));
     result.push(testObj);
@@ -128,7 +128,7 @@ const _runTerraformInit = async function (test, phase) {
 
     var result = {
       stdout: "",
-      stderr: "",
+      stderr: ""
     };
     var resultSent = false;
 
@@ -175,18 +175,18 @@ const _runTerraformApply = function (test, phase) {
     let environment = Object.assign(process.env, {
       TF_VAR_resource_name: process.env.TURBOT_TEST_RESOURCE_NAME,
       TF_VAR_resource_name_1: process.env.TURBOT_TEST_RESOURCE_NAME_1,
-      TF_VAR_resource_name_2: process.env.TURBOT_TEST_RESOURCE_NAME_2,
+      TF_VAR_resource_name_2: process.env.TURBOT_TEST_RESOURCE_NAME_2
     });
     const args = ["apply", "-auto-approve", "-no-color"];
     const cmd = spawn("terraform", args, {
       encoding: "utf8",
       cwd: tfDir,
-      env: environment,
+      env: environment
     });
 
     var result = {
       stdout: "",
-      stderr: "",
+      stderr: ""
     };
     var resultSent = false;
 
@@ -234,12 +234,12 @@ const _runTerraformDestroy = function (test, phase = "test") {
 
     const cmd = spawn("terraform", args, {
       encoding: "utf8",
-      cwd: tfDir,
+      cwd: tfDir
     });
 
     var result = {
       stdout: "",
-      stderr: "",
+      stderr: ""
     };
     var resultSent = false;
 
@@ -287,7 +287,7 @@ const _runTerraformOutput = async function (test, phase) {
 
     var result = {
       stdout: "",
-      stderr: "",
+      stderr: ""
     };
     var resultSent = false;
 
@@ -309,16 +309,16 @@ const _runTerraformOutput = async function (test, phase) {
       try {
         let terraformOutput = JSON.parse(result.stdout);
         Object.assign(test.output, {
-          resourceId: _.get(terraformOutput, "resource_id.value", ""),
+          resourceId: _.get(terraformOutput, "resource_id.value", "")
         });
         Object.assign(test.output, {
-          resourceName: _.get(terraformOutput, "resource_name.value", ""),
+          resourceName: _.get(terraformOutput, "resource_name.value", "")
         });
         Object.assign(test, {
-          resourceId: _.get(terraformOutput, "resource_id.value", ""),
+          resourceId: _.get(terraformOutput, "resource_id.value", "")
         });
         Object.assign(test, {
-          resourceName: _.get(terraformOutput, "resource_name.value", ""),
+          resourceName: _.get(terraformOutput, "resource_name.value", "")
         });
         Object.assign(test.output, terraformOutput);
       } catch (e) {
@@ -421,14 +421,14 @@ const _runGraphqlQuery = function (test, query) {
       "query",
       "--output",
       "json",
-      q,
+      q
       //"select name from aws_s3_bucket whe order by name"
     ];
     const cmd = spawn("steampipe", args, { encoding: "utf8" });
 
     var result = {
       stdout: "",
-      stderr: "",
+      stderr: ""
     };
     var resultSent = false;
 
@@ -501,7 +501,7 @@ const _runGraphqlQueriesForTestPhase = async function (
           phase,
           query: `${test.dir}/query.sql`,
           variables: `${test.dir}/variables.json`,
-          expected: `${test.dir}/expected.json`,
+          expected: `${test.dir}/expected.json`
         };
       }
       if (i.startsWith(phase + "-") && i.endsWith("-query.sql")) {
@@ -511,7 +511,7 @@ const _runGraphqlQueriesForTestPhase = async function (
           phase,
           query: `${test.dir}/${phase}-${name}-query.sql`,
           variables: `${test.dir}/${phase}-${name}-variables.json`,
-          expected: `${test.dir}/${phase}-${name}-expected.json`,
+          expected: `${test.dir}/${phase}-${name}-expected.json`
         };
       }
       return null;
@@ -531,7 +531,7 @@ const _runGraphqlQueriesForTestPhase = async function (
       );
       // TODO: Do we need additional info in the queryResult object?
       queryResult = {
-        status: 1,
+        status: 1
       };
     }
     // console.log({status: queryResult.status})
