@@ -65,7 +65,7 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "framework_status",
-				Description: "A framework consists of one or more controls. Each control governs a resource, such as backup plans, backup selections, backup vaults, or recovery points.",
+				Description: "The framework status based on recording statuses for resources governed by the framework (ACTIVE | PARTIALLY_ACTIVE | INACTIVE | UNAVAILABLE).",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsBackupFramework,
 			},

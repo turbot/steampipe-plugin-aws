@@ -53,7 +53,7 @@ where
   controls ->> 'ControlName' = 'BACKUP_RESOURCES_PROTECTED_BY_BACKUP_VAULT_LOCK';
 ```
 
-### List control name and control scope for a specific framework
+### List control name and scope for a specific framework
 
 This query will return an empty control scope if the control doesn't apply to a specific AWS resource type.
 Otherwise, the query will list the control name and the AWS resource type.
