@@ -31,94 +31,120 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "workspace_id",
-				Description: "The id of the WorkSpace.",
+				Name:        "app_id",
+				Description: "The unique ID of the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("appArn"),
+			},
+			{
+				Name:        "auto_branch_creation_config",
+				Description: "Describes the automated branch creation configuration for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "auto_branch_creation_patterns",
+				Description: "Describes the automated branch creation glob patterns for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "basic_auth_credentials",
+				Description: "The basic authorization credentials for branches for the Amplify app. You must base64-encode the authorization credentials and provide them in the format user:password.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "build_spec",
+				Description: "Describes the content of the build specification (build spec) for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "create_time",
+				Description: "Creates a date and time for the Amplify app.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "custom_headers",
+				Description: "Describes the custom HTTP headers for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "custom_rules",
+				Description: "Describes the custom redirect and rewrite rules for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "default_domain",
+				Description: "The default domain for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "description",
+				Description: "The description for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "enable_auto_branch_creation",
+				Description: "Enables automated branch creation for the Amplify app.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "enable_basic_auth",
+				Description: "Enables basic authorization for the Amplify app's branches.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "enable_branch_auto_build",
+				Description: "Enables the auto-building of branches for the Amplify app.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "enable_branch_auto_deletion",
+				Description: "Automatically disconnect a branch in the Amplify Console when you delete a branch from your Git repository.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "environment_variables",
+				Description: "The environment variables for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "iam_service_role_arn",
+				Description: "The AWS Identity and Access Management (IAM) service role for the Amazon Resource Name (ARN) of the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "name",
-				Description: "The name of the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ComputerName"),
-			},
-			{
-				Name:        "arn",
-				Description: "The arn of the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getWorkspaceArn,
-				Transform:   transform.FromValue(),
-			},
-			{
-				Name:        "bundle_id",
-				Description: "The identifier of the bundle used to create the WorkSpace.",
+				Description: "The name for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "directory_id",
-				Description: "The identifier of the AWS Directory Service directory for the WorkSpace.",
+				Name:        "platform",
+				Description: "The platform for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "state",
-				Description: "The operational state of the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "error_code",
-				Description: "The error code that is returned if the WorkSpace cannot be created.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "error_message",
-				Description: "The text of the error message that is returned if the WorkSpace cannot be created.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "ip_address",
-				Description: "The IP address of the WorkSpace.",
-				Type:        proto.ColumnType_IPADDR,
-			},
-			{
-				Name:        "root_volume_encryption_enabled",
-				Description: "Indicates whether the data stored on the root volume is encrypted.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "subnet_id",
-				Description: "The identifier of the subnet for the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "user_name",
-				Description: "The user for the WorkSpace.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "user_volume_encryption_enabled",
-				Description: "Indicates whether the data stored on the user volume is encrypted.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "volume_encryption_key",
-				Description: "The symmetric AWS KMS customer master key (CMK) used to encrypt data stored on your WorkSpace. Amazon WorkSpaces does not support asymmetric CMKs.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "modification_states",
-				Description: "The modification states of the WorkSpace.",
+				Name:        "production_branch",
+				Description: "Describes the information about a production branch of the Amplify app.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "workspace_properties",
-				Description: "The properties of the WorkSpace.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "repository",
+				Description: "The Git repository for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "tags_src",
-				Description: "The list of tags for the WorkSpace.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listWorkspacesTags,
-				Transform:   transform.FromValue(),
+				Name:        "repository_clone_method",
+				Description: "The Amplify service uses this parameter to specify the authentication protocol to use to access the Git repository for an Amplify app. Amplify specifies TOKEN for a GitHub repository, SIGV4 for an AWS CodeCommit repository, and SSH for GitLab and Bitbucket repositories.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "update_time",
+				Description: "Updates the date and time for the Amplify app.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 
 			// Steampipe standard columns
@@ -126,21 +152,18 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ComputerName"),
+				Transform:   transform.FromField("app_id"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listWorkspacesTags,
-				Transform:   transform.From(workspaceTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getWorkspaceArn,
-				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("appArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -251,7 +274,7 @@ func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	}
 
 	if data.App == nil {
-		err = errors.New("Expected valid App object but none was returned from Amplify GetApp call")
+		err = errors.New("expected valid App object but none was returned from Amplify GetApp call")
 		return nil, err
 	}
 
