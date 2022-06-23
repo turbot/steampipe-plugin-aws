@@ -194,6 +194,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
 			"aws_glue_dev_endpoint":                                        tableAwsGlueDevEndpoint(ctx),
 			"aws_glue_job":                                                 tableAwsGlueJob(ctx),
+			"aws_glue_security_configuration":                              tableAwsGlueSecurityConfiguration(ctx),
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_filter":                                         tableAwsGuardDutyFilter(ctx),
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
