@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/amplify"
@@ -214,47 +215,47 @@ func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getApp")
 
-	// region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// // AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// // Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	// serviceId := endpoints.WorkspacesServiceID
-	// validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	// if !helpers.StringSliceContains(validRegions, region) {
-	// 	return nil, nil
-	// }
+	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
+	serviceId := amplify.EndpointsID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
-	// WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
+	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 
-	// // check if workspace id is empty
-	// if WorkspaceId == "" {
-	// 	return nil, nil
-	// }
+	// check if workspace id is empty
+	if appId == "" {
+		return nil, nil
+	}
 
 	// Create service
-	// svc, err := AmplifyService(ctx, d)
-	_, err := AmplifyService(ctx, d)
+	svc, err := AmplifyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	// // Build the params
-	// params := &workspaces.DescribeWorkspacesInput{
-	// 	WorkspaceIds: aws.StringSlice([]string{WorkspaceId}),
-	// }
+	// Build the params
+	params := &amplify.GetAppInput{
+		AppId: aws.String(appId),
+	}
 
-	// // Get call
-	// data, err := svc.DescribeWorkspaces(params)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
-	// 	return nil, err
-	// }
+	// Get call
+	data, err := svc.GetApp(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
+		return nil, err
+	}
 
-	// if len(data.Workspaces) > 0 {
-	// 	return data.Workspaces[0], nil
-	// }
+	if data.App == nil {
+		err = errors.New("Expected valid App object but none was returned from Amplify GetApp call")
+		return nil, err
+	}
 
-	return nil, nil
+	return data.App, nil
 }
 
 //// TRANSFORM FUNCTION
