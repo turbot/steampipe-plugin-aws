@@ -1,6 +1,6 @@
 ### Docs
 
-## Situation evaluted
+## Situation evaluated
 
 1. If `PrincipalArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
 2. If `SourceArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
@@ -11,6 +11,7 @@
 
 5. Handles `NotPrincipal With Allow`
 6. For `effect = "Deny"`, just not evaluating the statement and marking the statement as blocking public access.
+   - When the effect is `Deny` - it doesn't grant access to anyone explictely but only restricts a set of principals from getting access. So, if a policy
 
 ### Sample policies
 
@@ -274,3 +275,9 @@
   "Version": "2012-10-17"
 }
 ```
+
+### More Examples
+
+- [Example bucket policies](https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies.html#example-bucket-policies-use-case-2)
+
+- [Example cases for Amazon SNS access control](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html#access-control-block-public-access-policy-status)

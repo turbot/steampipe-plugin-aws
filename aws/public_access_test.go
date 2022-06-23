@@ -1124,7 +1124,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"Statement": [
 					{
 						"Sid": "IPAllow",
-						"Effect": "Deny",
+						"Effect": "Allow",
 						"Principal": "*",
 						"Action": "s3:*",
 						"Resource": [
@@ -1132,7 +1132,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
 						],
 						"Condition": {
-							"NotIpAddress": {
+							"IpAddress": {
 								"aws:SourceIp": "54.240.143.0/24"
 							}
 						}

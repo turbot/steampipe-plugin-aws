@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -125,21 +124,25 @@ type PolicyEvaluation struct {
 
 func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	//TODO - bring source account information for getting public, private or shared level access info
-	// var sourceAccountId string = "444455556666"
 	re := regexp.MustCompile(`[0-9]{12}`)
-
 	evaluation := PolicyEvaluation{}
 
 	if policy.Statements == nil {
 		return &evaluation, nil
 	}
 
+	actions := []string{}
+
 	for index, stmt := range policy.Statements {
+		if stmt.Effect == "Allow" {
+			actions = append(actions, stmt.Action...)
+		}
+
 		public := stmt.EvaluateStatement(&evaluation)
 		if public {
 			evaluation.IsPublic = true
 			if stmt.Sid == "" {
-				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, fmt.Sprintf("Statement[%s]", strconv.Itoa(index+1)))
+				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, fmt.Sprintf("Statement[%d]", index+1))
 			} else {
 				evaluation.PublicStatementIds = append(evaluation.PublicStatementIds, stmt.Sid)
 			}
