@@ -3,6 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/amplify"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -146,75 +149,62 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 
 func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listApps")
-	// region := d.KeyColumnQualString(matrixKeyRegion)
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	// // AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// // Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	// serviceId := endpoints.WorkspacesServiceID
-	// validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	// if !helpers.StringSliceContains(validRegions, region) {
-	// 	return nil, nil
-	// }
+	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Post "https://amplify.ap-southeast-3.amazonaws.com/": dial tcp: lookup amplify.ap-southeast-3.amazonaws.com: no such host
+	serviceId := amplify.EndpointsID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	// Create Session
-	// svc, err := AmplifyService(ctx, d)
-	_, err := AmplifyService(ctx, d)
+	svc, err := AmplifyService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	// input := &workspaces.DescribeWorkspacesInput{
-	// 	Limit: aws.Int64(25),
-	// }
+	input := &amplify.ListAppsInput{
+		MaxResults: aws.Int64(100),
+	}
 
-	// // Reduce the basic request limit down if the user has only requested a small number of rows
-	// limit := d.QueryContext.Limit
-	// if d.QueryContext.Limit != nil {
-	// 	if *limit < *input.Limit {
-	// 		if *limit < 1 {
-	// 			input.Limit = aws.Int64(1)
-	// 		} else {
-	// 			input.Limit = limit
-	// 		}
-	// 	}
-	// }
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = aws.Int64(1)
+			} else {
+				input.MaxResults = limit
+			}
+		}
+	}
 
-	// equalQuals := d.KeyColumnQuals
-	// if equalQuals["bundle_id"] != nil {
-	// 	if equalQuals["bundle_id"].GetStringValue() != "" {
-	// 		input.BundleId = aws.String(equalQuals["bundle_id"].GetStringValue())
-	// 	}
-	// }
-	// if equalQuals["directory_id"] != nil {
-	// 	if equalQuals["directory_id"].GetStringValue() != "" {
-	// 		input.DirectoryId = aws.String(equalQuals["directory_id"].GetStringValue())
-	// 	}
-	// }
-	// if equalQuals["user_name"] != nil {
-	// 	if equalQuals["user_name"].GetStringValue() != "" {
-	// 		input.UserName = aws.String(equalQuals["user_name"].GetStringValue())
-	// 	}
-	// }
+	pagesLeft := true
 
-	// // List call
-	// err = svc.DescribeWorkspacesPages(
-	// 	input,
-	// 	func(page *workspaces.DescribeWorkspacesOutput, isLast bool) bool {
-	// 		for _, Workspace := range page.Workspaces {
-	// 			d.StreamListItem(ctx, Workspace)
+	for pagesLeft {
+		result, err := svc.ListApps(input)
+		if err != nil {
+			return nil, err
+		}
 
-	// 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-	// 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-	// 				return false
-	// 			}
-	// 		}
-	// 		return !isLast
-	// 	},
-	// )
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("listWorkspaces", "list", err)
-	// 	return nil, err
-	// }
+		for _, app := range result.Apps {
+			d.StreamListItem(ctx, app)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		if result.NextToken != nil {
+			pagesLeft = true
+			input.NextToken = result.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
 
 	return nil, nil
 }
