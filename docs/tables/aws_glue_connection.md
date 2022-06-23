@@ -48,14 +48,18 @@ where
   and connection_properties ->> 'JDBC_ENFORCE_SSL' = 'false'
 ```
 
-### List connection subnet details
+### List connection vpc details
 
 ```sql
 select
-  name,
-  physical_connection_requirements ->> 'AvailabilityZone' as availability_zone,
+  c.name as connection_name,
+  s.vpc_id as vpc_id,
+  s.title as subnet_name,
   physical_connection_requirements ->> 'SubnetId' as subnet_id,
+  physical_connection_requirements ->> 'AvailabilityZone' as availability_zone,
+  cidr_block,
   physical_connection_requirements ->> 'SecurityGroupIdList' as security_group_ids
 from
-  aws_glue_connection;
+  aws_glue_connection c
+  join aws_vpc_subnet s on physical_connection_requirements ->> 'SubnetId' = s.subnet_id
 ```
