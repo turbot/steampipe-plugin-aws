@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"testing"
+	"time"
 )
 
 type publicAccessTest struct {
@@ -145,7 +146,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"elasticloadbalancing.amazonaws.com"
 				],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List","Read"],
 				"public_statement_ids": [
 					"PublicAccess",
 					"Statement[1]"
@@ -246,7 +247,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"elasticloadbalancing.amazonaws.com"
 				],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List","Read"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -289,7 +290,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List","Read"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -328,7 +329,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"cloudwatch.amazonaws.com"
 				],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -370,7 +371,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"ses.amazonaws.com"
 				],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -419,7 +420,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -474,7 +475,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -515,23 +516,30 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "shared1",
-				"allowed_organization_ids": [],
-				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
-					"cloudwatch.amazonaws.com",
-					"999988887777"
-				],
-				"allowed_principal_account_ids": [
-					"111122223333",
-					"999988887777"
-				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
-				"is_public": false,
-				"public_access_levels": [],
-				"public_statement_ids": []
-			}`,
+        	"access_level": "shared",
+        	"allowed_organization_ids": [],
+        	"allowed_principals": [
+        		"999988887777",
+        		"arn:aws:cloudwatch:us-east-1:*:alarm:*",
+        		"cloudwatch.amazonaws.com"
+        	],
+        	"allowed_principal_account_ids": [
+        		"*",
+        		"999988887777"
+        	],
+        	"allowed_principal_federated_identities": [],
+        	"allowed_principal_services": [
+        		"cloudwatch.amazonaws.com"
+        	],
+        	"is_public": false,
+        	"public_access_levels": [
+        		"List",
+        		"Permissions management",
+        		"Read",
+        		"Write"
+        	],
+        	"public_statement_ids": []
+        }`,
 		},
 		{
 			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 111122223333`,
@@ -579,7 +587,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -620,7 +628,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List", "Read"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -661,7 +669,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -734,7 +742,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": [
 					"Statement1"
 				]
@@ -774,7 +782,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": [
 					"Statement1"
 				]
@@ -817,7 +825,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": [
 					"Statement1"
 				]
@@ -855,7 +863,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": [
 					"Statement1"
 				]
@@ -896,7 +904,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
         		"iam.amazonaws.com"
         	],
         	"is_public": true,
-        	"public_access_levels": [],
+        	"public_access_levels": ["List"],
         	"public_statement_ids": [
         		"Statement1"
         	]
@@ -937,7 +945,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 						"cloudwatch.amazonaws.com"
 					],
 					"is_public": true,
-					"public_access_levels": [],
+					"public_access_levels": ["List"],
 					"public_statement_ids": [
 						"Statement1"
 					]
@@ -980,7 +988,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["List"],
 				"public_statement_ids": [
 					"Statement1"
 				]
@@ -1073,7 +1081,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": [],
+				"public_access_levels": ["Permissions management","Write"],
 				"public_statement_ids": []
 			}`,
 		},
@@ -1109,7 +1117,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": true,
-				"public_access_levels": [],
+				"public_access_levels": ["Read"],
 				"public_statement_ids": [
 					"PublicRead"
 				]
@@ -1124,7 +1132,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"Statement": [
 					{
 						"Sid": "IPAllow",
-						"Effect": "Allow",
+						"Effect": "Deny",
 						"Principal": "*",
 						"Action": "s3:*",
 						"Resource": [
@@ -1132,7 +1140,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
 						],
 						"Condition": {
-							"IpAddress": {
+							"NotIpAddress": {
 								"aws:SourceIp": "54.240.143.0/24"
 							}
 						}
@@ -1140,17 +1148,134 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "private",
+        	"access_level": "private",
+        	"allowed_organization_ids": [],
+        	"allowed_principals": [],
+        	"allowed_principal_account_ids": [],
+        	"allowed_principal_federated_identities": [],
+        	"allowed_principal_services": [],
+        	"is_public": false,
+        	"public_access_levels": [],
+        	"public_statement_ids": []
+        }`,
+		},
+		{
+			`Policy allows request with mfa only`,
+			4,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "Statement1",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": [
+							"s3:ListBucket",
+							"s3:GetObject"
+						],
+						"Resource": [
+							"arn:aws:s3:::test-anonymous-access",
+							"arn:aws:s3:::test-anonymous-access/*"
+						],
+						"Condition": { "Null": { "aws:MultiFactorAuthAge": true }}
+					}
+				]
+			}`,
+			`{
+        	"access_level": "public",
+        	"allowed_organization_ids": [],
+        	"allowed_principals": [
+        		"*"
+        	],
+        	"allowed_principal_account_ids": [
+        		"*"
+        	],
+        	"allowed_principal_federated_identities": [],
+        	"allowed_principal_services": [],
+        	"is_public": true,
+        	"public_access_levels": ["List","Read"],
+        	"public_statement_ids": [
+        		"Statement1"
+        	]
+        }`,
+		},
+		{
+			`Policy allows request with mfa and principal account limitation`,
+			5,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "Statement1",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": [
+							"s3:ListBucket",
+							"s3:GetObject"
+						],
+						"Resource": [
+							"arn:aws:s3:::test-anonymous-access",
+							"arn:aws:s3:::test-anonymous-access/*"
+						],
+						"Condition": {
+							"Null": {
+								"aws:MultiFactorAuthAge": true
+							},
+							"StringEquals": {
+								"aws:PrincipalAccount": "999988887777"
+							}
+						}
+					}
+				]
+			}`,
+			`{
+        	"access_level": "shared",
+        	"allowed_organization_ids": [],
+        	"allowed_principals": [
+        		"999988887777"
+        	],
+        	"allowed_principal_account_ids": [
+        		"999988887777"
+        	],
+        	"allowed_principal_federated_identities": [],
+        	"allowed_principal_services": [],
+        	"is_public": false,
+        	"public_access_levels": ["List", "Read"],
+        	"public_statement_ids": []
+        }`,
+		},
+		{
+			`Granting cross-account permissions to upload objects while ensuring the bucket owner has full control`,
+			6,
+			`{
+				"Version":"2012-10-17",
+				"Statement":[
+					{
+						"Sid":"PolicyForAllowUploadWithACL",
+						"Effect":"Allow",
+						"Principal":{"AWS":"111122223333"},
+						"Action":"s3:PutObject",
+						"Resource":"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*",
+						"Condition": {
+							"StringEquals": {"s3:x-amz-acl":"bucket-owner-full-control"}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "shared",
 				"allowed_organization_ids": [],
-				"allowed_principals": [],
-				"allowed_principal_account_ids": [],
+				"allowed_principals": [
+					"111122223333"
+				],
+				"allowed_principal_account_ids": [
+					"111122223333"
+				],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
-				"is_public": true,
-				"public_access_levels": [],
-				"public_statement_ids": [
-					"Statement1"
-				]
+				"is_public": false,
+				"public_access_levels": ["Write"],
+				"public_statement_ids": []
 			}`,
 		},
 	}
@@ -1188,6 +1313,74 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				data := new(bytes.Buffer)
 				_ = json.Indent(data, []byte(test.expected), "", "\t")
 				t.Errorf("FAILED: \nExpected:\n %v\n\nEvaluated \n%v\n", data.String(), string(strdata))
+			}
+		})
+	}
+}
+
+func TestAccessPoliciesActions(t *testing.T) {
+	permissionsData := getParliamentIamPermissions()
+	testCases := []struct {
+		Actions      []string
+		AccessLevels []string
+	}{
+		{
+			[]string{"s3:PutObject", "s3:PutObjectAcl", "s3:list*"},
+			[]string{"List", "Permissions management", "Write"},
+		},
+		{
+			[]string{"*"},
+			[]string{"List", "Permissions management", "Read", "Tagging", "Write"},
+		},
+		{
+			[]string{"s3:*"},
+			[]string{"List", "Permissions management", "Read", "Tagging", "Write"},
+		},
+		{
+			[]string{"iam:*"},
+			[]string{"List", "Permissions management", "Read", "Tagging", "Write"},
+		},
+		{
+			[]string{"iam:create*"},
+			[]string{"Permissions management", "Write"},
+		},
+		{
+			[]string{"iam:create*"},
+			[]string{"Permissions management", "Write"},
+		},
+		{
+			[]string{"iam:create*"},
+			[]string{"Permissions management", "Write"},
+		},
+		{
+			[]string{
+				"SNS:GetTopicAttributes",
+				"SNS:SetTopicAttributes",
+				"SNS:AddPermission",
+				"SNS:RemovePermission",
+				"SNS:DeleteTopic",
+				"SNS:Subscribe",
+				"SNS:ListSubscriptionsByTopic",
+				"SNS:Publish",
+				"SNS:Receive",
+			},
+			[]string{"List", "Permissions management", "Read", "Write"},
+		},
+	}
+
+	for i, test := range testCases {
+		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
+			fmt.Println("start", i+1, time.Now())
+			accessLevels := GetAccessLevelsFromActions(permissionsData, test.Actions)
+			fmt.Println("end", i+1, time.Now())
+
+			// Sort []string attributes to compare
+			sort.Strings(accessLevels)
+			sort.Strings(test.AccessLevels)
+			// fmt.Println(accessLevels)
+
+			if !reflect.DeepEqual(accessLevels, test.AccessLevels) {
+				t.Errorf("FAILED: \nExpected:\n %v\n\nGot:\n %v\n", test.AccessLevels, accessLevels)
 			}
 		})
 	}
