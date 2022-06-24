@@ -22,13 +22,13 @@ func tableAwsGlobalacceleratorEndpointGroup(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
 			},
-			Hydrate: getGlobalacceleratorEndpointGroup,
+			Hydrate: getGlobalAcceleratorEndpointGroup,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "listener_arn", Require: plugin.Required},
 			},
-			Hydrate: listGlobalacceleratorEndpointGroups,
+			Hydrate: listGlobalAcceleratorEndpointGroups,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -122,15 +122,15 @@ type turbotEndpointGroup struct {
 
 //// LIST FUNCTION
 
-func listGlobalacceleratorEndpointGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalacceleratorEndpointGroups")
+func listGlobalAcceleratorEndpointGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listGlobalAcceleratorEndpointGroups")
 
 	listenerArn := d.KeyColumnQuals["listener_arn"].GetStringValue()
 
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalacceleratorEndpointGroups", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -168,7 +168,7 @@ func listGlobalacceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalacceleratorEndpointGroups", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.listGlobalAcceleratorEndpointGroups", "api_error", err)
 		return nil, err
 	}
 
@@ -177,8 +177,8 @@ func listGlobalacceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 
 //// HYDRATE FUNCTIONS
 
-func getGlobalacceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalacceleratorEndpointGroup")
+func getGlobalAcceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlobalAcceleratorEndpointGroup")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -190,7 +190,7 @@ func getGlobalacceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData,
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalacceleratorEndpointGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalAcceleratorEndpointGroup", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -202,7 +202,7 @@ func getGlobalacceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData,
 	// Get call
 	data, err := svc.DescribeEndpointGroup(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalacceleratorEndpointGroup", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_endpoint_group.getGlobalAcceleratorEndpointGroup", "api_error", err)
 		return nil, err
 	}
 	return data.EndpointGroup, nil

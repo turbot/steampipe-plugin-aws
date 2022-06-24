@@ -22,10 +22,10 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
 			},
-			Hydrate: getGlobalacceleratorAccelerator,
+			Hydrate: getGlobalAcceleratorAccelerator,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listGlobalacceleratorAccelerators,
+			Hydrate: listGlobalAcceleratorAccelerators,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -78,14 +78,14 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags associated with the accelerator.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getGlobalacceleratorAcceleratorTags,
+				Hydrate:     getGlobalAcceleratorAcceleratorTags,
 				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "accelerator_attributes",
 				Description: "Attributes of the accelerator.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getGlobalacceleratorAcceleratorAttributes,
+				Hydrate:     getGlobalAcceleratorAcceleratorAttributes,
 				Transform:   transform.FromField("AcceleratorAttributes"),
 			},
 
@@ -100,7 +100,7 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getGlobalacceleratorAcceleratorTags,
+				Hydrate:     getGlobalAcceleratorAcceleratorTags,
 				Transform:   transform.FromField("Tags").Transform(globalacceleratorAcceleratorTurbotTags),
 			},
 			{
@@ -115,13 +115,13 @@ func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlobalacceleratorAccelerators(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalacceleratorAccelerators")
+func listGlobalAcceleratorAccelerators(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listGlobalAcceleratorAccelerators")
 
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalacceleratorAccelerators", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -158,7 +158,7 @@ func listGlobalacceleratorAccelerators(ctx context.Context, d *plugin.QueryData,
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalacceleratorAccelerators", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.listGlobalAcceleratorAccelerators", "api_error", err)
 		return nil, err
 	}
 
@@ -167,8 +167,8 @@ func listGlobalacceleratorAccelerators(ctx context.Context, d *plugin.QueryData,
 
 //// HYDRATE FUNCTIONS
 
-func getGlobalacceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalacceleratorAccelerator")
+func getGlobalAcceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlobalAcceleratorAccelerator")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -180,7 +180,7 @@ func getGlobalacceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalacceleratorAccelerator", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalAcceleratorAccelerator", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -192,15 +192,15 @@ func getGlobalacceleratorAccelerator(ctx context.Context, d *plugin.QueryData, _
 	// Get call
 	data, err := svc.DescribeAccelerator(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalacceleratorAccelerator", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_accelerator.getGlobalAcceleratorAccelerator", "api_error", err)
 		return nil, err
 	}
 	return data.Accelerator, nil
 }
 
-func getGlobalacceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getGlobalAcceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getGlobalacceleratorAcceleratorTags")
+	logger.Trace("getGlobalAcceleratorAcceleratorTags")
 
 	accelerator := h.Item.(*globalaccelerator.Accelerator)
 
@@ -218,15 +218,15 @@ func getGlobalacceleratorAcceleratorTags(ctx context.Context, d *plugin.QueryDat
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Debug("getGlobalacceleratorAcceleratorTags", "api_error", err)
+		logger.Debug("getGlobalAcceleratorAcceleratorTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
-func getGlobalacceleratorAcceleratorAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getGlobalAcceleratorAcceleratorAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getGlobalacceleratorAcceleratorAttributes")
+	logger.Trace("getGlobalAcceleratorAcceleratorAttributes")
 
 	accelerator := h.Item.(*globalaccelerator.Accelerator)
 
@@ -244,7 +244,7 @@ func getGlobalacceleratorAcceleratorAttributes(ctx context.Context, d *plugin.Qu
 	// Get call
 	op, err := svc.DescribeAcceleratorAttributes(params)
 	if err != nil {
-		logger.Debug("getGlobalacceleratorAcceleratorAttributes", "api_error", err)
+		logger.Debug("getGlobalAcceleratorAcceleratorAttributes", "api_error", err)
 		return nil, err
 	}
 	return op, nil

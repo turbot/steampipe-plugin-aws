@@ -22,13 +22,13 @@ func tableAwsGlobalacceleratorListener(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
 			},
-			Hydrate: getGlobalacceleratorListener,
+			Hydrate: getGlobalAcceleratorListener,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "accelerator_arn", Require: plugin.Required},
 			},
-			Hydrate: listGlobalacceleratorListeners,
+			Hydrate: listGlobalAcceleratorListeners,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -86,15 +86,15 @@ type turbotListener struct {
 
 //// LIST FUNCTION
 
-func listGlobalacceleratorListeners(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGlobalacceleratorListeners")
+func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listGlobalAcceleratorListeners")
 
 	acceleratorArn := d.KeyColumnQuals["accelerator_arn"].GetStringValue()
 
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalacceleratorListeners", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -132,7 +132,7 @@ func listGlobalacceleratorListeners(ctx context.Context, d *plugin.QueryData, _ 
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalacceleratorListeners", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.listGlobalAcceleratorListeners", "api_error", err)
 		return nil, err
 	}
 
@@ -141,8 +141,8 @@ func listGlobalacceleratorListeners(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getGlobalacceleratorListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlobalacceleratorListener")
+func getGlobalAcceleratorListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getGlobalAcceleratorListener")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -154,7 +154,7 @@ func getGlobalacceleratorListener(ctx context.Context, d *plugin.QueryData, _ *p
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalacceleratorListener", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalAcceleratorListener", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func getGlobalacceleratorListener(ctx context.Context, d *plugin.QueryData, _ *p
 	// Get call
 	data, err := svc.DescribeListener(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalacceleratorListener", "api_error", err)
+		plugin.Logger(ctx).Error("aws_globalaccelerator_listener.getGlobalAcceleratorListener", "api_error", err)
 		return nil, err
 	}
 	return data.Listener, nil
