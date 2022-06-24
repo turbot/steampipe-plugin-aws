@@ -5,7 +5,7 @@ _What's new?_
 - New tables added
   - [aws_backup_framework](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_framework`) ([#1099](https://github.com/turbot/steampipe-plugin-aws/pull/1099))
   - [aws_elasticache_reserved_cache_node](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_reserved_cache_node) ([#1092](https://github.com/turbot/steampipe-plugin-aws/pull/1092))
-- Added `s3_force_path_style` config argument to allow S3 path-style addressing. ([#1082](https://github.com/turbot/steampipe-plugin-aws/pull/1082))
+- Added `s3_force_path_style` config argument to allow S3 path-style addressing. ([#1082](https://github.com/turbot/steampipe-plugin-aws/pull/1082)) (Thanks to [@srgg](https://github.com/srgg) for the contribution!)
 
 _Enhancements_
 
