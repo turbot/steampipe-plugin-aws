@@ -126,7 +126,6 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	//TODO - bring source account information for getting public, private or shared level access info
 	re := regexp.MustCompile(`[0-9]{12}`)
 	evaluation := PolicyEvaluation{}
-
 	if policy.Statements == nil {
 		return &evaluation, nil
 	}
@@ -174,6 +173,10 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	evaluation.AllowedPrincipalServices = StringSliceDistinct(evaluation.AllowedPrincipalServices)
 	evaluation.PublicAccessLevels = StringSliceDistinct(evaluation.PublicAccessLevels)
 	evaluation.PublicStatementIds = StringSliceDistinct(evaluation.PublicStatementIds)
+	permissionsData := getParliamentIamPermissions()
+	if len(actions) > 0 {
+		evaluation.PublicAccessLevels = GetAccessLevelsFromActions(permissionsData, actions)
+	}
 
 	evaluation.AccessLevel = "private"
 	if evaluation.IsPublic {
@@ -523,6 +526,35 @@ func StringSliceDistinct(slice []string) []string {
 		res = append(res, item)
 	}
 	return res
+}
+
+func GetAccessLevelsFromActions(permissionsData ParliamentPermissions, actions []string) []string {
+	accessLevels := make([]string, 0)
+	if helpers.StringSliceContains(actions, "*") {
+		accessLevels = []string{"List", "Permissions management", "Read", "Tagging", "Write"}
+	} else {
+		for _, action := range actions {
+			actionParts := strings.Split(action, ":")
+			service := actionParts[0]
+			actionPart := ""
+			if len(actionParts) == 2 {
+				actionPart = actionParts[1]
+			}
+
+			re := regexp.MustCompile(strings.ReplaceAll(fmt.Sprintf("^(?i)%s$", actionPart), "*", ".*"))
+
+			for _, parliamentService := range permissionsData {
+				if strings.ToLower(service) == strings.ToLower(parliamentService.Prefix) {
+					for _, privilege := range parliamentService.Privileges {
+						if re.Match([]byte(privilege.Privilege)) {
+							accessLevels = append(accessLevels, privilege.AccessLevel)
+						}
+					}
+				}
+			}
+		}
+	}
+	return helpers.StringSliceDistinct(accessLevels)
 }
 
 /* USEFUL DATA - required while coding
