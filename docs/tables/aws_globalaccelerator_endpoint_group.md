@@ -49,6 +49,6 @@ from
   aws_globalaccelerator_listener l,
   aws_globalaccelerator_endpoint_group eg
 where
-  eg.listener_arn = l.listener_arn
-  and l.accelerator_arn = a.accelerator_arn;
+  eg.listener_arn = l.arn
+  and l.accelerator_arn = a.arn;
 ```

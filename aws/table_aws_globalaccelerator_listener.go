@@ -18,7 +18,7 @@ func tableAwsGlobalacceleratorListener(_ context.Context) *plugin.Table {
 		Name:        "aws_globalaccelerator_listener",
 		Description: "AWS Global Accelerator Listener",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("listener_arn"),
+			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
 			},
@@ -32,7 +32,7 @@ func tableAwsGlobalacceleratorListener(_ context.Context) *plugin.Table {
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
-				Name:        "listener_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the listener.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Listener.ListenerArn"),
@@ -144,7 +144,7 @@ func listGlobalacceleratorListeners(ctx context.Context, d *plugin.QueryData, _ 
 func getGlobalacceleratorListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlobalacceleratorListener")
 
-	arn := d.KeyColumnQuals["listener_arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if arn == "" {

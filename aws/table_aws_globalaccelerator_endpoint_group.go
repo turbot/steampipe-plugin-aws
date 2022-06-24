@@ -18,7 +18,7 @@ func tableAwsGlobalacceleratorEndpointGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_globalaccelerator_endpoint_group",
 		Description: "AWS Global Accelerator Endpoint Group",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("endpoint_group_arn"),
+			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
 			},
@@ -32,7 +32,7 @@ func tableAwsGlobalacceleratorEndpointGroup(_ context.Context) *plugin.Table {
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
-				Name:        "endpoint_group_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the endpoint group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("EndpointGroup.EndpointGroupArn"),
@@ -180,7 +180,7 @@ func listGlobalacceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 func getGlobalacceleratorEndpointGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlobalacceleratorEndpointGroup")
 
-	arn := d.KeyColumnQuals["endpoint_group_arn"].GetStringValue()
+	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if arn == "" {

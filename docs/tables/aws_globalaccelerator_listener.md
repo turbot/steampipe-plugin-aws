@@ -37,7 +37,7 @@ from
   aws_globalaccelerator_accelerator a,
   aws_globalaccelerator_listener l
 where
-  l.accelerator_arn = a.accelerator_arn;
+  l.accelerator_arn = a.arn;
 ```
 
 ### List accelerators listening on TCP port 443
@@ -54,7 +54,7 @@ from
   aws_globalaccelerator_listener l,
   jsonb_array_elements(l.port_ranges) as port_range
 where
-  l.accelerator_arn = a.accelerator_arn
+  l.accelerator_arn = a.arn
   and l.protocol = 'TCP'
   and (port_range->'FromPort')::int >= 443
   and (port_range->'ToPort')::int <= 443;
