@@ -1278,6 +1278,99 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"public_statement_ids": []
 			}`,
 		},
+		{
+			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics`,
+			7,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "InventoryAndAnalyticsExamplePolicy",
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "s3.amazonaws.com"
+						},
+						"Action": "s3:PutObject",
+						"Resource": [
+							"arn:aws:s3:::destinationbucket/*"
+						],
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:s3:::sourcebucket"
+							},
+							"StringEquals": {
+								"aws:SourceAccount": "111122223333",
+								"s3:x-amz-acl": "bucket-owner-full-control"
+							}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "shared",
+				"allowed_organization_ids": [],
+				"allowed_principal_account_ids": [
+					"111122223333"
+				],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [
+					"s3.amazonaws.com"
+				],
+				"allowed_principals": [
+					"111122223333",
+					"arn:aws:s3:::sourcebucket",
+					"s3.amazonaws.com"
+				],
+				"is_public": false,
+				"public_access_levels": [
+					"Write"
+				],
+				"public_statement_ids": []
+			}`,
+		},
+		{
+			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics with only source arn condition`,
+			8,
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "InventoryAndAnalyticsExamplePolicy",
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "s3.amazonaws.com"
+						},
+						"Action": "s3:PutObject",
+						"Resource": [
+							"arn:aws:s3:::destinationbucket/*"
+						],
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:s3:::sourcebucket"
+							}
+						}
+					}
+				]
+			}`,
+			`{
+				"access_level": "private",
+				"allowed_organization_ids": [],
+				"allowed_principals": [
+					"arn:aws:s3:::sourcebucket",
+					"s3.amazonaws.com"
+				],
+				"allowed_principal_account_ids": [],
+				"allowed_principal_federated_identities": [],
+				"allowed_principal_services": [
+					"s3.amazonaws.com"
+				],
+				"is_public": false,
+				"public_access_levels": [
+					"Write"
+				],
+				"public_statement_ids": []
+			}`,
+		},
 	}
 
 	for _, test := range testCases {
