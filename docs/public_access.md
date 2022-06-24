@@ -4,7 +4,7 @@
 
 1. If `PrincipalArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
 2. If `SourceArn` contains public arn **`(i.e. if wildcard "*" in the account placeholder in arn)`**.
-3. If **`wildcard "*"`** in the statement principals but limited with `PrincipalAccount`, `SourceAccount`, `SourceOwner`, `PrincipalOrgID` and `PrincipalOrgPaths`.
+3. If **`wildcard "*"`** in the statement principals but limited with `aws:PrincipalAccount`, `aws:SourceAccount`, `aws:SourceOwner`, `aws:PrincipalOrgID` and `aws:PrincipalOrgPaths` and `aws:SourceIp`.
 4. Working for multiple condition keys `{"StringEquals":{"aws:PrincipalAccount":"999988887777"},"ArnLike":{"aws:SourceArn":"arn:aws:cloudwatch:us-east-1:*:alarm:*"}}`
 
    - `{"aws:SourceArn":"arn:aws:cloudwatch:us-east-1:*:alarm:*"}` is a public condition but what makes it `shared` but not `public` is the limitation imposed through `{"StringEquals":{"aws:PrincipalAccount":"999988887777"}` condition.
@@ -12,6 +12,13 @@
 5. Handles `NotPrincipal With Allow`
 6. For `effect = "Deny"`, just not evaluating the statement and marking the statement as blocking public access.
    - When the effect is `Deny` - it doesn't grant access to anyone explictely but only restricts a set of principals from getting access. So, if a policy
+
+## To be covered in next
+
+1. Use of "Not" operators with the global condition operators with effect "Allow" like "StringNotequals"
+2. Evaluation of policy with taking `"effect" = "Deny"` into consideration for allowed principals.
+   - cases where a statement in policy allows a certain action but the other statement in policy denies the same to a set of users making effective access for particular actions denied.
+3.
 
 ### Sample policies
 
