@@ -46,6 +46,8 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_securityhub_account" "named_test_resource" {}
+
 resource "null_resource" "named_test_resource" {
   provisioner "local-exec" {
     command = <<EOT

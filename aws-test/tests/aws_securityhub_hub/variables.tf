@@ -54,3 +54,9 @@ output "aws_region" {
 output "aws_account" {
   value = data.aws_caller_identity.current.account_id
 }
+
+resource "aws_securityhub_account" "named_test_resource" {}
+
+output "arn" {
+  value = "arn:aws:securityhub:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:hub/default"
+}

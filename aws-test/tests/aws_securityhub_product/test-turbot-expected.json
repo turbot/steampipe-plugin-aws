@@ -1,6 +1,6 @@
 [
   {
-    "account_id": "352685002396",
+    "account_id": "{{ output.aws_account.value }}",
     "akas": [
       "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"
     ],

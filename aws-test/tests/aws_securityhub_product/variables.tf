@@ -47,6 +47,8 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_securityhub_account" "named_test_resource" {}
+
 output "aws_region" {
   value = data.aws_region.primary.name
 }

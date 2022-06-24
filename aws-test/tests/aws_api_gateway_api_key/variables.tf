@@ -62,10 +62,6 @@ output "resource_id" {
   value = aws_api_gateway_api_key.named_test_resource.id
 }
 
-output "created_date" {
-  value = formatdate("YYYY-MM-DD hh:mm:ss", aws_api_gateway_api_key.named_test_resource.created_date)
-}
-
 output "resource_name" {
   value = var.resource_name
 }

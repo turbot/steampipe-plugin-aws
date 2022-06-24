@@ -46,6 +46,8 @@ data "null_data_source" "resource" {
   }
 }
 
+resource "aws_securityhub_account" "named_test_resource" {}
+
 resource "aws_securityhub_action_target" "named_test_resource" {
   name        = "Send notification"
   identifier  = "SendToChat"
