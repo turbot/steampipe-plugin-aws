@@ -448,9 +448,7 @@ func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) boo
 		// makes policy unsolvable as it denies access to only principals mentioned in `NotPrincipal` but allows access to everyone else.
 		return false
 	}
-	// if stmt.Principal != nil && stmt.Principal["AWS"] != nil && helpers.StringSliceContains((stmt.Principal["AWS"]).([]string), "*") {
-	// 	return true
-	// }
+	// TODO: Instead of returning false should return an analysis to negate the allowed actions and principals from other allowed statements in the policy - more useful for the case of per principal analysis
 	return false
 }
 

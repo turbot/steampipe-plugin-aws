@@ -15,10 +15,11 @@
 
 ## To be covered in next
 
-1. Use of "Not" operators with the global condition operators with effect "Allow" like "StringNotequals"
+1. Use of "Not" operators with the global condition operators with effect "Allow"
+   - like `StringNotequals`, `NotIpAddress`
 2. Evaluation of policy with taking `"effect" = "Deny"` into consideration for allowed principals.
    - cases where a statement in policy allows a certain action but the other statement in policy denies the same to a set of users making effective access for particular actions denied.
-3.
+   <!-- 3. -->
 
 ### Sample policies
 
