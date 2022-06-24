@@ -1,9 +1,22 @@
+## v0.66.0 [2022-06-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_framework](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_framework`) ([#1099](https://github.com/turbot/steampipe-plugin-aws/pull/1099))
+  - [aws_elasticache_reserved_cache_node](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_reserved_cache_node) ([#1092](https://github.com/turbot/steampipe-plugin-aws/pull/1092))
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v3.3.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v330--2022-6-22). ([#1108](https://github.com/turbot/steampipe-plugin-aws/pull/1108))
+
 ## v0.65.0 [2022-06-16]
 
 _What's new?_
 
 - New tables added
   - [aws_rds_reserved_db_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_reserved_db_instance) ([#1087](https://github.com/turbot/steampipe-plugin-aws/pull/1087))
+- Added `s3_force_path_style` config arg to allow S3 path-style addressing ([#1082](https://github.com/turbot/steampipe-plugin-aws/pull/1082))
 
 _Enhancements_
 
