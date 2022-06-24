@@ -145,8 +145,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tkrajina/go-reflector v0.5.4 h1:dS9aJEa/eYNQU/fwsb5CSiATOxcNyA/gG/A7a582D5s=
 github.com/tkrajina/go-reflector v0.5.4/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
-github.com/turbot/go-kit v0.3.0 h1:o4zZIO1ovdmJ2bHWOdXnnt8jJMIDGqYSkZvBREzFeMQ=
-github.com/turbot/go-kit v0.3.0/go.mod h1:SBdPRngbEfYubiR81iAVtO43oPkg1+ASr+XxvgbH7/k=
+github.com/turbot/go-kit v0.4.0 h1:EdD7Bf2EGAjvHRGQxRiWpDawzZSk3T+eghqbj74qiSc=
+github.com/turbot/go-kit v0.4.0/go.mod h1:SBdPRngbEfYubiR81iAVtO43oPkg1+ASr+XxvgbH7/k=
 github.com/turbot/steampipe-plugin-sdk/v3 v3.2.0-rc.3 h1:i4GQq8bU7S/yTXOvc8t8CNA5b1bngS11OBBm9WtXdC4=
 github.com/turbot/steampipe-plugin-sdk/v3 v3.2.0-rc.3/go.mod h1:Urv1Eh7UWSLGA/CTWig1ReUWvYVsBX/35Fn2W6C6hZI=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
