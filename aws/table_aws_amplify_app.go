@@ -173,7 +173,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listApps")
+	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.listApps")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
@@ -238,7 +238,7 @@ func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 //// HYDRATE FUNCTIONS
 
 func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getApp")
+	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.getApp")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
