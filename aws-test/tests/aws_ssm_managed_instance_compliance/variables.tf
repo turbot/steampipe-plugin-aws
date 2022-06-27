@@ -49,6 +49,7 @@ data "null_data_source" "resource" {
 resource "aws_default_vpc" "default" {}
 
 resource "aws_default_subnet" "default_subnet" {
+  depends_on = [ aws_default_vpc.default]
   availability_zone = "${var.aws_region}c"
 }
 
@@ -103,6 +104,24 @@ resource "null_resource" "delay" {
     aws_instance.named_test_resource
   ]
   provisioner "local-exec" {
+    command = "sleep 60"
+  }
+}
+
+resource "null_resource" "create_association" {
+  depends_on = [null_resource.delay]
+  provisioner "local-exec" {
+    command = <<EOF
+      aws ssm create-association --name "AWS-UpdateSSMAgent" --targets "Key=instanceids,Values=${aws_instance.named_test_resource.id}" --region ${data.aws_region.primary.name}
+    EOF
+  }
+} 
+
+resource "null_resource" "delay_create_association" {
+  depends_on = [
+    aws_instance.named_test_resource
+  ]
+  provisioner "local-exec" {
     command = "sleep 300"
   }
 }
@@ -112,7 +131,7 @@ locals {
 }
 
 resource "null_resource" "list_compliance" {
-  depends_on = [null_resource.delay]
+  depends_on = [null_resource.delay_create_association]
   provisioner "local-exec" {
     command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${local.path}"
   }
