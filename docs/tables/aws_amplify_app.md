@@ -1,6 +1,6 @@
 # Table: aws_amplify_app
 
-AWS Amplify is a set of purpose-built tools and features that enables frontend web and mobile developers to quickly and easily build full-stack applications on AWS. Amplify provides two services: Amplify Hosting and Amplify Studio. Amplify Hosting provides a git-based workflow for hosting full-stack serverless web apps with continuous deployment. This user guide provides the information you need to get started with Amplify Hosting.
+Represents the different branches of a repository for building, deploying, and hosting an Amplify app.
 
 ## Examples
 
