@@ -17,7 +17,7 @@ import (
 func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_amplify_app",
-		Description: "AWS Amplify app",
+		Description: "AWS Amplify App",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("app_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -39,7 +39,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the Amplify app.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("appArn"),
+				Transform:   transform.FromField("AppArn"),
 			},
 			{
 				Name:        "auto_branch_creation_config",
@@ -57,9 +57,10 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "build_spec",
+				Name:        "build_spec_json",
 				Description: "Describes the content of the build specification (build spec) for the Amplify app.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("BuildSpec").Transform(transform.UnmarshalYAML),
 			},
 			{
 				Name:        "create_time",
@@ -152,7 +153,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("app_id"),
+				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
@@ -163,7 +164,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("appArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("AppArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -210,6 +211,7 @@ func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 	for pagesLeft {
 		result, err := svc.ListApps(input)
 		if err != nil {
+			plugin.Logger(ctx).Error("ListApps", "ERROR", err)
 			return nil, err
 		}
 
@@ -269,7 +271,7 @@ func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	// Get call
 	data, err := svc.GetApp(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeWorkspaces", "ERROR", err)
+		plugin.Logger(ctx).Error("GetApp", "ERROR", err)
 		return nil, err
 	}
 
