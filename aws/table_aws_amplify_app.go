@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/amplify"
@@ -271,11 +270,6 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	data, err := svc.GetApp(params)
 	if err != nil {
 		plugin.Logger(ctx).Error("GetApp", "ERROR", err)
-		return nil, err
-	}
-
-	if data.App == nil {
-		err = errors.New("expected valid App object but none was returned from Amplify GetApp call")
 		return nil, err
 	}
 
