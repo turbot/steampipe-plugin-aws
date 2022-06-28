@@ -43,3 +43,33 @@ from
 where
   connection_password_encryption ->> 'ReturnConnectionPasswordEncrypted' = 'false';
 ```
+
+### List encryption at rest key details associated to settings
+
+```sql
+select
+  encryption_at_rest ->> 'SseAwsKmsKeyId' as key_arn,
+  k.key_manager as key_manager,
+  k.creation_date as key_creation_date,
+  s.region,
+  s.account_id
+from
+  aws_glue_data_catalog_encryption_settings s
+  join aws_kms_key k on s.encryption_at_rest ->> 'SseAwsKmsKeyId' = k.arn
+  and s.region = k.region;
+```
+
+### List connection password encryption key details associated to settings
+
+```sql
+select
+  connection_password_encryption ->> 'AwsKmsKeyId' as key_arn,
+  k.key_manager as key_manager,
+  k.creation_date as key_creation_date,
+  s.region,
+  s.account_id
+from
+  aws_glue_data_catalog_encryption_settings s
+  join aws_kms_key k on s.connection_password_encryption ->> 'AwsKmsKeyId' = k.arn
+  and s.region = k.region;
+```
