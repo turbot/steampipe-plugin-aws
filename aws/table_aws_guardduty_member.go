@@ -21,7 +21,7 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"member_account_id", "detector_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "BadRequestException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
 			},
 			Hydrate: getGuardDutyMember,
 		},
