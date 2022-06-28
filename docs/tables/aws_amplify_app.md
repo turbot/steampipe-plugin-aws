@@ -36,7 +36,7 @@ order by
 
 ### List apps updated within the last hour
 
-````sql
+```sql
 select
   name,
   app_id,
@@ -60,7 +60,7 @@ from
   aws_amplify_app
 where
   name = 'amplify_app_name';
-````
+```
 
 ### List information about the build spec for an app
 
