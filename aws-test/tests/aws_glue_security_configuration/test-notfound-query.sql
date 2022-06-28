@@ -6,4 +6,4 @@ select
 from
   aws_glue_security_configuration
 where 
-  name = 'dummy-{{ resourceName }}'
+  name = 'dummy-{{ resourceName }}';
