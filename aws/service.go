@@ -151,7 +151,7 @@ func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 	return svc, nil
 }
 
-// AmplifyService returns the service connection for AWS Amp service
+// AmplifyService returns the service connection for AWS Amplify service
 func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {

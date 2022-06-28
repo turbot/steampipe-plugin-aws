@@ -23,10 +23,10 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException"}),
 			},
-			Hydrate: getApp,
+			Hydrate: getAmplifyApp,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listApps,
+			Hydrate: listAmplifyApps,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -42,25 +42,14 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("AppArn"),
 			},
 			{
-				Name:        "auto_branch_creation_config",
-				Description: "Describes the automated branch creation configuration for the Amplify app.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "auto_branch_creation_patterns",
-				Description: "Describes the automated branch creation glob patterns for the Amplify app.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
-				Name:        "basic_auth_credentials",
-				Description: "The basic authorization credentials for branches for the Amplify app. You must base64-encode the authorization credentials and provide them in the format user:password.",
+				Name:        "name",
+				Description: "The name for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "build_spec_json",
-				Description: "Describes the content of the build specification (build spec) for the Amplify app.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("BuildSpec").Transform(transform.UnmarshalYAML),
+				Name:        "description",
+				Description: "The description for the Amplify app.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "create_time",
@@ -68,23 +57,23 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "update_time",
+				Description: "Updates the date and time for the Amplify app.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "basic_auth_credentials",
+				Description: "The basic authorization credentials for branches for the Amplify app. You must base64-encode the authorization credentials and provide them in the format user:password.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "custom_headers",
 				Description: "Describes the custom HTTP headers for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "custom_rules",
-				Description: "Describes the custom redirect and rewrite rules for the Amplify app.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "default_domain",
 				Description: "The default domain for the Amplify app.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "description",
-				Description: "The description for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -108,29 +97,14 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "environment_variables",
-				Description: "The environment variables for the Amplify app.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "iam_service_role_arn",
 				Description: "The AWS Identity and Access Management (IAM) service role for the Amazon Resource Name (ARN) of the Amplify app.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "name",
-				Description: "The name for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "platform",
 				Description: "The platform for the Amplify app.",
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "production_branch",
-				Description: "Describes the information about a production branch of the Amplify app.",
-				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "repository",
@@ -143,9 +117,35 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "update_time",
-				Description: "Updates the date and time for the Amplify app.",
-				Type:        proto.ColumnType_TIMESTAMP,
+				Name:        "auto_branch_creation_config",
+				Description: "Describes the automated branch creation configuration for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "auto_branch_creation_patterns",
+				Description: "Describes the automated branch creation glob patterns for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "build_spec",
+				Description: "Describes the content of the build specification (build spec) for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("BuildSpec").Transform(transform.UnmarshalYAML),
+			},
+			{
+				Name:        "custom_rules",
+				Description: "Describes the custom redirect and rewrite rules for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "environment_variables",
+				Description: "The environment variables for the Amplify app.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "production_branch",
+				Description: "Describes the information about a production branch of the Amplify app.",
+				Type:        proto.ColumnType_JSON,
 			},
 
 			// Steampipe standard columns
@@ -172,8 +172,8 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.listApps")
+func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.listAmplifyApps")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// AWS Amplify is not supported in all regions. For unsupported regions the API throws an error, e.g.,
@@ -237,8 +237,8 @@ func listApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 
 //// HYDRATE FUNCTIONS
 
-func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.getApp")
+func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsAmplifyApp.getAmplifyApp")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
@@ -251,9 +251,8 @@ func getApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (in
 	}
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
-
-	// check if workspace id is empty
 	if appId == "" {
+		plugin.Logger(ctx).Trace("Column app_id is expected but not present, ignore")
 		return nil, nil
 	}
 

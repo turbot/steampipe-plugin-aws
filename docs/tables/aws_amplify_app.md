@@ -9,30 +9,12 @@ Represents the different branches of a repository for building, deploying, and h
 ```sql
 select
   app_id,
-  arn,
-  auto_branch_creation_config,
-  auto_branch_creation_patterns,
-  basic_auth_credentials,
-  build_spec_json,
-  create_time,
-  custom_headers,
-  custom_rules,
-  default_domain,
-  description,
-  enable_auto_branch_creation,
-  enable_basic_auth,
-  enable_branch_auto_build,
-  enable_branch_auto_deletion,
-  environment_variables,
-  iam_service_role_arn,
   name,
+  description,
+  arn,
   platform,
-  production_branch,
-  repository,
-  repository_clone_method,
-  update_time,
-  title,
-  tags
+  create_time,
+  build_spec
 from
   aws_amplify_app;
 ```
@@ -86,28 +68,12 @@ where
 select
   name,
   app_id,
-  build_spec_json ->> 'backend' as build_backend_spec,
-  build_spec_json ->> 'frontend' as build_frontend_spec,
-  build_spec_json ->> 'test' as build_test_spec,
-  build_spec_json ->> 'env' as build_env_settings
+  build_spec ->> 'backend' as build_backend_spec,
+  build_spec ->> 'frontend' as build_frontend_spec,
+  build_spec ->> 'test' as build_test_spec,
+  build_spec ->> 'env' as build_env_settings
 from
   aws_amplify_app
-where
-  name = 'amplify_app_name';
-```
-
-### List information about the redirect settings for an app
-
-```sql
-select
-  name,
-  redirects_array ->> 'Condition' as country_code,
-  redirects_array ->> 'Source' as source_address,
-  redirects_array ->> 'Status' as redirect_type,
-  redirects_array ->> 'Target' as destination_address
-from
-  aws_amplify_app,
-  jsonb_array_elements(custom_rules) as redirects_array
 where
   name = 'amplify_app_name';
 ```
@@ -127,4 +93,18 @@ from
 where
   redirects_array ->> 'Status' = '200'
   and name = 'amplify_app_name';
+```
+
+### List all apps that have branch auto build enabled
+
+```sql
+select
+  app_id,
+  name,
+  description,
+  arn
+from
+  aws_amplify_app
+where
+  enable_branch_auto_build = true;
 ```
