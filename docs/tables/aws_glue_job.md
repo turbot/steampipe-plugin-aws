@@ -46,7 +46,7 @@ select
 from
   aws_glue_job
 where
-   job_bookmark is not null;
+  job_bookmark is not null;
 ```
 
 ### List jobs with cloud watch encryption disabled
@@ -58,12 +58,12 @@ select
   j.created_on,
   j.region,
   j.account_id,
-  j.cloud_watch_encryption
+  cloud_watch_encryption
 from
   aws_glue_job j
   left join aws_glue_security_configuration s on j.security_configuration = s.name
 where
-  cloud_watch_encryption is null or cloud_watch_encryption ->> 'CloudWatchEncryptionMode' = 'DISABLED'
+  cloud_watch_encryption is null or cloud_watch_encryption ->> 'CloudWatchEncryptionMode' = 'DISABLED';
 ```
 
 ### List jobs with job bookmarks encryption disabled
@@ -80,7 +80,7 @@ from
   aws_glue_job j
   left join aws_glue_security_configuration s on j.security_configuration = s.name
 where
-  job_bookmarks_encryption is null or job_bookmarks_encryption ->> 'JobBookmarksEncryptionMode' = 'DISABLED'
+  job_bookmarks_encryption is null or job_bookmarks_encryption ->> 'JobBookmarksEncryptionMode' = 'DISABLED';
 ```
 
 ### List jobs with s3 encryption disabled
@@ -98,7 +98,7 @@ from
   left join aws_glue_security_configuration s on j.security_configuration = s.name,
   jsonb_array_elements(s.s3_encryption) e
 where
-  e is null or e ->> 'S3EncryptionMode' = 'DISABLED'
+  e is null or e ->> 'S3EncryptionMode' = 'DISABLED';
 ```
 
 ### List jobs with logging disabled
