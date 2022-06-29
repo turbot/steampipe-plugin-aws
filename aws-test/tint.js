@@ -592,7 +592,7 @@ const _run = async function (tests) {
   // Teardown tests in reverse order
   for (var i = testNames.length - 1; i >= 0; i--) {
     const t = testNames[i];
-    results[t] = await _runTeardown(results[t]);
+    // results[t] = await _runTeardown(results[t]);
   }
   return results;
 };

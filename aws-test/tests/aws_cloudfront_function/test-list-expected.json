@@ -1,0 +1,12 @@
+[
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"framework_name": "{{ output.id.value }}",
+		"function_config": {
+			"Comment": "test function",
+			"Runtime": "cloudfront-js-1.0"
+		},
+		"name": "{{ output.id.value }}",
+		"status": "UNPUBLISHED"
+	}
+]
