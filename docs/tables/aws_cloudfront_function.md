@@ -8,65 +8,59 @@ Contains configuration information and metadata about a CloudFront function.
 
 ```sql
 select
-  account_id,
-  akas,
-  arn,
-  e_tag,
-  function_config,
-  function_metadata,
   name,
   status,
-  title
- from
+  arn,
+  e_tag,
+  function_config
+from
   aws_cloudfront_function;
 ```
 
-### List details about published functions
+### List details of all functions deployed to the live stage
 
 ```sql
 select
   name,
+  function_config ->> 'Comment' as comment,
   arn,
   status,
-  e_tag,
-  function_config,
-  function_metadata
- from
+  e_tag
+from
   aws_cloudfront_function
 where
   function_metadata ->> 'Stage' = 'LIVE';
 ```
 
-### List functions ordered by its creation time
+### List functions ordered by its creation time starting with latest first
 
 ```sql
 select
   name,
   arn,
+  function_metadata ->> 'Stage' as stage,
   status,
   function_metadata ->> 'CreatedTime' as created_time,
-  function_metadata ->> 'LastModifiedTime' as last_modified_time,
-  function_metadata ->> 'Stage' as stage
+  function_metadata ->> 'LastModifiedTime' as last_modified_time
  from
   aws_cloudfront_function
 order by
   function_metadata ->> 'CreatedTime' DESC;
 ```
 
-### List functions updated in the last hour
+### List functions updated in the last hour with latest first
 
 ```sql
 select
   name,
   arn,
+  function_metadata ->> 'Stage' as stage,
   status,
-  function_metadata ->> 'CreatedTime' as created_time,
-  function_metadata ->> 'LastModifiedTime' as last_modified_time,
-  function_metadata ->> 'Stage' as stage
+  function_metadata ->> 'LastModifiedTime' as last_modified_time
 from
   aws_cloudfront_function
 where
-  to_timestamp(function_metadata ->> 'LastModifiedTime', 'yyyy-MM-ddTHH24:MI:SS.MSZ')  >= (now() - interval '1' hour)
+  (function_metadata ->> 'LastModifiedTime')::timestamp >= (now() - interval '1' hour)
 order by
   function_metadata ->> 'LastModifiedTime' DESC;
 ```
