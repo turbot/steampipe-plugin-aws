@@ -18,7 +18,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// TODO
+				// TODO: Find not found error
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
 			},
 			Hydrate: getCloudFrontResponseHeadersPolicy,
@@ -96,8 +96,10 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 	}
 
 	// Set up the limit
-	input := cloudfront.ListFunctionsInput{
-		MaxItems: aws.Int64(100),
+	input := cloudfront.ListResponseHeadersPoliciesInput{
+		// TODO: Restore
+		// MaxItems: aws.Int64(100),
+		MaxItems: aws.Int64(1),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -116,19 +118,19 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 	pagesLeft := true
 	for pagesLeft {
 		// List CloudFront functions
-		data, err := svc.ListFunctions(&input)
+		data, err := svc.ListResponseHeadersPolicies(&input)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListFunctions", "ERROR", err)
+			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
 			return nil, err
 		}
 
-		for _, function := range data.FunctionList.Items {
+		for _, function := range data.ResponseHeadersPolicyList.Items {
 			d.StreamListItem(ctx, function)
 		}
 
-		if data.FunctionList.NextMarker != nil {
+		if data.ResponseHeadersPolicyList.NextMarker != nil {
 			pagesLeft = true
-			input.Marker = data.FunctionList.NextMarker
+			input.Marker = data.ResponseHeadersPolicyList.NextMarker
 		} else {
 			pagesLeft = false
 		}
@@ -145,7 +147,7 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 	var name string
 
 	if h.Item != nil {
-		framework := h.Item.(*cloudfront.FunctionSummary)
+		framework := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
 		name = *framework.Name
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
