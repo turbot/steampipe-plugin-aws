@@ -88,7 +88,7 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listFunctions")
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudWatchFunctions")
 
 	// Create Session
 	svc, err := CloudFrontService(ctx, d)
