@@ -144,17 +144,17 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontResponseHeadersPolicy")
 
-	var name string
+	var id string
 
 	if h.Item != nil {
-		framework := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
-		name = *framework.Name
+		summary := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
+		id = *summary.ResponseHeadersPolicy.Id
 	} else {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	if name == "" {
-		plugin.Logger(ctx).Trace("Name is null, ignoring")
+	if id == "" {
+		plugin.Logger(ctx).Trace("Id is null, ignoring")
 		return nil, nil
 	}
 
@@ -165,15 +165,15 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Build the params
-	params := cloudfront.DescribeFunctionInput{
-		Name: aws.String(name),
+	params := cloudfront.GetResponseHeadersPolicyInput{
+		Id: aws.String(id),
 	}
 
 	// Get call
-	data, err := svc.DescribeFunction(&params)
+	data, err := svc.GetResponseHeadersPolicy(&params)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeFunction", "ERROR", err)
+		plugin.Logger(ctx).Error("GetResponseHeadersPolicy", "ERROR", err)
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "ResourceNotFoundException" {
 				return nil, nil
