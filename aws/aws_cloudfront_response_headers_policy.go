@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -174,11 +173,6 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 
 	if err != nil {
 		plugin.Logger(ctx).Error("GetResponseHeadersPolicy", "ERROR", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 
