@@ -146,8 +146,8 @@ func getCloudFrontFunction(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	var name string
 
 	if h.Item != nil {
-		framework := h.Item.(*cloudfront.FunctionSummary)
-		name = *framework.Name
+		function_summary := h.Item.(*cloudfront.FunctionSummary)
+		name = *function_summary.Name
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
