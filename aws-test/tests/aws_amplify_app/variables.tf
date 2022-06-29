@@ -95,3 +95,7 @@ output "id" {
 output "resource_aka" {
   value = aws_amplify_app.named_test_resource.arn
 }
+
+output "resource_name" {
+  value = var.resource_name
+}

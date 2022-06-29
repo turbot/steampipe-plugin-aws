@@ -2,7 +2,7 @@
 	{
 		"app_id": "{{ output.id.value }}",
 		"arn": "{{ output.resource_aka.value }}",
-		"build_spec_json": {
+		"build_spec": {
 			"backend": {
 				"phases": {
 					"build": {
