@@ -72,7 +72,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudfront_cache_policy":                                  tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                                  tableAwsCloudFrontDistribution(ctx),
-			"aws_cloudfront_function":                                      tableAwsCloudfrontFunction(ctx),
+			"aws_cloudfront_function":                                      tableAwsCloudFrontFunction(ctx),
 			"aws_cloudfront_origin_access_identity":                        tableAwsCloudFrontOriginAccessIdentity(ctx),
 			"aws_cloudfront_origin_request_policy":                         tableAwsCloudFrontOriginRequestPolicy(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),

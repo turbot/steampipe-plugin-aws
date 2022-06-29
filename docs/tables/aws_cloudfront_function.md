@@ -56,23 +56,17 @@ order by
 ### List functions updated in the last hour
 
 ```sql
-   -- to_timestamp(function_metadata ->> 'LastModifiedTime', 'yyyy-MM-ddTHH:mm:ss.SSSZ')
 select
   name,
   arn,
   status,
-  function_metadata ->> 'LastModifiedTime',
-  to_timestamp(function_metadata ->> 'LastModifiedTime', 'yyyy-MM-ddTHH24:MI:SS.MSZ'),
-
   function_metadata ->> 'CreatedTime' as created_time,
   function_metadata ->> 'LastModifiedTime' as last_modified_time,
-  function_metadata ->> 'Stage' as stage,
-  function_metadata ->> 'LastModifiedTime',
-  to_timestamp(function_metadata ->> 'LastModifiedTime', 'yyyy-MM-ddTHH24:MI:SS.MSZ')
- from
+  function_metadata ->> 'Stage' as stage
+from
   aws_cloudfront_function
-  where
-  function_metadata -> 'LastModifiedTime'  >= (now() - interval '1' hour)
+where
+  to_timestamp(function_metadata ->> 'LastModifiedTime', 'yyyy-MM-ddTHH24:MI:SS.MSZ')  >= (now() - interval '1' hour)
 order by
-  function_metadata ->> 'CreatedTime' DESC;
+  function_metadata ->> 'LastModifiedTime' DESC;
 ```

@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCloudfrontFunction(_ context.Context) *plugin.Table {
+func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudfront_function",
 		Description: "AWS CloudFront Function",
@@ -22,13 +22,39 @@ func tableAwsCloudfrontFunction(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
 			},
-			Hydrate: getFunction,
+			Hydrate: getCloudFrontFunction,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listFunctions,
+			Hydrate: listCloudWatchFunctions,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "name",
+				Description: "The name of the CloudFront function.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name", "FunctionSummary.Name"),
+			},
+			{
+				Name:        "arn",
+				Description: "The version identifier for the current version of the CloudFront function.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("FunctionMetadata.FunctionARN", "FunctionSummary.FunctionMetadata.FunctionARN"),
+			},
+			{
+				Name:        "status",
+				Description: "The status of the CloudFront function.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Status", "FunctionSummary.Status"),
+				Hydrate:     getCloudFrontFunction,
+			},
+			{
+				Name:        "e_tag",
+				Description: "The version identifier for the current version of the CloudFront function.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ETag", "FunctionSummary.ETag"),
+				Hydrate:     getCloudFrontFunction,
+			},
 			{
 				Name:        "function_config",
 				Description: "Contains configuration information about a CloudFront function.",
@@ -40,32 +66,6 @@ func tableAwsCloudfrontFunction(_ context.Context) *plugin.Table {
 				Description: "Contains metadata about a CloudFront function.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("FunctionMetadata", "FunctionSummary.FunctionMetadata"),
-			},
-			{
-				Name:        "name",
-				Description: "The name of the CloudFront function.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name", "FunctionSummary.Name"),
-			},
-			{
-				Name:        "status",
-				Description: "The status of the CloudFront function.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Status", "FunctionSummary.Status"),
-				Hydrate:     getFunction,
-			},
-			{
-				Name:        "e_tag",
-				Description: "The version identifier for the current version of the CloudFront function.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ETag", "FunctionSummary.ETag"),
-				Hydrate:     getFunction,
-			},
-			{
-				Name:        "arn",
-				Description: "The version identifier for the current version of the CloudFront function.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FunctionMetadata.FunctionARN", "FunctionSummary.FunctionMetadata.FunctionARN"),
 			},
 			// Steampipe standard columns
 			{
@@ -86,8 +86,8 @@ func tableAwsCloudfrontFunction(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudfrontFunction.listFunctions")
+func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listFunctions")
 
 	// Create Session
 	svc, err := CloudFrontService(ctx, d)
@@ -139,8 +139,8 @@ func listFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 //// HYDRATE FUNCTIONS
 
-func getFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudfrontFunction.getFunction")
+func getCloudFrontFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontFunction")
 
 	var name string
 
