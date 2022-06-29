@@ -60,6 +60,7 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 				Description: "Contains configuration information about a CloudFront function.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("FunctionConfig", "FunctionSummary.FunctionConfig"),
+				Hydrate:     getCloudFrontFunction,
 			},
 			{
 				Name:        "function_metadata",

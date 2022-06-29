@@ -67,6 +67,12 @@ function handler(event) {
 EOT
 }
 
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [aws_cloudfront_function.named_test_resource]
+
+  create_duration = "30s"
+}
+
 output "id" {
   value = aws_cloudfront_function.named_test_resource.id
 }
