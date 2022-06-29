@@ -5,7 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -15,7 +17,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_response_headers_policy",
 		Description: "AWS Cloudfront Response Headers Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
+			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// TODO: Find not found error
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
@@ -26,13 +28,26 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 			Hydrate: listCloudFrontResponseHeadersPolicy,
 		},
 		GetMatrixItem: BuildRegionList,
-		Columns:       awsRegionalColumns([]*plugin.Column{
-			// {
-			// 	Name:        "name",
-			// 	Description: "The name of the CloudFront function.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("Name", "FunctionSummary.Name"),
-			// },
+		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "id",
+				Description: "The identifier for the response headers policy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResponseHeadersPolicy.Id"),
+			},
+			{
+				Name:        "last_modified_time",
+				Description: "The date and time when the response headers policy was last modified.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("ResponseHeadersPolicy.LastModifiedTime"),
+			},
+			{
+				Name:        "response_headers_policy_config",
+				Description: "A response headers policy contains information about a set of HTTP response headers and their values. CloudFront adds the headers in the policy to HTTP responses that it sends for requests that match a cache behavior that’s associated with the policy.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ResponseHeadersPolicy.ResponseHeadersPolicyConfig"),
+			},
+
 			// {
 			// 	Name:        "arn",
 			// 	Description: "The version identifier for the current version of the CloudFront function.",
@@ -113,18 +128,17 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 		}
 	}
 
-	// Prepare for the slice of functions
 	pagesLeft := true
 	for pagesLeft {
-		// List CloudFront functions
+		// List CloudFront Response Headers Policies
 		data, err := svc.ListResponseHeadersPolicies(&input)
 		if err != nil {
 			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
 			return nil, err
 		}
 
-		for _, function := range data.ResponseHeadersPolicyList.Items {
-			d.StreamListItem(ctx, function)
+		for _, policy := range data.ResponseHeadersPolicyList.Items {
+			d.StreamListItem(ctx, policy)
 		}
 
 		if data.ResponseHeadersPolicyList.NextMarker != nil {
@@ -142,7 +156,6 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 
 func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontResponseHeadersPolicy")
-
 	var id string
 
 	if h.Item != nil {
