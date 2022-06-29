@@ -160,4 +160,3 @@ from
 where
   default_arguments ->> '--encryption-type' is null;
 ```
-
