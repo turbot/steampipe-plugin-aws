@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -173,11 +172,6 @@ func getCloudFrontFunction(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	if err != nil {
 		plugin.Logger(ctx).Error("DescribeFunction", "ERROR", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-		}
 		return nil, err
 	}
 
