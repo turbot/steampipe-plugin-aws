@@ -45,7 +45,7 @@ from
   aws_glue_connection
 where
   connection_type = 'JDBC'
-  and connection_properties ->> 'JDBC_ENFORCE_SSL' = 'false'
+  and connection_properties ->> 'JDBC_ENFORCE_SSL' = 'false';
 ```
 
 ### List connection vpc details
@@ -61,5 +61,5 @@ select
   physical_connection_requirements ->> 'SecurityGroupIdList' as security_group_ids
 from
   aws_glue_connection c
-  join aws_vpc_subnet s on physical_connection_requirements ->> 'SubnetId' = s.subnet_id
+  join aws_vpc_subnet s on physical_connection_requirements ->> 'SubnetId' = s.subnet_id;
 ```

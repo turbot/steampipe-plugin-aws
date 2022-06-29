@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
@@ -25,6 +26,10 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 			Hydrate: getGlueConnection,
 		},
 		List: &plugin.ListConfig{
+			KeyColumns: plugin.OptionalColumns([]string{"connection_type"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+			},
 			Hydrate: listGlueConnections,
 		},
 		GetMatrixItem: BuildRegionList,
@@ -112,6 +117,16 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 	input := &glue.GetConnectionsInput{
 		MaxResults: aws.Int64(100),
+	}
+
+	if d.KeyColumnQuals["connection_type"] != nil {
+		connectionType := d.KeyColumnQuals["connection_type"].GetStringValue()
+		if connectionType == "" || strings.EqualFold(connectionType, "SFTP") {
+			return nil, nil
+		}
+		input.SetFilter(&glue.GetConnectionsFilter{
+			ConnectionType: aws.String(connectionType),
+		})
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
