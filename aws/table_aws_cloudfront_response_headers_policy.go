@@ -20,7 +20,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				// TODO: Find not found error
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResponseHeadersPolicy"}),
 			},
 			Hydrate: getCloudFrontResponseHeadersPolicy,
 		},
@@ -30,10 +30,29 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
+				Name:        "name",
+				Description: "The name of the response headers policy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResponseHeadersPolicy.ResponseHeadersPolicyConfig.Name"),
+			},
+			{
 				Name:        "id",
 				Description: "The identifier for the response headers policy.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ResponseHeadersPolicy.Id"),
+			},
+			{
+				Name:        "arn",
+				Description: "The version identifier for the current version of the response headers policy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(getAccountARN),
+			},
+			{
+				Name:        "e_tag",
+				Description: "The version identifier for the current version of the response headers policy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ETag"),
+				Hydrate:     getCloudFrontResponseHeadersPolicy,
 			},
 			{
 				Name:        "last_modified_time",
@@ -42,60 +61,40 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ResponseHeadersPolicy.LastModifiedTime"),
 			},
 			{
+				Name:        "type",
+				Description: "The type of response headers policy, either managed (created by AWS) or custom (created in this AWS account).",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Type"),
+			},
+			{
 				Name:        "response_headers_policy_config",
 				Description: "A response headers policy contains information about a set of HTTP response headers and their values. CloudFront adds the headers in the policy to HTTP responses that it sends for requests that match a cache behavior that’s associated with the policy.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ResponseHeadersPolicy.ResponseHeadersPolicyConfig"),
 			},
-
-			// {
-			// 	Name:        "arn",
-			// 	Description: "The version identifier for the current version of the CloudFront function.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("FunctionMetadata.FunctionARN", "FunctionSummary.FunctionMetadata.FunctionARN"),
-			// },
-			// {
-			// 	Name:        "status",
-			// 	Description: "The status of the CloudFront function.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("Status", "FunctionSummary.Status"),
-			// 	Hydrate:     getCloudFrontFunction,
-			// },
-			// {
-			// 	Name:        "e_tag",
-			// 	Description: "The version identifier for the current version of the CloudFront function.",
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("ETag", "FunctionSummary.ETag"),
-			// 	Hydrate:     getCloudFrontFunction,
-			// },
-			// {
-			// 	Name:        "function_config",
-			// 	Description: "Contains configuration information about a CloudFront function.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("FunctionConfig", "FunctionSummary.FunctionConfig"),
-			// 	Hydrate:     getCloudFrontFunction,
-			// },
-			// {
-			// 	Name:        "function_metadata",
-			// 	Description: "Contains metadata about a CloudFront function.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("FunctionMetadata", "FunctionSummary.FunctionMetadata"),
-			// },
-			// // Steampipe standard columns
-			// {
-			// 	Name:        "title",
-			// 	Description: resourceInterfaceDescription("title"),
-			// 	Type:        proto.ColumnType_STRING,
-			// 	Transform:   transform.FromField("Name", "FunctionSummary.Name"),
-			// },
-			// {
-			// 	Name:        "akas",
-			// 	Description: resourceInterfaceDescription("akas"),
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Transform:   transform.FromField("FunctionMetadata.FunctionARN", "FunctionSummary.FunctionMetadata.FunctionARN").Transform(transform.EnsureStringArray),
-			// },
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ResponseHeadersPolicy.ResponseHeadersPolicyConfig.Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(getAccountARN).Transform(transform.EnsureStringArray),
+			},
 		}),
 	}
+}
+
+type responseHeadersPolicyItem struct {
+	Partition             string
+	AccountId             string
+	ResponseHeadersPolicy cloudfront.ResponseHeadersPolicy
+	Type                  *string
+	ETag                  *string
 }
 
 //// LIST FUNCTION
@@ -109,11 +108,17 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
+	// Get common columns which will be used to create the ARN
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
 	// Set up the limit
 	input := cloudfront.ListResponseHeadersPoliciesInput{
-		// TODO: Restore
-		// MaxItems: aws.Int64(100),
-		MaxItems: aws.Int64(1),
+		MaxItems: aws.Int64(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -138,7 +143,13 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 		}
 
 		for _, policy := range data.ResponseHeadersPolicyList.Items {
-			d.StreamListItem(ctx, policy)
+			item := responseHeadersPolicyItem{
+				AccountId:             commonColumnData.AccountId,
+				Partition:             commonColumnData.Partition,
+				ResponseHeadersPolicy: *policy.ResponseHeadersPolicy,
+				Type:                  policy.Type,
+			}
+			d.StreamListItem(ctx, &item)
 		}
 
 		if data.ResponseHeadersPolicyList.NextMarker != nil {
@@ -156,11 +167,20 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 
 func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontResponseHeadersPolicy")
+
+	// Get common columns which will be used to create the ARN
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
 	var id string
 
 	if h.Item != nil {
-		summary := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
-		id = *summary.ResponseHeadersPolicy.Id
+		item := h.Item.(*responseHeadersPolicyItem)
+		id = *item.ResponseHeadersPolicy.Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
@@ -189,7 +209,22 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 		return nil, err
 	}
 
-	return data, nil
+	item := responseHeadersPolicyItem{
+		AccountId:             commonColumnData.AccountId,
+		Partition:             commonColumnData.Partition,
+		ResponseHeadersPolicy: *data.ResponseHeadersPolicy,
+		ETag:                  data.ETag,
+	}
+
+	return &item, nil
 }
 
 //// TRANSFORM FUNCTION
+func getAccountARN(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getAccountARN")
+	item := d.HydrateItem.(*responseHeadersPolicyItem)
+
+	arn := "arn:" + item.Partition + ":cloudfront::" + item.AccountId + ":response-headers-policy/" + *item.ResponseHeadersPolicy.Id
+
+	return arn, nil
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "comment": "",
+    "domain_name": "{{ output.domain_name.value }}",
+    "e_tag": "{{ output.etag.value }}",
+    "enabled": false,
+    "id": "{{ output.resource_id.value }}",
+    "in_progress_invalidation_batches": 0,
+    "is_ipv6_enabled": false
+  }
+]
