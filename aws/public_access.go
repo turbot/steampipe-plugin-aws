@@ -146,9 +146,9 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	resourceAccountId := []string{}
 
 	for index, stmt := range policy.Statements {
-		if stmt.Effect == "Allow" {
-			actions = append(actions, stmt.Action...)
-		}
+		// if stmt.Effect == "Allow" {
+		// 	actions = append(actions, stmt.Action...)
+		// }
 		if stmt.Resource != nil {
 			for _, item := range stmt.Resource {
 				if arn.IsARN(item) {
@@ -162,11 +162,11 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 		}
 
 		public, evaluation := stmt.EvaluateStatement()
-		fmt.Println("evaluation:", evaluation)
+		// fmt.Println("evaluation:", evaluation)
 		if public {
 			policyEvaluation.IsPublic = true
 			// publicAccessLevels = append(publicAccessLevels, evaluation.PublicAccessLevels...)
-			// actions = append(actions, stmt.Action...)
+			actions = append(actions, stmt.Action...)
 			if stmt.Sid == "" {
 				publicStatementIds = append(publicStatementIds, fmt.Sprintf("Statement[%d]", index+1))
 			} else {
@@ -319,7 +319,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
 			var typeOfOperator string = "Unknown"
-			fmt.Println("operatorKey:", operatorKey)
+			// fmt.Println("operatorKey:", operatorKey)
 			switch operatorKey {
 			case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
 				typeOfOperator = "String"
@@ -338,7 +338,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 				typeOfOperator = "Binary"
 			}
 
-			fmt.Println("typeOfOperator:", typeOfOperator)
+			// fmt.Println("typeOfOperator:", typeOfOperator)
 
 			hasNotInOperator := CheckNotInOperator(operatorKey)
 			hasLikeOperator := strings.Contains(operatorKey, "Like")
@@ -488,7 +488,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										}
 									}
 									if !principalArnPublic {
-										fmt.Println("AllowedAccountsForPrincipals:", allowedAccountsForPrincipals)
+										// fmt.Println("AllowedAccountsForPrincipals:", allowedAccountsForPrincipals)
 										allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
 										internalPublicPrincipalKey = false
