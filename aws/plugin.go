@@ -46,6 +46,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
 			"aws_account":                                                  tableAwsAccount(ctx),
 			"aws_acm_certificate":                                          tableAwsAcmCertificate(ctx),
+			"aws_amplify_app":                                              tableAwsAmplifyApp(ctx),
 			"aws_api_gateway_api_key":                                      tableAwsAPIGatewayAPIKey(ctx),
 			"aws_api_gateway_authorizer":                                   tableAwsAPIGatewayAuthorizer(ctx),
 			"aws_api_gateway_rest_api":                                     tableAwsAPIGatewayRestAPI(ctx),
