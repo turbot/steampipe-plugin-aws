@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,9 +49,10 @@ data "null_data_source" "resource" {
 resource "aws_securityhub_account" "named_test_resource" {}
 
 resource "null_resource" "named_test_resource" {
+  depends_on = [aws_securityhub_account.named_test_resource] 
   provisioner "local-exec" {
     command = <<EOT
-      aws securityhub describe-standards-controls --standards-subscription-arn "arn:aws:securityhub:us-east-1:${data.aws_caller_identity.current.account_id}:subscription/aws-foundational-security-best-practices/v/1.0.0" > ${path.cwd}/control.json;
+      aws securityhub describe-standards-controls --region ${data.aws_region.primary.name} --standards-subscription-arn "arn:aws:securityhub:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:subscription/aws-foundational-security-best-practices/v/1.0.0" > ${path.cwd}/control.json;
     EOT
   }
 }

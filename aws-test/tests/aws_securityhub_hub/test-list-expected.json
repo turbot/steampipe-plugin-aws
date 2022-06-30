@@ -3,7 +3,6 @@
     "akas": [
       "{{ output.arn.value }}"
     ],
-    "auto_enable_controls": false,
     "hub_arn": "{{ output.arn.value }}",
     "region": "{{ output.aws_region.value }}"
   }

@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "ap-northeast-3"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -90,7 +90,7 @@ resource "aws_iam_instance_profile" "named_test_resource" {
 
 resource "aws_instance" "named_test_resource" {
   ami                         = data.aws_ami.linux.id
-  instance_type               = "t2.micro"
+  instance_type               = "t3.micro"
   subnet_id                   = aws_default_subnet.default_subnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.named_test_resource.name
