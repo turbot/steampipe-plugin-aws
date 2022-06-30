@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -171,6 +173,14 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("listAuditManagerEvidences", "AWS_REGION", region)
 
+	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Get "https://auditmanager.sa-east-1.amazonaws.com/": dial tcp: lookup auditmanager.sa-east-1.amazonaws.com: no such host
+	serviceId := auditmanager.EndpointsID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
+
 	// Get assessment details
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 
@@ -268,14 +278,22 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 	var items []evidenceInfo
 
 	listEvidence, err := svc.GetEvidenceByEvidenceFolder(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getRowDataForEvidence", "err", err)
 		return nil, err
 	}
 
 	for _, evidence := range listEvidence.Evidence {
 		items = append(items, evidenceInfo{evidence, item.AssessmentId, item.ControlSetId})
 	}
-	return items, err
+
+	return items, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -283,6 +301,14 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
+	// Get "https://auditmanager.sa-east-1.amazonaws.com/": dial tcp: lookup auditmanager.sa-east-1.amazonaws.com: no such host
+	serviceId := auditmanager.EndpointsID
+	validRegions := SupportedRegionsForService(ctx, d, serviceId)
+	if !helpers.StringSliceContains(validRegions, region) {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := AuditManagerService(ctx, d, region)
@@ -305,8 +331,14 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// Get call
 	data, err := svc.GetEvidence(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAuditManagerEvidence", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerEvidence", "err", err)
 		return nil, err
 	}
 
