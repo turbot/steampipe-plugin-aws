@@ -69,7 +69,7 @@ output "database_name" {
 }
 
 output "resource_aka" {
-  value = "arn:aws:glue:us-east-1:533793682495:security-configuration/${var.resource_name}"
+  value = "arn:aws:glue:us-east-1:${data.aws_caller_identity.current.account_id}:security-configuration/${var.resource_name}"
 }
 
 output "aws_region" {

@@ -3,13 +3,10 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "block_public_acls": true,
     "bucket_policy_is_public": false,
-    "ignore_public_acls": true,
     "logging": null,
     "name": "{{resourceName}}",
     "partition": "{{ output.aws_partition.value }}",
-    "restrict_public_buckets": true,
     "tags": {
       "name": "{{resourceName}}"
     },
