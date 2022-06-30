@@ -41,6 +41,12 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
+resource "null_resource" "named_test_resource" {
+  provisioner "local-exec" {
+    command = "aws sts get-caller-identity --profile ${var.aws_profile}"
+  }
+}
+
 output "aws_account" {
   value = data.aws_caller_identity.current.account_id
 }
