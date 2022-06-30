@@ -25,7 +25,8 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 			Hydrate: getCloudFrontResponseHeadersPolicy,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listCloudFrontResponseHeadersPolicy,
+			KeyColumns: plugin.SingleColumn("type"),
+			Hydrate:    listCloudFrontResponseHeadersPolicy,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -45,7 +46,8 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The version identifier for the current version of the response headers policy.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(getAccountARN),
+				Hydrate:     getAccountARN,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "e_tag",
@@ -64,7 +66,8 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Name:        "type",
 				Description: "The type of response headers policy, either managed (created by AWS) or custom (created in this AWS account).",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Type"),
+				Hydrate:     getType,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "response_headers_policy_config",
@@ -83,15 +86,14 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(getAccountARN).Transform(transform.EnsureStringArray),
+				Hydrate:     getAccountARN,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
 }
 
 type responseHeadersPolicyItem struct {
-	Partition             string
-	AccountId             string
 	ResponseHeadersPolicy cloudfront.ResponseHeadersPolicy
 	Type                  *string
 	ETag                  *string
@@ -102,62 +104,16 @@ type responseHeadersPolicyItem struct {
 func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudFrontResponseHeadersPolicy")
 
-	// Create Session
-	svc, err := CloudFrontService(ctx, d)
+	getResponseHeadersPoliciesCached := plugin.HydrateFunc(getResponseHeadersPolicies).WithCache()
+	response, err := getResponseHeadersPoliciesCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get common columns which will be used to create the ARN
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
+	items := response.([]*responseHeadersPolicyItem)
 
-	// Set up the limit
-	input := cloudfront.ListResponseHeadersPoliciesInput{
-		MaxItems: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
-			} else {
-				input.MaxItems = limit
-			}
-		}
-	}
-
-	pagesLeft := true
-	for pagesLeft {
-		// List CloudFront Response Headers Policies
-		data, err := svc.ListResponseHeadersPolicies(&input)
-		if err != nil {
-			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
-			return nil, err
-		}
-
-		for _, policy := range data.ResponseHeadersPolicyList.Items {
-			item := responseHeadersPolicyItem{
-				AccountId:             commonColumnData.AccountId,
-				Partition:             commonColumnData.Partition,
-				ResponseHeadersPolicy: *policy.ResponseHeadersPolicy,
-				Type:                  policy.Type,
-			}
-			d.StreamListItem(ctx, &item)
-		}
-
-		if data.ResponseHeadersPolicyList.NextMarker != nil {
-			pagesLeft = true
-			input.Marker = data.ResponseHeadersPolicyList.NextMarker
-		} else {
-			pagesLeft = false
-		}
+	for _, item := range items {
+		d.StreamListItem(ctx, item)
 	}
 
 	return nil, nil
@@ -167,14 +123,6 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 
 func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontResponseHeadersPolicy")
-
-	// Get common columns which will be used to create the ARN
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
 
 	var id string
 
@@ -210,8 +158,6 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 	}
 
 	item := responseHeadersPolicyItem{
-		AccountId:             commonColumnData.AccountId,
-		Partition:             commonColumnData.Partition,
 		ResponseHeadersPolicy: *data.ResponseHeadersPolicy,
 		ETag:                  data.ETag,
 	}
@@ -219,12 +165,128 @@ func getCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData
 	return &item, nil
 }
 
-//// TRANSFORM FUNCTION
-func getAccountARN(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getAccountARN")
-	item := d.HydrateItem.(*responseHeadersPolicyItem)
 
-	arn := "arn:" + item.Partition + ":cloudfront::" + item.AccountId + ":response-headers-policy/" + *item.ResponseHeadersPolicy.Id
+	// Get common columns which will be used to create the ARN
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	response, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := response.(*awsCommonColumnData)
+
+	var id string
+
+	if h.Item != nil {
+		item := h.Item.(*responseHeadersPolicyItem)
+		id = *item.ResponseHeadersPolicy.Id
+	} else {
+		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	arn := "arn:" + commonColumnData.Partition + ":cloudfront::" + commonColumnData.AccountId + ":response-headers-policy/" + id
 
 	return arn, nil
+}
+
+func getType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getType")
+
+	// Get common columns which will be used to create the ARN
+	getIdToTypeLookupCached := plugin.HydrateFunc(getIdToTypeLookup).WithCache()
+	response, err := getIdToTypeLookupCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	lookup := response.(map[string]string)
+
+	var id string
+
+	if h.Item != nil {
+		item := h.Item.(*responseHeadersPolicyItem)
+		id = *item.ResponseHeadersPolicy.Id
+	} else {
+		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	return lookup[id], nil
+}
+
+//// TRANSFORM FUNCTION
+
+//// INTERNAL FUNCTIONS
+func getResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getResponseHeadersPolicies")
+	// Create Session
+	svc, err := CloudFrontService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set up the limit
+	input := cloudfront.ListResponseHeadersPoliciesInput{
+		MaxItems: aws.Int64(100),
+	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *input.MaxItems {
+			if *limit < 1 {
+				input.MaxItems = aws.Int64(1)
+			} else {
+				input.MaxItems = limit
+			}
+		}
+	}
+
+	var items []*responseHeadersPolicyItem
+
+	pagesLeft := true
+	for pagesLeft {
+		data, err := svc.ListResponseHeadersPolicies(&input)
+		if err != nil {
+			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
+			return nil, err
+		}
+
+		for _, policy := range data.ResponseHeadersPolicyList.Items {
+			item := responseHeadersPolicyItem{
+				ResponseHeadersPolicy: *policy.ResponseHeadersPolicy,
+				Type:                  policy.Type,
+			}
+			items = append(items, &item)
+		}
+
+		if data.ResponseHeadersPolicyList.NextMarker != nil {
+			pagesLeft = true
+			input.Marker = data.ResponseHeadersPolicyList.NextMarker
+		} else {
+			pagesLeft = false
+		}
+	}
+
+	return items, nil
+}
+
+func getIdToTypeLookup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getIdToTypeLookup")
+
+	getResponseHeadersPoliciesCached := plugin.HydrateFunc(getResponseHeadersPolicies).WithCache()
+	response, err := getResponseHeadersPoliciesCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	items := response.([]*responseHeadersPolicyItem)
+
+	type_lookup := make(map[string]string)
+	for _, item := range items {
+		type_lookup[*item.ResponseHeadersPolicy.Id] = *item.Type
+	}
+
+	return type_lookup, nil
 }

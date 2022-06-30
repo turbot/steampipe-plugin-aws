@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -40,93 +40,91 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
+resource "aws_cloudfront_response_headers_policy" "named_test_resource" {
+  name    = var.resource_name
+  comment = "test comment"
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "SAMEORIGIN"
+      override     = false
+    }
+    referrer_policy {
+      override        = false
+      referrer_policy = "strict-origin-when-cross-origin"
+    }
+
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      override                   = false
+    }
+    xss_protection {
+      mode_block = true
+      override   = false
+      protection = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "X-Permitted-Cross-Domain-Policies"
+      override = true
+      value    = "none"
+    }
+
+    items {
+      header   = "X-Test"
+      override = true
+      value    = "none"
+    }
+  }
+
+  cors_config {
+    access_control_allow_credentials = true
+
+    access_control_allow_headers {
+      items = ["test"]
+    }
+
+    access_control_allow_methods {
+      items = ["GET"]
+    }
+
+    access_control_allow_origins {
+      items = ["test.example.comtest"]
+    }
+
+    origin_override = true
   }
 }
 
-resource "aws_s3_bucket" "test_bucket" {
-  bucket = var.resource_name
-  force_destroy = true
-}
-
-resource "aws_cloudfront_distribution" "named_test_resource" {
-  origin {
-    domain_name = "${aws_s3_bucket.test_bucket.bucket_regional_domain_name}"
-    origin_id   = "s3-${aws_s3_bucket.test_bucket.bucket}"
-  }
-  enabled             = false
-  default_root_object = "index.html"
-
-  default_cache_behavior {
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "s3-${aws_s3_bucket.test_bucket.bucket}"
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-    viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-  }
-
-  ordered_cache_behavior {
-    path_pattern     = "/content/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "s3-${aws_s3_bucket.test_bucket.bucket}"
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-    compress               = true
-    viewer_protocol_policy = "redirect-to-https"
-  }
-  price_class = "PriceClass_200"
-  restrictions {
-    geo_restriction {
-      restriction_type = "whitelist"
-      locations        = ["US", "CA", "GB", "DE"]
-    }
-  }
-  tags = {
-    name = var.resource_name
-  }
-  viewer_certificate {
-    cloudfront_default_certificate = true
-  }
+locals {
+  resource_aka = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:response-headers-policy/${aws_cloudfront_response_headers_policy.named_test_resource.id}"
 }
 
 output "resource_aka" {
-  value = aws_cloudfront_distribution.named_test_resource.arn
-}
-
-output "domain_name" {
-  value = aws_cloudfront_distribution.named_test_resource.domain_name
+  value = local.resource_aka
 }
 
 output "resource_id" {
-  value = aws_cloudfront_distribution.named_test_resource.id
-}
-
-output "is_ipv6_enabled" {
-  value = aws_cloudfront_distribution.named_test_resource.is_ipv6_enabled
+  value = aws_cloudfront_response_headers_policy.named_test_resource.id
 }
 
 output "etag" {
-  value = aws_cloudfront_distribution.named_test_resource.etag
+  value = aws_cloudfront_response_headers_policy.named_test_resource.etag
 }
 
 output "resource_name" {
   value = var.resource_name
+}
+
+output "region_name" {
+  value = data.aws_region.primary.name
+}
+
+output "account_id" {
+  value = data.aws_caller_identity.current.account_id
 }
