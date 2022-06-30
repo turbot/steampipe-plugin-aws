@@ -211,6 +211,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_policy_attachment":                                    tableAwsIamPolicyAttachment(ctx),
 			"aws_iam_policy_simulator":                                     tableAwsIamPolicySimulator(ctx),
 			"aws_iam_role":                                                 tableAwsIamRole(ctx),
+			"aws_iam_saml_provider":                                        tableAwsIamSamlProvider(ctx),
 			"aws_iam_server_certificate":                                   tableAwsIamServerCertificate(ctx),
 			"aws_iam_user":                                                 tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),

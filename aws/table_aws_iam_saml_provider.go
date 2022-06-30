@@ -2,7 +2,7 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"time"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -18,42 +18,71 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_saml_provider",
 		Description: "AWS IAM Saml Provider",
-		List: &plugin.ListConfig{
-			ParentHydrate: listIamPolicies,
-			Hydrate:       listIamSamlProviders,
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "is_attached", Require: plugin.Optional, Operators: []string{"<>", "="}},
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.AllColumns([]string{"arn"}),
+			Hydrate:    getIamSamlProvider,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchEntity"}),
 			},
+		},
+		List: &plugin.ListConfig{
+			Hydrate: listIamSamlProviders,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
-				Name:        "policy_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the IAM policy.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "is_attached",
-				Description: "Specifies whether the policy is attached to at least one IAM user, group, or role.",
-				Type:        proto.ColumnType_BOOL,
-				Transform:   transform.FromField("AttachmentCount").Transform(attachementCountToBool),
+				Name:        "create_date",
+				Description: "The date and time when the SAML provider was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "policy_groups",
-				Description: "A list of IAM groups that the policy is attached to.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "valid_until",
+				Description: "The expiration date and time for the SAML provider.",
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "policy_roles",
-				Description: "A list of IAM roles that the policy is attached to.",
-				Type:        proto.ColumnType_JSON,
+				Name:        "saml_metadata_document",
+				Description: "The XML metadata document that includes information about an identity provider.",
+				Hydrate:     getIamSamlProvider,
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SAMLMetadataDocument"),
 			},
 			{
-				Name:        "policy_users",
-				Description: "A list of IAM users that the policy is attached to.",
+				Name:        "tags_src",
+				Description: "A list of tags that are attached to the specified IAM SAML provider.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamSamlProvider,
+				Transform:   transform.FromField("Tags"),
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getIamSamlProvider,
+				Transform:   transform.From(samlProviderTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
+}
+
+type SAMLProvider struct {
+	Arn                  *string    `min:"20" type:"string"`
+	CreateDate           *time.Time `type:"timestamp"`
+	SAMLMetadataDocument *string    `min:"1000" type:"string"`
+	Tags                 []*iam.Tag `type:"list"`
+	ValidUntil           *time.Time `type:"timestamp"`
 }
 
 //// LIST FUNCTION
@@ -76,7 +105,11 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	for _, row := range result.SAMLProviderList {
-		d.StreamListItem(ctx, row)
+		d.StreamListItem(ctx, SAMLProvider{
+			Arn:        row.Arn,
+			CreateDate: row.CreateDate,
+			ValidUntil: row.ValidUntil,
+		})
 
 		// Check if context has been cancelled or if the limit has been hit (if specified)
 		// if there is a limit, it will return the number of rows required to reach this limit
@@ -92,13 +125,13 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var arn string
 	if h.Item != nil {
-		entry := h.Item.(*iam.SAMLProviderListEntry)
+		entry := h.Item.(SAMLProvider)
 		arn = *entry.Arn
 	} else {
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
-	if strings.TrimSpace(arn) == "" {
+	if arn == "" {
 		return nil, nil
 	}
 
@@ -119,5 +152,30 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_iam_saml_provider.getIamSamlProvider", "api_error", err)
 		return nil, err
 	}
-	return result, nil
+
+	provider := SAMLProvider{
+		Arn:                  &arn,
+		CreateDate:           result.CreateDate,
+		ValidUntil:           result.ValidUntil,
+		SAMLMetadataDocument: result.SAMLMetadataDocument,
+		Tags:                 result.Tags,
+	}
+
+	return provider, nil
+}
+
+//// TRANSFORM FUNCTION
+
+func samlProviderTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	provider := d.HydrateItem.(SAMLProvider)
+
+	if provider.Tags != nil {
+		turbotTagsMap := map[string]string{}
+		for _, i := range provider.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+		return turbotTagsMap, nil
+	}
+
+	return nil, nil
 }
