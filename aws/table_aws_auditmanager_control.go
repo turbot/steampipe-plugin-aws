@@ -239,8 +239,14 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	op, err := svc.GetControl(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Error("getAuditManagerControl", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerControl", "err", err)
 		return nil, err
 	}
 
