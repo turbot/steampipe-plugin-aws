@@ -1,6 +1,6 @@
 # Table: aws_amplify_app
 
-An Amplify app table provides details about the different branches of a repository for building, deploying, and hosting of an existing Amplify app.
+AWS Amplify is a full-suite package of tools and services specifically designed to help developers create and launch apps with ease. The Apps represent the different branches of a repository for building, deploying, and hosting an Amplify app.
 
 ## Examples
 
