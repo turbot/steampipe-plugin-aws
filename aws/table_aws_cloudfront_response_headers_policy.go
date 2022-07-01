@@ -19,14 +19,18 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// TODO: Find not found error
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResponseHeadersPolicy"}),
 			},
 			Hydrate: getCloudFrontResponseHeadersPolicy,
 		},
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.SingleColumn("type"),
-			Hydrate:    listCloudFrontResponseHeadersPolicy,
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "type",
+					Require: plugin.Optional,
+				},
+			},
+			Hydrate: listCloudFrontResponseHeadersPolicy,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -93,9 +97,10 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 	}
 }
 
+//// INTERNAL STRUCTURES
+
 type responseHeadersPolicyItem struct {
 	ResponseHeadersPolicy cloudfront.ResponseHeadersPolicy
-	Type                  *string
 	ETag                  *string
 }
 
@@ -104,13 +109,32 @@ type responseHeadersPolicyItem struct {
 func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudFrontResponseHeadersPolicy")
 
-	getResponseHeadersPoliciesCached := plugin.HydrateFunc(getResponseHeadersPolicies).WithCache()
-	response, err := getResponseHeadersPoliciesCached(ctx, d, h)
+	maxItems := aws.Int64(100)
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < *maxItems {
+			if *limit < 1 {
+				maxItems = aws.Int64(1)
+			} else {
+				maxItems = limit
+			}
+		}
+	}
+
+	// Additonal Filter
+	var policyType *string
+
+	policyTypeColumn := d.KeyColumnQuals["type"]
+	if policyTypeColumn != nil {
+		policyType = aws.String(policyTypeColumn.GetStringValue())
+	}
+
+	items, err := callAWSListResponseHeadersPolicies(ctx, d, maxItems, policyType)
 	if err != nil {
 		return nil, err
 	}
-
-	items := response.([]*responseHeadersPolicyItem)
 
 	for _, item := range items {
 		d.StreamListItem(ctx, item)
@@ -194,14 +218,14 @@ func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 func getType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getType")
 
-	// Get common columns which will be used to create the ARN
-	getIdToTypeLookupCached := plugin.HydrateFunc(getIdToTypeLookup).WithCache()
-	response, err := getIdToTypeLookupCached(ctx, d, h)
+	// Find all the managed response headers policies and anything that is not that is custom.
+	getManagedIdMapCached := plugin.HydrateFunc(getManagedIdMap).WithCache()
+	response, err := getManagedIdMapCached(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
 
-	lookup := response.(map[string]string)
+	lookup := response.(map[string]bool)
 
 	var id string
 
@@ -212,51 +236,64 @@ func getType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (i
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	return lookup[id], nil
+	if lookup[id] {
+		return "managed", nil
+	}
+
+	return "custom", nil
 }
 
 //// TRANSFORM FUNCTION
 
 //// INTERNAL FUNCTIONS
-func getResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getResponseHeadersPolicies")
-	// Create Session
-	svc, err := CloudFrontService(ctx, d)
+
+func getManagedIdMap(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getIdToTypeLookup")
+
+	managedItems, err := callAWSListResponseHeadersPolicies(ctx, d, nil, aws.String("managed"))
 	if err != nil {
 		return nil, err
 	}
 
-	// Set up the limit
-	input := cloudfront.ListResponseHeadersPoliciesInput{
-		MaxItems: aws.Int64(100),
+	type_lookup := make(map[string]bool)
+	for _, item := range managedItems {
+		type_lookup[*item.ResponseHeadersPolicy.Id] = true
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
-			} else {
-				input.MaxItems = limit
-			}
-		}
-	}
+	return type_lookup, nil
+}
+
+func callAWSListResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, max_items *int64, policy_type *string) ([]*responseHeadersPolicyItem, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.callAWSListResponseHeadersPolicies")
 
 	var items []*responseHeadersPolicyItem
+
+	svc, err := CloudFrontService(ctx, d)
+	if err != nil {
+		return items, err
+	}
+
+	input := cloudfront.ListResponseHeadersPoliciesInput{}
+
+	if max_items != nil {
+		input.MaxItems = max_items
+	}
+
+	if policy_type != nil {
+		input.Type = policy_type
+	}
 
 	pagesLeft := true
 	for pagesLeft {
 		data, err := svc.ListResponseHeadersPolicies(&input)
 		if err != nil {
 			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
-			return nil, err
+			return items, err
 		}
 
 		for _, policy := range data.ResponseHeadersPolicyList.Items {
 			item := responseHeadersPolicyItem{
-				ResponseHeadersPolicy: *policy.ResponseHeadersPolicy,
-				Type:                  policy.Type,
+				ResponseHeadersPolicy: *policy.ResponseHeadersPolicy
 			}
 			items = append(items, &item)
 		}
@@ -270,23 +307,4 @@ func getResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return items, nil
-}
-
-func getIdToTypeLookup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getIdToTypeLookup")
-
-	getResponseHeadersPoliciesCached := plugin.HydrateFunc(getResponseHeadersPolicies).WithCache()
-	response, err := getResponseHeadersPoliciesCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-
-	items := response.([]*responseHeadersPolicyItem)
-
-	type_lookup := make(map[string]string)
-	for _, item := range items {
-		type_lookup[*item.ResponseHeadersPolicy.Id] = *item.Type
-	}
-
-	return type_lookup, nil
 }
