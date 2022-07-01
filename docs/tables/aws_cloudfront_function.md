@@ -1,8 +1,11 @@
 # Table: aws_cloudfront_function
 
-Contains configuration information and metadata about a CloudFront function.
+CloudFront Functions is ideal for lightweight, short-running functions for use cases like the following:
 
-## Examples
+- Cache key normalization – You can transform HTTP request attributes (headers, query strings, cookies, even the URL path) to create an optimal cache key, which can improve your cache hit ratio.
+- Header manipulation – You can insert, modify, or delete HTTP headers in the request or response. For example, you can add a True-Client-IP header to every request.
+- URL redirects or rewrites – You can redirect viewers to other pages based on information in the request, or rewrite all requests from one path to another.
+- Request authorization – You can validate hashed authorization tokens, such as JSON web tokens (JWT), by inspecting authorization headers or other request metadata.
 
 ### Basic info
 
