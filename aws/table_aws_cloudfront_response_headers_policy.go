@@ -70,7 +70,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Name:        "type",
 				Description: "The type of response headers policy, either managed (created by AWS) or custom (created in this AWS account).",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getType,
+				Hydrate:     getPolicyType,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -215,8 +215,8 @@ func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return arn, nil
 }
 
-func getType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getType")
+func getPolicyType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getPolicyType")
 
 	// Find all the managed response headers policies and anything that is not that is custom.
 	getManagedIdMapCached := plugin.HydrateFunc(getManagedIdMap).WithCache()
@@ -248,7 +248,7 @@ func getType(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (i
 //// INTERNAL FUNCTIONS
 
 func getManagedIdMap(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getIdToTypeLookup")
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getManagedIdMap")
 
 	managedItems, err := callAWSListResponseHeadersPolicies(ctx, d, nil, aws.String("managed"))
 	if err != nil {
