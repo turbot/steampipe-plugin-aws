@@ -29,7 +29,7 @@ select
 from
   aws_cloudfront_response_headers_policy
 where
-  type = "custom";
+  type = 'custom';
 ```
 
 ### List response header policies that were modified in the last hour
