@@ -1,6 +1,19 @@
 # Table: aws_cloudfront_response_headers_policy
 
-An origin request policy controls the values that are include in requests that CloudFront sends to your origin.
+AWS CloudFront is a globally-distributed network offered by AWS used to securely transfers digital content to its clients using a high transfer speed.
+
+Response headers policies are provided to simplify the process of HTTP header response manipulation.
+They allow the user to define CORS, security, and custom response headers as a configuration setting in CloudFront.
+
+This table details the contents of the response header policies.
+
+**Important notes:**
+
+This table supports optional quals.
+Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
+Optional quals are supported for the following columns:
+
+- `type`
 
 ## Examples
 
