@@ -124,10 +124,14 @@ type PolicyEvaluation struct {
 	PublicStatementIds                  []string `json:"public_statement_ids"`
 }
 
-func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
+func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation, error) {
 	//TODO - bring source account information for getting public, private or shared level access info
 	re := regexp.MustCompile(`[0-9]{12}`)
+
 	var policyEvaluation PolicyEvaluation
+	if !re.Match([]byte(sourceAccountID)) {
+		return &policyEvaluation, fmt.Errorf("%s is not a valid. Please enter a valid account id.", sourceAccountID)
+	}
 	// var public bool
 	if policy.Statements == nil {
 		return &policyEvaluation, nil
@@ -219,21 +223,29 @@ func (policy *Policy) EvaluatePolicy() (*PolicyEvaluation, error) {
 	if policyEvaluation.IsPublic {
 		policyEvaluation.AccessLevel = "public"
 	} else {
-		if len(resourceAccountId) > 0 {
+		if len(policyEvaluation.AllowedOrganizationIds) > 0 {
+			policyEvaluation.AccessLevel = "shared"
+		} else if len(policyEvaluation.AllowedPrincipals) > 0 {
 			for _, item := range policyEvaluation.AllowedPrincipals {
 				if arn.IsARN(item) {
 					arnParts, _ := arn.Parse(item)
-					if arnParts.AccountID != resourceAccountId[0] {
+					if arnParts.AccountID != sourceAccountID {
 						policyEvaluation.AccessLevel = "shared"
 					}
 				}
 			}
+		} else if len(policyEvaluation.AllowedPrincipalAccountIds) > 0 {
+			for _, item := range policyEvaluation.AllowedPrincipalAccountIds {
+				if arn.IsARN(item) {
+					arnParts, _ := arn.Parse(item)
+					if arnParts.AccountID != sourceAccountID {
+						policyEvaluation.AccessLevel = "shared"
+					}
+				} else if item != sourceAccountID {
+					policyEvaluation.AccessLevel = "shared"
+				}
+			}
 		}
-		// if len(policyEvaluation.AllowedPrincipalAccountIds) == 0 && len(policyEvaluation.AllowedOrganizationIds) == 0 {
-		// 	policyEvaluation.AccessLevel = "private"
-		// } else {
-		// 	policyEvaluation.AccessLevel = "shared"
-		// }
 	}
 
 	sort.Strings(policyEvaluation.AllowedOrganizationIds)
@@ -346,10 +358,11 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				internalPublicPrincipalKey := true
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					if hasPublicPrincipal {
+					if hasPublicPrincipal || len(awsPrincipals) == 0 {
 						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
 						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
 						if typeOfOperator == "String" {
+							fmt.Println("AM I REACHING HERE")
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
@@ -426,6 +439,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									//TODO What to add in allowed account and allowed principals in this case
 								}
 							case "aws:sourceaccount", "aws:sourceowner": // Works with String operators
+								fmt.Println("AM I REACHING HERE", "hasIfExistsSuffix", hasIfExistsSuffix, "hasNotInOperator", hasNotInOperator, "hasLikeOperator", hasLikeOperator)
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
 									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
 									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
@@ -546,6 +560,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	}
 
 	stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, allowedOrganizationIds...)
+	stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, allowedAccountsForPrincipals...)
 	stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, allowedPrincipals...)
 	stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, allowedPrincipalsForService...)
 	stmtEvaluation.AllowedPrincipalFederatedIdentities = append(stmtEvaluation.AllowedPrincipalFederatedIdentities, federatedPrincipals...)
