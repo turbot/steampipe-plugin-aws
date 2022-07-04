@@ -1385,17 +1385,13 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 
 // PricingService returns the service connection for AWS Pricing
 func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
-	// region := d.KeyColumnQualString(matrixKeyRegion)
-	// if region == "" {
-	// 	return nil, fmt.Errorf("region must be passed PricingService")
-	// }
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("pricing-%s", "us-east-1")
+	serviceCacheKey := "pricing"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*pricing.Pricing), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, "us-east-1")
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
