@@ -11,107 +11,6 @@ import (
 	"github.com/turbot/go-kit/helpers"
 )
 
-var (
-	// AWS Global Keys to be checked for the trusted access for AWS Principal
-	trustedAWSPrincipalConditionKeys = []string{
-		"aws:principalaccount",
-		"aws:principalarn",
-		"aws:principalorgid",
-		"aws:principalorgpaths", //["o-a1b2c3d4e5/*"]  , ["o-a1b2c3d4e5/r-ab12/ou-ab12-11111111/ou-ab12-22222222/ou-*"]
-	}
-	// AWS Global Keys to be checked for the trusted access for Service Principal
-	trustedServicePrincipalConditionKeys = []string{
-		"aws:sourcearn",
-		"aws:sourceaccount", // SourceAccount is used for giving IAM roles access from an account to the topic.
-		"aws:sourceowner",   // SourceOwner is used for giving access to other AWS Services from a specific account
-	}
-
-	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_String
-	StringConditionalOperators = []string{
-		"StringEquals",
-		"StringNotEquals",
-		"StringEqualsIgnoreCase",
-		"StringNotEqualsIgnoreCase",
-		"StringLike",
-		"StringNotLike",
-	}
-
-	// Numeric condition operators
-	NumericConditionalOperators = []string{
-		"NumericEquals",
-		"NumericNotEquals",
-		"NumericLessThan",
-		"NumericLessThanEquals",
-		"NumericGreaterThan",
-		"NumericGreaterThanEquals",
-	}
-
-	// Date condition operators
-	DateConditionalOperators = []string{
-		"DateEquals",
-		"DateNotEquals",
-		"DateLessThan",
-		"DateLessThanEquals",
-		"DateGreaterThan",
-		"DateGreaterThanEquals",
-	}
-
-	// Bool condition operators
-	BoolConditionalOperators = []string{"Bool"}
-
-	// Binary condition operators
-	BinaryConditionalOperators = []string{"BinaryEquals"}
-
-	// IP address condition operators
-	IPAddressConditionalOperators = []string{
-		"IpAddress",
-		"NotIpAddress",
-	}
-
-	// ARNConditionalOperators = []string{
-	// 	"ArnEquals",
-	// 	"ArnLike",
-	// 	"ArnNotEquals",
-	// 	"ArnNotLike",
-	// }
-
-	ARNConditionalOperators = []string{
-		// "ArnEquals",
-		// "ArnLike",
-		// "ArnNotEquals",
-		// "ArnNotLike",
-	}
-
-	NotOperators = []string{"ArnNotEquals", "ArnNotLike", "StringNotEquals", "StringNotEqualsIgnoreCase", "StringNotLike", "NotIpAddress"}
-)
-
-type ConditionMap struct {
-	And map[string][]string `type:"and"`
-	Not map[string][]string `type:"not"`
-	Or  map[string][]string `type:"or"`
-}
-
-type ConditionAndPrincipalMap struct {
-	Principal struct {
-		AWS, Service, Federated []string
-	}
-	Condition ConditionMap
-}
-
-// StringSliceDistinct returns a slice with the unique elements the input string slice
-func StringSliceDistinct(slice []string) []string {
-	res := []string{}
-	countMap := make(map[string]int)
-	for _, item := range slice {
-		countMap[item]++
-		// if this is the first time we have come across this item, add to res
-		if countMap[item] == 1 {
-			res = append(res, item)
-		}
-	}
-	return res
-}
-
 type PolicyEvaluation struct {
 	AccessLevel                         string   `json:"access_level"`
 	AllowedOrganizationIds              []string `json:"allowed_organization_ids"`
@@ -160,9 +59,9 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 		allowedPrincipals = append(allowedPrincipals, evaluation.AllowedPrincipals...)
 	}
 
-	policyEvaluation.AllowedPrincipalAccountIds = StringSliceDistinct(allowedAccounts)
+	policyEvaluation.AllowedPrincipalAccountIds = helpers.StringSliceDistinct(allowedAccounts)
 	accountIds := []string{}
-	for _, item := range StringSliceDistinct(allowedPrincipals) {
+	for _, item := range helpers.StringSliceDistinct(allowedPrincipals) {
 		if arn.IsARN(item) {
 			awsARN, _ := arn.Parse(item)
 			if awsARN.AccountID != "" {
@@ -194,6 +93,7 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 	policyEvaluation.AccessLevel = "private"
 	if policyEvaluation.IsPublic {
 		policyEvaluation.AccessLevel = "public"
+		policyEvaluation.AllowedPrincipalAccountIds = helpers.RemoveFromStringSlice(policyEvaluation.AllowedPrincipalAccountIds, sourceAccountID)
 	} else {
 		if len(policyEvaluation.AllowedOrganizationIds) > 0 {
 			policyEvaluation.AccessLevel = "shared"
@@ -657,12 +557,6 @@ func CheckIfExistsSuffix(key string) bool {
 func CheckNotInOperator(operator string) bool {
 	return strings.Contains(operator, "Not")
 }
-func hasAWSPrincipalConditionKey(conditionKey string) bool {
-	return helpers.StringSliceContains(trustedAWSPrincipalConditionKeys, strings.ToLower(conditionKey))
-}
-func hasServicePrincipalConditionKey(conditionKey string) bool {
-	return helpers.StringSliceContains(trustedServicePrincipalConditionKeys, strings.ToLower(conditionKey))
-}
 
 func removeNotFromOperator(operatorKey string) string {
 	return strings.ReplaceAll(operatorKey, "Not", "")
@@ -722,5 +616,5 @@ func GetAccessLevelsFromActions(permissionsData ParliamentPermissions, actions [
 			}
 		}
 	}
-	return StringSliceDistinct(accessLevels)
+	return helpers.StringSliceDistinct(accessLevels)
 }
