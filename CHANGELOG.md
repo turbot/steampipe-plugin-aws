@@ -1,3 +1,81 @@
+## v0.67.0 [2022-07-01]
+
+_What's new?_
+
+- New tables added
+  - [aws_amplify_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_amplify_app) ([#1112](https://github.com/turbot/steampipe-plugin-aws/pull/1112))
+  - [aws_cloudfront_function](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_function) ([#1120](https://github.com/turbot/steampipe-plugin-aws/pull/1120))
+  - [aws_glue_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_connection) ([#1102](https://github.com/turbot/steampipe-plugin-aws/pull/1102))
+  - [aws_glue_data_catalog_encryption_settings](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_data_catalog_encryption_settings) ([#1114](https://github.com/turbot/steampipe-plugin-aws/pull/1114))
+  - [aws_glue_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_job) ([#1118](https://github.com/turbot/steampipe-plugin-aws/pull/1118))
+  - [aws_glue_security_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_security_configuration) ([#1106](https://github.com/turbot/steampipe-plugin-aws/pull/1106))
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v3.3.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v331--2022-6-30). ([#1129](https://github.com/turbot/steampipe-plugin-aws/pull/1129))
+- Added information about STS and IAM API limitations with aws-vault temporary credentials in the `docs/index.md` file.
+- Added column `vpcs` to `aws_route53_zone` table. ([#1085](https://github.com/turbot/steampipe-plugin-aws/pull/1085))
+- Added column `vpc_endpoint_service_permissions` to `aws_vpc_endpoint_service` table. ([#1121](https://github.com/turbot/steampipe-plugin-aws/pull/1121))
+
+_Bug fixes_
+
+- Fixed the `No such host` issue in audit manager tables. ([#1122](https://github.com/turbot/steampipe-plugin-aws/pull/1122))
+- Fixed the `MaxResults` parameter issue in list API for `aws_eks_identity_provider_config` table. ([#1119](https://github.com/turbot/steampipe-plugin-aws/pull/1119))
+- Fixed the `Unsupported region` issue in `aws_media_store_container` table. ([#1117](https://github.com/turbot/steampipe-plugin-aws/pull/1117))
+- Fixed the `BdRequestException` issue in the `aws_guardduty_member` table. ([#1116](https://github.com/turbot/steampipe-plugin-aws/pull/1116))
+
+## v0.66.0 [2022-06-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_backup_framework](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_backup_framework`) ([#1099](https://github.com/turbot/steampipe-plugin-aws/pull/1099))
+  - [aws_elasticache_reserved_cache_node](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_reserved_cache_node) ([#1092](https://github.com/turbot/steampipe-plugin-aws/pull/1092))
+- Added `s3_force_path_style` config argument to allow S3 path-style addressing. ([#1082](https://github.com/turbot/steampipe-plugin-aws/pull/1082)) (Thanks to [@srgg](https://github.com/srgg) for the contribution!)
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v3.3.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v330--2022-6-22). ([#1108](https://github.com/turbot/steampipe-plugin-aws/pull/1108))
+
+## v0.65.0 [2022-06-16]
+
+_What's new?_
+
+- New tables added
+  - [aws_rds_reserved_db_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_reserved_db_instance) ([#1087](https://github.com/turbot/steampipe-plugin-aws/pull/1087))
+
+_Enhancements_
+
+- Added column `pending_maintenance_actions` to `aws_rds_db_cluster` and `aws_rds_db_instance` tables. ([#1083](https://github.com/turbot/steampipe-plugin-aws/pull/1083))
+- Updated the `.gitignore` file to include all VS Code user settings. ([#1078](https://github.com/turbot/steampipe-plugin-aws/pull/1078))
+
+_Bug fixes_
+
+- Fixed the `snapshot_create_time` column in `aws_redshift_snapshot` table to be of `timestamp` data type instead of `string`. ([#1071](https://github.com/turbot/steampipe-plugin-aws/pull/1071))
+
+## v0.64.0 [2022-06-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_elasticache_redis_metric_engine_cpu_utilization_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_redis_metric_engine_cpu_utilization_daily) ([#1063](https://github.com/turbot/steampipe-plugin-aws/pull/1063))
+  - [aws_glue_dev_endpoint](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_dev_endpoint) ([#1057](https://github.com/turbot/steampipe-plugin-aws/pull/1057))
+  - [aws_ssm_inventory](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_inventory) ([#1054](https://github.com/turbot/steampipe-plugin-aws/pull/1054))
+
+_Enhancements_
+
+- Updated `aws_route53_record` table to temporarily disable `name` and `type` list key quals in order to fix duplicate rows issue. ([#972](https://github.com/turbot/steampipe-plugin-aws/pull/972))
+
+_Bug fixes_
+
+- Fixed `aws_elasticsearch_domain`, `aws_opensearch_domain`, and `aws_s3_bucket` tables to not panic when ignoring errors. ([#1064](https://github.com/turbot/steampipe-plugin-aws/pull/1064))
+
+## v0.63.0 [2022-06-03]
+
+_What's new?_
+
+- Added `endpoint_url` config arg to provide users the ability to set a custom endpoint URL when making requests to AWS services. For more information, please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration). ([#1053](https://github.com/turbot/steampipe-plugin-aws/pull/1053)) (Thanks to [@srgg](https://github.com/srgg) for the contribution!)
+
 ## v0.62.0 [2022-06-02]
 
 _What's new?_

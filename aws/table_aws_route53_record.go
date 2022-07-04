@@ -20,10 +20,11 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_record",
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
+			// Some optional key columns are disabled due to https://github.com/aws/aws-sdk-go/issues/4386
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
-				{Name: "name", Require: plugin.Optional},
-				{Name: "type", Require: plugin.Optional},
+				//	{Name: "name", Require: plugin.Optional},
+				//	{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
 		},
@@ -145,22 +146,25 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	// Optional parameters not included due to incorrect API response for `name` and `type`
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &hostedZoneID,
 		MaxItems:     aws.String("1000"),
 	}
 
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		if equalQuals["name"].GetStringValue() != "" {
-			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
-		}
-	}
-	if equalQuals["type"] != nil {
-		if equalQuals["type"].GetStringValue() != "" {
-			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
-		}
-	}
+	// Some optional key columns are disabled due to https://github.com/aws/aws-sdk-go/issues/4386
+	// equalQuals := d.KeyColumnQuals
+	// if equalQuals["name"] != nil {
+	// 	if equalQuals["name"].GetStringValue() != "" {
+	// 		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
+	// 	}
+	// }
+	// if equalQuals["type"] != nil {
+	// 	if equalQuals["type"].GetStringValue() != "" {
+	// 		input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
+	// 	}
+	// }
+
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
 	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
 	// Reduce the basic request limit down if the user has only requested a small number of rows

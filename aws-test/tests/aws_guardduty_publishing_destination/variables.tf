@@ -117,7 +117,9 @@ data "aws_iam_policy_document" "kms_pol" {
 
 }
 
-data "aws_guardduty_detector" "gd" {}
+resource "aws_guardduty_detector" "gd" {
+  enable = true
+}
 
 resource "aws_s3_bucket" "gd_bucket" {
   bucket        = var.resource_name
@@ -141,7 +143,7 @@ resource "aws_kms_key" "gd_key" {
 }
 
 resource "aws_guardduty_publishing_destination" "named_test_resource" {
-  detector_id     = data.aws_guardduty_detector.gd.id
+  detector_id     = aws_guardduty_detector.gd.id
   destination_arn = aws_s3_bucket.gd_bucket.arn
   kms_key_arn     = aws_kms_key.gd_key.arn
 

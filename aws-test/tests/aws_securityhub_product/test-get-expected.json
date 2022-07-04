@@ -8,6 +8,6 @@
     "company_name": "Amazon",
     "description": "A threat detection service that continuously monitors for malicious or unauthorized behavior to help you protect your AWS accounts and workloads.",
     "name": "GuardDuty",
-    "product_arn": "arn:aws:securityhub:us-east-1::product/aws/guardduty"
+    "product_arn": "arn:aws:securityhub:{{ output.aws_region.value }}::product/aws/guardduty"
   }
 ]

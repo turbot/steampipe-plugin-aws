@@ -3,9 +3,6 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "id": "{{ output.health_check_id.value }}",
-    "tags": {
-      "Name": "{{ resourceName }}"
-    }
+    "id": "{{ output.health_check_id.value }}"
   }
 ]

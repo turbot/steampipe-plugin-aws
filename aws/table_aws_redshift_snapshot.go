@@ -163,7 +163,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "snapshot_create_time",
 				Description: "The time (in UTC format) when Amazon Redshift began the snapshot.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "snapshot_retention_start_time",

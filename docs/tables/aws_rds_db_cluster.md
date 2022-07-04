@@ -17,7 +17,6 @@ where
   kms_key_id is null;
 ```
 
-
 ### List of DB clusters where backup retention period is greater than 7 days
 
 ```sql
@@ -30,7 +29,6 @@ where
   backup_retention_period > 7;
 ```
 
-
 ### Avalability zone count for each db instance
 
 ```sql
@@ -40,7 +38,6 @@ select
 from
   aws_rds_db_cluster;
 ```
-
 
 ### DB cluster Members info
 
@@ -54,4 +51,20 @@ select
 from
   aws_rds_db_cluster
   cross join jsonb_array_elements(members) as member;
+```
+
+### List DB cluster pending maintenance actions
+
+```sql
+select
+  actions ->> 'ResourceIdentifier' as db_cluster_identifier,
+  details ->> 'Action' as action,
+  details ->> 'OptInStatus' as opt_in_status,
+  details ->> 'ForcedApplyDate' as forced_apply_date,
+  details ->> 'CurrentApplyDate' as current_apply_date,
+  details ->> 'AutoAppliedAfterDate' as auto_applied_after_date
+from
+  aws_rds_db_cluster,
+  jsonb_array_elements(pending_maintenance_actions) as actions,
+  jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
 ```

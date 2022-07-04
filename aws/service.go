@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
+	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
@@ -148,6 +149,27 @@ func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 	svc := acm.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
+}
+
+// AmplifyService returns the service connection for AWS Amplify service
+func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AmplifyService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("amplify-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*amplify.Amplify), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := amplify.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 
@@ -455,7 +477,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 
 // CloudTrailService returns the service connection for AWS CloudTrail service
 func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed CloudTrailService")
 	}
@@ -2015,6 +2036,23 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 			MaxRetries: aws.Int(maxRetries),
 			Retryer:    NewConnectionErrRetryer(maxRetries, minRetryDelay, ctx),
 		},
+	}
+
+	// handle custom endpoint URL, if any
+	var awsEndpointUrl string
+
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
+
+	if awsEndpointUrl != "" {
+		sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
+	}
+
+	if awsConfig.S3ForcePathStyle != nil {
+		sessionOptions.Config.S3ForcePathStyle = awsConfig.S3ForcePathStyle
 	}
 
 	if awsConfig.Profile != nil {

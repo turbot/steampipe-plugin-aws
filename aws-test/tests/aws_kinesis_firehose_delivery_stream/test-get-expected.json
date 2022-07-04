@@ -11,60 +11,6 @@
     "delivery_stream_name": "{{ resourceName }}",
     "delivery_stream_status": "ACTIVE",
     "delivery_stream_type": "DirectPut",
-    "destinations": [
-      {
-        "DestinationId": "destinationId-000000000001",
-        "ElasticsearchDestinationDescription": null,
-        "ExtendedS3DestinationDescription": {
-          "BucketARN": "{{ output.bucket_arn.value }}",
-          "BufferingHints": {
-            "IntervalInSeconds": 300,
-            "SizeInMBs": 5
-          },
-          "CloudWatchLoggingOptions": {
-            "Enabled": false,
-            "LogGroupName": null,
-            "LogStreamName": null
-          },
-          "CompressionFormat": "UNCOMPRESSED",
-          "DataFormatConversionConfiguration": null,
-          "DynamicPartitioningConfiguration": null,
-          "EncryptionConfiguration": {
-            "KMSEncryptionConfig": null,
-            "NoEncryptionConfig": "NoEncryption"
-          },
-          "ErrorOutputPrefix": null,
-          "Prefix": "",
-          "ProcessingConfiguration": null,
-          "RoleARN": "{{ output.role_arn.value }}",
-          "S3BackupDescription": null,
-          "S3BackupMode": "Disabled"
-        },
-        "HttpEndpointDestinationDescription": null,
-        "RedshiftDestinationDescription": null,
-        "S3DestinationDescription": {
-          "BucketARN": "{{ output.bucket_arn.value }}",
-          "BufferingHints": {
-            "IntervalInSeconds": 300,
-            "SizeInMBs": 5
-          },
-          "CloudWatchLoggingOptions": {
-            "Enabled": false,
-            "LogGroupName": null,
-            "LogStreamName": null
-          },
-          "CompressionFormat": "UNCOMPRESSED",
-          "EncryptionConfiguration": {
-            "KMSEncryptionConfig": null,
-            "NoEncryptionConfig": "NoEncryption"
-          },
-          "ErrorOutputPrefix": null,
-          "Prefix": "",
-          "RoleARN": "{{ output.role_arn.value }}"
-        },
-        "SplunkDestinationDescription": null
-      }
-    ],
     "failure_description": null,
     "has_more_destinations": false,
     "last_update_timestamp": null,

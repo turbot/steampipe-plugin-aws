@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type    = string
-  default = "us-east-1"
+  default = "us-west-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -55,7 +55,7 @@ resource "aws_securityhub_standards_subscription" "cis" {
 
 resource "aws_securityhub_standards_subscription" "pci_321" {
   depends_on    = [aws_securityhub_account.named_test_resource]
-  standards_arn = "arn:aws:securityhub:us-east-1::standards/pci-dss/v/3.2.1"
+  standards_arn = "arn:aws:securityhub:${data.aws_region.primary.name}::standards/pci-dss/v/3.2.1"
 }
 
 output "cis_arn" {
