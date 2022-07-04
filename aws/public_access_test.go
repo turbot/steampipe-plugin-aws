@@ -696,15 +696,15 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 				"access_level": "public",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"*"
 				],
 				"allowed_principal_account_ids": [
 					"*"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": true,
 				"public_access_levels": ["List"],
 				"public_statement_ids": [
@@ -734,17 +734,15 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 				"access_level": "public",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
-					"*",
-					"111122223333"
+					"*"
 				],
 				"allowed_principal_account_ids": [
-					"*",
-					"111122223333"
+					"*"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": true,
 				"public_access_levels": ["List"],
 				"public_statement_ids": [
@@ -777,17 +775,15 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 				"access_level": "public",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
-					"*",
-					"111122223333"
+					"*"
 				],
 				"allowed_principal_account_ids": [
-					"*",
-					"111122223333"
+					"*"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": true,
 				"public_access_levels": ["List"],
 				"public_statement_ids": [
@@ -817,15 +813,16 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 				"access_level": "public",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
+					"*",
 					"arn:aws:iam::*:user/*"
 				],
 				"allowed_principal_account_ids": [
 					"*"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": true,
 				"public_access_levels": ["List"],
 				"public_statement_ids": [
@@ -855,18 +852,16 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
         	"access_level": "public",
-        	"allowed_organization_ids": [],
+        	"allowed_organization_ids": null,
         	"allowed_principals": [
-        		"arn:aws:iam::*:*/*",
-        		"iam.amazonaws.com"
+						"*",
+        		"arn:aws:iam::*:*/*"
         	],
         	"allowed_principal_account_ids": [
         		"*"
         	],
-        	"allowed_principal_federated_identities": [],
-        	"allowed_principal_services": [
-        		"iam.amazonaws.com"
-        	],
+        	"allowed_principal_federated_identities": null,
+        	"allowed_principal_services": null,
         	"is_public": true,
         	"public_access_levels": ["List"],
         	"public_statement_ids": [
@@ -896,18 +891,16 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 					"access_level": "public",
-					"allowed_organization_ids": [],
+					"allowed_organization_ids": null,
 					"allowed_principals": [
-						"arn:aws:cloudwatch:us-east-1:*:alarm:*",
-						"cloudwatch.amazonaws.com"
+						"*",
+						"arn:aws:cloudwatch:us-east-1:*:alarm:*"
 					],
 					"allowed_principal_account_ids": [
 						"*"
 					],
-					"allowed_principal_federated_identities": [],
-					"allowed_principal_services": [
-						"cloudwatch.amazonaws.com"
-					],
+					"allowed_principal_federated_identities": null,
+					"allowed_principal_services": null,
 					"is_public": true,
 					"public_access_levels": ["List"],
 					"public_statement_ids": [
@@ -940,8 +933,9 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 			`{
 				"access_level": "public",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
+					"*",
 					"arn:aws:iam::*:root",
 					"arn:aws:iam::444422223333:root"
 				],
@@ -949,8 +943,8 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 					"*",
 					"444422223333"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": true,
 				"public_access_levels": ["List"],
 				"public_statement_ids": [
