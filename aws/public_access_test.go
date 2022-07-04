@@ -227,12 +227,12 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"o-123456"
 				],
 				"allowed_principals": [
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
+					"arn:aws:iam::111122223333:root",
 					"arn:aws:iam::123456789012:user/victor@xyz.com",
 					"ecs.amazonaws.com",
 					"elasticloadbalancing.amazonaws.com",
-					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
-					"o-123456",
-					"arn:aws:iam::111122223333:root"
+					"o-123456"
 				],
 				"allowed_principal_account_ids": [
 					"111122223333",
@@ -246,7 +246,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"elasticloadbalancing.amazonaws.com"
 				],
 				"is_public": false,
-				"public_access_levels": ["List","Read"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -289,7 +289,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": ["List","Read"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -314,7 +314,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "shared",
+				"access_level": "private",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
 					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
@@ -325,9 +325,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
 				],
 				"is_public": false,
-				"public_access_levels": [
-					"Write"
-				],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -345,10 +343,10 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 							"Service": "ses.amazonaws.com"
 						},
 						"Action": "SNS:Publish",
-						"Resource": "arn:aws:sns:us-east-2:444455556666:MyTopic",
+						"Resource": "arn:aws:sns:us-east-2:111122223333:MyTopic",
 						"Condition": {
 							"StringEquals": {
-								"aws:SourceOwner": "111122223333"
+								"aws:SourceOwner": "444455556666"
 							}
 						}
 					}
@@ -369,7 +367,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"ses.amazonaws.com"
 				],
 				"is_public": false,
-				"public_access_levels": ["Write"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -418,7 +416,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -473,7 +471,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
-				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -530,12 +528,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
         		"cloudwatch.amazonaws.com"
         	],
         	"is_public": false,
-        	"public_access_levels": [
-        		"List",
-        		"Permissions management",
-        		"Read",
-        		"Write"
-        	],
+        	"public_access_levels": null,
         	"public_statement_ids": []
         }`,
 		},
@@ -585,7 +578,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
 				"is_public": false,
-				"public_access_levels": ["List", "Permissions management", "Read", "Write"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -626,7 +619,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": ["List", "Read"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -667,7 +660,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [],
 				"is_public": false,
-				"public_access_levels": ["List"],
+				"public_access_levels": null,
 				"public_statement_ids": []
 			}`,
 		},
@@ -684,7 +677,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			if !ok {
 				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
 			}
-			evaluatedObj, err := policyObject.EvaluatePolicy()
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122223333")
 			if err != nil {
 				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
 			}
@@ -1005,7 +998,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			if !ok {
 				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
 			}
-			evaluatedObj, err := policyObject.EvaluatePolicy()
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122223333")
 			if err != nil {
 				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
 			}
@@ -1382,7 +1375,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 			if !ok {
 				t.Errorf("Test: %s Policy coercion failed with error: %#v\n", test.name, err)
 			}
-			evaluatedObj, err := policyObject.EvaluatePolicy()
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122223333")
 			if err != nil {
 				t.Errorf("Test: %s\nPolicy evaluation failed with error: %#v\n", test.name, err)
 			}

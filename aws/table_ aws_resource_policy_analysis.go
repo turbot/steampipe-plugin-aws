@@ -17,6 +17,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "policy", CacheMatch: "exact"},
+				{Name: "account_id", CacheMatch: "exact"},
 			},
 			Hydrate: listResourcePolicyAnalysis,
 		},
@@ -75,6 +76,11 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Description: "The description for this action.",
 			},
+			{
+				Name:        "account_id",
+				Type:        proto.ColumnType_STRING,
+				Description: "The id of AWS account to which policy belongs.",
+			},
 		},
 	}
 }
@@ -84,6 +90,11 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 func listResourcePolicyAnalysis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	policyVal := d.KeyColumnQuals["policy"].GetJsonbValue()
 	if policyVal == "" {
+		return nil, nil
+	}
+
+	accountID := d.KeyColumnQuals["account_id"].GetStringValue()
+	if accountID == "" {
 		return nil, nil
 	}
 
@@ -100,7 +111,7 @@ func listResourcePolicyAnalysis(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
-	evaluation, err := policyObject.EvaluatePolicy()
+	evaluation, err := policyObject.EvaluatePolicy(accountID)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_evaluation_error", err)
 		return nil, err
