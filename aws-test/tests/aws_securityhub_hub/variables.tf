@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -53,4 +53,11 @@ output "aws_region" {
 
 output "aws_account" {
   value = data.aws_caller_identity.current.account_id
+}
+
+resource "aws_securityhub_account" "named_test_resource" {}
+
+output "arn" {
+  depends_on = [aws_securityhub_account.named_test_resource]
+  value = "arn:aws:securityhub:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:hub/default"
 }

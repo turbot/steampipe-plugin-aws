@@ -1,10 +1,10 @@
 [
   {
-    "account_id": "352685002396",
+    "account_id": "{{ output.aws_account.value }}",
     "akas": [
-      "arn:aws:securityhub:us-east-1:352685002396:hub/default"
+      "{{ output.arn.value }}"
     ],
     "partition": "aws",
-    "region": "us-east-1"
+    "region": "{{ output.aws_region.value }}"
   }
 ]
