@@ -34,7 +34,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = '/aws/lambda/myfunction';
+  log_group_name = 'required-your-log-group-name';
 ```
 
 ### List events that occurred over the last hour
@@ -50,7 +50,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = '/aws/lambda/myfunction'
+  log_group_name = 'required-your-log-group-name'
   and timestamp >= (now() - interval '1' hour)
 order by
   timestamp asc;
@@ -73,7 +73,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = 'cis/test-log-grp'
+  log_group_name = 'required-your-log-group-name'
   and filter = '{$.eventName="DescribeVpcs"}'
   and timestamp >= (now() - interval '1' hour);
 ```
@@ -91,7 +91,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = 'cis/test-log-grp'
+  log_group_name = 'required-your-log-group-name'
   and filter = '{ ($.errorCode = "*UnauthorizedOperation") || ($.errorCode = "AccessDenied*") }'
   and timestamp >= (now() - interval '1' hour);
 ```
@@ -109,7 +109,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = 'cis/test-log-grp'
+  log_group_name = 'required-your-log-group-name'
   and filter = '{($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}'
   and region = 'us-east-1'
   and timestamp >= (now() - interval '1' hour);
@@ -128,7 +128,7 @@ select
 from
   aws_cloudwatch_log_event
 where
-  log_group_name = 'cis/test-log-grp'
+  log_group_name = 'required-your-log-group-name'
   and filter = '{$.userIdentity.sessionContext.sessionIssuer.userName="turbot_superuser"}'
   and timestamp >= (now() - interval '1' day);
 ```
