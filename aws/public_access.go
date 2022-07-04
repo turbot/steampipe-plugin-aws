@@ -137,39 +137,14 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 		return &policyEvaluation, nil
 	}
 
-	actions := []string{}
-	allowedAccounts := []string{}
-	allowedOrgs := []string{}
-	allowedServices := []string{}
-	allowedFederatedIdentities := []string{}
-	allowedPrincipals := []string{}
-	// publicAccessLevels := []string{}
-	publicStatementIds := []string{}
+	var actions, allowedOrgs, allowedAccounts, allowedServices, allowedFederatedIdentities, allowedPrincipals, publicStatementIds []string
 	// deniedActions := []string{}
 	// deniedAccounts := []string{}
-	resourceAccountId := []string{}
 
 	for index, stmt := range policy.Statements {
-		// if stmt.Effect == "Allow" {
-		// 	actions = append(actions, stmt.Action...)
-		// }
-		if stmt.Resource != nil {
-			for _, item := range stmt.Resource {
-				if arn.IsARN(item) {
-					awsARN, _ := arn.Parse(item)
-					if awsARN.AccountID != "" {
-						resourceAccountId = append(resourceAccountId, awsARN.AccountID)
-					}
-				}
-				// TODO - Should we add principals which doesn't have account ids
-			}
-		}
-
 		public, evaluation := stmt.EvaluateStatement()
-		// fmt.Println("evaluation:", evaluation)
 		if public {
 			policyEvaluation.IsPublic = true
-			// publicAccessLevels = append(publicAccessLevels, evaluation.PublicAccessLevels...)
 			actions = append(actions, stmt.Action...)
 			if stmt.Sid == "" {
 				publicStatementIds = append(publicStatementIds, fmt.Sprintf("Statement[%d]", index+1))
@@ -201,17 +176,15 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 	policyEvaluation.AllowedPrincipalAccountIds = append(allowedAccounts, accountIds...)
 
 	// Add all types of principals into allowed principals
-	// policyEvaluation.AllowedPrincipals = StringSliceDistinct(policyEvaluation.AllowedPrincipals)
 	policyEvaluation.AllowedPrincipals = append(allowedPrincipals, allowedFederatedIdentities...)
-	policyEvaluation.AllowedPrincipals = append(policyEvaluation.AllowedPrincipals, allowedOrgs...)
 	policyEvaluation.AllowedPrincipals = append(policyEvaluation.AllowedPrincipals, allowedServices...)
-	policyEvaluation.AllowedPrincipals = StringSliceDistinct(policyEvaluation.AllowedPrincipals)
+	policyEvaluation.AllowedPrincipals = helpers.StringSliceDistinct(policyEvaluation.AllowedPrincipals)
 
-	policyEvaluation.AllowedPrincipalFederatedIdentities = StringSliceDistinct(allowedFederatedIdentities)
-	policyEvaluation.AllowedOrganizationIds = StringSliceDistinct(allowedOrgs)
-	policyEvaluation.AllowedPrincipalServices = StringSliceDistinct(allowedServices)
-	// policyEvaluation.PublicActions = StringSliceDistinct(publicAccessLevels)
-	policyEvaluation.PublicStatementIds = publicStatementIds
+	policyEvaluation.AllowedPrincipalFederatedIdentities = helpers.StringSliceDistinct(allowedFederatedIdentities)
+	policyEvaluation.AllowedOrganizationIds = helpers.StringSliceDistinct(allowedOrgs)
+	policyEvaluation.AllowedPrincipalServices = helpers.StringSliceDistinct(allowedServices)
+	policyEvaluation.AllowedPrincipalAccountIds = helpers.StringSliceDistinct(policyEvaluation.AllowedPrincipalAccountIds)
+	policyEvaluation.PublicStatementIds = helpers.StringSliceDistinct(publicStatementIds)
 
 	permissionsData := getParliamentIamPermissions()
 	if len(actions) > 0 {
@@ -225,9 +198,8 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 		if len(policyEvaluation.AllowedOrganizationIds) > 0 {
 			policyEvaluation.AccessLevel = "shared"
 		} else if len(policyEvaluation.AllowedPrincipalAccountIds) > 0 {
-			fmt.Println("INSIDE", len(policyEvaluation.AllowedPrincipalAccountIds))
 			for _, item := range policyEvaluation.AllowedPrincipalAccountIds {
-				fmt.Println("INSIDE", "item", item, arn.IsARN(item))
+
 				if arn.IsARN(item) {
 					arnParts, _ := arn.Parse(item)
 					if arnParts.AccountID != sourceAccountID {
@@ -248,10 +220,15 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 			}
 		}
 	}
+	policyEvaluation.AllowedPrincipals = helpers.StringSliceDistinct(policyEvaluation.AllowedPrincipals)
 
-	sort.Strings(policyEvaluation.AllowedOrganizationIds)
+	if helpers.StringSliceContains([]string{"private", "shared"}, policyEvaluation.AccessLevel) {
+		policyEvaluation.AllowedPrincipalAccountIds = helpers.RemoveFromStringSlice(policyEvaluation.AllowedPrincipalAccountIds, []string{"*", sourceAccountID}...)
+	}
+
+	sort.Strings(helpers.StringSliceDistinct(policyEvaluation.AllowedOrganizationIds))
+	sort.Strings(helpers.StringSliceDistinct(policyEvaluation.AllowedPrincipalFederatedIdentities))
 	sort.Strings(policyEvaluation.AllowedPrincipalAccountIds)
-	sort.Strings(policyEvaluation.AllowedPrincipalFederatedIdentities)
 	sort.Strings(policyEvaluation.AllowedPrincipalServices)
 	sort.Strings(policyEvaluation.AllowedPrincipals)
 	sort.Strings(policyEvaluation.PublicAccessLevels)
@@ -277,7 +254,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if helpers.StringSliceContains(awsNotPrincipals, "*") {
 				return false, stmtEvaluation
 			} else {
-				fmt.Println("NotPrincipal With Allow")
+
 				return true, stmtEvaluation
 			}
 		}
@@ -326,13 +303,12 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 		for operatorKey, operatorValue := range stmt.Condition {
 			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
 			operatorKey = strings.ReplaceAll(operatorKey, "IfExists", "")
-			// hasForAnyValue := strings.Contains(operatorKey, "ForAnyValue:")
+			// hasForAnyValue := strings.HasPrefix(operatorKey, "ForAnyValue:")
+			// hasForAllValues := strings.HasPrefix(operatorKey, "ForAllValues:")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
-			// hasForAllValues := strings.Contains(operatorKey, "ForAllValues:")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
 			var typeOfOperator string = "Unknown"
-			// fmt.Println("operatorKey:", operatorKey)
 			switch operatorKey {
 			case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
 				typeOfOperator = "String"
@@ -351,8 +327,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 				typeOfOperator = "Binary"
 			}
 
-			// fmt.Println("typeOfOperator:", typeOfOperator)
-
 			hasNotInOperator := CheckNotInOperator(operatorKey)
 			hasLikeOperator := strings.Contains(operatorKey, "Like")
 
@@ -362,7 +336,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 					if hasPublicPrincipal || len(awsPrincipals) == 0 {
 						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
 						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
-						fmt.Println("AM I REACHING HERE", "typeOfOperator:git ", typeOfOperator)
+
 						if typeOfOperator == "String" {
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
@@ -440,7 +414,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									//TODO What to add in allowed account and allowed principals in this case
 								}
 							case "aws:sourceaccount", "aws:sourceowner": // Works with String operators
-								fmt.Println("AM I REACHING HERE", "hasIfExistsSuffix", hasIfExistsSuffix, "hasNotInOperator", hasNotInOperator, "hasLikeOperator", hasLikeOperator)
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
 									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
 									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
@@ -479,18 +452,17 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										}
 									}
 									if !principalArnPublic {
-										allowedPrincipalsForService = append(allowedPrincipalsForService, conditionValue.([]string)...)
+										allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 										internalPublicPrincipalKey = false
 									}
 								} else if hasIfExistsSuffix {
-									allowedPrincipalsForService = append(allowedPrincipalsForService, conditionValue.([]string)...)
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
 								} else if hasNotInOperator {
 									//TODO What to add in allowed account and allowed principals in this case
 								}
 							}
 						} else if typeOfOperator == "Arn" {
-							fmt.Println("AM I HERE aws:sourcearn", "conditionKey", conditionKey)
 							switch conditionKey {
 							case "aws:principalarn": // Works with both ARN and String operators
 								if !hasNotInOperator {
@@ -516,7 +488,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									//TODO What to add in allowed account and allowed principals in this case
 								}
 							case "aws:sourcearn": // Works with both ARN and String operators
-								fmt.Println("AM I HERE aws:sourcearn", !hasNotInOperator)
 								if !hasNotInOperator {
 									principalArnPublic := false
 									for _, pARN := range conditionValue.([]string) {
@@ -529,12 +500,12 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										}
 									}
 									if !principalArnPublic {
-										allowedPrincipalsForService = append(allowedPrincipalsForService, conditionValue.([]string)...)
+										allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
 										internalPublicPrincipalKey = false
 									}
 								} else if hasIfExistsSuffix {
-									allowedPrincipalsForService = append(allowedPrincipalsForService, conditionValue.([]string)...)
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
 								} else if hasNotInOperator {
 									//TODO What to add in allowed account and allowed principals in this case
@@ -559,6 +530,91 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if !internalPublicPrincipalOperator {
 				hasPublicConditionPrincipals = false
 				break
+			}
+		}
+
+		// Code to collect info
+		for operatorKey, operatorValue := range stmt.Condition {
+			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
+			operatorKey = strings.ReplaceAll(operatorKey, "IfExists", "")
+			// hasForAnyValue := strings.HasPrefix(operatorKey, "ForAnyValue:")
+			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
+			// hasForAllValues := strings.HasPrefix(operatorKey, "ForAllValues:")
+			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
+
+			var typeOfOperator string = "Unknown"
+			// fmt.Println("operatorKey:", operatorKey)
+			switch operatorKey {
+			case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
+				typeOfOperator = "String"
+				operatorKey = strings.ReplaceAll(operatorKey, "IgnoreCase", "")
+			case "ArnEquals", "ArnLike", "ArnNotEquals", "ArnNotLike":
+				typeOfOperator = "Arn"
+			case "NumericEquals", "NumericNotEquals", "NumericLessThan", "NumericLessThanEquals", "NumericGreaterThan", "NumericGreaterThanEquals":
+				typeOfOperator = "Numeric"
+			case "DateEquals", "DateNotEquals", "DateLessThan", "DateLessThanEquals", "DateGreaterThan", "DateGreaterThanEquals":
+				typeOfOperator = "Date"
+			case "IpAddress", "NotIpAddress":
+				typeOfOperator = "IP"
+			case "Bool":
+				typeOfOperator = "Bool"
+			case "BinaryEquals":
+				typeOfOperator = "Binary"
+			}
+
+			hasNotInOperator := CheckNotInOperator(operatorKey)
+			hasLikeOperator := strings.Contains(operatorKey, "Like")
+
+			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
+				// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
+				for conditionKey, conditionValue := range conditionOperatorValueMap {
+					if hasPublicPrincipal || len(awsPrincipals) == 0 {
+						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
+						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
+						if typeOfOperator == "String" {
+							switch conditionKey {
+							case "aws:principalaccount": // Works with String operators
+								if !hasNotInOperator && !hasLikeOperator {
+									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
+								}
+							case "aws:principalorgid", "aws:principalorgpaths":
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									allowedOrganizationIds = append(allowedOrganizationIds, conditionValue.([]string)...)
+									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									for _, orgIdOrPath := range conditionValue.([]string) {
+										// o-[a-z0-9]{10,32} - regex for organization id
+										org := strings.Split(orgIdOrPath, "/")[0]
+										if !strings.ContainsAny(org, "*?") {
+											// Public as if org id is having wildcards(*,?) it will allow a number of organizations which could only be determined after expanding the org id based on the pattern
+											allowedOrganizationIds = append(allowedOrganizationIds, org)
+										} else {
+											allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+											allowedOrganizationIds = append(allowedOrganizationIds, org)
+										}
+									}
+								}
+							case "aws:principalarn", "aws:sourcearn": // Works with both ARN and String operators
+								if (hasLikeOperator && !hasNotInOperator) || hasIfExistsSuffix {
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
+								}
+							case "aws:sourceaccount", "aws:sourceowner": // Works with String operators
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
+								} else if hasIfExistsSuffix {
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
+								}
+							}
+						} else if typeOfOperator == "Arn" {
+							switch conditionKey {
+							case "aws:principalarn", "aws:sourcearn":
+								if !hasNotInOperator || hasIfExistsSuffix {
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -595,13 +651,6 @@ ForAnyValue – Use with multivalued condition keys. Tests whether at least one 
 
 The the difference between single-valued and multivalued condition keys depends on the number of values in the request context, not the number of values in the policy condition.
 */
-func CheckForAnyValuePrefix(key string) bool {
-	return strings.HasPrefix(key, "ForAnyValue")
-}
-
-func CheckForAllValuesPrefix(key string) bool {
-	return strings.HasPrefix(key, "ForAllValues")
-}
 func CheckIfExistsSuffix(key string) bool {
 	return strings.HasSuffix(key, "IfExists")
 }
