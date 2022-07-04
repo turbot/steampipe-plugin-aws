@@ -152,7 +152,7 @@ from
 where
   log_group_name = 'required-your-log-group-name'
   and error_code is not null
-  and timestamp >= (now() - interval '1' hour
+  and timestamp >= (now() - interval '1' hour)
 order by
   event_time asc;
 ```
