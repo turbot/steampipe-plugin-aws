@@ -1218,7 +1218,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "shared",
+				"access_level": "private",
 				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"111122223333"
@@ -1260,7 +1260,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "shared",
+				"access_level": "private",
 				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"arn:aws:s3:::sourcebucket",
@@ -1301,7 +1301,7 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "private",
+				"access_level": "shared",
 				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"arn:aws:s3:::sourcebucket",
