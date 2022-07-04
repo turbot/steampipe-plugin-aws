@@ -153,3 +153,31 @@ from
   jsonb_array_elements(pending_maintenance_actions) as actions,
   jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
 ```
+
+### List certificate details associated to the instance
+
+```sql
+select
+  arn,
+  certificate ->> 'CertificateArn' as certificate_arn,
+  certificate ->> 'CertificateType' as certificate_type,
+  certificate ->> 'ValidFrom' as valid_from,
+  certificate ->> 'ValidTill' as valid_till
+from
+  aws_rds_db_instance;
+```
+
+### List certificates valid for less than 90 days
+
+```sql
+select
+  arn,
+  certificate ->> 'CertificateArn' as certificate_arn,
+  certificate ->> 'CertificateType' as certificate_type,
+  certificate ->> 'ValidFrom' as valid_from,
+  certificate ->> 'ValidTill' as valid_till
+from
+  aws_rds_db_instance
+where
+  (certificate ->> 'ValidTill')::timestamp <= (current_date - interval '90' day);
+```
