@@ -124,18 +124,17 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"o-123456"
 				],
 				"allowed_principals": [
-					"ecs.amazonaws.com",
-					"elasticloadbalancing.amazonaws.com",
-					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
 					"*",
-					"o-123456",
+					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
 					"arn:aws:iam::111122223333:root",
-					"arn:aws:iam::123456789012:user/victor@xyz.com"
+					"arn:aws:iam::123456789012:user/victor@xyz.com",
+					"ecs.amazonaws.com",
+					"elasticloadbalancing.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
 					"*",
-					"111122223333",
-					"123456789012"
+        	"111122223333",
+        	"123456789012"
 				],
 				"allowed_principal_federated_identities": [
 					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"
@@ -231,11 +230,9 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"arn:aws:iam::111122223333:root",
 					"arn:aws:iam::123456789012:user/victor@xyz.com",
 					"ecs.amazonaws.com",
-					"elasticloadbalancing.amazonaws.com",
-					"o-123456"
+					"elasticloadbalancing.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
-					"111122223333",
 					"123456789012"
 				],
 				"allowed_principal_federated_identities": [
@@ -247,7 +244,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				],
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -282,15 +279,13 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_organization_ids": [
 					"o-123456"
 				],
-				"allowed_principals": [
-					"o-123456"
-				],
-				"allowed_principal_account_ids": [],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principals": null,
+				"allowed_principal_account_ids": null,
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -315,18 +310,16 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "private",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
 				],
-				"allowed_principal_account_ids": [],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [
-					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
-				],
+				"allowed_principal_account_ids": null,
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -352,40 +345,22 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					}
 				]
 			}`,
-			// `{
-			// 	"access_level": "shared",
-			// 	"allowed_organization_ids": [],
-			// 	"allowed_principals": [
-			// 		"111122223333",
-			// 		"ses.amazonaws.com"
-			// 	],
-			// 	"allowed_principal_account_ids": [
-			// 		"111122223333"
-			// 	],
-			// 	"allowed_principal_federated_identities": [],
-			// 	"allowed_principal_services": [
-			// 		"ses.amazonaws.com"
-			// 	],
-			// 	"is_public": false,
-			// 	"public_access_levels": null,
-			// 	"public_statement_ids": []
-			// }`,
 			`{
 				"access_level": "shared",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"ses.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
 					"444455556666"
 				],
-				"allowed_principal_federated_identities": [],
+				"allowed_principal_federated_identities": null,
 				"allowed_principal_services": [
 					"ses.amazonaws.com"
 				],
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -423,16 +398,16 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "shared",
-				"allowed_organization_ids": [],
-				"allowed_principals": [],
+				"allowed_organization_ids": null,
+				"allowed_principals": null,
 				"allowed_principal_account_ids": [
 					"999988887777"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -470,18 +445,16 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "private",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"arn:aws:iam::111122223333:users/*"
 				],
-				"allowed_principal_account_ids": [],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [
-					"arn:aws:iam::111122223333:users/*"
-				],
+				"allowed_principal_account_ids": null,
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -522,23 +495,18 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
         	"access_level": "shared",
-        	"allowed_organization_ids": [],
+        	"allowed_organization_ids": null,
         	"allowed_principals": [
-        		"999988887777",
-        		"arn:aws:cloudwatch:us-east-1:*:alarm:*",
-        		"cloudwatch.amazonaws.com"
+        		"arn:aws:cloudwatch:us-east-1:*:alarm:*"
         	],
         	"allowed_principal_account_ids": [
-        		"*",
         		"999988887777"
         	],
-        	"allowed_principal_federated_identities": [],
-        	"allowed_principal_services": [
-        		"cloudwatch.amazonaws.com"
-        	],
+        	"allowed_principal_federated_identities": null,
+        	"allowed_principal_services": null,
         	"is_public": false,
         	"public_access_levels": null,
-        	"public_statement_ids": []
+        	"public_statement_ids": null
         }`,
 		},
 		{
@@ -576,19 +544,18 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "shared",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-1:123456789012:alarm:*",
-					"cloudwatch.amazonaws.com"
+					"arn:aws:cloudwatch:us-east-1:123456789012:alarm:*"
 				],
 				"allowed_principal_account_ids": [
 					"123456789012"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -618,18 +585,16 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "shared",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"*"
 				],
-				"allowed_principal_account_ids": [
-					"*"
-				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_account_ids": null,
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 		{
@@ -657,20 +622,19 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 			`{
 				"access_level": "shared",
-				"allowed_organization_ids": [],
+				"allowed_organization_ids": null,
 				"allowed_principals": [
 					"arn:aws:iam::111122223333:root",
 					"arn:aws:iam::111122224444:root"
 				],
 				"allowed_principal_account_ids": [
-					"111122223333",
 					"111122224444"
 				],
-				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": [],
+				"allowed_principal_federated_identities": null,
+				"allowed_principal_services": null,
 				"is_public": false,
 				"public_access_levels": null,
-				"public_statement_ids": []
+				"public_statement_ids": null
 			}`,
 		},
 	}
