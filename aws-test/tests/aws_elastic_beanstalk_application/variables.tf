@@ -49,10 +49,14 @@ data "null_data_source" "resource" {
 
 # Create AWS > Elastic Beanstalk > Application
 
+resource "aws_iam_service_linked_role" "elasticbeanstalk" {
+   aws_service_name = "elasticbeanstalk.amazonaws.com"
+   }
+
 resource "aws_elastic_beanstalk_application" "named_test_resource" {
   name = var.resource_name
   appversion_lifecycle {
-    service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/elasticbeanstalk.amazonaws.com/AWSServiceRoleForElasticBeanstalk"
+    service_role = "${aws_iam_service_linked_role.elasticbeanstalk.arn}"
   }
   tags = {
     name = var.resource_name

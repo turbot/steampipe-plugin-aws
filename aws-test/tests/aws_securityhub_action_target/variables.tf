@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-west-2"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -46,10 +46,7 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_securityhub_account" "named_test_resource" {}
-
 resource "aws_securityhub_action_target" "named_test_resource" {
-  depends_on  = [aws_securityhub_account.named_test_resource]
   name        = "Send notification"
   identifier  = "SendToChat"
   description = "This is custom action sends selected findings to chat"

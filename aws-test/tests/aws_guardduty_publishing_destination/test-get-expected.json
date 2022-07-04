@@ -4,6 +4,7 @@
     "destination_id": "{{ output.resource_id.value }}",
     "detector_id": "{{ output.detector_id.value }}",
     "partition": "{{ output.aws_partition.value }}",
-    "region": "{{ output.region_name.value }}"
+    "region": "{{ output.region_name.value }}",
+    "title": "{{ output.detector_id.value }}"
   }
 ]

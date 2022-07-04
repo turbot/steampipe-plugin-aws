@@ -12,6 +12,7 @@ SELECT
   deletion_protection,
   endpoint_port,
   engine,
+  engine_version,
   iam_database_authentication_enabled,
   master_user_name,
   multi_az,

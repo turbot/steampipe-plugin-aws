@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "nagraj"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 

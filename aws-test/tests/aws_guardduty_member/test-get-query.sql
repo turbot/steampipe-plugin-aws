@@ -5,4 +5,4 @@ select
 from
   aws_guardduty_member
 where
-  detector_id = '{{ output.detector_id.value }}' and member_account_id = '{{ output.member_account_id.value }}';
+  detector_id = '{{ output.detector_id.value }}' and member_account_id = '123456789012';

@@ -1,11 +1,11 @@
 [
   {
-    "account_id": "{{ output.aws_account.value }}",
+    "account_id": "352685002396",
     "akas": [
-      "arn:aws:securityhub:{{ output.aws_region.value }}::product/aquasecurity/aquasecurity"
+      "arn:aws:securityhub:us-east-1::product/aquasecurity/aquasecurity"
     ],
     "name": "Aqua Security",
-    "region": "{{ output.aws_region.value }}",
+    "region": "us-east-1",
     "title": "Aqua Security"
   }
 ]

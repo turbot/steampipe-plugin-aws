@@ -1,29 +1,3 @@
-## v0.67.0 [2022-07-01]
-
-_What's new?_
-
-- New tables added
-  - [aws_amplify_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_amplify_app) ([#1112](https://github.com/turbot/steampipe-plugin-aws/pull/1112))
-  - [aws_cloudfront_function](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_function) ([#1120](https://github.com/turbot/steampipe-plugin-aws/pull/1120))
-  - [aws_glue_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_connection) ([#1102](https://github.com/turbot/steampipe-plugin-aws/pull/1102))
-  - [aws_glue_data_catalog_encryption_settings](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_data_catalog_encryption_settings) ([#1114](https://github.com/turbot/steampipe-plugin-aws/pull/1114))
-  - [aws_glue_job](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_job) ([#1118](https://github.com/turbot/steampipe-plugin-aws/pull/1118))
-  - [aws_glue_security_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_security_configuration) ([#1106](https://github.com/turbot/steampipe-plugin-aws/pull/1106))
-
-_Enhancements_
-
-- Recompiled plugin with [steampipe-plugin-sdk v3.3.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v331--2022-6-30). ([#1129](https://github.com/turbot/steampipe-plugin-aws/pull/1129))
-- Added information about STS and IAM API limitations with aws-vault temporary credentials in the `docs/index.md` file.
-- Added column `vpcs` to `aws_route53_zone` table. ([#1085](https://github.com/turbot/steampipe-plugin-aws/pull/1085))
-- Added column `vpc_endpoint_service_permissions` to `aws_vpc_endpoint_service` table. ([#1121](https://github.com/turbot/steampipe-plugin-aws/pull/1121))
-
-_Bug fixes_
-
-- Fixed the `No such host` issue in audit manager tables. ([#1122](https://github.com/turbot/steampipe-plugin-aws/pull/1122))
-- Fixed the `MaxResults` parameter issue in list API for `aws_eks_identity_provider_config` table. ([#1119](https://github.com/turbot/steampipe-plugin-aws/pull/1119))
-- Fixed the `Unsupported region` issue in `aws_media_store_container` table. ([#1117](https://github.com/turbot/steampipe-plugin-aws/pull/1117))
-- Fixed the `BdRequestException` issue in the `aws_guardduty_member` table. ([#1116](https://github.com/turbot/steampipe-plugin-aws/pull/1116))
-
 ## v0.66.0 [2022-06-24]
 
 _What's new?_

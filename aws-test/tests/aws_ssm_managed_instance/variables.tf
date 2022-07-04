@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "ap-northeast-3"
+  default     = "us-east-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,11 +47,19 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_default_vpc" "default" {}
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    name = var.resource_name
+  }
+}
 
-resource "aws_default_subnet" "named_test_resource" {
-  depends_on = [ aws_default_vpc.default]
-  availability_zone = "${var.aws_region}c"
+resource "aws_subnet" "named_test_resource" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+  tags = {
+    Name = var.resource_name
+  }
 }
 
 data "aws_ami" "linux" {
@@ -91,8 +99,8 @@ resource "aws_iam_instance_profile" "named_test_resource" {
 
 resource "aws_instance" "named_test_resource" {
   ami                         = data.aws_ami.linux.id
-  instance_type               = "t3.micro"
-  subnet_id                   = aws_default_subnet.named_test_resource.id
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.named_test_resource.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.named_test_resource.name
   tags = {
@@ -105,7 +113,7 @@ resource "null_resource" "delay" {
     aws_instance.named_test_resource
   ]
   provisioner "local-exec" {
-    command = "sleep 180"
+    command = "sleep 300"
   }
 }
 

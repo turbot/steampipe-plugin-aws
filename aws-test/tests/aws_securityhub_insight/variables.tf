@@ -13,7 +13,7 @@ variable "aws_profile" {
 
 variable "aws_region" {
   type        = string
-  default     = "us-west-2"
+  default     = "ap-south-1"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -47,13 +47,8 @@ data "null_data_source" "resource" {
   }
 }
 
-resource "aws_securityhub_account" "named_test_resource" {}
-
 // Get the securityhub insights
 resource "null_resource" "list_insights" {
-  provisioner "local-exec" {
-    command = "aws securityhub create-insight --region ${data.aws_region.primary.name} --filters '{\"ResourceType\": [{\"Comparison\": \"EQUALS\", \"Value\": \"AwsIamRole\"}], \"SeverityLabel\": [{\"Comparison\": \"EQUALS\", \"Value\": \"CRITICAL\"}]}' --group-by-attribute \"ResourceId\" --name ${var.resource_name}"
-  }
   provisioner "local-exec" {
     command = "aws securityhub get-insights --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${path.cwd}/list-insights.json"
   }
