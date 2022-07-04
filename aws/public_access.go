@@ -218,24 +218,16 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 		policyEvaluation.PublicAccessLevels = GetAccessLevelsFromActions(permissionsData, actions)
 	}
 
-	resourceAccountId = StringSliceDistinct(resourceAccountId)
 	policyEvaluation.AccessLevel = "private"
 	if policyEvaluation.IsPublic {
 		policyEvaluation.AccessLevel = "public"
 	} else {
 		if len(policyEvaluation.AllowedOrganizationIds) > 0 {
 			policyEvaluation.AccessLevel = "shared"
-		} else if len(policyEvaluation.AllowedPrincipals) > 0 {
-			for _, item := range policyEvaluation.AllowedPrincipals {
-				if arn.IsARN(item) {
-					arnParts, _ := arn.Parse(item)
-					if arnParts.AccountID != sourceAccountID {
-						policyEvaluation.AccessLevel = "shared"
-					}
-				}
-			}
 		} else if len(policyEvaluation.AllowedPrincipalAccountIds) > 0 {
+			fmt.Println("INSIDE", len(policyEvaluation.AllowedPrincipalAccountIds))
 			for _, item := range policyEvaluation.AllowedPrincipalAccountIds {
+				fmt.Println("INSIDE", "item", item, arn.IsARN(item))
 				if arn.IsARN(item) {
 					arnParts, _ := arn.Parse(item)
 					if arnParts.AccountID != sourceAccountID {
@@ -243,6 +235,15 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 					}
 				} else if item != sourceAccountID {
 					policyEvaluation.AccessLevel = "shared"
+				}
+			}
+		} else if len(policyEvaluation.AllowedPrincipals) > 0 {
+			for _, item := range policyEvaluation.AllowedPrincipals {
+				if arn.IsARN(item) {
+					arnParts, _ := arn.Parse(item)
+					if arnParts.AccountID != sourceAccountID {
+						policyEvaluation.AccessLevel = "shared"
+					}
 				}
 			}
 		}
@@ -361,8 +362,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 					if hasPublicPrincipal || len(awsPrincipals) == 0 {
 						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
 						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
+						fmt.Println("AM I REACHING HERE", "typeOfOperator:git ", typeOfOperator)
 						if typeOfOperator == "String" {
-							fmt.Println("AM I REACHING HERE")
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
@@ -489,6 +490,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 								}
 							}
 						} else if typeOfOperator == "Arn" {
+							fmt.Println("AM I HERE aws:sourcearn", "conditionKey", conditionKey)
 							switch conditionKey {
 							case "aws:principalarn": // Works with both ARN and String operators
 								if !hasNotInOperator {
@@ -514,9 +516,11 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									//TODO What to add in allowed account and allowed principals in this case
 								}
 							case "aws:sourcearn": // Works with both ARN and String operators
-								if hasLikeOperator && !hasNotInOperator {
+								fmt.Println("AM I HERE aws:sourcearn", !hasNotInOperator)
+								if !hasNotInOperator {
 									principalArnPublic := false
 									for _, pARN := range conditionValue.([]string) {
+										allowedPrincipals = append(allowedPrincipals, pARN)
 										if arn.IsARN(pARN) {
 											arnParts, _ := arn.Parse(pARN)
 											if arnParts.AccountID == "*" {
@@ -671,250 +675,3 @@ func GetAccessLevelsFromActions(permissionsData ParliamentPermissions, actions [
 	}
 	return StringSliceDistinct(accessLevels)
 }
-
-/*
-func (stmt *Statement) EvaluateStatement2(evaluation *PolicyEvaluation) bool {
-
-	stmtEvaluation := PolicyEvaluation{}
-	// Check for the deny statements separately
-	// if stmt.Effect == "Deny" {
-	// 	// TODO
-	// 	return stmt.DenyStatementEvaluation(evaluation)
-	// }
-
-	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
-	if stmt.NotPrincipal != nil {
-		if data, ok := stmt.NotPrincipal["AWS"]; ok {
-			awsNotPrincipals := data.([]string)
-			if helpers.StringSliceContains(awsNotPrincipals, "*") {
-				return false
-			} else {
-				fmt.Println("NotPrincipal With Allow")
-				return true
-			}
-		}
-	}
-
-	// Check for the allowed statement - TODO
-	if stmt.NotAction != nil {
-		return true
-	}
-
-	var awsPrincipals, servicePrincipals, federatedPrincipals []string
-	var hasPublicPrincipal = false
-	var isPublic = false
-
-	if stmt.Principal != nil {
-		if data, ok := stmt.Principal["AWS"]; ok {
-			awsPrincipals = data.([]string)
-			stmtEvaluation.AllowedPrincipals = awsPrincipals
-		}
-		if data, ok := stmt.Principal["Service"]; ok {
-			servicePrincipals = data.([]string)
-			stmtEvaluation.AllowedPrincipalServices = servicePrincipals
-		}
-		if data, ok := stmt.Principal["Federated"]; ok {
-			federatedPrincipals = data.([]string)
-			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
-		}
-	}
-
-	if helpers.StringSliceContains(awsPrincipals, "*") {
-		hasPublicPrincipal = true
-		isPublic = true
-	}
-
-	// If there is no restriction from the condition side, then policy depends completely on the statement principals section
-	hasPublicConditionPrincipals := true
-
-	if stmt.Condition != nil {
-		internalPublicPrincipalOperator := true
-
-		// Code to detect public
-		for operatorKey, operatorValue := range stmt.Condition {
-			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
-			operatorKey = strings.ReplaceAll(operatorKey, "IfExists", "")
-
-			hasNotInOperator := CheckNotInOperator(operatorKey)
-			operatorKey = strings.ReplaceAll(operatorKey, "Not", "")
-
-			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
-				internalPublicPrincipalKey := true
-				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					if hasAWSPrincipalConditionKey(conditionKey) {
-						switch strings.ToLower(conditionKey) {
-						case "aws:principalaccount":
-							if !hasIfExistsSuffix {
-								internalPublicPrincipalKey = false
-							}
-						case "aws:principalarn":
-							principalArnPublic := false
-							for _, pARN := range conditionValue.([]string) {
-								if arn.IsARN(pARN) {
-									arnParts, _ := arn.Parse(pARN)
-									if arnParts.AccountID == "*" {
-										principalArnPublic = true
-									}
-								}
-							}
-							if !principalArnPublic {
-								internalPublicPrincipalKey = false
-							}
-						case "aws:principalorgid", "aws:principalorgpaths":
-							if !hasIfExistsSuffix {
-								internalPublicPrincipalKey = false
-							}
-						}
-					}
-
-					if hasServicePrincipalConditionKey(conditionKey) {
-						switch strings.ToLower(conditionKey) {
-						case "aws:sourcearn":
-							sourceArnPublic := false
-							for _, pARN := range conditionValue.([]string) {
-								if arn.IsARN(pARN) {
-									arnParts, _ := arn.Parse(pARN)
-									if arnParts.AccountID == "*" {
-										sourceArnPublic = true
-									}
-								}
-							}
-							if !sourceArnPublic {
-								internalPublicPrincipalKey = false
-							}
-						case "aws:sourceaccount", "aws:sourceowner":
-							if !hasIfExistsSuffix {
-								internalPublicPrincipalKey = false
-							}
-						}
-					}
-
-					switch strings.ToLower(conditionKey) {
-					case "aws:sourceip":
-						if !hasNotInOperator {
-							internalPublicPrincipalOperator = false
-						}
-					}
-					if !internalPublicPrincipalKey {
-						internalPublicPrincipalOperator = false
-						break
-					}
-				}
-			}
-			if !internalPublicPrincipalOperator {
-				hasPublicConditionPrincipals = false
-				break
-			}
-		}
-
-		// OLD CODE - to collect info
-		for operatorKey, operatorValue := range stmt.Condition {
-			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
-			// hasForAnyValuePrefix := CheckForAnyValuePrefix(operatorKey)
-
-			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
-				// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
-				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					if hasPublicPrincipal {
-						if hasAWSPrincipalConditionKey(conditionKey) {
-							if !hasIfExistsSuffix {
-								stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-								stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-
-								if conditionKey == "aws:principalarn" {
-									accounts := []string{}
-									for _, pARN := range conditionValue.([]string) {
-										if arn.IsARN(pARN) {
-											arnParts, _ := arn.Parse(pARN)
-											accounts = append(accounts, arnParts.AccountID)
-										}
-									}
-									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
-								}
-							} else {
-								switch conditionKey {
-								case "aws:principalaccount":
-									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
-									stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-								case "aws:principalarn":
-									accounts := []string{}
-									for _, pARN := range conditionValue.([]string) {
-										if arn.IsARN(pARN) {
-											arnParts, _ := arn.Parse(pARN)
-											accounts = append(accounts, arnParts.AccountID)
-										}
-									}
-									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, accounts...)
-								case "aws:principalorgid":
-									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, conditionValue.([]string)...)
-								case "aws:principalorgpaths":
-									orgs := []string{}
-									for _, paths := range conditionValue.([]string) {
-										orgs = append(orgs, strings.Split(paths, "/")[0])
-									}
-									stmtEvaluation.AllowedOrganizationIds = append(stmtEvaluation.AllowedOrganizationIds, orgs...)
-								}
-							}
-						}
-						if hasServicePrincipalConditionKey(conditionKey) && !hasIfExistsSuffix {
-							stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-							stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-
-							switch strings.ToLower(conditionKey) {
-							case "aws:sourcearn":
-								for _, pARN := range conditionValue.([]string) {
-									if arn.IsARN(pARN) {
-										arnParts, _ := arn.Parse(pARN)
-										stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
-										stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
-									}
-								}
-							case "aws:sourceaccount", "aws:sourceowner":
-								stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
-							}
-						}
-					}
-
-					if len(awsPrincipals) == 0 &&
-						len(servicePrincipals) != 0 &&
-						hasServicePrincipalConditionKey(conditionKey) &&
-						!hasIfExistsSuffix {
-						stmtEvaluation.AllowedPrincipals = helpers.RemoveFromStringSlice(stmtEvaluation.AllowedPrincipals, "*")
-						stmtEvaluation.AllowedPrincipals = append(stmtEvaluation.AllowedPrincipals, conditionValue.([]string)...)
-						isPublic = false
-						switch strings.ToLower(conditionKey) {
-						case "aws:sourcearn":
-							for _, pARN := range conditionValue.([]string) {
-								if arn.IsARN(pARN) {
-									arnParts, _ := arn.Parse(pARN)
-									stmtEvaluation.AllowedPrincipalServices = append(stmtEvaluation.AllowedPrincipalServices, fmt.Sprintf("%s.amazonaws.com", arnParts.Service))
-									stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, arnParts.AccountID)
-								}
-							}
-						case "aws:sourceaccount", "aws:sourceowner":
-							stmtEvaluation.AllowedPrincipalAccountIds = append(stmtEvaluation.AllowedPrincipalAccountIds, conditionValue.([]string)...)
-						}
-					}
-
-					// If the policy have principal org or path to org need to add that in the evaluation
-					if helpers.StringSliceContains([]string{"aws:principalorgid", "aws:principalorgpaths"}, strings.ToLower(conditionKey)) {
-						if val, ok := conditionValue.([]string); ok {
-							stmtEvaluation.AllowedOrganizationIds = val
-						}
-					}
-				}
-			}
-		}
-	}
-
-	evaluation.AllowedOrganizationIds = append(evaluation.AllowedOrganizationIds, stmtEvaluation.AllowedOrganizationIds...)
-	evaluation.AllowedPrincipals = append(evaluation.AllowedPrincipals, stmtEvaluation.AllowedPrincipals...)
-	evaluation.AllowedPrincipalServices = append(evaluation.AllowedPrincipalServices, stmtEvaluation.AllowedPrincipalServices...)
-	evaluation.AllowedPrincipalFederatedIdentities = append(evaluation.AllowedPrincipalFederatedIdentities, stmtEvaluation.AllowedPrincipalFederatedIdentities...)
-
-	if hasPublicConditionPrincipals && isPublic {
-		return true
-	}
-	return false
-}
-*/

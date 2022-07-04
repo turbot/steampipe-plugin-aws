@@ -352,15 +352,32 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					}
 				]
 			}`,
+			// `{
+			// 	"access_level": "shared",
+			// 	"allowed_organization_ids": [],
+			// 	"allowed_principals": [
+			// 		"111122223333",
+			// 		"ses.amazonaws.com"
+			// 	],
+			// 	"allowed_principal_account_ids": [
+			// 		"111122223333"
+			// 	],
+			// 	"allowed_principal_federated_identities": [],
+			// 	"allowed_principal_services": [
+			// 		"ses.amazonaws.com"
+			// 	],
+			// 	"is_public": false,
+			// 	"public_access_levels": null,
+			// 	"public_statement_ids": []
+			// }`,
 			`{
 				"access_level": "shared",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"111122223333",
 					"ses.amazonaws.com"
 				],
 				"allowed_principal_account_ids": [
-					"111122223333"
+					"444455556666"
 				],
 				"allowed_principal_federated_identities": [],
 				"allowed_principal_services": [
@@ -395,7 +412,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 							"SNS:Publish",
 							"SNS:Receive"
 						],
-						"Resource": "arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms",
+						"Resource": "arn:aws:sns:us-east-1:111122223333:cloudwatch-alarms",
 						"Condition": {
 							"StringEquals": {
 								"aws:PrincipalAccount": "999988887777"
@@ -407,9 +424,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			`{
 				"access_level": "shared",
 				"allowed_organization_ids": [],
-				"allowed_principals": [
-					"999988887777"
-				],
+				"allowed_principals": [],
 				"allowed_principal_account_ids": [
 					"999988887777"
 				],
@@ -421,7 +436,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 			}`,
 		},
 		{
-			`Allow user from same account as the topic accout to publish message`,
+			`Allow user from same account as the topic account to publish message`,
 			7,
 			`{
 				"Version": "2008-10-17",
@@ -444,32 +459,26 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 							"SNS:Publish",
 							"SNS:Receive"
 						],
-						"Resource": "arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms",
+						"Resource": "arn:aws:sns:us-east-1:111122223333:cloudwatch-alarms",
 						"Condition": {
-							"StringEquals": {
-								"aws:PrincipalAccount": "999988887777"
-							},
 							"ArnLike": {
-	             	"aws:SourceArn": "arn:aws:cloudwatch:us-east-1:111122223333:alarm:*"
+	             	"aws:SourceArn": "arn:aws:iam::111122223333:users/*"
 	           	}
 						}
 					}
 				]
 			}`,
 			`{
-				"access_level": "shared",
+				"access_level": "private",
 				"allowed_organization_ids": [],
 				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-1:111122223333:alarm:*",
-					"cloudwatch.amazonaws.com",
-					"999988887777"
+					"arn:aws:iam::111122223333:users/*"
 				],
-				"allowed_principal_account_ids": [
-					"111122223333",
-					"999988887777"
-				],
+				"allowed_principal_account_ids": [],
 				"allowed_principal_federated_identities": [],
-				"allowed_principal_services": ["cloudwatch.amazonaws.com"],
+				"allowed_principal_services": [
+					"arn:aws:iam::111122223333:users/*"
+				],
 				"is_public": false,
 				"public_access_levels": null,
 				"public_statement_ids": []

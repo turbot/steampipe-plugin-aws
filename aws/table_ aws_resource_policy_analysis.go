@@ -80,6 +80,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 				Name:        "account_id",
 				Type:        proto.ColumnType_STRING,
 				Description: "The id of AWS account to which policy belongs.",
+				Transform:   transform.FromQual("policy"),
 			},
 		},
 	}
