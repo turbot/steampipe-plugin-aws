@@ -6,13 +6,13 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
 variable "aws_region" {
   type        = string
-  default     = "us-east-1"
+  default     = "ap-northeast-3"
   description = "AWS region used for the test. Does not work with default region in config, so must be defined here."
 }
 
@@ -49,6 +49,7 @@ data "null_data_source" "resource" {
 resource "aws_default_vpc" "default" {}
 
 resource "aws_default_subnet" "default_subnet" {
+  depends_on = [ aws_default_vpc.default]
   availability_zone = "${var.aws_region}c"
 }
 
@@ -89,7 +90,7 @@ resource "aws_iam_instance_profile" "named_test_resource" {
 
 resource "aws_instance" "named_test_resource" {
   ami                         = data.aws_ami.linux.id
-  instance_type               = "t2.micro"
+  instance_type               = "t3.micro"
   subnet_id                   = aws_default_subnet.default_subnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.named_test_resource.name
@@ -103,6 +104,24 @@ resource "null_resource" "delay" {
     aws_instance.named_test_resource
   ]
   provisioner "local-exec" {
+    command = "sleep 60"
+  }
+}
+
+resource "null_resource" "create_association" {
+  depends_on = [null_resource.delay]
+  provisioner "local-exec" {
+    command = <<EOF
+      aws ssm create-association --name "AWS-UpdateSSMAgent" --targets "Key=instanceids,Values=${aws_instance.named_test_resource.id}" --region ${data.aws_region.primary.name}
+    EOF
+  }
+} 
+
+resource "null_resource" "delay_create_association" {
+  depends_on = [
+    aws_instance.named_test_resource
+  ]
+  provisioner "local-exec" {
     command = "sleep 300"
   }
 }
@@ -112,7 +131,7 @@ locals {
 }
 
 resource "null_resource" "list_compliance" {
-  depends_on = [null_resource.delay]
+  depends_on = [null_resource.delay_create_association]
   provisioner "local-exec" {
     command = "aws ssm list-compliance-items --resource-ids ${aws_instance.named_test_resource.id} --resource-types ManagedInstance --output json --profile ${var.aws_profile} --region ${data.aws_region.primary.name} > ${local.path}"
   }

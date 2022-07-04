@@ -1,6 +1,5 @@
 [
   {
-    "arn": "{{ output.resource_aka.value }}",
     "name": "{{ resourceName }}",
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.aws_region.value }}",

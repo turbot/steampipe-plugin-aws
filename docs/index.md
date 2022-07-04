@@ -344,13 +344,16 @@ connection "aws_account_123456789012" {
 
 ### AWS-Vault Credentials
 
-Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (You must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA):
+Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
+
+When authenticating with temporary credentials, like using an access key pair with aws-vault, some IAM and STS APIs may be restricted. You can avoid creating a temporary session with the `--no-session` option (e.g., `aws-vault exec my_profile --no-session -- steampipe query "select name from aws_iam_user;"`). For more information, please see [aws-vault Temporary credentials limitations with STS, IAM
+](https://github.com/99designs/aws-vault/blob/master/USAGE.md#temporary-credentials-limitations-with-sts-iam).
 
 #### aws credential file:
 
 ```bash
 [vault_user_account]
-credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile IN AWS_VAULT...
+credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile in AWS_VAULT...
 
 [aws_account_123456789012]
 source_profile = vault_user_account
