@@ -40,7 +40,7 @@ from
   aws_cloudtrail_trail_event
 where
   log_group_name = 'required-your-log-group-name'
-  and timestamp >= (now() - interval '1' hour)
+  and timestamp >= (now() - interval '1' hour);
 ```
 
 ### List ordered events that occurred between one to two hours ago
