@@ -25,7 +25,7 @@ This table reads CloudTrail event data from a CloudWatch log group that is confi
 
 ## Examples
 
-### List events that occurred over the last hour
+### List events that occurred over the last five minutes
 
 ```sql
 select
@@ -40,10 +40,10 @@ from
   aws_cloudtrail_trail_event
 where
   log_group_name = 'required-your-log-group-name'
-  and timestamp >= (now() - interval '1' hour);
+  and timestamp >= (now() - interval '5' minute);
 ```
 
-### List ordered events that occurred between one to two hours ago
+### List ordered events that occurred between five to ten minutes ago
 
 ```sql
 select
@@ -58,7 +58,7 @@ from
   aws_cloudtrail_trail_event
 where
   log_group_name = 'required-your-log-group-name'
-  and timestamp between (now() - interval '2' hour) and (now() - interval '1' hour)
+  and timestamp between (now() - interval '10' minute) and (now() - interval '5' minute)
 order by
   event_time asc;
 ```
