@@ -21,22 +21,6 @@ The following tables also retrieve data from CloudWatch log groups, but have col
 
 ## Examples
 
-### Basic info
-
-```sql
-select
-  log_group_name,
-  log_stream_name,
-  event_id,
-  timestamp,
-  ingestion_time,
-  message
-from
-  aws_cloudwatch_log_event
-where
-  log_group_name = 'required-your-log-group-name';
-```
-
 ### List events that occurred over the last hour
 
 ```sql
@@ -52,6 +36,23 @@ from
 where
   log_group_name = 'required-your-log-group-name'
   and timestamp >= (now() - interval '1' hour)
+```
+
+### List ordered events that occurred between one to two hours ago
+
+```sql
+select
+  log_group_name,
+  log_stream_name,
+  event_id,
+  timestamp,
+  ingestion_time,
+  message
+from
+  aws_cloudwatch_log_event
+where
+  log_group_name = 'required-your-log-group-name'
+  and timestamp between (now() - interval '2' hour) and (now() - interval '1' hour)
 order by
   timestamp asc;
 ```

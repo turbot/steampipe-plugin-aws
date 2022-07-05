@@ -25,6 +25,44 @@ This table reads CloudTrail event data from a CloudWatch log group that is confi
 
 ## Examples
 
+### List events that occurred over the last hour
+
+```sql
+select
+  event_name,
+  event_source,
+  event_time,
+  user_type,
+  username,
+  user_identifier,
+  jsonb_pretty(response_elements) as response_elements
+from
+  aws_cloudtrail_trail_event
+where
+  log_group_name = 'required-your-log-group-name'
+  and timestamp >= (now() - interval '1' hour)
+```
+
+### List ordered events that occurred between one to two hours ago
+
+```sql
+select
+  event_name,
+  event_source,
+  event_time,
+  user_type,
+  username,
+  user_identifier,
+  jsonb_pretty(response_elements) as response_elements
+from
+  aws_cloudtrail_trail_event
+where
+  log_group_name = 'required-your-log-group-name'
+  and timestamp between (now() - interval '2' hour) and (now() - interval '1' hour)
+order by
+  event_time asc;
+```
+
 ### List all action events, i.e., not ReadOnly that occurred over the last hour
 
 ```sql
