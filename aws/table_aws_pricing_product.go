@@ -125,7 +125,7 @@ func listPricingProducts(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			}
 		}
 	}
-	plugin.Logger(ctx).Error("listPricingProduct", "serviceCode", input.ServiceCode, "field", input.Filters)
+
 	err = svc.GetProductsPages(
 		input,
 		func(pages *pricing.GetProductsOutput, isLast bool) bool {
