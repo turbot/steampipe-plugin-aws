@@ -12,9 +12,6 @@ This table details the contents of the response header policies.
 This table supports the optional quals `type`.
 Queries with optional quals are optimised to use additional filtering provided by the AWS API function.
 
-Omitting the field `e_tag` will improve the performace of the query.
-The reason behind this is due to `e_tag` requiring an addition API call to get the currrent `ETag` value.
-
 ## Examples
 
 ### Basic info

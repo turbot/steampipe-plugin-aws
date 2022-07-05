@@ -59,7 +59,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Type"),
 			},
 			{
-				Name:        "e_tag",
+				Name:        "etag",
 				Description: "The version identifier for the current version of the response headers policy.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getETagValue,
@@ -147,19 +147,13 @@ func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryDat
 //// HYDRATE FUNCTIONS
 
 func getETagValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontResponseHeadersPolicy")
+	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getETagValue")
 
-	var id string
-
-	if h.Item != nil {
-		item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
-		id = *item.ResponseHeadersPolicy.Id
-	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-	}
+	item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
+	id := *item.ResponseHeadersPolicy.Id
 
 	if id == "" {
-		plugin.Logger(ctx).Trace("Id is null, ignoring")
+		plugin.Logger(ctx).Trace("ResponseHeadersPolicy.Id is null, ignoring")
 		return nil, nil
 	}
 
