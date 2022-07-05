@@ -2,7 +2,6 @@
   {
     "control_sources": "AWS CloudTrail",
     "id": "{{ output.control_id.value }}",
-    "name": "{{ resourceName }}",
-    "type": "Custom"
+    "name": "{{ resourceName }}"
   }
 ]

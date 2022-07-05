@@ -1,0 +1,6 @@
+[
+	{
+		"arn": "{{ output.resource_aka.value }}",
+		"framework_name": "{{ output.id.value }}"
+	}
+]

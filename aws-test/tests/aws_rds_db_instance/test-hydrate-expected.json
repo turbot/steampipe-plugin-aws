@@ -11,7 +11,6 @@
     "deletion_protection": false,
     "endpoint_port": 3306,
     "engine": "mysql",
-    "engine_version": "8.0.27",
     "iam_database_authentication_enabled": false,
     "master_user_name": "master",
     "multi_az": false,

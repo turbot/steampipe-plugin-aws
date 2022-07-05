@@ -53,3 +53,14 @@ from
 where
   not vpc_endpoint_policy_supported;
 ```
+
+### List allowed principals of VPC endpoint services
+
+```sql
+select
+  service_name,
+  service_id,
+  jsonb_pretty(vpc_endpoint_service_permissions) as allowed_principals
+from
+  aws_vpc_endpoint_service;
+```

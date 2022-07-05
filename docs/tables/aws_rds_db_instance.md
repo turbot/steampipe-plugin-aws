@@ -137,3 +137,47 @@ from
 where
   parameter_value = '0'
 ```
+
+### List DB instance pending maintenance actions
+
+```sql
+select
+  actions ->> 'ResourceIdentifier' as db_instance_identifier,
+  details ->> 'Action' as action,
+  details ->> 'OptInStatus' as opt_in_status,
+  details ->> 'ForcedApplyDate' as forced_apply_date,
+  details ->> 'CurrentApplyDate' as current_apply_date,
+  details ->> 'AutoAppliedAfterDate' as auto_applied_after_date
+from
+  aws_rds_db_instance,
+  jsonb_array_elements(pending_maintenance_actions) as actions,
+  jsonb_array_elements(actions -> 'PendingMaintenanceActionDetails') as details;
+```
+
+### List certificate details associated to the instance
+
+```sql
+select
+  arn,
+  certificate ->> 'CertificateArn' as certificate_arn,
+  certificate ->> 'CertificateType' as certificate_type,
+  certificate ->> 'ValidFrom' as valid_from,
+  certificate ->> 'ValidTill' as valid_till
+from
+  aws_rds_db_instance;
+```
+
+### List certificates valid for less than 90 days
+
+```sql
+select
+  arn,
+  certificate ->> 'CertificateArn' as certificate_arn,
+  certificate ->> 'CertificateType' as certificate_type,
+  certificate ->> 'ValidFrom' as valid_from,
+  certificate ->> 'ValidTill' as valid_till
+from
+  aws_rds_db_instance
+where
+  (certificate ->> 'ValidTill')::timestamp <= (current_date - interval '90' day);
+```

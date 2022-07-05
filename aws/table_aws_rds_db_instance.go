@@ -336,6 +336,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "certificate",
+				Description: "The CA certificate associated with the DB instance.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceCertificate,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "db_parameter_groups",
 				Description: "A list of DB parameter groups applied to this DB instance.",
 				Type:        proto.ColumnType_JSON,
@@ -361,6 +368,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "option_group_memberships",
 				Description: "A list of option group memberships for this DB instance",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "pending_maintenance_actions",
+				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "processor_features",
@@ -498,6 +512,60 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
 		return op.DBInstances[0], nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dbInstanceIdentifier := *h.Item.(*rds.DBInstance).DBInstanceIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := &rds.Filter{
+		Name:   aws.String("db-instance-id"),
+		Values: aws.StringSlice([]string{dbInstanceIdentifier}),
+	}
+	params := &rds.DescribePendingMaintenanceActionsInput{
+		Filters: []*rds.Filter{filter},
+	}
+
+	op, err := svc.DescribePendingMaintenanceActions(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstancePendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		return nil, err
+	}
+
+	if len(op.PendingMaintenanceActions) > 0 {
+		return op.PendingMaintenanceActions, nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	caCertificateIdentifier := *h.Item.(*rds.DBInstance).CACertificateIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &rds.DescribeCertificatesInput{
+		CertificateIdentifier: aws.String(caCertificateIdentifier),
+	}
+
+	op, err := svc.DescribeCertificates(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstanceCertificate", "DescribeCertificates", err)
+		return nil, err
+	}
+
+	if len(op.Certificates) > 0 {
+		return op.Certificates[0], nil
 	}
 	return nil, nil
 }
