@@ -206,17 +206,17 @@ func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
-	params := &guardduty.GetMasterAccountInput{
+	params := &guardduty.GetAdministratorAccountInput{
 		DetectorId: &id,
 	}
 
-	op, err := svc.GetMasterAccount(params)
+	op, err := svc.GetAdministratorAccount(params)
 	if err != nil {
 		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "api_error", err)
 		return nil, err
 	}
 
-	return op.Master, nil
+	return op.Administrator, nil
 }
 
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
