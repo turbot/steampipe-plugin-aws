@@ -952,6 +952,166 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				]
 			}`,
 		},
+		{
+			`Bucket looging policies`,
+			8,
+			`{
+				"Statement": [
+					{
+					"Action": "s3:GetBucketAcl",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "cloudtrail.amazonaws.com"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1",
+					"Sid": "AWSCloudTrailAclCheck"
+					},
+					{
+					"Action": "s3:PutObject",
+					"Condition": {
+						"StringEquals": {
+						"s3:x-amz-acl": "bucket-owner-full-control"
+						}
+					},
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "cloudtrail.amazonaws.com"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1/AWSLogs/111122224444/*",
+					"Sid": "AWSCloudTrailWrite"
+					},
+					{
+					"Action": "s3:PutObject",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "arn:aws:iam::123456560864:root"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1/*",
+					"Sid": "AWSELBWrite"
+					},
+					{
+					"Action": "s3:GetBucketAcl",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "arn:aws:iam::123456285394:user/logs"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1",
+					"Sid": "AWSRedshiftAclCheck"
+					},
+					{
+					"Action": "s3:PutObject",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "arn:aws:iam::123456285394:user/logs"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1/*",
+					"Sid": "AWSRedshiftWrite"
+					},
+					{
+					"Action": "s3:GetBucketAcl",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "delivery.logs.amazonaws.com"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1",
+					"Sid": "AWSLogDeliveryAclCheck"
+					},
+					{
+					"Action": "s3:PutObject",
+					"Condition": {
+						"StringEquals": {
+						"s3:x-amz-acl": "bucket-owner-full-control"
+						}
+					},
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "delivery.logs.amazonaws.com"
+					},
+					"Resource": "arn:aws:s3:::turbot-111122224444-ap-northeast-1/AWSLogs/111122224444/*",
+					"Sid": "AWSLogDeliveryWrite"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			`{
+        	"access_level": "shared",
+        	"allowed_organization_ids": null,
+        	"allowed_principals": [
+        		"arn:aws:iam::123456285394:user/logs",
+        		"arn:aws:iam::123456560864:root",
+        		"cloudtrail.amazonaws.com",
+        		"delivery.logs.amazonaws.com"
+        	],
+        	"allowed_principal_account_ids": [
+        		"123456285394",
+        		"123456560864"
+        	],
+        	"allowed_principal_federated_identities": null,
+        	"allowed_principal_services": [
+        		"cloudtrail.amazonaws.com",
+        		"delivery.logs.amazonaws.com"
+        	],
+        	"is_public": false,
+        	"public_access_levels": null,
+        	"public_statement_ids": null
+        }`,
+		},
+		{
+			`S3 cloutrail account logging policy`,
+			9,
+			`{
+				"Statement": [
+					{
+						"Action": "s3:GetBucketAcl",
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "cloudtrail.amazonaws.com"
+						},
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "AWSCloudTrailAclCheck"
+					},
+					{
+						"Action": "s3:PutObject",
+						"Condition": {
+							"StringEquals": {
+								"s3:x-amz-acl": "bucket-owner-full-control"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "cloudtrail.amazonaws.com"
+						},
+						"Resource": "arn:aws:s3:::test-anonymous-access/AWSLogs/111122224444/*",
+						"Sid": "AWSCloudTrailWrite"
+					},
+					{
+						"Action": "s3:GetBucketAcl",
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "delivery.logs.amazonaws.com"
+						},
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Sid": "AWSLogDeliveryAclCheck"
+					},
+					{
+						"Action": "s3:PutObject",
+						"Condition": {
+							"StringEquals": {
+								"s3:x-amz-acl": "bucket-owner-full-control"
+							}
+						},
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "delivery.logs.amazonaws.com"
+						},
+						"Resource": "arn:aws:s3:::test-anonymous-access/AWSLogs/111122224444/*",
+						"Sid": "AWSLogDeliveryWrite"
+					}
+				],
+				"Version": "2012-10-17"
+			}`,
+			``,
+		},
 	}
 
 	for _, test := range testCases {

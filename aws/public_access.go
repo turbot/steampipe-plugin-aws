@@ -29,22 +29,27 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 
 	var policyEvaluation PolicyEvaluation
 	if !re.Match([]byte(sourceAccountID)) {
-		return &policyEvaluation, fmt.Errorf("%s is not a valid. Please enter a valid account id.", sourceAccountID)
+		return &policyEvaluation, fmt.Errorf("%s is not a valid. Please enter a valid account id", sourceAccountID)
 	}
 	// var public bool
 	if policy.Statements == nil {
 		return &policyEvaluation, nil
 	}
 
-	var actions, allowedOrgs, allowedAccounts, allowedServices, allowedFederatedIdentities, allowedPrincipals, publicStatementIds []string
-	// deniedActions := []string{}
+	var publicActions, allowedOrgs, allowedAccounts, allowedServices, allowedFederatedIdentities, allowedPrincipals, publicStatementIds []string
+	deniedActions := []string{}
 	// deniedAccounts := []string{}
 
+	// Only for allow statements
 	for index, stmt := range policy.Statements {
+		if stmt.Effect == "Deny" {
+			continue
+		}
+		// Check for the deny statements separately
 		public, evaluation := stmt.EvaluateStatement()
 		if public {
 			policyEvaluation.IsPublic = true
-			actions = append(actions, stmt.Action...)
+			publicActions = append(publicActions, stmt.Action...)
 			if stmt.Sid == "" {
 				publicStatementIds = append(publicStatementIds, fmt.Sprintf("Statement[%d]", index+1))
 			} else {
@@ -57,6 +62,18 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 		allowedServices = append(allowedServices, evaluation.AllowedPrincipalServices...)
 		allowedFederatedIdentities = append(allowedFederatedIdentities, evaluation.AllowedPrincipalFederatedIdentities...)
 		allowedPrincipals = append(allowedPrincipals, evaluation.AllowedPrincipals...)
+	}
+
+	// Only for denied statements
+	for _, stmt := range policy.Statements {
+		if stmt.Effect == "Allow" {
+			continue
+		}
+
+		deniedEvaluation := stmt.DenyStatementEvaluation()
+		if helpers.StringSliceContains(deniedEvaluation.DeniedPrincipals, "*") {
+			deniedActions = append(deniedActions, stmt.Action...)
+		}
 	}
 
 	policyEvaluation.AllowedPrincipalAccountIds = helpers.StringSliceDistinct(allowedAccounts)
@@ -85,9 +102,11 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 	policyEvaluation.AllowedPrincipalAccountIds = helpers.StringSliceDistinct(policyEvaluation.AllowedPrincipalAccountIds)
 	policyEvaluation.PublicStatementIds = helpers.StringSliceDistinct(publicStatementIds)
 
-	permissionsData := getParliamentIamPermissions()
-	if len(actions) > 0 {
-		policyEvaluation.PublicAccessLevels = GetAccessLevelsFromActions(permissionsData, actions)
+	// Action access level will be avaialble only for the policies granting public access
+	publicActions = helpers.StringSliceDiff(publicActions, deniedActions)
+	if len(publicActions) > 0 {
+		permissionsData := getParliamentIamPermissions()
+		policyEvaluation.PublicAccessLevels = GetAccessLevelsFromActions(permissionsData, publicActions)
 	}
 
 	policyEvaluation.AccessLevel = "private"
@@ -140,12 +159,6 @@ func (policy *Policy) EvaluatePolicy(sourceAccountID string) (*PolicyEvaluation,
 func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	allowedPrincipals := []string{}
 	stmtEvaluation := PolicyEvaluation{}
-	// Check for the deny statements separately
-	if stmt.Effect == "Deny" {
-		// TODO
-		return stmt.DenyStatementEvaluation(&stmtEvaluation)
-		// return false, stmtEvaluation
-	}
 
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
 	if stmt.NotPrincipal != nil {
@@ -184,7 +197,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 		}
 	}
 
-	if helpers.StringSliceContains(awsPrincipals, "*") {
+	// if helpers.StringSliceContains(awsPrincipals, "*") {
+	if helpers.StringSliceContains(awsPrincipals, "*") || (len(awsPrincipals) == 0 && len(servicePrincipals) > 0) {
 		hasPublicPrincipal = true
 		isPublic = true
 	}
@@ -209,23 +223,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
 			var typeOfOperator string = "Unknown"
-			switch operatorKey {
-			case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
-				typeOfOperator = "String"
-				operatorKey = strings.ReplaceAll(operatorKey, "IgnoreCase", "")
-			case "ArnEquals", "ArnLike", "ArnNotEquals", "ArnNotLike":
-				typeOfOperator = "Arn"
-			case "NumericEquals", "NumericNotEquals", "NumericLessThan", "NumericLessThanEquals", "NumericGreaterThan", "NumericGreaterThanEquals":
-				typeOfOperator = "Numeric"
-			case "DateEquals", "DateNotEquals", "DateLessThan", "DateLessThanEquals", "DateGreaterThan", "DateGreaterThanEquals":
-				typeOfOperator = "Date"
-			case "IpAddress", "NotIpAddress":
-				typeOfOperator = "IP"
-			case "Bool":
-				typeOfOperator = "Bool"
-			case "BinaryEquals":
-				typeOfOperator = "Binary"
-			}
+			typeOfOperator, operatorKey = getOperatorType(operatorKey)
 
 			hasNotInOperator := CheckNotInOperator(operatorKey)
 			hasLikeOperator := strings.Contains(operatorKey, "Like")
@@ -234,8 +232,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 				internalPublicPrincipalKey := true
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
 					if hasPublicPrincipal || len(awsPrincipals) == 0 {
-						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
-						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
 
 						if typeOfOperator == "String" {
 							switch conditionKey {
@@ -248,8 +244,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									var wildcardAccountIds []string
 									for _, acctId := range conditionValue.([]string) {
 										if !strings.ContainsAny(acctId, "*?") {
-											// TODO - Normalizing account IDs, e.g., 23* becomes 23?????????, or remains 23*, or something else?
-											// AllowedAccountsForPrincipals = append(AllowedAccountsForPrincipals, acctId)
 											wildcardAccountIds = append(wildcardAccountIds, acctId)
 										} else {
 											allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, acctId)
@@ -443,24 +437,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
 			var typeOfOperator string = "Unknown"
-			// fmt.Println("operatorKey:", operatorKey)
-			switch operatorKey {
-			case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
-				typeOfOperator = "String"
-				operatorKey = strings.ReplaceAll(operatorKey, "IgnoreCase", "")
-			case "ArnEquals", "ArnLike", "ArnNotEquals", "ArnNotLike":
-				typeOfOperator = "Arn"
-			case "NumericEquals", "NumericNotEquals", "NumericLessThan", "NumericLessThanEquals", "NumericGreaterThan", "NumericGreaterThanEquals":
-				typeOfOperator = "Numeric"
-			case "DateEquals", "DateNotEquals", "DateLessThan", "DateLessThanEquals", "DateGreaterThan", "DateGreaterThanEquals":
-				typeOfOperator = "Date"
-			case "IpAddress", "NotIpAddress":
-				typeOfOperator = "IP"
-			case "Bool":
-				typeOfOperator = "Bool"
-			case "BinaryEquals":
-				typeOfOperator = "Binary"
-			}
+			typeOfOperator, operatorKey = getOperatorType(operatorKey)
 
 			hasNotInOperator := CheckNotInOperator(operatorKey)
 			hasLikeOperator := strings.Contains(operatorKey, "Like")
@@ -531,14 +508,171 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	return false, stmtEvaluation
 }
 
+type DeniedStmtEvaluation struct {
+	Actions                            []string `json:"actions"`
+	DeniedOrganizationIds              []string `json:"denied_organization_ids"`
+	DeniedPrincipals                   []string `json:"denied_principals"`
+	DeniedPrincipalAccountIds          []string `json:"denied_principal_account_ids"`
+	DeniedPrincipalFederatedIdentities []string `json:"denied_principal_federated_identities"`
+	DeniedPrincipalServices            []string `json:"denied_principal_services"`
+}
+
 // In a way "Effect" = "Deny" never allows grants but only explicitely denies the rights
-func (stmt *Statement) DenyStatementEvaluation(evaluation *PolicyEvaluation) (bool, PolicyEvaluation) {
+func (stmt *Statement) DenyStatementEvaluation() DeniedStmtEvaluation {
+	deniedEvaluation := DeniedStmtEvaluation{
+		Actions: stmt.Action,
+	}
 	if stmt.NotPrincipal != nil {
 		// makes policy unsolvable as it denies access to only principals mentioned in `NotPrincipal` but allows access to everyone else.
-		return false, *evaluation
+		return deniedEvaluation
 	}
-	// evaluation.Actions = stmt.Action
-	return false, *evaluation
+
+	var awsPrincipals, deniedPrincipals, deniedOrgPaths, deniedServices, deniedFederatedPrincipal []string
+	if stmt.Principal != nil {
+		if data, ok := stmt.Principal["AWS"]; ok {
+			awsPrincipals = data.([]string)
+		}
+		if data, ok := stmt.Principal["Service"]; ok {
+			deniedServices = data.([]string)
+		}
+		if data, ok := stmt.Principal["Federated"]; ok {
+			deniedFederatedPrincipal = data.([]string)
+		}
+	}
+
+	deniedEvaluation.DeniedPrincipalServices = deniedServices
+	deniedEvaluation.DeniedPrincipalFederatedIdentities = deniedFederatedPrincipal
+
+	hasPublicPrincipal := false
+
+	// Action denied to all principals until there is a explicit condition to limit its impact
+	if helpers.StringSliceContains(awsPrincipals, "*") {
+		hasPublicPrincipal = true
+		deniedPrincipals = []string{"*"}
+	}
+
+	if stmt.Condition != nil {
+
+		// Code to detect principals which are denied
+		for operatorKey, operatorValue := range stmt.Condition {
+			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
+			operatorKey = strings.ReplaceAll(operatorKey, "IfExists", "")
+			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
+			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
+
+			var typeOfOperator string = "Unknown"
+			typeOfOperator, operatorKey = getOperatorType(operatorKey)
+			hasNotInOperator := CheckNotInOperator(operatorKey)
+			hasLikeOperator := strings.Contains(operatorKey, "Like")
+
+			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
+				for conditionKey, conditionValue := range conditionOperatorValueMap {
+					if hasPublicPrincipal || len(awsPrincipals) == 0 {
+
+						if typeOfOperator == "String" {
+							switch conditionKey {
+							case "aws:principalaccount": // Works with String operators
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+									deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+									deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+								}
+							case "aws:principalorgid", "aws:principalorgpaths":
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									deniedOrgPaths = append(deniedOrgPaths, conditionValue.([]string)...)
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									deniedOrgPaths = append(deniedOrgPaths, conditionValue.([]string)...)
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+								}
+							case "aws:principalarn": // Works with both ARN and String operators
+								if hasLikeOperator && !hasNotInOperator {
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+									deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+								}
+							case "aws:sourceaccount", "aws:sourceowner": // Works with String operators
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+									deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									var wildcardAccountIds []string
+									for _, acctId := range conditionValue.([]string) {
+										if !strings.ContainsAny(acctId, "*?") {
+											// TODO - Normalizing account IDs, e.g., 23* becomes 23?????????, or remains 23*, or something else?
+											// AllowedAccounts = append(AllowedAccounts, acctId)
+											wildcardAccountIds = append(wildcardAccountIds, acctId)
+										}
+									}
+									if len(wildcardAccountIds) == 0 {
+										deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+										deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+									}
+									// else {// TODO - How to add the wildcard account Ids to the list}
+								}
+							case "aws:sourcearn": // Works with both ARN and String operators
+								if hasLikeOperator && !hasNotInOperator {
+									principalArnPublic := false
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											if arnParts.AccountID == "*" {
+												principalArnPublic = true
+											}
+										}
+									}
+									if !principalArnPublic {
+										deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+										deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+									}
+								}
+							}
+						} else if typeOfOperator == "Arn" {
+							switch conditionKey {
+							case "aws:principalarn": // Works with both ARN and String operators
+								if !hasNotInOperator {
+									principalArnPublic := false
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											if arnParts.AccountID == "*" {
+												principalArnPublic = true
+											}
+										}
+									}
+									if !principalArnPublic {
+										deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+										deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+									}
+								}
+							case "aws:sourcearn": // Works with both ARN and String operators
+								if !hasNotInOperator {
+									principalArnPublic := false
+									for _, pARN := range conditionValue.([]string) {
+										if arn.IsARN(pARN) {
+											arnParts, _ := arn.Parse(pARN)
+											if arnParts.AccountID == "*" {
+												principalArnPublic = true
+											}
+										}
+									}
+									if !principalArnPublic {
+										deniedPrincipals = helpers.RemoveFromStringSlice(deniedPrincipals, "*")
+										deniedPrincipals = append(deniedPrincipals, conditionValue.([]string)...)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	deniedEvaluation.DeniedPrincipals = deniedPrincipals
+	deniedEvaluation.DeniedOrganizationIds = deniedOrgPaths
+
+	return deniedEvaluation
 	// TODO: Instead of returning false should return an analysis to negate the allowed actions and principals from other allowed statements in the policy - more useful for the case of per principal analysis
 }
 
@@ -617,4 +751,26 @@ func GetAccessLevelsFromActions(permissionsData ParliamentPermissions, actions [
 		}
 	}
 	return helpers.StringSliceDistinct(accessLevels)
+}
+
+func getOperatorType(key string) (operatorType string, newKey string) {
+	var typeOfOperator string = "Unknown"
+	switch key {
+	case "StringEquals", "StringNotEquals", "StringEqualsIgnoreCase", "StringNotEqualsIgnoreCase", "StringLike", "StringNotLike":
+		typeOfOperator = "String"
+		key = strings.ReplaceAll(key, "IgnoreCase", "")
+	case "ArnEquals", "ArnLike", "ArnNotEquals", "ArnNotLike":
+		typeOfOperator = "Arn"
+	case "NumericEquals", "NumericNotEquals", "NumericLessThan", "NumericLessThanEquals", "NumericGreaterThan", "NumericGreaterThanEquals":
+		typeOfOperator = "Numeric"
+	case "DateEquals", "DateNotEquals", "DateLessThan", "DateLessThanEquals", "DateGreaterThan", "DateGreaterThanEquals":
+		typeOfOperator = "Date"
+	case "IpAddress", "NotIpAddress":
+		typeOfOperator = "IP"
+	case "Bool":
+		typeOfOperator = "Bool"
+	case "BinaryEquals":
+		typeOfOperator = "Binary"
+	}
+	return typeOfOperator, key
 }
