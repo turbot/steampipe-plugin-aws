@@ -7,6 +7,7 @@ AWS Pricing Service provides pricing information for all products in AWS.
 - You ***must*** specify `service_code`, `field` and `value` in a where or join clause in order to use this table.  
 - The `field` column represent the product metadata field that you want to filter on. You can filter by just the service code to see all products for a specific service, filter by just the attribute name to see a specific attribute for multiple services, or use both a service code and an attribute name to retrieve only products that match both fields.
 - The `value` column represent the service code or attribute value that you want to filter by.
+- You can get attribute details for each service in `aws_service_attribute` table.
 
 ## Examples
 
