@@ -88,7 +88,7 @@ func awsColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, commonAwsColumns()...)
 }
 
-func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
+func awsDefaultColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, commonS3Columns()...)
 }
 

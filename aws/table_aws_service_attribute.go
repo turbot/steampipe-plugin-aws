@@ -23,7 +23,7 @@ func tableAwsServiceAttribute(_ context.Context) *plugin.Table {
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		Columns: awsS3Columns([]*plugin.Column{
+		Columns: awsDefaultColumns([]*plugin.Column{
 			{
 				Name:        "service_code",
 				Description: "The service code of the AWS service.",
