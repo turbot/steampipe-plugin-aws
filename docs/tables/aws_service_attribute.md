@@ -27,3 +27,16 @@ from
 where
   service_code = 'AWSBackup';
 ```
+
+### List supported attribute values of AWS Backup service for termType attribute
+
+```sql
+select
+  service_code,
+  attribute_name,
+  attribute_values
+from
+  aws_service_attribute
+where
+  service_code = 'AWSBackup' and attribute_name = 'termType';
+```
