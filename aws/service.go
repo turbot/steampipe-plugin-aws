@@ -76,6 +76,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/aws/aws-sdk-go/service/ram"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
@@ -1377,6 +1378,24 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 		return nil, err
 	}
 	svc := configservice.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// PricingService returns the service connection for AWS Pricing
+func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "pricing"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*pricing.Pricing), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	svc := pricing.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
