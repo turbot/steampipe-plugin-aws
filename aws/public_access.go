@@ -426,9 +426,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 		for operatorKey, operatorValue := range stmt.Condition {
 			hasIfExistsSuffix := CheckIfExistsSuffix(operatorKey)
 			operatorKey = strings.ReplaceAll(operatorKey, "IfExists", "")
-			// hasForAnyValue := strings.HasPrefix(operatorKey, "ForAnyValue:")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
-			// hasForAllValues := strings.HasPrefix(operatorKey, "ForAllValues:")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
 			var typeOfOperator string = "Unknown"
@@ -441,8 +439,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 				// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
 					if hasPublicPrincipal || len(awsPrincipals) == 0 {
-						// hasPrincipalConditionKey := hasAWSPrincipalConditionKey(conditionKey)
-						// hasServiceConditionKey := hasServicePrincipalConditionKey(conditionKey)
 						if typeOfOperator == "String" {
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
