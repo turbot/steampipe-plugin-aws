@@ -36,7 +36,7 @@ func BuildRegionList(ctx context.Context, connection *plugin.Connection) []map[s
 		return cachedData.([]map[string]interface{})
 	}
 
-	defaultAwsRegion := GetDefaultAwsRegionV1(pluginQueryData)
+	defaultAwsRegion := GetDefaultAwsRegion(pluginQueryData)
 	regionData, _ := listRegions(ctx, pluginQueryData)
 	var allRegions []string
 
@@ -125,7 +125,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (map[string][]string,
 	awsChinaRegions := []string{"cn-north-1", "cn-northwest-1"}
 	defaultRegions := awsCommercialRegions
 
-	defaultRegion := GetDefaultAwsRegionV1(pluginQueryData)
+	defaultRegion := GetDefaultAwsRegion(pluginQueryData)
 	if strings.HasPrefix(defaultRegion, "us-gov") {
 		defaultRegions = awsUsGovRegions
 	} else if strings.HasPrefix(defaultRegion, "cn") {
@@ -226,7 +226,7 @@ func BuildServiceQuotasServicesRegionList(ctx context.Context, connection *plugi
 		panic(err)
 	}
 
-	defaultAwsRegion := GetDefaultAwsRegionV1(pluginQueryData)
+	defaultAwsRegion := GetDefaultAwsRegion(pluginQueryData)
 	regionData, _ := listRegions(ctx, pluginQueryData)
 	var allRegions []string
 
