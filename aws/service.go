@@ -317,7 +317,7 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 
 	// CloudControl returns GeneralServiceException, which appears to be retryable
 	// We deliberately reduce the number of retries to avoid long delays
-	sess, err := getSessionWithMaxRetries(ctx, d, region, 8, 25*time.Millisecond)
+	sess, err := getSessionWithMaxRetriesV1(ctx, d, region, 8, 25*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cl
 		return cachedData.(*cloudfront.CloudFront), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +503,7 @@ func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplore
 		return cachedData.(*costexplorer.CostExplorer), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1043,7 +1043,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 		return cachedData.(*iam.IAM), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1350,7 +1350,7 @@ func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizatio
 		return cachedData.(*organizations.Organizations), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1501,7 +1501,7 @@ func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53,
 		return cachedData.(*route53.Route53), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1817,7 +1817,7 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 		return cachedData.(*sts.STS), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1860,7 +1860,7 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 	}
 
 	// so it was not in cache - create service
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
+	sess, err := getSession(ctx, d, GetDefaultAwsRegionV1(d))
 	if err != nil {
 		return nil, err
 	}
@@ -1991,18 +1991,23 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
 	}
 
-	return getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+	return getSessionWithMaxRetriesV1(ctx, d, region, maxRetries, minRetryDelay)
 }
 
-func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*session.Session, error) {
+func getSessionWithMaxRetriesV1(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*session.Session, error) {
+	logger := plugin.Logger(ctx)
+
 	sessionCacheKey := fmt.Sprintf("session-%s", region)
+	logger.Trace("Attemtpting to get an active AWS session")
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
+		logger.Trace("Returning existing AWS session as the active AWS session")
 		return cachedData.(*session.Session), nil
 	}
 
 	// If session was not in cache - create a session and save to cache
 
 	// get aws config info
+	logger.Trace("Reading steampipe plugin configuration for AWS connection details")
 	awsConfig := GetConfig(d.Connection)
 
 	// session default configuration
@@ -2052,6 +2057,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 		}
 	}
 
+	// NOTE: Change point
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
 		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
@@ -2064,9 +2070,9 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 	return sess, nil
 }
 
-// GetDefaultAwsRegion returns the default region for AWS partiton
+// GetDefaultAwsRegionV1 returns the default region for AWS partiton
 // if not set by Env variable or in aws profile
-func GetDefaultAwsRegion(d *plugin.QueryData) string {
+func GetDefaultAwsRegionV1(d *plugin.QueryData) string {
 	allAwsRegions := []string{
 		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
 
@@ -2086,6 +2092,7 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		regions = awsConfig.Regions
 		region = regions[0]
 	} else {
+		// NOTE: Change point
 		session, err := session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		})
