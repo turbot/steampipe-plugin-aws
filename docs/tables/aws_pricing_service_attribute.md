@@ -1,4 +1,4 @@
-# Table: aws_service_attribute
+# Table: aws_pricing_service_attribute
 
 Returns the metadata for one service or a list of the metadata for all services.
 
@@ -12,7 +12,7 @@ select
   attribute_name,
   attribute_values
 from
-  aws_service_attribute;
+  aws_pricing_service_attribute;
 ```
 
 ### List attribute details of AWS Backup service
@@ -23,7 +23,7 @@ select
   attribute_name,
   attribute_values
 from
-  aws_service_attribute
+  aws_pricing_service_attribute
 where
   service_code = 'AWSBackup';
 ```
@@ -36,7 +36,7 @@ select
   attribute_name,
   attribute_values
 from
-  aws_service_attribute
+  aws_pricing_service_attribute
 where
   service_code = 'AWSBackup' and attribute_name = 'termType';
 ```
