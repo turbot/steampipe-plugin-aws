@@ -9,8 +9,6 @@ import (
 )
 
 func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
-	// permissionsData = getParliamentIamPermissions()
-
 	return &plugin.Table{
 		Name:        "aws_resource_policy_analysis",
 		Description: "AWS Resource Policy Analysis",
@@ -22,7 +20,6 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			Hydrate: listResourcePolicyAnalysis,
 		},
 		Columns: []*plugin.Column{
-			// "Key" Columns
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
