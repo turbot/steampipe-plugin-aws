@@ -152,11 +152,6 @@ func getETagValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
 	id := *item.ResponseHeadersPolicy.Id
 
-	if id == "" {
-		plugin.Logger(ctx).Trace("ResponseHeadersPolicy.Id is null, ignoring")
-		return nil, nil
-	}
-
 	// Create service
 	svc, err := CloudFrontService(ctx, d)
 	if err != nil {
