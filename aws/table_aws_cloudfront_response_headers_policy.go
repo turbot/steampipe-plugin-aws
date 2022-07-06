@@ -23,7 +23,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 			},
-			Hydrate: listCloudFrontResponseHeadersPolicy,
+			Hydrate: listCloudFrontResponseHeadersPolicies,
 		},
 		GetMatrixItem: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -91,7 +91,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCloudFrontResponseHeadersPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudFrontResponseHeadersPolicy")
 
 	svc, err := CloudFrontService(ctx, d)
