@@ -188,12 +188,8 @@ func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	var id string
 
-	if h.Item != nil {
-		item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
-		id = *item.ResponseHeadersPolicy.Id
-	} else {
-		id = d.KeyColumnQuals["id"].GetStringValue()
-	}
+	item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
+	id = *item.ResponseHeadersPolicy.Id
 
 	arn := "arn:" + commonColumnData.Partition + ":cloudfront::" + commonColumnData.AccountId + ":response-headers-policy/" + id
 
