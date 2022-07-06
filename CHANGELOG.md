@@ -12,7 +12,7 @@ _What's new?_
 
 _Enhancements_
 
-- Recompiled plugin with [steampipe-plugin-sdk v3.3.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v331--2022-6-30). ([#1129](https://github.com/turbot/steampipe-plugin-aws/pull/1129))
+- Recompiled plugin with [steampipe-plugin-sdk v3.3.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v331--2022-06-30). ([#1129](https://github.com/turbot/steampipe-plugin-aws/pull/1129))
 - Added information about STS and IAM API limitations with aws-vault temporary credentials in the `docs/index.md` file.
 - Added column `vpcs` to `aws_route53_zone` table. ([#1085](https://github.com/turbot/steampipe-plugin-aws/pull/1085))
 - Added column `vpc_endpoint_service_permissions` to `aws_vpc_endpoint_service` table. ([#1121](https://github.com/turbot/steampipe-plugin-aws/pull/1121))
