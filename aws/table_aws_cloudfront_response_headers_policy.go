@@ -56,7 +56,6 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Name:        "type",
 				Description: "The type of response headers policy, either managed (created by AWS) or custom (created in this AWS account).",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Type"),
 			},
 			{
 				Name:        "etag",
