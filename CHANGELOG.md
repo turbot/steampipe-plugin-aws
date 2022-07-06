@@ -5,7 +5,7 @@ _What's new?_
 - New tables added
   - [aws_cloudfront_response_headers_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudfront_response_headers_policy) ([#1128](https://github.com/turbot/steampipe-plugin-aws/pull/1128))
   - [aws_iam_saml_provider](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_saml_provider) ([#1125](https://github.com/turbot/steampipe-plugin-aws/pull/1125))
-  - [aws_service_attribute](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_service_attribute) ([#1137](https://github.com/turbot/steampipe-plugin-aws/pull/1137))
+  - [aws_pricing_service_attribute](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_pricing_service_attribute) ([#1137](https://github.com/turbot/steampipe-plugin-aws/pull/1137)) ([#1141](https://github.com/turbot/steampipe-plugin-aws/pull/1141))
 
 _Enhancements_
 
