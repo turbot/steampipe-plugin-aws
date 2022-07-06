@@ -26,12 +26,12 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
-				Description: "Public access levels (based off parliament's levels).",
+				Description: "Access level of the resource based of policy. Valid values are 'public', 'private' and 'shared'.",
 			},
 			{
 				Name:        "is_public",
 				Type:        proto.ColumnType_BOOL,
-				Description: "Public access levels (based off parliament's levels).",
+				Description: "The policy status for an Amazon resource, indicating whether the resource is public.",
 			},
 			{
 				Name:        "policy",
@@ -42,44 +42,42 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "public_statement_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The description for this action.",
+				Description: "The sid of the statements that makes the resource public. If sid is not available in statement it will be of the format Statement[index].",
 			},
 			{
 				Name:        "public_access_levels",
 				Type:        proto.ColumnType_JSON,
-				Description: "The description for this action.",
+				Description: "Public access levels (based off parliament's levels).",
 			},
 			{
 				Name:        "allowed_organization_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The privilege for this action.",
-				// Transform:   transform.FromGo(),
+				Description: "A list of organisations resource is accessible to.",
 			},
 			{
 				Name:        "allowed_principals",
 				Type:        proto.ColumnType_JSON,
-				Description: "The access level for this action.",
+				Description: "A list of principals resource is accessible to.",
 			},
 			{
 				Name:        "allowed_principal_account_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The description for this action.",
-				// Transform:   transform.FromGo(),
+				Description: "A list of account ids resource is accessible to.",
 			},
 			{
 				Name:        "allowed_principal_federated_identities",
 				Type:        proto.ColumnType_JSON,
-				Description: "The description for this action.",
+				Description: "A list of federated identities resource is accessible to.",
 			},
 			{
 				Name:        "allowed_principal_services",
 				Type:        proto.ColumnType_JSON,
-				Description: "The description for this action.",
+				Description: "A list of services resource is accessible to.",
 			},
 			{
 				Name:        "account_id",
 				Type:        proto.ColumnType_STRING,
-				Description: "The id of AWS account to which policy belongs.",
+				Description: "The id of AWS account to which resource belongs.",
 				Transform:   transform.FromQual("account_id"),
 			},
 		},
