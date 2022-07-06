@@ -22,7 +22,7 @@ from
   aws_pricing_product_json
 where
   service_code = 'AmazonEC2' 
-  and attributes = jsonb_object('{instanceType, regionCode}','{t3.micro, us-east-1}');
+  and attributes = jsonb_object('{instanceType, regionCode, termType}','{t3.micro, us-east-1, OnDemand}');
 ```
 
 ### List reserved pricing details of EC2 instance type c5.xlarge with operating system linux and no license required
@@ -37,10 +37,10 @@ from
   aws_pricing_product_json
 where
   service_code = 'AmazonEC2' 
-  and attributes = jsonb_object('{instanceType, operatingSystem, licenseModel}','{c5.xlarge, Linux, No License required}');
+  and attributes = jsonb_object('{instanceType, operatingSystem, licenseModel, termType}','{c5.xlarge, Linux, No License required, Reserved}');
 ```
 
-### List pricing details of amazon redshift instance type ds1.xlarge in us-west-2
+### List pricing details of amazon redshift instance type ds1.xlarge with standard offering class and all upfront purchase option
 
 ```sql
 select
@@ -52,5 +52,5 @@ from
   aws_pricing_product_json
 where
   service_code = 'AmazonRedshift' 
-  and attributes = jsonb_object('{instanceType, tenancy, regionCode}','{ds1.xlarge, Shared, us-east-1}');
+  and attributes = jsonb_object('{instanceType, PurchaseOption, OfferingClass}','{ds1.xlarge, All Upfront, standard}');
 ```

@@ -31,7 +31,7 @@ func tableAwsPricingProduct(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		Columns: awsS3Columns([]*plugin.Column{
+		Columns: awsDefaultColumns([]*plugin.Column{
 			{
 				Name:        "service_code",
 				Description: "The service code of the AWS service.",
