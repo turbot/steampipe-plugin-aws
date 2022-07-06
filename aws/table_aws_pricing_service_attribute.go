@@ -13,12 +13,12 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsServiceAttribute(_ context.Context) *plugin.Table {
+func tableAwsPricingServiceAttribute(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_service_attribute",
-		Description: "AWS Service Attribute",
+		Name:        "aws_pricing_service_attribute",
+		Description: "AWS Pricing Service Attribute",
 		List: &plugin.ListConfig{
-			Hydrate: listServiceAttributes,
+			Hydrate: listPricingServiceAttributes,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
 			},
@@ -52,7 +52,7 @@ type ServiceDetail struct {
 
 //// LIST FUNCTION
 
-func listServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := PricingService(ctx, d)
 	if err != nil {
@@ -99,7 +99,7 @@ func listServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listServiceAttributes", "err", err)
+		plugin.Logger(ctx).Error("listPricingServiceAttributes", "err", err)
 		return nil, err
 	}
 
