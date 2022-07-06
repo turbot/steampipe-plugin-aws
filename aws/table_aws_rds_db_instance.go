@@ -336,6 +336,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "certificate",
+				Description: "The CA certificate associated with the DB instance.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceCertificate,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "db_parameter_groups",
 				Description: "A list of DB parameter groups applied to this DB instance.",
 				Type:        proto.ColumnType_JSON,
@@ -534,6 +541,31 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 
 	if len(op.PendingMaintenanceActions) > 0 {
 		return op.PendingMaintenanceActions, nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	caCertificateIdentifier := *h.Item.(*rds.DBInstance).CACertificateIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &rds.DescribeCertificatesInput{
+		CertificateIdentifier: aws.String(caCertificateIdentifier),
+	}
+
+	op, err := svc.DescribeCertificates(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstanceCertificate", "DescribeCertificates", err)
+		return nil, err
+	}
+
+	if len(op.Certificates) > 0 {
+		return op.Certificates[0], nil
 	}
 	return nil, nil
 }

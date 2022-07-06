@@ -1,0 +1,11 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "region": "global",
+    "tags": {
+      "name": "{{ output.resource_name.value }}"
+    }
+  }
+]
