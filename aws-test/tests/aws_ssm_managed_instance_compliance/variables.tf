@@ -151,7 +151,7 @@ resource "aws_instance" "named_test_resource" {
   subnet_id = aws_subnet.demosubnet.id
   associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.test_profile.name
-tags = {
+  tags = {
     Name = var.resource_name
   }
 }
