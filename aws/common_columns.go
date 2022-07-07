@@ -36,7 +36,7 @@ func commonAwsRegionalColumns() []*plugin.Column {
 }
 
 // column definitions for the common columns
-func commonS3Columns() []*plugin.Column {
+func commonColumns() []*plugin.Column {
 	return []*plugin.Column{
 		{
 			Name:        "partition",
@@ -88,8 +88,8 @@ func awsColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, commonAwsColumns()...)
 }
 
-func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonS3Columns()...)
+func awsDefaultColumns(columns []*plugin.Column) []*plugin.Column {
+	return append(columns, commonColumns()...)
 }
 
 // struct to store the common column data
