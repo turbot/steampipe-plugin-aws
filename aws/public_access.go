@@ -157,7 +157,9 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	stmtEvaluation := PolicyEvaluation{}
 
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
+	fmt.Println("OUTSIDE stmt.NotPrincipal")
 	if stmt.NotPrincipal != nil {
+		fmt.Println("INSIDE stmt.NotPrincipal")
 		if data, ok := stmt.NotPrincipal["AWS"]; ok {
 			awsNotPrincipals := data.([]string)
 			if helpers.StringSliceContains(awsNotPrincipals, "*") {
@@ -192,6 +194,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			stmtEvaluation.AllowedPrincipalFederatedIdentities = federatedPrincipals
 		}
 	}
+
+	fmt.Println("awsPrincipals", awsPrincipals)
 
 	// if helpers.StringSliceContains(awsPrincipals, "*") {
 	if helpers.StringSliceContains(awsPrincipals, "*") || (len(awsPrincipals) == 0 && len(servicePrincipals) > 0) {
