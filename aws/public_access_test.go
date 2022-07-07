@@ -909,7 +909,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				}`,
 		},
 		{
-			`* principal public access with ArnLike on aws:PrincipalArn with arn`,
+			`* principal public access with ArnLike on aws:PrincipalArn with arn to allow root user from any account`,
 			7,
 			`{
 				"Statement": [

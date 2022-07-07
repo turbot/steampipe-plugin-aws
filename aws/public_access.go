@@ -217,7 +217,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
-			var typeOfOperator string = "Unknown"
+			var typeOfOperator string
 			typeOfOperator, operatorKey = getOperatorType(operatorKey)
 
 			hasNotInOperator := strings.Contains(operatorKey, "Not")
@@ -226,7 +226,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				internalPublicPrincipalKey := true
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					if hasPublicPrincipal || len(awsPrincipals) == 0 {
+					// if hasPublicPrincipal || len(awsPrincipals) == 0 {
+					if hasPublicPrincipal {
 
 						if typeOfOperator == "String" {
 							switch conditionKey {
@@ -429,7 +430,7 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
-			var typeOfOperator string = "Unknown"
+			var typeOfOperator string
 			typeOfOperator, operatorKey = getOperatorType(operatorKey)
 
 			hasNotInOperator := strings.Contains(operatorKey, "Not")
@@ -438,7 +439,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				// Check if the Principals contain * principals, in that case it is public but if there is a restriction using conditions then it will not remain public
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					if hasPublicPrincipal || len(awsPrincipals) == 0 {
+					// if hasPublicPrincipal || len(awsPrincipals) == 0 {
+					if hasPublicPrincipal {
 						if typeOfOperator == "String" {
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
@@ -539,7 +541,7 @@ func (stmt *Statement) DenyStatementEvaluation() DeniedStmtEvaluation {
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAnyValue:", "")
 			operatorKey = strings.ReplaceAll(operatorKey, "ForAllValues:", "")
 
-			var typeOfOperator string = "Unknown"
+			var typeOfOperator string
 			typeOfOperator, operatorKey = getOperatorType(operatorKey)
 			hasNotInOperator := strings.Contains(operatorKey, "Not")
 			hasLikeOperator := strings.Contains(operatorKey, "Like")
