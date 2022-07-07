@@ -124,7 +124,7 @@ from
   aws_lambda_function;
 ```
 
-### List url configuration details for each function
+### List URL configuration details for each function
 
 ```sql
 select

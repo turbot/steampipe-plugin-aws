@@ -37,7 +37,7 @@ from
   aws_lambda_alias;
 ```
 
-### List url configuration details for each alias
+### List URL configuration details for each alias
 
 ```sql
 select
