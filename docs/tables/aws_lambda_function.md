@@ -4,6 +4,18 @@ AWS Lambda is a compute service that lets you run code without provisioning or m
 
 ## Examples
 
+### Basic Info
+
+```sql
+select
+  name,
+  arn,
+  handler,
+  kms_key_arn
+from
+  aws_lambda_function;
+```
+
 ### List of lambda functions which are not encrypted with CMK
 
 ```sql
