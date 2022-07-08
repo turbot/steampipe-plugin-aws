@@ -41,7 +41,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'vpc-log-group-name'
   and timestamp >= (now() - interval '5 minutes');
 ```
 
@@ -62,7 +62,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'vpc-log-group-name'
   and timestamp between (now() - interval '10 minutes') and (now() - interval '5 minutes')
 order by
   timestamp asc;
@@ -76,7 +76,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'vpc-log-group-name'
   and timestamp >= (now() - interval '1 hour');
 ```
 
@@ -95,7 +95,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'vpc-log-group-name'
   and action = 'REJECT'
   and timestamp >= (now() - interval '1 hour');
 ```
