@@ -159,7 +159,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
 	fmt.Println("OUTSIDE stmt.NotPrincipal")
 	if stmt.NotPrincipal != nil {
-		fmt.Println("INSIDE stmt.NotPrincipal")
 		if data, ok := stmt.NotPrincipal["AWS"]; ok {
 			awsNotPrincipals := data.([]string)
 			if helpers.StringSliceContains(awsNotPrincipals, "*") {
@@ -230,9 +229,8 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 			if conditionOperatorValueMap, ok := operatorValue.(map[string]interface{}); ok {
 				internalPublicPrincipalKey := true
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
-					// if hasPublicPrincipal || len(awsPrincipals) == 0 {
 					if hasPublicPrincipal {
-
+						fmt.Println("AM I HERE", "typeOfOperator:", typeOfOperator)
 						if typeOfOperator == "String" {
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
@@ -241,51 +239,85 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
 									internalPublicPrincipalKey = false
 								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
-									var wildcardAccountIds []string
-									for _, acctId := range conditionValue.([]string) {
-										if !strings.ContainsAny(acctId, "*?") {
-											wildcardAccountIds = append(wildcardAccountIds, acctId)
-										} else {
-											allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, acctId)
-										}
-									}
-									if len(wildcardAccountIds) == 0 {
-										internalPublicPrincipalKey = false
-										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
-									}
-									// else {// TODO - How to add the wildcard account Ids to the list}
+									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
+									/*
+										var wildcardAccountIds []string
+												for _, acctId := range conditionValue.([]string) {
+													allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, acctId)
+															if !strings.ContainsAny(acctId, "*?") {
+															Tough to determine public or shared access in this case
+															As the account ids can contain * (i.e. zero or more character) or ? (i.e. one character)
+
+																An aws account is of 12 digit number string.
+																Assume we have an account id as "11112222333*", this can be
+																expanded as
+																- 11112222333[0-9] - valid account id
+																- 11112222333[0-9]... any this more than 12 digits will be invalid string.
+
+																Expanding this could lead to good number of account ids.
+																We will consider this set of accounts as shared instead of public
+
+																Expanding option we have
+																- let the ? - remain as it is
+																- for * convert it to ?, until it vilates the length of account id. 111122223* to 111122223???
+
+																assume someone have mentioned wildcards in way that it exceeds length 12. Then it will act like that statement is not allowing any valid account.
+														wildcardAccountIds = append(wildcardAccountIds, acctId)
+														} else {
+														}
+												}
+											if len(wildcardAccountIds) == 0 {
+												internalPublicPrincipalKey = false
+												allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+											}
+									*/
 								} else if hasIfExistsSuffix {
 									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
 								}
-								// else if hasNotInOperator {
-								// 	// TODO
-								// 	// Shall I add * into AllowedAccounts as it means all accounts other than the accounts mentioned in the condition
-								// }
-							case "aws:principalorgid", "aws:principalorgpaths":
+							case "aws:principalorgid":
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
 									allowedOrganizationIds = append(allowedOrganizationIds, conditionValue.([]string)...)
 									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
 									internalPublicPrincipalKey = false
 								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									flag := "shared"
+									for _, orgId := range conditionValue.([]string) {
+										allowedOrganizationIds = append(allowedOrganizationIds, orgId)
+										if strings.ContainsAny(orgId, "*?") {
+											// Public as if org id is having wildcards(*,?) it will allow a number of
+											// organizations which could only be determined after expanding the
+											// org id based on the pattern
+											flag = "public"
+										}
+									}
+									if flag != "public" {
+										internalPublicPrincipalKey = false
+										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+									}
+								}
+							case "aws:principalorgpaths":
+								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
+									allowedOrganizationIds = append(allowedOrganizationIds, conditionValue.([]string)...)
+									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+									internalPublicPrincipalKey = false
+								} else if hasLikeOperator && !hasNotInOperator && !hasIfExistsSuffix {
+									flag := "shared"
 									for _, orgIdOrPath := range conditionValue.([]string) {
 										// o-[a-z0-9]{10,32} - regex for organization id
 										org := strings.Split(orgIdOrPath, "/")[0]
-										if !strings.ContainsAny(org, "*?") {
+										if strings.ContainsAny(org, "*?") {
 											// Public as if org id is having wildcards(*,?) it will allow a number of organizations which could only be determined after expanding the org id based on the pattern
-											allowedOrganizationIds = append(allowedOrganizationIds, org)
-										} else {
-											internalPublicPrincipalKey = false
-											allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+											flag = "public"
 											allowedOrganizationIds = append(allowedOrganizationIds, org)
 										}
 									}
+									if flag != "public" {
+										internalPublicPrincipalKey = false
+										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+									}
 								}
-								// else if hasIfExistsSuffix || hasNotInOperator { // means public
-								// 	// public for hasIfExistsSuffix and hasNotInOperator because
-								// 	// hasIfExistsSuffix - if `aws:principalorgid` or `aws:principalorgpaths` doesn't exists in the request context it evalute to true
-								// 	// internalPublicPrincipalKey = false
-								// }
 							case "aws:principalarn": // Works with both ARN and String operators
+								fmt.Println("INSIDE STRING PrincipalArn", "hasLikeOperator:", hasLikeOperator, "hasNotInOperator:", hasNotInOperator)
 								if hasLikeOperator && !hasNotInOperator {
 									principalArnPublic := false
 									for _, pARN := range conditionValue.([]string) {
@@ -301,6 +333,10 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
 										internalPublicPrincipalKey = false
 									}
+								} else if !hasLikeOperator && !hasNotInOperator {
+									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
+									allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
+									internalPublicPrincipalKey = false
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
