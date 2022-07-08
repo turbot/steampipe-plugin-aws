@@ -1517,6 +1517,244 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 	}
 }
 
+func TestSharedPolicies(t *testing.T) {
+	testCases := []string{
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess1",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": [
+							"arn:aws:iam::111122223333:root",
+							"arn:aws:iam::111122224444:root"
+						]
+					},
+					"Action": "s3:ListBucket",
+					"Resource": "arn:aws:s3:::test-anonymous-access"
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess2",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": "s3:ListBucket",
+					"Resource": "arn:aws:s3:::test-anonymous-access",
+					"Condition": {
+						"StringEquals": {
+							"aws:PrincipalAccount": ["111122221111", "111122223333"]
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess3",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": ["s3:listbucket", "s3:GetObject"],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access/*",
+						"arn:aws:s3:::test-anonymous-access"
+					],
+					"Condition": {
+						"StringEquals": {
+							"aws:PrincipalArn": "arn:aws:iam::013122550996:root"
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "*"
+					},
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringLike": {
+							"aws:PrincipalAccount": [
+								"11112222333*",
+								"11112222444*"
+							]
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringEquals": {
+							"aws:PrincipalOrgID": ["o-1a2b3c4d5e"]
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringLike": {
+							"aws:PrincipalOrgID": ["o-1a2b3c4d5e"]
+						}
+					}
+				}
+			]
+		}`,
+	}
+
+	for index, policy := range testCases {
+		t.Run(fmt.Sprintf("%d", index+1), func(t *testing.T) {
+			policy, err := canonicalPolicy(policy)
+			if err != nil {
+				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %d Policy coercion failed with error: %#v\n", index+1, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122225555")
+			if err != nil {
+				t.Errorf("Test: %d\nPolicy evaluation failed with error: %#v\n", index+1, err)
+			}
+
+			strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+			if evaluatedObj.AccessLevel != "shared" {
+				t.Errorf("Expected %d to be shared but it is %s. Ealuation: \n%v\n", index+1, evaluatedObj.AccessLevel, string(strdata))
+			} else {
+				fmt.Println("Evaluation: \n", string(strdata))
+			}
+		})
+	}
+}
+
+func TestPublicPolicies(t *testing.T) {
+	testCases := []string{
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "Allow Member Account Access",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": "s3:GetObject",
+					"Resource": "arn:aws:s3:::sample-bucket/*"
+				}
+			]
+		}`,
+		`{
+			"Statement": [
+				{
+					"Action": "s3:ListBucket",
+					"Condition": {
+						"StringEqualsIfExists": {
+							"aws:PrincipalAccount": "111122223333"
+						}
+					},
+					"Effect": "Allow",
+					"Principal": "*",
+					"Resource": "arn:aws:s3:::test-anonymous-access",
+					"Sid": "Statement1"
+				}
+			],
+			"Version": "2012-10-17"
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringLike": {
+							"aws:PrincipalOrgID": ["o-1a2b3c4d*"]
+						}
+					}
+				}
+			]
+		}`,
+	}
+
+	for index, policy := range testCases {
+		t.Run(fmt.Sprintf("Test=%d", index+1), func(t *testing.T) {
+			policy, err := canonicalPolicy(policy)
+			if err != nil {
+				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %d Policy coercion failed with error: %#v\n", index+1, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122225555")
+			if err != nil {
+				t.Errorf("Test: %d\nPolicy evaluation failed with error: %#v\n", index+1, err)
+			}
+
+			if !evaluatedObj.IsPublic {
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				t.Errorf("Expected %d to be public but it is %v\n", index+1, string(strdata))
+			}
+		})
+	}
+}
+
 /*
 func TestAccessPoliciesActions(t *testing.T) {
 	permissionsData := getParliamentIamPermissions()
