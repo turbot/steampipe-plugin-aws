@@ -42,7 +42,7 @@ from
   aws_vpc_flow_log_event
 where
   log_group_name = 'vpc-log-group-name'
-  and timestamp >= (now() - interval '5 minutes');
+  and timestamp >= now() - interval '5 minutes';
 ```
 
 ### List ordered events that occurred between five to ten minutes ago
@@ -77,7 +77,7 @@ from
   aws_vpc_flow_log_event
 where
   log_group_name = 'vpc-log-group-name'
-  and timestamp >= (now() - interval '1 hour');
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ### Get details for all rejected traffic that occurred over the last hour
@@ -97,7 +97,7 @@ from
 where
   log_group_name = 'vpc-log-group-name'
   and action = 'REJECT'
-  and timestamp >= (now() - interval '1 hour');
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ## Filter examples
@@ -124,7 +124,7 @@ where
   log_group_name = 'vpc-log-group-name'
   and log_stream_name = 'eni-1d47d21d-all'
   and (src_addr = '10.85.14.210' or dst_addr = '10.85.14.213')
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   timestamp;
 ```
@@ -149,7 +149,7 @@ where
   log_group_name = 'vpc-log-group-name'
   and log_stream_name = 'eni-1d47d21d-all'
   and src_addr << '10.0.0.0/8'::inet
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   timestamp;
 ```

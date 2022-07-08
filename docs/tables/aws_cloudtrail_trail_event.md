@@ -40,7 +40,7 @@ from
   aws_cloudtrail_trail_event
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
-  and timestamp >= (now() - interval '5 minutes');
+  and timestamp >= now() - interval '5 minutes';
 ```
 
 ### List ordered events that occurred between five to ten minutes ago
@@ -79,7 +79,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and not read_only
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -100,7 +100,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and event_source = 'iam.amazonaws.com'
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -122,7 +122,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and username = 'steampipe'
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -144,7 +144,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and user_type = 'IAMUser'
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -166,7 +166,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and user_type = 'AssumedRole'
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -190,7 +190,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and error_code is not null
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```
@@ -218,7 +218,7 @@ from
 where
   log_group_name = 'aws-cloudtrail-log-group-name'
   and filter = '{ $.sourceIPAddress = 203.189.* }'
-  and timestamp >= (now() - interval '1 hour')
+  and timestamp >= now() - interval '1 hour'
 order by
   event_time asc;
 ```

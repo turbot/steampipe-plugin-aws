@@ -35,7 +35,7 @@ from
   aws_cloudwatch_log_event
 where
   log_group_name = 'cloudwatch-log-event-group-name'
-  and timestamp >= (now() - interval '5 minutes');
+  and timestamp >= now() - interval '5 minutes';
 ```
 
 ### List ordered events that occurred between five to ten minutes ago
@@ -76,7 +76,7 @@ from
 where
   log_group_name = 'cloudwatch-log-event-group-name'
   and filter = '{$.eventName="DescribeVpcs"}'
-  and timestamp >= (now() - interval '1 hour');
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ### List events that match the filter pattern term **errorCode** to a single value that occurred over the last hour
@@ -94,7 +94,7 @@ from
 where
   log_group_name = 'cloudwatch-log-event-group-name'
   and filter = '{ ($.errorCode = "*UnauthorizedOperation") || ($.errorCode = "AccessDenied*") }'
-  and timestamp >= (now() - interval '1 hour');
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ### List events that match the filter pattern term **eventName** to multiple values that occurred over the last hour
@@ -113,7 +113,7 @@ where
   log_group_name = 'cloudwatch-log-event-group-name'
   and filter = '{($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}'
   and region = 'us-east-1'
-  and timestamp >= (now() - interval '1 hour');
+  and timestamp >= now() - interval '1 hour';
 ```
 
 ### List events which match a specific field in a JSON object that occurred over the past day
@@ -131,5 +131,5 @@ from
 where
   log_group_name = 'cloudwatch-log-event-group-name'
   and filter = '{$.userIdentity.sessionContext.sessionIssuer.userName="turbot_superuser"}'
-  and timestamp >= (now() - interval '1 day');
+  and timestamp >= now() - interval '1 day';
 ```
