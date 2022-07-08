@@ -39,7 +39,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and timestamp >= (now() - interval '5 minutes');
 ```
 
@@ -57,7 +57,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and timestamp between (now() - interval '10 minutes') and (now() - interval '5 minutes')
 order by
   event_time asc;
@@ -77,7 +77,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and not read_only
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -98,7 +98,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and event_source = 'iam.amazonaws.com'
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -120,7 +120,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and username = 'steampipe'
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -142,7 +142,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and user_type = 'IAMUser'
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -164,7 +164,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and user_type = 'AssumedRole'
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -188,7 +188,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and error_code is not null
   and timestamp >= (now() - interval '1 hour')
 order by
@@ -216,7 +216,7 @@ select
 from
   aws_cloudtrail_trail_event
 where
-  log_group_name = 'required-your-log-group-name'
+  log_group_name = 'aws-cloudtrail-log-group-name'
   and filter = '{ $.sourceIPAddress = 203.189.* }'
   and timestamp >= (now() - interval '1 hour')
 order by
