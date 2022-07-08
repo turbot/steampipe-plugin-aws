@@ -121,7 +121,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'vpc_flow_logs_vpc-ba23a1d5'
+  log_group_name = 'vpc-log-group-name'
   and log_stream_name = 'eni-1d47d21d-all'
   and (src_addr = '10.85.14.210' or dst_addr = '10.85.14.213')
   and timestamp >= (now() - interval '1 hour')
@@ -146,7 +146,7 @@ select
 from
   aws_vpc_flow_log_event
 where
-  log_group_name = 'vpc_flow_logs_vpc-ba23a1d5'
+  log_group_name = 'vpc-log-group-name'
   and log_stream_name = 'eni-1d47d21d-all'
   and src_addr << '10.0.0.0/8'::inet
   and timestamp >= (now() - interval '1 hour')
