@@ -1596,6 +1596,10 @@ func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (
 
 // S3Service returns the service connection for AWS S3 service
 func S3Service(ctx context.Context, d *plugin.QueryData, region string) (*s3.S3, error) {
+	if plugin.IsCancelled(ctx) {
+		return nil, ctx.Err()
+	}
+
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed S3Service")
 	}
