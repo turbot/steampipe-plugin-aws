@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"testing"
-	"time"
 )
 
 type publicAccessTest struct {
@@ -1393,7 +1392,7 @@ func TestPublicPolicies(t *testing.T) {
 	}
 
 	for index, policy := range testCases {
-		t.Run(fmt.Sprintf("Test=%d", index+1), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d", index+1), func(t *testing.T) {
 			policy, err := canonicalPolicy(policy)
 			if err != nil {
 				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
@@ -1690,7 +1689,7 @@ func TestPrivatePolicies(t *testing.T) {
 	}
 
 	for index, policy := range testCases {
-		t.Run(fmt.Sprintf("Test=%d", index+1), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d", index+1), func(t *testing.T) {
 			policy, err := canonicalPolicy(policy)
 			if err != nil {
 				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
@@ -1866,9 +1865,9 @@ func TestAccessPoliciesActions(t *testing.T) {
 
 	for i, test := range testCases {
 		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
-			fmt.Println("start", i+1, time.Now())
+			// fmt.Println("start", i+1, time.Now())
 			accessLevels := GetAccessLevelsFromActions(permissionsData, test.Actions)
-			fmt.Println("end", i+1, time.Now())
+			// fmt.Println("end", i+1, time.Now())
 
 			// Sort []string attributes to compare
 			sort.Strings(accessLevels)
