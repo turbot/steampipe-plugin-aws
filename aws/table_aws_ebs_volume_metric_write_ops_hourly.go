@@ -12,7 +12,7 @@ import (
 //// TABLE DEFINITION
 func tableAwsEbsVolumeMetricWriteOpsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ebs_volume_metric_read_ops_hourly",
+		Name:        "aws_ebs_volume_metric_write_ops_hourly",
 		Description: "AWS EBS Volume Cloudwatch Metrics - Write Ops (Hourly)",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEBSVolume,
