@@ -255,12 +255,16 @@ func BuildServiceQuotasServicesRegionList(ctx context.Context, connection *plugi
 
 		matrix := make([]map[string]interface{}, len(finalRegions)*len(services))
 		for i, region := range finalRegions {
-			for j, service := range services {
-				matrix[len(services)*i+j] = map[string]interface{}{
-					matrixKeyRegion:      region,
-					matrixKeyServiceCode: *service.ServiceCode,
+			serviceId := servicequotas.EndpointsID
+			validRegions := SupportedRegionsForService(ctx, pluginQueryData, serviceId)
+			if helpers.StringSliceContains(validRegions, region) {
+				for j, service := range services {
+					matrix[len(services)*i+j] = map[string]interface{}{
+						matrixKeyRegion:      region,
+						matrixKeyServiceCode: *service.ServiceCode,
+					}
+					plugin.Logger(ctx).Debug("listServiceQuotasServices Matrix", (len(services)*i)+j, matrix[len(services)*i+j])
 				}
-				plugin.Logger(ctx).Debug("listServiceQuotasServices Matrix", (len(services)*i)+j, matrix[len(services)*i+j])
 			}
 		}
 
