@@ -16,7 +16,7 @@ import (
 
 func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_vpc_flowlog",
+		Name:        "aws_vpc_flow_log",
 		Description: "AWS VPC Flowlog",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("flow_log_id"),
