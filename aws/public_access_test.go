@@ -12,7 +12,6 @@ import (
 
 type publicAccessTest struct {
 	name     string
-	testNo   int
 	policy   string
 	expected string
 }
@@ -28,7 +27,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 	testCases := []publicAccessTest{
 		{
 			`AWS S3 Multiple statements with public access`,
-			1,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -153,7 +151,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`AWS S3 Multiple statements without public access`,
-			2,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -249,7 +246,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`single_statement`,
-			3,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -290,7 +286,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`single_statement_with_source_arn`,
-			4,
 			`{
 				"Statement": [
 					{
@@ -324,7 +319,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Allow Amazon SES to publish to a topic that is owned by another account`,
-			5,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -365,7 +359,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Allow user from account 999988887777 to publish to a topic that is owned by another account 123456789012`,
-			6,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -412,7 +405,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Allow user from same account as the topic account to publish message`,
-			7,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -459,7 +451,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Allow alarms from specific account to publish message to topic`,
-			8,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -511,7 +502,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Doesn't allow user from account 999988887777 to publish to a topic that is owned by another account 111122223333`,
-			9,
 			`{
 				"Version": "2008-10-17",
 				"Id": "__default_policy_ID",
@@ -560,7 +550,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Private access with the use of aws:SourceIp condition key`,
-			10,
 			`{
 				"Statement": [
 					{
@@ -599,7 +588,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 		{
 			`Shared access with the use of aws:PrincipalArn condition key`,
-			11,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -639,8 +627,8 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+	for index, test := range testCases {
+		t.Run(strconv.Itoa(index+1), func(t *testing.T) {
 			policy, err := canonicalPolicy(test.policy)
 			if err != nil {
 				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
@@ -681,7 +669,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 	testCases := []publicAccessTest{
 		{
 			`* principal public access`,
-			1,
 			`{
 				"Statement": [
 					{
@@ -714,7 +701,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with StringEqualsIfExists on aws:PrincipalAccount`,
-			2,
 			`{
 				"Statement": [
 					{
@@ -752,7 +738,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with StringEqualsIfExists on aws:PrincipalAccount and StringEquals on aws:username`,
-			3,
 			`{
 				"Statement": [
 					{
@@ -793,7 +778,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with ArnLike on aws:PrincipalArn with arn for all iam users`,
-			4,
 			`{
 				"Statement": [
 					{
@@ -832,7 +816,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with ArnLike on aws:SourceArn with arn for all iam services`,
-			5,
 			`{
 				"Statement": [
 					{
@@ -871,7 +854,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with ArnLike on aws:SourceArn with arn for all cloudwatch alarms`,
-			6,
 			`{
 				"Statement": [
 					{
@@ -910,7 +892,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`* principal public access with ArnLike on aws:PrincipalArn with arn to allow root user from any account`,
-			7,
 			`{
 				"Statement": [
 					{
@@ -954,7 +935,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`Bucket looging policies`,
-			8,
 			`{
 				"Statement": [
 					{
@@ -1058,7 +1038,6 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 		{
 			`S3 cloutrail account logging policy`,
-			9,
 			`{
 				"Statement": [
 					{
@@ -1114,8 +1093,8 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+	for index, test := range testCases {
+		t.Run(strconv.Itoa(index+1), func(t *testing.T) {
 			policy, err := canonicalPolicy(test.policy)
 			if err != nil {
 				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
@@ -1157,7 +1136,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 	testCases := []publicAccessTest{
 		{
 			`Granting permissions to multiple accounts with added conditions`,
-			1,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1204,7 +1182,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Granting read-only permission to an anonymous user`,
-			2,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1242,7 +1219,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Limiting access to specific IP addresses`,
-			3,
 			`{
 				"Version": "2012-10-17",
 				"Id": "S3PolicyId1",
@@ -1278,7 +1254,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Policy allows request with mfa only`,
-			4,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1318,7 +1293,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Policy allows request with mfa and principal account limitation`,
-			5,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1361,7 +1335,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Granting cross-account permissions to upload objects while ensuring the bucket owner has full control`,
-			6,
 			`{
 				"Version":"2012-10-17",
 				"Statement":[
@@ -1393,7 +1366,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics`,
-			7,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1438,7 +1410,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 		{
 			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics with only source arn condition`,
-			8,
 			`{
 				"Version": "2012-10-17",
 				"Statement": [
@@ -1479,8 +1450,8 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("Test=%s %s", strconv.Itoa(test.testNo), test.name), func(t *testing.T) {
+	for index, test := range testCases {
+		t.Run(strconv.Itoa(index+1), func(t *testing.T) {
 			policy, err := canonicalPolicy(test.policy)
 			if err != nil {
 				t.Errorf("Test: %s Policy canonicalization failed with error: %#v\n", test.name, err)
@@ -1647,6 +1618,59 @@ func TestSharedPolicies(t *testing.T) {
 				}
 			]
 		}`,
+		`{
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "someservice.amazonaws.com"
+					},
+					"Action": "sns:Publish",
+					"Resource": "arn:aws:sns:us-east-2:111122225555:MyTopic",
+					"Condition": {
+						"StringEquals": {
+							"aws:SourceAccount": "444455556666"
+						}
+					}
+				}
+			]
+		}`,
+		// https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html#cross-service-confused-deputy-prevention
+		`{
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "s3.amazonaws.com"
+					},
+					"Action": "sns:Publish",
+					"Resource": "arn:aws:sns:us-east-2:111122225555:MyTopic",
+					"Condition": {
+						"StringEquals": {
+							"aws:SourceAccount": "444455556666"
+						},
+						"ArnLike": {
+							"aws:SourceArn": "arn:aws:S3:::test-bucket"
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": {
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "ssm-incidents.amazonaws.com"
+				},
+				"Action": "sts:AssumeRole",
+				"Condition": {
+					"ArnLike": {
+						"aws:SourceArn": "arn:aws:ssm-incidents:*:111122223333:incident-record/myresponseplan/*"
+					}
+				}
+			}
+		}`,
 	}
 
 	for index, policy := range testCases {
@@ -1690,6 +1714,31 @@ func TestPublicPolicies(t *testing.T) {
 			]
 		}`,
 		`{
+			"Version": "2008-10-17",
+			"Id": "__default_policy_ID",
+			"Statement": [
+				{
+					"Sid": "__default_statement_ID",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "*"
+					},
+					"Action": [
+						"SNS:GetTopicAttributes",
+						"SNS:SetTopicAttributes",
+						"SNS:AddPermission",
+						"SNS:RemovePermission",
+						"SNS:DeleteTopic",
+						"SNS:Subscribe",
+						"SNS:ListSubscriptionsByTopic",
+						"SNS:Publish",
+						"SNS:Receive"
+					],
+					"Resource": "arn:aws:sns:us-east-1:111122225555:smyth-test-2"
+				}
+			]
+		}`,
+		`{
 			"Statement": [
 				{
 					"Action": "s3:ListBucket",
@@ -1729,6 +1778,37 @@ func TestPublicPolicies(t *testing.T) {
 				}
 			]
 		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "ServicePublicAccess",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "cloudtrail.amazonaws.com"
+					},
+					"Action": "SNS:Publish",
+					"Resource": "arn:aws:sns:region:SNSTopicOwnerAccountId:SNSTopicName"
+				}
+			]
+		}`,
+		`{
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "s3.amazonaws.com"
+					},
+					"Action": "sns:Publish",
+					"Resource": "arn:aws:sns:us-east-2:111122225555:MyTopic",
+					"Condition": {
+						"ArnLike": {
+							"aws:SourceArn": "arn:aws:S3:::test-bucket"
+						}
+					}
+				}
+			]
+		}`,
 	}
 
 	for index, policy := range testCases {
@@ -1750,6 +1830,107 @@ func TestPublicPolicies(t *testing.T) {
 			if !evaluatedObj.IsPublic {
 				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
 				t.Errorf("Expected %d to be public but it is %v\n", index+1, string(strdata))
+			}
+		})
+	}
+}
+
+func TestPoliciesForArnOperators(t *testing.T) {
+	testCases := []struct {
+		Policy      string
+		AccessLevel string
+	}{
+		{
+			`{
+			"Version": "2012-10-17",
+			"Id": "default",
+			"Statement": [
+				{
+					"Sid": "s3-event-cezary_for_lambda-s3",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "s3.amazonaws.com"
+					},
+					"Action": "lambda:InvokeFunction",
+					"Resource": "arn:aws:lambda:eu-west-1:123456789012:function:lambda-s3",
+					"Condition": {
+						"StringEquals": {
+							"AWS:SourceAccount": "123456789012"
+						},
+						"ArnLike": {
+							"AWS:SourceArn": "arn:aws:s3:::test-bucket-cezary"
+						}
+					}
+				}
+			]
+		}`,
+			"private",
+		},
+		{
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "Statement1",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": "s3:ListBucket",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Condition": {
+							"ArnLike": {
+								"aws:PrincipalArn": "arn:aws:iam::*:user/*"
+							}
+						}
+					}
+				]
+			}`,
+			"public",
+		},
+		{
+			`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "Statement1",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": "s3:ListBucket",
+						"Resource": "arn:aws:s3:::test-anonymous-access",
+						"Condition": {
+							"ForAnyValue:ArnLike": {
+								"aws:PrincipalArn": [
+									"arn:aws:iam::111122223333:root",
+									"arn:aws:iam::111122224444:root"
+								]
+							}
+						}
+					}
+				]
+			}`,
+			"shared",
+		},
+	}
+
+	for index, item := range testCases {
+		t.Run(fmt.Sprintf("%d", index+1), func(t *testing.T) {
+			policy, err := canonicalPolicy(item.Policy)
+			if err != nil {
+				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %d Policy coercion failed with error: %#v\n", index+1, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy("123456789012")
+			if err != nil {
+				t.Errorf("Test: %d\nPolicy evaluation failed with error: %#v\n", index+1, err)
+			}
+
+			if evaluatedObj.AccessLevel != item.AccessLevel {
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				fmt.Println("policy:", string(strdata))
+				t.Errorf("Expected %d to be %s but it is %s\n", index+1, item.AccessLevel, evaluatedObj.AccessLevel)
 			}
 		})
 	}
