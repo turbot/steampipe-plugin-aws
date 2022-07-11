@@ -157,7 +157,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 	stmtEvaluation := PolicyEvaluation{}
 
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html#specifying-notprincipal-allow
-	fmt.Println("OUTSIDE stmt.NotPrincipal")
 	if stmt.NotPrincipal != nil {
 		if data, ok := stmt.NotPrincipal["AWS"]; ok {
 			awsNotPrincipals := data.([]string)
@@ -194,8 +193,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 		}
 	}
 
-	fmt.Println("awsPrincipals", awsPrincipals)
-
 	// if helpers.StringSliceContains(awsPrincipals, "*") {
 	if helpers.StringSliceContains(awsPrincipals, "*") || (len(awsPrincipals) == 0 && len(servicePrincipals) > 0) {
 		hasPublicPrincipal = true
@@ -230,7 +227,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 				internalPublicPrincipalKey := true
 				for conditionKey, conditionValue := range conditionOperatorValueMap {
 					if hasPublicPrincipal {
-						fmt.Println("AM I HERE", "typeOfOperator:", typeOfOperator)
 						if typeOfOperator == "String" {
 							switch conditionKey {
 							case "aws:principalaccount": // Works with String operators
@@ -317,7 +313,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									}
 								}
 							case "aws:principalarn": // Works with both ARN and String operators
-								fmt.Println("INSIDE STRING PrincipalArn", "hasLikeOperator:", hasLikeOperator, "hasNotInOperator:", hasNotInOperator)
 								if hasLikeOperator && !hasNotInOperator {
 									principalArnPublic := false
 									for _, pARN := range conditionValue.([]string) {
@@ -340,9 +335,10 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
-								} else if hasNotInOperator {
-									//TODO What to add in allowed account and allowed principals in this case
 								}
+								// else if hasNotInOperator {
+								// 	//TODO What to add in allowed account and allowed principals in this case
+								// }
 							case "aws:sourceaccount", "aws:sourceowner": // Works with String operators
 								if !hasIfExistsSuffix && !hasNotInOperator && !hasLikeOperator {
 									allowedAccountsForPrincipals = append(allowedAccountsForPrincipals, conditionValue.([]string)...)
@@ -388,12 +384,14 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
-								} else if hasNotInOperator {
-									//TODO What to add in allowed account and allowed principals in this case
 								}
+								// else if hasNotInOperator {
+								// 	//TODO What to add in allowed account and allowed principals in this case
+								// }
 							}
 						} else if typeOfOperator == "Arn" {
 							switch conditionKey {
+							// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
 							case "aws:principalarn": // Works with both ARN and String operators
 								if !hasNotInOperator {
 									principalArnPublic := false
@@ -406,16 +404,12 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										}
 									}
 									if !principalArnPublic {
-										// fmt.Println("AllowedAccountsForPrincipals:", allowedAccountsForPrincipals)
 										allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
 										allowedPrincipals = helpers.RemoveFromStringSlice(allowedPrincipals, "*")
 										internalPublicPrincipalKey = false
 									}
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
-									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
-								} else if hasNotInOperator {
-									//TODO What to add in allowed account and allowed principals in this case
 								}
 							case "aws:sourcearn": // Works with both ARN and String operators
 								if !hasNotInOperator {
@@ -424,7 +418,9 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										allowedPrincipals = append(allowedPrincipals, pARN)
 										if arn.IsARN(pARN) {
 											arnParts, _ := arn.Parse(pARN)
-											if arnParts.AccountID == "*" {
+											fmt.Println("arnParts.AccountID:", arnParts.AccountID)
+											// Account id in case of s3 buckets arn is empty
+											if arnParts.AccountID == "*" || arnParts.AccountID == "" {
 												principalArnPublic = true
 											}
 										}
@@ -436,9 +432,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									}
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
-									// This key is included in the request context for all signed requests. Anonymous requests do not include this key.
-								} else if hasNotInOperator {
-									//TODO What to add in allowed account and allowed principals in this case
 								}
 							}
 						} else if typeOfOperator == "IP" {
