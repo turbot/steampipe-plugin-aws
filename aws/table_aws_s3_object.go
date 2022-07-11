@@ -2,9 +2,8 @@ package aws
 
 import (
 	"context"
-	"runtime/debug"
+	"io"
 	"strings"
-	"sync"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
@@ -15,7 +14,7 @@ import (
 func tableAwsS3Object(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_object",
-		Description: "AWS S3 Object",
+		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
 		List: &plugin.ListConfig{
 			Hydrate: listS3Objects,
 			KeyColumns: plugin.KeyColumnSlice{
@@ -31,124 +30,20 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			{Name: "size", Description: "Size in bytes of the object.", Type: proto.ColumnType_INT},
 			{Name: "last_modified", Description: "Creation date of the object.", Type: proto.ColumnType_TIMESTAMP},
 			{Name: "prefix", Description: "The prefix of the key of the object.", Type: proto.ColumnType_STRING},
-
 			{Name: "bucket", Description: "The name of the container bucket of this object.", Type: proto.ColumnType_STRING, Transform: transform.FromQual("bucket")},
-
-			// {Name: "content_body", Description: "TODO", Type: proto.ColumnType_STRING, Hydrate: plugin.HydrateFunc(getS3ObjectContent).WithCache(), Transform: transform.FromMethod("ReadBody")},
-			// {Name: "content_body_parsed", Description: "TODO", Type: proto.ColumnType_STRING, Hydrate: plugin.HydrateFunc(getS3ObjectContent).WithCache(), Transform: transform.FromMethod("ReadBodyParsed")},
-			{Name: "content_type", Description: "TODO", Type: proto.ColumnType_STRING, Hydrate: plugin.HydrateFunc(getS3ObjectContent).WithCache()},
-			{Name: "content_encoding", Description: "TODO", Type: proto.ColumnType_STRING, Hydrate: plugin.HydrateFunc(getS3ObjectContent).WithCache()},
-
-			{Name: "acl_grants", Description: "A list of ACL grants.", Type: proto.ColumnType_JSON, Transform: transform.FromField("Grants"), Hydrate: plugin.HydrateFunc(getS3ObjectACL).WithCache()},
-			{Name: "acl_owner", Description: "The bucket owner's display name and ID.", Type: proto.ColumnType_JSON, Transform: transform.FromField("Owner"), Hydrate: plugin.HydrateFunc(getS3ObjectACL).WithCache()},
-
-			{Name: "retention", Description: "TODO", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectRetention},
-			{Name: "legal_hold", Description: "TODO", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectLegalHold},
+			{Name: "acl", Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectACL},
+			{Name: "retention", Description: "A retention period protects an object version for a fixed amount of time.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectRetention},
+			{Name: "legal_hold", Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectLegalHold},
+			{Name: "tags", Description: "The tag set associated with an object.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectTagSet},
+			{Name: "torrent", Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectTorrent},
 		}),
 	}
-}
-
-func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	s3Object := h.Item.(*s3ObjectRow)
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-	if err != nil {
-		return nil, err
-	}
-	input := &s3.GetObjectInput{
-		Bucket: s3Object.BucketName,
-		Key:    s3Object.Key,
-	}
-
-	content, err := svc.GetObjectWithContext(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &s3ObjectContent{
-		GetObjectOutput: *content,
-		parentRow:       s3Object,
-		contentReadLock: &sync.Mutex{},
-	}, nil
-}
-
-func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	s3Object := h.Item.(*s3ObjectRow)
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-	if err != nil {
-		return nil, err
-	}
-
-	plugin.Logger(ctx).Trace("fetching ACL for ", s3Object.Key)
-
-	input := &s3.GetObjectAclInput{
-		Bucket: s3Object.BucketName,
-		Key:    s3Object.Key,
-	}
-	return svc.GetObjectAclWithContext(ctx, input)
-}
-
-func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	s3Object := h.Item.(*s3ObjectRow)
-
-	if !s3Object.bucketHasLockConfig {
-		return nil, nil
-	}
-
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-	if err != nil {
-		return nil, err
-	}
-
-	plugin.Logger(ctx).Trace("fetching legal hold for ", s3Object.Key)
-
-	input := &s3.GetObjectLegalHoldInput{
-		Bucket: s3Object.BucketName,
-		Key:    s3Object.Key,
-	}
-	legalHoldOutput, err := svc.GetObjectLegalHoldWithContext(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-	return legalHoldOutput.LegalHold.Status, nil
-}
-
-func getS3ObjectRetention(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	s3Object := h.Item.(*s3ObjectRow)
-
-	if !s3Object.bucketHasLockConfig {
-		return nil, nil
-	}
-
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-	if err != nil {
-		return nil, err
-	}
-
-	plugin.Logger(ctx).Trace("fetching Object Retention for ", s3Object.Key)
-
-	input := &s3.GetObjectRetentionInput{
-		Bucket: s3Object.BucketName,
-		Key:    s3Object.Key,
-	}
-	retentionOutput, err := svc.GetObjectRetentionWithContext(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-	return retentionOutput.Retention, nil
 }
 
 func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listS3Objects")
 
 	bucketName := d.KeyColumnQualString("bucket")
-
-	defer func() {
-		r := recover()
-		if r != nil {
-			plugin.Logger(ctx).Error("panic recover", r)
-			plugin.Logger(ctx).Error("panic recover", string(debug.Stack()))
-		}
-	}()
 
 	// Create Session,
 	bucketLocation, err := resolveBucketRegion(ctx, d, &bucketName)
@@ -226,4 +121,129 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	})
 
 	return nil, err
+}
+
+func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("fetching ACL for ", s3Object.Key)
+
+	input := &s3.GetObjectAclInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+	return svc.GetObjectAclWithContext(ctx, input)
+}
+
+func getS3ObjectTorrent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	if !s3Object.bucketHasLockConfig {
+		return nil, nil
+	}
+
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("fetching torrent for ", s3Object.Key)
+
+	input := &s3.GetObjectTorrentInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+	torrentOutput, err := svc.GetObjectTorrentWithContext(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("torrent bytes error", err)
+		return nil, err
+	}
+
+	bodyBytes, err := io.ReadAll(torrentOutput.Body)
+	if err != nil {
+		plugin.Logger(ctx).Error("torrent bytes error", err)
+		return nil, err
+	}
+	plugin.Logger(ctx).Trace("torrent bytes", bodyBytes)
+
+	return string(bodyBytes), nil
+}
+
+func getS3ObjectTagSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	if !s3Object.bucketHasLockConfig {
+		return nil, nil
+	}
+
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("fetching tag set for ", s3Object.Key)
+
+	input := &s3.GetObjectTaggingInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+	taggingOutput, err := svc.GetObjectTaggingWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return taggingOutput.TagSet, nil
+}
+
+func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	if !s3Object.bucketHasLockConfig {
+		return nil, nil
+	}
+
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("fetching legal hold for ", s3Object.Key)
+
+	input := &s3.GetObjectLegalHoldInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+	legalHoldOutput, err := svc.GetObjectLegalHoldWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return legalHoldOutput.LegalHold.Status, nil
+}
+
+func getS3ObjectRetention(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	if !s3Object.bucketHasLockConfig {
+		return nil, nil
+	}
+
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Logger(ctx).Trace("fetching Object Retention for ", s3Object.Key)
+
+	input := &s3.GetObjectRetentionInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+	retentionOutput, err := svc.GetObjectRetentionWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return retentionOutput.Retention, nil
 }

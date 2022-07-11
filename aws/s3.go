@@ -1,11 +1,8 @@
 package aws
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -70,31 +67,4 @@ type s3ObjectRow struct {
 	BucketRegion        *string
 	bucketHasLockConfig bool
 	Prefix              *string
-}
-
-type s3ObjectContent struct {
-	s3.GetObjectOutput
-
-	parentRow       *s3ObjectRow
-	contentReadLock *sync.Mutex
-	contentBuffer   *bytes.Buffer
-}
-
-func (s *s3ObjectContent) ReadBody() ([]byte, error) {
-	s.contentReadLock.Lock()
-	defer s.contentReadLock.Unlock()
-	if s.contentBuffer != nil {
-		return io.ReadAll(s.contentBuffer)
-	}
-	s.contentBuffer = &bytes.Buffer{}
-	tee := io.TeeReader(s.Body, s.contentBuffer)
-	return io.ReadAll(tee)
-}
-
-func (s *s3ObjectContent) ReadBodyParsed() (interface{}, error) {
-	_, err := s.ReadBody()
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
 }
