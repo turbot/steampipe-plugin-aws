@@ -418,7 +418,6 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 										allowedPrincipals = append(allowedPrincipals, pARN)
 										if arn.IsARN(pARN) {
 											arnParts, _ := arn.Parse(pARN)
-											fmt.Println("arnParts.AccountID:", arnParts.AccountID)
 											// Account id in case of s3 buckets arn is empty
 											if arnParts.AccountID == "*" || arnParts.AccountID == "" {
 												principalArnPublic = true

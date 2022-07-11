@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"testing"
+	"time"
 )
 
 type publicAccessTest struct {
@@ -131,7 +132,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				],
 				"allowed_principal_account_ids": [
 					"*",
-        	"111122223333",
         	"123456789012"
 				],
 				"allowed_principal_federated_identities": [
@@ -145,6 +145,7 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"public_access_levels": ["List","Read"],
 				"public_statement_ids": [
 					"PublicAccess",
+					"ServicePrincipals",
 					"Statement[1]"
 				]
 			}`,
@@ -199,50 +200,30 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 							"s3:ListBucket"
 						],
 						"Resource": "arn:aws:s3:::test"
-					},
-					{
-						"Sid": "ServicePrincipals",
-						"Effect": "Allow",
-						"Principal": {
-							"Service": [
-								"ecs.amazonaws.com",
-								"elasticloadbalancing.amazonaws.com"
-							]
-						},
-						"Action": [
-							"s3:GetBucketLocation",
-							"s3:ListBucket"
-						],
-						"Resource": "arn:aws:s3:::test"
 					}
 				]
 			}`,
 			`{
-				"access_level": "shared",
-				"allowed_organization_ids": [
-					"o-123456"
-				],
-				"allowed_principals": [
-					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
-					"arn:aws:iam::111122223333:root",
-					"arn:aws:iam::123456789012:user/victor@xyz.com",
-					"ecs.amazonaws.com",
-					"elasticloadbalancing.amazonaws.com"
-				],
-				"allowed_principal_account_ids": [
-					"123456789012"
-				],
-				"allowed_principal_federated_identities": [
-					"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"
-				],
-				"allowed_principal_services": [
-					"ecs.amazonaws.com",
-					"elasticloadbalancing.amazonaws.com"
-				],
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
+        	"access_level": "shared",
+        	"allowed_organization_ids": [
+        		"o-123456"
+        	],
+        	"allowed_principals": [
+        		"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE",
+        		"arn:aws:iam::111122223333:root",
+        		"arn:aws:iam::123456789012:user/victor@xyz.com"
+        	],
+        	"allowed_principal_account_ids": [
+        		"123456789012"
+        	],
+        	"allowed_principal_federated_identities": [
+        		"arn:aws:iam::111011101110:saml-provider/AWSSSO_DO_NOT_DELETE"
+        	],
+        	"allowed_principal_services": null,
+        	"is_public": false,
+        	"public_access_levels": null,
+        	"public_statement_ids": null
+        }`,
 		},
 		{
 			`single_statement`,
@@ -276,39 +257,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 					"o-123456"
 				],
 				"allowed_principals": null,
-				"allowed_principal_account_ids": null,
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": null,
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
-		},
-		{
-			`single_statement_with_source_arn`,
-			`{
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Principal": {
-							"AWS": "*"
-						},
-						"Action": "SNS:Publish",
-						"Resource": "arn:aws:sns:us-east-2:444455556666:MyTopic",
-						"Condition": {
-							"ArnLike": {
-								"aws:SourceArn": "arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
-							}
-						}
-					}
-				]
-			}`,
-			`{
-				"access_level": "private",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"arn:aws:cloudwatch:us-east-2:111122223333:alarm:*"
-				],
 				"allowed_principal_account_ids": null,
 				"allowed_principal_federated_identities": null,
 				"allowed_principal_services": null,
@@ -396,52 +344,6 @@ func TestResourcePolicyPublicAccess(t *testing.T) {
 				"allowed_principal_account_ids": [
 					"999988887777"
 				],
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": null,
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
-		},
-		{
-			`Allow user from same account as the topic account to publish message`,
-			`{
-				"Version": "2008-10-17",
-				"Id": "__default_policy_ID",
-				"Statement": [
-					{
-						"Sid": "__default_statement_ID",
-						"Effect": "Allow",
-						"Principal": {
-							"AWS": "*"
-						},
-						"Action": [
-							"SNS:GetTopicAttributes",
-							"SNS:SetTopicAttributes",
-							"SNS:AddPermission",
-							"SNS:RemovePermission",
-							"SNS:DeleteTopic",
-							"SNS:Subscribe",
-							"SNS:ListSubscriptionsByTopic",
-							"SNS:Publish",
-							"SNS:Receive"
-						],
-						"Resource": "arn:aws:sns:us-east-1:111122223333:cloudwatch-alarms",
-						"Condition": {
-							"ArnLike": {
-	             	"aws:SourceArn": "arn:aws:iam::111122223333:users/*"
-	           	}
-						}
-					}
-				]
-			}`,
-			`{
-				"access_level": "private",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"arn:aws:iam::111122223333:users/*"
-				],
-				"allowed_principal_account_ids": null,
 				"allowed_principal_federated_identities": null,
 				"allowed_principal_services": null,
 				"is_public": false,
@@ -934,7 +836,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 			}`,
 		},
 		{
-			`Bucket looging policies`,
+			`Bucket logging policies`,
 			`{
 				"Statement": [
 					{
@@ -1014,7 +916,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 				"Version": "2012-10-17"
 			}`,
 			`{
-        	"access_level": "shared",
+        	"access_level": "public",
         	"allowed_organization_ids": null,
         	"allowed_principals": [
         		"arn:aws:iam::123456285394:user/logs",
@@ -1031,65 +933,18 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
         		"cloudtrail.amazonaws.com",
         		"delivery.logs.amazonaws.com"
         	],
-        	"is_public": false,
-        	"public_access_levels": null,
-        	"public_statement_ids": null
+        	"is_public": true,
+        	"public_access_levels": [
+        		"Read",
+        		"Write"
+        	],
+        	"public_statement_ids": [
+        		"AWSCloudTrailAclCheck",
+        		"AWSCloudTrailWrite",
+        		"AWSLogDeliveryAclCheck",
+        		"AWSLogDeliveryWrite"
+        	]
         }`,
-		},
-		{
-			`S3 cloutrail account logging policy`,
-			`{
-				"Statement": [
-					{
-						"Action": "s3:GetBucketAcl",
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "cloudtrail.amazonaws.com"
-						},
-						"Resource": "arn:aws:s3:::test-anonymous-access",
-						"Sid": "AWSCloudTrailAclCheck"
-					},
-					{
-						"Action": "s3:PutObject",
-						"Condition": {
-							"StringEquals": {
-								"s3:x-amz-acl": "bucket-owner-full-control"
-							}
-						},
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "cloudtrail.amazonaws.com"
-						},
-						"Resource": "arn:aws:s3:::test-anonymous-access/AWSLogs/111122224444/*",
-						"Sid": "AWSCloudTrailWrite"
-					},
-					{
-						"Action": "s3:GetBucketAcl",
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "delivery.logs.amazonaws.com"
-						},
-						"Resource": "arn:aws:s3:::test-anonymous-access",
-						"Sid": "AWSLogDeliveryAclCheck"
-					},
-					{
-						"Action": "s3:PutObject",
-						"Condition": {
-							"StringEquals": {
-								"s3:x-amz-acl": "bucket-owner-full-control"
-							}
-						},
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "delivery.logs.amazonaws.com"
-						},
-						"Resource": "arn:aws:s3:::test-anonymous-access/AWSLogs/111122224444/*",
-						"Sid": "AWSLogDeliveryWrite"
-					}
-				],
-				"Version": "2012-10-17"
-			}`,
-			``,
 		},
 	}
 
@@ -1132,7 +987,7 @@ func TestS3ResourcePublicPolicies(t *testing.T) {
 }
 
 // https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies.html
-func TestS3ExampleResourcePolicies(t *testing.T) {
+func TestS3ExampleResourcePoliciesWithConditions(t *testing.T) {
 	testCases := []publicAccessTest{
 		{
 			`Granting permissions to multiple accounts with added conditions`,
@@ -1178,43 +1033,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				"is_public": false,
 				"public_access_levels": null,
 				"public_statement_ids": null
-			}`,
-		},
-		{
-			`Granting read-only permission to an anonymous user`,
-			`{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Sid": "PublicRead",
-						"Effect": "Allow",
-						"Principal": "*",
-						"Action": [
-							"s3:GetObject",
-							"s3:GetObjectVersion"
-						],
-						"Resource": [
-							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
-						]
-					}
-				]
-			}`,
-			`{
-				"access_level": "public",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"*"
-				],
-				"allowed_principal_account_ids": [
-					"*"
-				],
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": null,
-				"is_public": true,
-				"public_access_levels": ["Read"],
-				"public_statement_ids": [
-					"PublicRead"
-				]
 			}`,
 		},
 		{
@@ -1334,81 +1152,6 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
         }`,
 		},
 		{
-			`Granting cross-account permissions to upload objects while ensuring the bucket owner has full control`,
-			`{
-				"Version":"2012-10-17",
-				"Statement":[
-					{
-						"Sid":"PolicyForAllowUploadWithACL",
-						"Effect":"Allow",
-						"Principal":{"AWS":"111122223333"},
-						"Action":"s3:PutObject",
-						"Resource":"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*",
-						"Condition": {
-							"StringEquals": {"s3:x-amz-acl":"bucket-owner-full-control"}
-						}
-					}
-				]
-			}`,
-			`{
-				"access_level": "private",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"111122223333"
-				],
-				"allowed_principal_account_ids": null,
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": null,
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
-		},
-		{
-			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics`,
-			`{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Sid": "InventoryAndAnalyticsExamplePolicy",
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "s3.amazonaws.com"
-						},
-						"Action": "s3:PutObject",
-						"Resource": [
-							"arn:aws:s3:::destinationbucket/*"
-						],
-						"Condition": {
-							"ArnLike": {
-								"aws:SourceArn": "arn:aws:s3:::sourcebucket"
-							},
-							"StringEquals": {
-								"aws:SourceAccount": "111122223333",
-								"s3:x-amz-acl": "bucket-owner-full-control"
-							}
-						}
-					}
-				]
-			}`,
-			`{
-				"access_level": "private",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"arn:aws:s3:::sourcebucket",
-					"s3.amazonaws.com"
-				],
-				"allowed_principal_account_ids": null,
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": [
-					"s3.amazonaws.com"
-				],
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
-		},
-		{
 			`Granting permissions for Amazon S3 Inventory and Amazon S3 analytics with only source arn condition`,
 			`{
 				"Version": "2012-10-17",
@@ -1432,21 +1175,25 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				]
 			}`,
 			`{
-				"access_level": "shared",
-				"allowed_organization_ids": null,
-				"allowed_principals": [
-					"arn:aws:s3:::sourcebucket",
-					"s3.amazonaws.com"
-				],
-				"allowed_principal_account_ids": null,
-				"allowed_principal_federated_identities": null,
-				"allowed_principal_services": [
-					"s3.amazonaws.com"
-				],
-				"is_public": false,
-				"public_access_levels": null,
-				"public_statement_ids": null
-			}`,
+        	"access_level": "public",
+        	"allowed_organization_ids": null,
+        	"allowed_principals": [
+        		"arn:aws:s3:::sourcebucket",
+        		"s3.amazonaws.com"
+        	],
+        	"allowed_principal_account_ids": null,
+        	"allowed_principal_federated_identities": null,
+        	"allowed_principal_services": [
+        		"s3.amazonaws.com"
+        	],
+        	"is_public": true,
+        	"public_access_levels": [
+        		"Write"
+        	],
+        	"public_statement_ids": [
+        		"InventoryAndAnalyticsExamplePolicy"
+        	]
+        }`,
 		},
 	}
 
@@ -1483,6 +1230,187 @@ func TestS3ExampleResourcePolicies(t *testing.T) {
 				data := new(bytes.Buffer)
 				_ = json.Indent(data, []byte(test.expected), "", "\t")
 				t.Errorf("FAILED: \nExpected:\n %v\n\nEvaluated \n%v\n", data.String(), string(strdata))
+			}
+		})
+	}
+}
+
+func TestPublicPolicies(t *testing.T) {
+	testCases := []string{
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "Allow Member Account Access",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": "s3:GetObject",
+					"Resource": "arn:aws:s3:::sample-bucket/*"
+				}
+			]
+		}`,
+		`{
+			"Version": "2008-10-17",
+			"Id": "__default_policy_ID",
+			"Statement": [
+				{
+					"Sid": "__default_statement_ID",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "*"
+					},
+					"Action": [
+						"SNS:GetTopicAttributes",
+						"SNS:SetTopicAttributes",
+						"SNS:AddPermission",
+						"SNS:RemovePermission",
+						"SNS:DeleteTopic",
+						"SNS:Subscribe",
+						"SNS:ListSubscriptionsByTopic",
+						"SNS:Publish",
+						"SNS:Receive"
+					],
+					"Resource": "arn:aws:sns:us-east-1:111122225555:smyth-test-2"
+				}
+			]
+		}`,
+		`{
+			"Statement": [
+				{
+					"Action": "s3:ListBucket",
+					"Condition": {
+						"StringEqualsIfExists": {
+							"aws:PrincipalAccount": "111122223333"
+						}
+					},
+					"Effect": "Allow",
+					"Principal": "*",
+					"Resource": "arn:aws:s3:::test-anonymous-access",
+					"Sid": "Statement1"
+				}
+			],
+			"Version": "2012-10-17"
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": "*",
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringLike": {
+							"aws:PrincipalOrgID": ["o-1a2b3c4d*"]
+						}
+					}
+				}
+			]
+		}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "ServicePublicAccess",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "cloudtrail.amazonaws.com"
+					},
+					"Action": "SNS:Publish",
+					"Resource": "arn:aws:sns:region:SNSTopicOwnerAccountId:SNSTopicName"
+				}
+			]
+		}`,
+		`{
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "s3.amazonaws.com"
+					},
+					"Action": "sns:Publish",
+					"Resource": "arn:aws:sns:us-east-2:111122225555:MyTopic",
+					"Condition": {
+						"ArnLike": {
+							"aws:SourceArn": "arn:aws:S3:::test-bucket"
+						}
+					}
+				}
+			]
+		}`,
+		`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "PublicRead",
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": [
+							"s3:GetObject",
+							"s3:GetObjectVersion"
+						],
+						"Resource": [
+							"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*"
+						]
+					}
+				]
+			}`,
+		`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "SharedAccess4",
+					"Effect": "Allow",
+					"Principal": {
+						"AWS": "*"
+					},
+					"Action": [
+						"s3:listbucket",
+						"s3:getobject"
+					],
+					"Resource": [
+						"arn:aws:s3:::test-anonymous-access",
+						"arn:aws:s3:::test-anonymous-access/*"
+					],
+					"Condition": {
+						"StringLike": {
+							"aws:PrincipalAccount": [
+								"11112222333*",
+								"11112222444*"
+							]
+						}
+					}
+				}
+			]
+		}`,
+	}
+
+	for index, policy := range testCases {
+		t.Run(fmt.Sprintf("Test=%d", index+1), func(t *testing.T) {
+			policy, err := canonicalPolicy(policy)
+			if err != nil {
+				t.Errorf("Test: %d Policy canonicalization failed with error: %#v\n", index+1, err)
+			}
+
+			policyObject, ok := policy.(Policy)
+			if !ok {
+				t.Errorf("Test: %d Policy coercion failed with error: %#v\n", index+1, err)
+			}
+			evaluatedObj, err := policyObject.EvaluatePolicy("111122225555")
+			if err != nil {
+				t.Errorf("Test: %d\nPolicy evaluation failed with error: %#v\n", index+1, err)
+			}
+
+			if !evaluatedObj.IsPublic {
+				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
+				t.Errorf("Expected %d to be public but it is %v\n", index+1, string(strdata))
 			}
 		})
 	}
@@ -1539,34 +1467,6 @@ func TestSharedPolicies(t *testing.T) {
 					"Condition": {
 						"StringEquals": {
 							"aws:PrincipalArn": "arn:aws:iam::013122550996:root"
-						}
-					}
-				}
-			]
-		}`,
-		`{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Sid": "SharedAccess4",
-					"Effect": "Allow",
-					"Principal": {
-						"AWS": "*"
-					},
-					"Action": [
-						"s3:listbucket",
-						"s3:getobject"
-					],
-					"Resource": [
-						"arn:aws:s3:::test-anonymous-access",
-						"arn:aws:s3:::test-anonymous-access/*"
-					],
-					"Condition": {
-						"StringLike": {
-							"aws:PrincipalAccount": [
-								"11112222333*",
-								"11112222444*"
-							]
 						}
 					}
 				}
@@ -1692,123 +1592,101 @@ func TestSharedPolicies(t *testing.T) {
 			strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
 			if evaluatedObj.AccessLevel != "shared" {
 				t.Errorf("Expected %d to be shared but it is %s. Ealuation: \n%v\n", index+1, evaluatedObj.AccessLevel, string(strdata))
-			} else {
-				fmt.Println("Evaluation: \n", string(strdata))
 			}
+			// else {
+			// 	fmt.Println("Evaluation: \n", string(strdata))
+			// }
 		})
 	}
 }
 
-func TestPublicPolicies(t *testing.T) {
+func TestPrivatePolicies(t *testing.T) {
 	testCases := []string{
 		`{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Sid": "Allow Member Account Access",
-					"Effect": "Allow",
-					"Principal": "*",
-					"Action": "s3:GetObject",
-					"Resource": "arn:aws:s3:::sample-bucket/*"
-				}
-			]
-		}`,
-		`{
-			"Version": "2008-10-17",
-			"Id": "__default_policy_ID",
-			"Statement": [
-				{
-					"Sid": "__default_statement_ID",
-					"Effect": "Allow",
-					"Principal": {
-						"AWS": "*"
-					},
-					"Action": [
-						"SNS:GetTopicAttributes",
-						"SNS:SetTopicAttributes",
-						"SNS:AddPermission",
-						"SNS:RemovePermission",
-						"SNS:DeleteTopic",
-						"SNS:Subscribe",
-						"SNS:ListSubscriptionsByTopic",
-						"SNS:Publish",
-						"SNS:Receive"
-					],
-					"Resource": "arn:aws:sns:us-east-1:111122225555:smyth-test-2"
-				}
-			]
-		}`,
-		`{
-			"Statement": [
-				{
-					"Action": "s3:ListBucket",
-					"Condition": {
-						"StringEqualsIfExists": {
-							"aws:PrincipalAccount": "111122223333"
-						}
-					},
-					"Effect": "Allow",
-					"Principal": "*",
-					"Resource": "arn:aws:s3:::test-anonymous-access",
-					"Sid": "Statement1"
-				}
-			],
-			"Version": "2012-10-17"
-		}`,
-		`{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Sid": "SharedAccess4",
-					"Effect": "Allow",
-					"Principal": "*",
-					"Action": [
-						"s3:listbucket",
-						"s3:getobject"
-					],
-					"Resource": [
-						"arn:aws:s3:::test-anonymous-access",
-						"arn:aws:s3:::test-anonymous-access/*"
-					],
-					"Condition": {
-						"StringLike": {
-							"aws:PrincipalOrgID": ["o-1a2b3c4d*"]
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": "*",
+						"Action": "SNS:Publish",
+						"Resource": "arn:aws:sns:us-east-2:123456789012:MyTopic",
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:cloudwatch:us-east-2:123456789012:alarm:*"
+							}
 						}
 					}
-				}
-			]
-		}`,
+				]
+			}`,
 		`{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Sid": "ServicePublicAccess",
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "cloudtrail.amazonaws.com"
-					},
-					"Action": "SNS:Publish",
-					"Resource": "arn:aws:sns:region:SNSTopicOwnerAccountId:SNSTopicName"
-				}
-			]
-		}`,
-		`{
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "s3.amazonaws.com"
-					},
-					"Action": "sns:Publish",
-					"Resource": "arn:aws:sns:us-east-2:111122225555:MyTopic",
-					"Condition": {
-						"ArnLike": {
-							"aws:SourceArn": "arn:aws:S3:::test-bucket"
+				"Version": "2008-10-17",
+				"Id": "__default_policy_ID",
+				"Statement": [
+					{
+						"Sid": "__default_statement_ID",
+						"Effect": "Allow",
+						"Principal": {
+							"AWS": "*"
+						},
+						"Action": [
+							"SNS:GetTopicAttributes",
+							"SNS:SetTopicAttributes",
+							"SNS:AddPermission",
+							"SNS:RemovePermission",
+							"SNS:DeleteTopic",
+							"SNS:Subscribe",
+							"SNS:ListSubscriptionsByTopic",
+							"SNS:Publish",
+							"SNS:Receive"
+						],
+						"Resource": "arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms",
+						"Condition": {
+							"ArnLike": {
+	             	"aws:SourceArn": "arn:aws:iam::123456789012:users/*"
+	           	}
 						}
 					}
-				}
-			]
-		}`,
+				]
+			}`,
+		`{
+				"Version":"2012-10-17",
+				"Statement":[
+					{
+						"Sid":"PolicyForAllowUploadWithACL",
+						"Effect":"Allow",
+						"Principal":{"AWS":"123456789012"},
+						"Action":"s3:PutObject",
+						"Resource":"arn:aws:s3:::DOC-EXAMPLE-BUCKET/*",
+						"Condition": {
+							"StringEquals": {"s3:x-amz-acl":"bucket-owner-full-control"}
+						}
+					}
+				]
+			}`,
+		`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Sid": "InventoryAndAnalyticsExamplePolicy",
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "s3.amazonaws.com"
+						},
+						"Action": "s3:PutObject",
+						"Resource": [
+							"arn:aws:s3:::destinationbucket/*"
+						],
+						"Condition": {
+							"ArnLike": {
+								"aws:SourceArn": "arn:aws:s3:::sourcebucket"
+							},
+							"StringEquals": {
+								"aws:SourceAccount": "123456789012",
+								"s3:x-amz-acl": "bucket-owner-full-control"
+							}
+						}
+					}
+				]
+			}`,
 	}
 
 	for index, policy := range testCases {
@@ -1822,14 +1700,14 @@ func TestPublicPolicies(t *testing.T) {
 			if !ok {
 				t.Errorf("Test: %d Policy coercion failed with error: %#v\n", index+1, err)
 			}
-			evaluatedObj, err := policyObject.EvaluatePolicy("111122225555")
+			evaluatedObj, err := policyObject.EvaluatePolicy("123456789012")
 			if err != nil {
 				t.Errorf("Test: %d\nPolicy evaluation failed with error: %#v\n", index+1, err)
 			}
 
-			if !evaluatedObj.IsPublic {
+			if evaluatedObj.AccessLevel != "private" {
 				strdata, _ := json.MarshalIndent(evaluatedObj, "", "\t")
-				t.Errorf("Expected %d to be public but it is %v\n", index+1, string(strdata))
+				t.Errorf("Expected %d to be private but it is %v\n", index+1, string(strdata))
 			}
 		})
 	}
@@ -1936,7 +1814,6 @@ func TestPoliciesForArnOperators(t *testing.T) {
 	}
 }
 
-/*
 func TestAccessPoliciesActions(t *testing.T) {
 	permissionsData := getParliamentIamPermissions()
 	testCases := []struct {
@@ -2004,4 +1881,3 @@ func TestAccessPoliciesActions(t *testing.T) {
 		})
 	}
 }
-*/
