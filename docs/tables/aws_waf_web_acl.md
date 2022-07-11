@@ -27,11 +27,27 @@ select
   r ->> 'RuleId' as rule_id,
   r ->> 'Type' as rule_type,
   r ->> 'ExcludedRules' as excluded_rules,
-  r ->> 'OverrideAction' as override_action
-  r -> 'Action' ->> 'Type' as action_type,
+  r ->> 'OverrideAction' as override_action,
+  r -> 'Action' ->> 'Type' as action_type
 from
   aws_waf_web_acl,
   jsonb_array_elements(rules) as r;
+```
+
+### Get web ACLs with no rule defined
+
+```sql
+select
+  name,
+  web_acl_id,
+  arn,
+  region,
+  default_action,
+  tags
+from
+  aws_waf_web_acl
+where
+  rules is null;
 ```
 
 ### Get web ACLs with default action as allow
