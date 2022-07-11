@@ -362,10 +362,11 @@ func (stmt *Statement) EvaluateStatement() (bool, PolicyEvaluation) {
 									// else {// TODO - How to add the wildcard account Ids to the list}
 								} else if hasIfExistsSuffix {
 									allowedPrincipals = append(allowedPrincipals, conditionValue.([]string)...)
-								} else if hasNotInOperator {
+								}
+								// else if hasNotInOperator {
 									// TODO
 									// Shall I add * into AllowedAccountsForPrincipals as it means all accounts other than the accounts mentioned in the condition
-								}
+								// }
 							case "aws:sourcearn": // Works with both ARN and String operators
 								if hasLikeOperator && !hasNotInOperator {
 									principalArnPublic := false
