@@ -88,8 +88,8 @@ resource "aws_route_table_association" "rt_associate_public" {
 
 # Creating Security Group 
 resource "aws_security_group" "demosg" {
-vpc_id      = "${aws_vpc.main.id}"
-# Outbound Rules
+  vpc_id      = "${aws_vpc.main.id}"
+  # Outbound Rules
   # Internet access to anywhere
   egress {
     from_port   = 0
@@ -151,7 +151,7 @@ resource "aws_instance" "named_test_resource" {
   subnet_id = aws_subnet.demosubnet.id
   associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.test_profile.name
-tags = {
+  tags = {
     Name = var.resource_name
   }
 }
