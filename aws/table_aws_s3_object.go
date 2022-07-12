@@ -125,6 +125,11 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Object := h.Item.(*s3ObjectRow)
+
+	if s3Object.isOutpostObject() {
+		return nil, nil
+	}
+
 	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
 	if err != nil {
 		return nil, err
@@ -141,6 +146,10 @@ func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 func getS3ObjectTorrent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Object := h.Item.(*s3ObjectRow)
+
+	if s3Object.isOutpostObject() {
+		return nil, nil
+	}
 
 	if !s3Object.bucketHasLockConfig {
 		return nil, nil
@@ -205,6 +214,10 @@ func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, nil
 	}
 
+	if s3Object.isOutpostObject() {
+		return nil, nil
+	}
+
 	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
 	if err != nil {
 		return nil, err
@@ -227,6 +240,10 @@ func getS3ObjectRetention(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	s3Object := h.Item.(*s3ObjectRow)
 
 	if !s3Object.bucketHasLockConfig {
+		return nil, nil
+	}
+
+	if s3Object.isOutpostObject() {
 		return nil, nil
 	}
 

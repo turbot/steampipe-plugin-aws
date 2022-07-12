@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -67,4 +68,10 @@ type s3ObjectRow struct {
 	BucketRegion        *string
 	bucketHasLockConfig bool
 	Prefix              *string
+}
+
+func (o *s3ObjectRow) isOutpostObject() bool {
+	// S3 on Outposts provides a new storage class, OUTPOSTS
+	// as in https://docs.aws.amazon.com/AmazonS3/latest/userguide/S3onOutposts.html
+	return strings.EqualFold(*o.StorageClass, "OUTPOSTS")
 }
