@@ -1,3 +1,16 @@
+## v0.69.0 [2022-07-12]
+
+_Enhancements_
+
+- Recompiled plugin with [steampipe-plugin-sdk v3.3.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v332--2022-07-11). ([#1150](https://github.com/turbot/steampipe-plugin-aws/pull/1150))
+- Recompiled plugin with [aws-sdk-go v1.44.49](https://github.com/aws/aws-sdk-go/blob/main/CHANGELOG.md#release-v14449-2022-07-06). ([#1142](https://github.com/turbot/steampipe-plugin-aws/pull/1142))
+- Added timestamps to example queries in `aws_cloudtrail_trail_event`, `aws_cloudwatch_log_event` and `aws_vpc_flow_log_event` table documents. ([#1136](https://github.com/turbot/steampipe-plugin-aws/pull/1136))
+- Added column `url_config` to `aws_lambda_alias` and `aws_lambda_function` tables. ([#1146](https://github.com/turbot/steampipe-plugin-aws/pull/1146))
+
+_Bug fixes_
+
+- Fixed inconsistent table names in the `aws_ebs_volume_metric_write_ops`, `aws_ebs_volume_metric_write_ops_hourly` and `aws_vpc_flow_log` tables. ([#1149](https://github.com/turbot/steampipe-plugin-aws/pull/1149))
+
 ## v0.68.0 [2022-07-06]
 
 _What's new?_
