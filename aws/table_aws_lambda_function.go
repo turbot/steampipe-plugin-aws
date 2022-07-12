@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -202,10 +203,10 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
-				Name:        "url_configs",
-				Description: "A list of function URL configurations.",
+				Name:        "url_config",
+				Description: "The function URL configuration details of the function.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listFunctionUrlConfig,
+				Hydrate:     getLambdaFunctionUrlConfig,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -349,8 +350,8 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return op, nil
 }
 
-func listFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listFunctionUrlConfig")
+func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
 
 	functionName := functionName(h.Item)
 
@@ -360,22 +361,16 @@ func listFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	input := &lambda.ListFunctionUrlConfigsInput{
+	input := &lambda.GetFunctionUrlConfigInput{
 		FunctionName: aws.String(functionName),
 	}
 
-	var urlConfigs []*lambda.FunctionUrlConfig
-
-	err = svc.ListFunctionUrlConfigsPages(
-		input,
-		func(page *lambda.ListFunctionUrlConfigsOutput, isLast bool) bool {
-			urlConfigs = append(urlConfigs, page.FunctionUrlConfigs...)
-			return !isLast
-		},
-	)
-
+	urlConfigs, err := svc.GetFunctionUrlConfig(input)
 	if err != nil {
-		plugin.Logger(ctx).Error("listFunctionUrlConfig", "api_error", err)
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "GetFunctionUrlConfig_error", err)
 		return nil, err
 	}
 
