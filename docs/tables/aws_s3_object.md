@@ -71,7 +71,7 @@ where
 select
   aws_s3_object.key,
   aws_s3_object.bucket,
-  aws_s3_object.acl -> 'Owner' as owner,
+  aws_s3_object.owner,
   acl_grant -> 'Grantee' as grantee,
   acl_grant ->> 'Permission' as permission
 from
@@ -80,7 +80,7 @@ from
 where
   bucket = 'sensitive_assets'
   and acl_grant ->> 'Permission' = 'FULL_CONTROL'
-  and acl_grant -> 'Grantee' ->> 'ID' != aws_s3_object.acl -> 'Owner' ->> 'ID';
+  and acl_grant -> 'Grantee' ->> 'ID' != aws_s3_object.owner ->> 'ID';
 ```
 
 ### List all objects in a bucket `legal_hold` is set

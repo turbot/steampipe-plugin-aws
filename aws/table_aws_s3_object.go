@@ -29,6 +29,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			{Name: "storage_class", Description: "The class of storage used to store the object.", Type: proto.ColumnType_STRING},
 			{Name: "size", Description: "Size in bytes of the object.", Type: proto.ColumnType_INT},
 			{Name: "last_modified", Description: "Creation date of the object.", Type: proto.ColumnType_TIMESTAMP},
+			{Name: "owner", Description: "The owner of the object.", Type: proto.ColumnType_JSON},
 			{Name: "prefix", Description: "The prefix of the key of the object.", Type: proto.ColumnType_STRING},
 			{Name: "bucket", Description: "The name of the container bucket of this object.", Type: proto.ColumnType_STRING, Transform: transform.FromQual("bucket")},
 			{Name: "acl", Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectACL},
