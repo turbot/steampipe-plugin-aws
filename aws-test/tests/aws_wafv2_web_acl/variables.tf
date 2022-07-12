@@ -153,6 +153,3 @@ output "resource_id" {
   value = aws_wafv2_web_acl.named_test_resource.id
 }
 
-output "log_destination_configs" {
-  value = aws_kinesis_firehose_delivery_stream.named_test_resource.arn
-}
