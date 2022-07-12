@@ -34,7 +34,8 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			{Name: "acl", Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectACL},
 			{Name: "retention", Description: "A retention period protects an object version for a fixed amount of time.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectRetention},
 			{Name: "legal_hold", Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectLegalHold},
-			{Name: "tags", Description: "The tag set associated with an object.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectTagSet},
+			{Name: "tags_src", Description: "A list of tags assigned to the object.", Type: proto.ColumnType_STRING, Transform: transform.FromField("TagSet"), Hydrate: plugin.HydrateFunc(getS3ObjectTagSet).WithCache()},
+			{Name: "tags", Description: resourceInterfaceDescription("tags"), Type: proto.ColumnType_JSON, Transform: transform.FromField("TagSet").Transform(s3TagsToTurbotTags), Hydrate: plugin.HydrateFunc(getS3ObjectTagSet).WithCache()},
 			{Name: "torrent", Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectTorrent},
 		}),
 	}
@@ -200,11 +201,7 @@ func getS3ObjectTagSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		Bucket: s3Object.BucketName,
 		Key:    s3Object.Key,
 	}
-	taggingOutput, err := svc.GetObjectTaggingWithContext(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-	return taggingOutput.TagSet, nil
+	return svc.GetObjectTaggingWithContext(ctx, input)
 }
 
 func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
