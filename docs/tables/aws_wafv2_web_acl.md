@@ -99,3 +99,15 @@ from
 where
   logging_configuration is null;
 ```
+
+### List associated resources ARNs of the web ACLs
+
+```sql
+select
+  name,
+  id,
+  jsonb_pretty(associated_resources_arns) as associated_resources_arns,
+  region
+from
+  aws_wafv2_web_acl;
+```

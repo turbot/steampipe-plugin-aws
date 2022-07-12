@@ -75,6 +75,13 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsWafv2WebAcl,
 			},
 			{
+				Name:        "associated_resources_arns",
+				Description: "The array of Amazon Resource Names (ARNs) of the associated resources.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listAssociatedResources,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "default_action",
 				Description: "The action to perform if none of the Rules contained in the Web ACL match.",
 				Type:        proto.ColumnType_JSON,
@@ -364,6 +371,50 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 	return op, nil
+}
+
+func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listAssociatedResources")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	if region == "global" {
+		region = "us-east-1"
+	}
+	data := webAclData(h.Item)
+	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
+
+	// To work with CloudFront, you must specify the Region US East (N. Virginia)
+	if locationType == "global" && region != "us-east-1" {
+		return nil, nil
+	}
+
+	// Create session
+	svc, err := WAFv2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build param
+	param := &wafv2.ListResourcesForWebACLInput{
+		WebACLArn: aws.String(data["Arn"]),
+	}
+
+	op, err := svc.ListResourcesForWebACL(param)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "WAFNonexistentItemException" {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
+
+	if len(op.ResourceArns) == 0 {
+		return nil, nil
+	}
+
+	return op.ResourceArns, nil
 }
 
 //// TRANSFORM FUNCTIONS
