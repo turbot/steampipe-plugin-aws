@@ -115,11 +115,11 @@ data "aws_ami" "linux" {
 # Instance Profile
 resource "aws_iam_instance_profile" "test_profile" {
   name = "test_profile"
-  role = aws_iam_role.testrole.name
+  role = aws_iam_role.test_role.name
 }
 
 # IAM Role for Instance Profile
-resource "aws_iam_role" "testrole" {
+resource "aws_iam_role" "test_role" {
   name = "test_role"
   path = "/"
   # Terraform expression result to valid JSON syntax.
@@ -139,7 +139,7 @@ resource "aws_iam_role" "testrole" {
 }
 # Attach AmazonSSMManagedInstanceCore Policy to the role for SSM
 resource "aws_iam_role_policy_attachment" "test-attach" {
-  role       = aws_iam_role.testrole.name
+  role       = aws_iam_role.test_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
