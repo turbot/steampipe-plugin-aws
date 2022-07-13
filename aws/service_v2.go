@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/ratelimit"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -45,11 +47,12 @@ func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) 
 
 // func NewConnectionErrRetryerV2(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryerV2 {
 // 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
-// 	return &ConnectionErrRetryer{
+// 	return &ConnectionErrRetryerV2{
 // 		ctx: ctx,
-// 		DefaultRetryer: client.DefaultRetryer{
-// 			NumMaxRetries: maxRetries,    // MUST be set or all retrying is skipped!
-// 			MinRetryDelay: minRetryDelay, // Set minimum retry delay
+// 		Standard: retry.Standard{
+// 			options: retry.StandardOptions{
+// 				MaxAttempts: maxRetries, // MUST be set or all retrying is skipped!
+// 			},
 // 		},
 // 	}
 // }
@@ -99,25 +102,23 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
+	ratelimiter := ratelimit.NewTokenRateLimit(500)
+	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
+		o.MaxAttempts = maxRetries
+		o.RateLimiter = ratelimiter
+		backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
+		o.Backoff = backoff
+	})
 
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(region),
-		config.WithRetryMaxAttempts(maxRetries),
-		// config.WithRetryer(NewConnectionErrRetryerV2(maxRetries, minRetryDelay, ctx)), TODO
+		config.WithRetryer(func() aws.Retryer {
+			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+		}),
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	// session default configuration
-	// sessionOptions := session.Options{
-	// 	SharedConfigState: session.SharedConfigEnable,
-	// 	Config: aws.Config{
-	// 		Region:     &region,
-	// 		MaxRetries: aws.Int(maxRetries),
-	// 		Retryer:    NewConnectionErrRetryerV2(maxRetries, minRetryDelay, ctx),
-	// 	},
-	// }
 
 	// handle custom endpoint URL, if any
 	// var awsEndpointUrl string
@@ -140,6 +141,10 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	if awsConfig.Profile != nil {
 		cfg, err = config.LoadDefaultConfig(ctx,
 			config.WithSharedConfigProfile(*awsConfig.Profile),
+			config.WithRegion(region),
+			config.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			}),
 		)
 	}
 
@@ -150,15 +155,20 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
 		cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		)))
-		// sessionOptions.Config.Credentials = credentials.NewStaticCredentials(
-		// 	*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		// )
+		)),
+			config.WithRegion(region),
+			config.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			}))
 
 		if awsConfig.SessionToken != nil {
 			cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-			)))
+			)),
+				config.WithRegion(region),
+				config.WithRetryer(func() aws.Retryer {
+					return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+				}))
 		}
 	}
 
