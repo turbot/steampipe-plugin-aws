@@ -2216,7 +2216,7 @@ func (d ConnectionErrRetryer) RetryRules(r *request.Request) time.Duration {
 	// For example, with a min delay time of 25ms: 23.25ms, 63ms, 238.5ms, 607.4ms, 2s, 5.22s, 20.31s..., up to max.
 	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(retryCount)))) * jitter))
 
-	// Cap retry time at 5 minuets to avoid too long a wait
+	// Cap retry time at 5 minutes to avoid too long a wait
 	if retryTime > time.Duration(5*time.Minute) {
 		retryTime = time.Duration(5 * time.Minute)
 	}
