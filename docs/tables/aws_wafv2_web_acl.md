@@ -100,14 +100,19 @@ where
   logging_configuration is null;
 ```
 
-### List associated resources ARNs of the web ACLs
+### List associated ALBs of the web ACLs
 
 ```sql
 select
-  name,
-  id,
-  jsonb_pretty(associated_resources_arns) as associated_resources_arns,
-  region
+  lb.name as application_load_balancer_name,
+  w.name as web_acl_name,
+  w.id as web_acl_id,
+  w.scope as web_acl_scope,
+  lb.type as application_load_balancer_type
 from
-  aws_wafv2_web_acl;
+  aws_ec2_application_load_balancer as lb,
+  aws_wafv2_web_acl as w,
+  jsonb_array_elements_text(associated_resources_arns) as arns
+where
+  lb.arn = arns;
 ```
