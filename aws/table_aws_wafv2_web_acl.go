@@ -75,7 +75,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsWafv2WebAcl,
 			},
 			{
-				Name:        "associated_resources_arns",
+				Name:        "associated_resources",
 				Description: "The array of Amazon Resource Names (ARNs) of the associated resources.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAssociatedResources,

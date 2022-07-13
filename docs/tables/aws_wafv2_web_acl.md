@@ -100,7 +100,7 @@ where
   logging_configuration is null;
 ```
 
-### List associated ALBs of the web ACLs
+### Get details for ALBs associated with each web ACL
 
 ```sql
 select
@@ -112,7 +112,7 @@ select
 from
   aws_ec2_application_load_balancer as lb,
   aws_wafv2_web_acl as w,
-  jsonb_array_elements_text(associated_resources_arns) as arns
+  jsonb_array_elements_text(associated_resources) as arns
 where
   lb.arn = arns;
 ```
