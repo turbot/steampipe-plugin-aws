@@ -730,6 +730,9 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 
 func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("s3TagsToTurbotTags")
+	if d.Value == nil {
+		return nil, nil
+	}
 	tags := d.Value.([]*s3.Tag)
 
 	// Mapping the resource tags inside turbotTags
