@@ -18,6 +18,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
+var stringPointer = func(s string) *string { return &s }
+
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
 	var turbotTagsMap map[string]string
 	if tags == nil {
