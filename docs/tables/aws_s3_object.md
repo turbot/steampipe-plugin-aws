@@ -16,7 +16,7 @@ select
 from
   aws_s3_object
 where
-  bucket = 'cloudflare_logs_2021_03_01';
+  prefix = 'cloudflare_logs_2021_03_01';
 ```
 
 ### List all objects with a fixed `prefix`
@@ -61,8 +61,24 @@ select
 from
   aws_s3_object
 where
-  bucket = 'static_assets'
+  prefix = 'static_assets'
   and last_modified < current_date - interval '3 months';
+```
+
+### Get object data for server-side encrypted objects
+
+```sql
+select
+  key,
+  bucket,
+  data 
+from
+  aws_s3_object 
+where
+  key = 'db_connection_params.json' 
+  and bucket = 'application_secrets' 
+  and sse_customer_algorithm = 'AES256' 
+  and sse_customer_key = 'FC7oIekYnGFC7oIekYnG';
 ```
 
 ### List all objects in a bucket where any user other than the `OWNER` has `FULL_CONTROL`
@@ -78,7 +94,7 @@ from
   aws_s3_object,
   jsonb_array_elements(aws_s3_object.acl -> 'Grants') as acl_grant
 where
-  bucket = 'sensitive_assets'
+  prefix = 'sensitive_assets'
   and acl_grant ->> 'Permission' = 'FULL_CONTROL'
   and acl_grant -> 'Grantee' ->> 'ID' != aws_s3_object.owner ->> 'ID';
 ```
@@ -93,7 +109,7 @@ select
 from
   aws_s3_object
 where
-  bucket = 'sensitive_assets'
+  prefix = 'sensitive_assets'
   and legal_hold is not null;
 ```
 
@@ -105,11 +121,11 @@ select
   bucket,
   to_timestamp(retention ->> 'RetainUntilDate', 'YYYY-MM-DDTHH:MI:SS.FF6TZH') as retain_until,
   retention ->> 'Mode' as retention_mode,
-  legal_hold 
+  legal_hold
 from
-  aws_s3_object 
+  aws_s3_object
 where
-  bucket = 'static_assets';
+  prefix = 'static_assets';
 ```
 
 ### List all objects in a bucket which are set to be retained for more than 1 year from now
@@ -125,7 +141,7 @@ select
 from
   aws_s3_object
 where
-  bucket = 'static_assets'
+  prefix = 'static_assets'
   and to_timestamp(retention ->> 'RetainUntilDate', 'YYYY-MM-DDTHH:MI:SS.FF6TZH') > current_date + interval '1 year';
 ```
 
@@ -139,6 +155,6 @@ select
 from
   aws_s3_object
 where
-  bucket = 'static_assets'
+  prefix = 'static_assets'
   and tags ->> 'application' is not null;
 ```
