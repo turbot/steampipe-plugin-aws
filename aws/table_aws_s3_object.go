@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 
@@ -9,46 +10,263 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"golang.org/x/sync/singleflight"
 )
+
+// this is used to ensure that we execute for any given key only once
+// used for ObjectContent and TagSet
+// it does not look like HydrateFunc.WithCache locks on a per row basis
+// it is possible to use HydrateFunc.WithCache as is used in aws/common_columns.go, but using
+// singleFlight results in a cleaner code base which is easier to reason around
+var singleFlightGroup singleflight.Group
 
 func tableAwsS3Object(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_object",
 		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
 		List: &plugin.ListConfig{
-			Hydrate: listS3Objects,
+			Hydrate:       listS3Objects,
+			ParentHydrate: listS3Buckets,
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "bucket", Require: plugin.Required},
+				{Name: "bucket", Require: plugin.Optional},
 				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
+				{Name: "sse_customer_algorithm", Require: plugin.Optional},
+				{Name: "sse_customer_key", Require: plugin.Optional},
+				{Name: "sse_customer_key_md5", Require: plugin.Optional},
 			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
-			{Name: "key", Description: "The name that you assign to an object. You use the object key to retrieve the object.", Type: proto.ColumnType_STRING},
-			{Name: "etag", Description: "The entity tag of the object.", Type: proto.ColumnType_STRING, Transform: transform.FromField("ETag")},
-			{Name: "storage_class", Description: "The class of storage used to store the object.", Type: proto.ColumnType_STRING},
-			{Name: "size", Description: "Size in bytes of the object.", Type: proto.ColumnType_INT},
-			{Name: "last_modified", Description: "Creation date of the object.", Type: proto.ColumnType_TIMESTAMP},
-			{Name: "owner", Description: "The owner of the object.", Type: proto.ColumnType_JSON},
-			{Name: "prefix", Description: "The prefix of the key of the object.", Type: proto.ColumnType_STRING},
-			{Name: "bucket", Description: "The name of the container bucket of this object.", Type: proto.ColumnType_STRING, Transform: transform.FromQual("bucket")},
-			{Name: "acl", Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectACL},
-			{Name: "retention", Description: "A retention period protects an object version for a fixed amount of time.", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Hydrate: getS3ObjectRetention},
-			{Name: "legal_hold", Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectLegalHold},
-			{Name: "tags_src", Description: "A list of tags assigned to the object.", Type: proto.ColumnType_JSON, Transform: transform.FromField("TagSet"), Hydrate: plugin.HydrateFunc(getS3ObjectTagSet).WithCache()},
-			{Name: "tags", Description: resourceInterfaceDescription("tags"), Type: proto.ColumnType_JSON, Transform: transform.FromField("TagSet").Transform(s3TagsToTurbotTags), Hydrate: plugin.HydrateFunc(getS3ObjectTagSet).WithCache()},
-			{Name: "torrent", Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.", Type: proto.ColumnType_STRING, Transform: transform.FromValue(), Hydrate: getS3ObjectTorrent},
+			{
+				Name:        "key",
+				Description: "The name that you assign to an object. You use the object key to retrieve the object.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "etag",
+				Description: "The entity tag of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ETag"),
+			},
+			{
+				Name:        "storage_class",
+				Description: "The class of storage used to store the object.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "size",
+				Description: "Size in bytes of the object.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "last_modified",
+				Description: "Creation date of the object.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "owner",
+				Description: "The owner of the object.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "prefix",
+				Description: "The prefix of the key of the object.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "bucket",
+				Description: "The name of the container bucket of this object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BucketName"),
+			},
+			{
+				Name:        "acl",
+				Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+				Hydrate:     getS3ObjectACL,
+			},
+			{
+				Name:        "retention",
+				Description: "A retention period protects an object version for a fixed amount of time.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+				Hydrate:     getS3ObjectRetention,
+			},
+			{
+				Name:        "legal_hold",
+				Description: "Like a retention period, a legal hold prevents an object version from being overwritten or deleted. A legal hold remains in effect until removed.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromValue(),
+				Hydrate:     getS3ObjectLegalHold,
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagSet").Transform(s3TagsToTurbotTags),
+				Hydrate:     getS3ObjectTagSet,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the object.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("TagSet"),
+				Hydrate:     getS3ObjectTagSet,
+			},
+			{
+				Name:        "torrent",
+				Description: "Returns the Bencode of the torrent. You can get torrent only for objects that are less than 5 GB in size, and that are not encrypted using server-side encryption with a customer-provided encryption key.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromValue(),
+				Hydrate:     getS3ObjectTorrent,
+			},
+
+			{
+				Name:        "checksum",
+				Description: "The checksum or digest of the object.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Checksum"),
+				Hydrate:     getS3ObjectAttributes,
+			},
+			{
+				Name:        "parts",
+				Description: "A collection of parts associated with a multipart upload.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ObjectParts"),
+				Hydrate:     getS3ObjectAttributes,
+			},
+			{
+				Name:        "delete_marker",
+				Description: "Specifies whether the object retrieved was (true) or was not (false) a delete marker.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("DeleteMarker"),
+				Hydrate:     getS3ObjectAttributes,
+			},
+
+			{
+				Name:        "content_type",
+				Description: "A standard MIME type describing the format of the object data.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentType"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "bucket_key_enabled",
+				Description: "Indicates whether the object uses an S3 Bucket Key for server-side encryption with Amazon Web Services KMS (SSE-KMS)",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("BucketKeyEnabled"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "metadata",
+				Description: "A map of metadata to store with the object in S3.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Metadata"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "content_encoding",
+				Description: "Specifies what content encodings have been applied to the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentEncoding"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "content_length",
+				Description: "Size of the body in bytes.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContentLength"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "replication_status",
+				Description: "Amazon S3 can return this if your request involves a bucket that is either a source or destination in a replication rule.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ReplicationStatus"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "restore",
+				Description: "Provides information about object restoration action and expiration time of the restored object copy.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Restore"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "sse_customer_algorithm",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSECustomerAlgorithm"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "sse_customer_key",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, this will contain the encryption key.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("sse_customer_key"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "sse_customer_key_md5",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header to provide round-trip message integrity verification of the customer-provided encryption key.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSECustomerKeyMD5"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "sse_kms_key_id",
+				Description: "If present, specifies the ID of the Amazon Web Services Key Management Service (Amazon Web Services KMS) symmetric customer managed key that was used for the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SSEKMSKeyId"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "server_side_encryption",
+				Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ServerSideEncryption"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "website_redirection_location",
+				Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("WebsiteRedirectLocation"),
+				Hydrate:     getS3ObjectContent,
+			},
+			{
+				Name:        "body",
+				Description: "The raw bytes of the object.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromMethod("ReadBody"),
+				Hydrate:     getS3ObjectContent,
+			},
 
 			// steampipe fields
-			{Name: "title", Description: resourceInterfaceDescription("title"), Type: proto.ColumnType_STRING, Transform: transform.FromField("Key")},
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Key"),
+			},
 		}),
 	}
 }
 
 func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
 	plugin.Logger(ctx).Trace("listS3Objects")
 
+	bucket := h.Item.(*s3.Bucket)
 	bucketName := d.KeyColumnQualString("bucket")
+
+	// if a bucket name was provided and this is not the same bucket from the parentHydrate, skip
+	if len(bucketName) > 0 && !strings.EqualFold(bucketName, *bucket.Name) {
+		return nil, nil
+	}
+
+	bucketName = *bucket.Name
 
 	// Create Session,
 	bucketLocation, err := resolveBucketRegion(ctx, d, &bucketName)
@@ -78,9 +296,11 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		limit = *d.QueryContext.Limit
 	}
 
+	fetchOwner := true
 	input := &s3.ListObjectsV2Input{
-		Bucket:  &bucketName,
-		MaxKeys: &limit,
+		Bucket:     &bucketName,
+		MaxKeys:    &limit,
+		FetchOwner: &fetchOwner,
 	}
 
 	if len(d.KeyColumnQualString("prefix")) > 0 {
@@ -126,6 +346,82 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	})
 
 	return nil, err
+}
+
+func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectContent-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
+
+		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+		if err != nil {
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Trace("fetching content for ", s3Object.Key)
+
+		input := &s3.GetObjectInput{
+			Bucket: s3Object.BucketName,
+			Key:    s3Object.Key,
+		}
+
+		if len(d.KeyColumnQualString("sse_customer_algorithm")) > 0 {
+			input.SSECustomerAlgorithm = PointerOf(d.KeyColumnQualString("sse_customer_algorithm"))
+		}
+		if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
+			input.SSECustomerKey = PointerOf(d.KeyColumnQualString("sse_customer_key"))
+		}
+		if len(d.KeyColumnQualString("sse_customer_key_md5")) > 0 {
+			input.SSECustomerKeyMD5 = PointerOf(d.KeyColumnQualString("sse_customer_key_md5"))
+		}
+
+		output, err := svc.GetObjectWithContext(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+
+		return &s3ObjectContent{
+			GetObjectOutput: *output,
+			parentRow:       s3Object,
+		}, nil
+	})
+
+	return v, err
+}
+
+func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	s3Object := h.Item.(*s3ObjectRow)
+
+	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectAttributes-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
+		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+		if err != nil {
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Trace("fetching attributes for", s3Object.Key)
+
+		selectAttrs := []*string{
+			PointerOf(s3.ObjectAttributesChecksum),
+			PointerOf(s3.ObjectAttributesObjectParts),
+		}
+
+		input := &s3.GetObjectAttributesInput{
+			Bucket:           s3Object.BucketName,
+			Key:              s3Object.Key,
+			ObjectAttributes: selectAttrs,
+		}
+		output, err := svc.GetObjectAttributesWithContext(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+
+		return &s3ObjectAttributes{
+			GetObjectAttributesOutput: *output,
+			parentRow:                 s3Object,
+		}, nil
+	})
+
+	return v, err
 }
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -193,19 +489,22 @@ func getS3ObjectTagSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if !s3Object.bucketHasLockConfig {
 		return nil, nil
 	}
+	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectTagSet-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
+		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+		if err != nil {
+			return nil, err
+		}
 
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-	if err != nil {
-		return nil, err
-	}
+		plugin.Logger(ctx).Trace("fetching tag set for ", s3Object.Key)
 
-	plugin.Logger(ctx).Trace("fetching tag set for ", s3Object.Key)
+		input := &s3.GetObjectTaggingInput{
+			Bucket: s3Object.BucketName,
+			Key:    s3Object.Key,
+		}
+		return svc.GetObjectTaggingWithContext(ctx, input)
+	})
 
-	input := &s3.GetObjectTaggingInput{
-		Bucket: s3Object.BucketName,
-		Key:    s3Object.Key,
-	}
-	return svc.GetObjectTaggingWithContext(ctx, input)
+	return v, err
 }
 
 func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
