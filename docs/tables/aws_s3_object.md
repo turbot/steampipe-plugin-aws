@@ -71,14 +71,14 @@ where
 select
   key,
   bucket,
-  data 
+  data
 from
-  aws_s3_object 
+  aws_s3_object
 where
-  key = 'db_connection_params.json' 
-  and bucket = 'application_secrets' 
-  and sse_customer_algorithm = 'AES256' 
-  and sse_customer_key = 'FC7oIekYnGFC7oIekYnG';
+  key = 'db_connection_params.json'
+  and bucket = 'application_secrets'
+  and sse_customer_algorithm = 'AES256'
+  and sse_customer_key = 'K01iUWVUaFdtWnE0dDd3OXokQyZGKUpATmNSZlVqWG4=';
 ```
 
 ### List all objects in a bucket where any user other than the `OWNER` has `FULL_CONTROL`
