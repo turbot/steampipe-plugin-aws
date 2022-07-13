@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -74,4 +75,18 @@ func (o *s3ObjectRow) isOutpostObject() bool {
 	// S3 on Outposts provides a new storage class, OUTPOSTS
 	// as in https://docs.aws.amazon.com/AmazonS3/latest/userguide/S3onOutposts.html
 	return strings.EqualFold(*o.StorageClass, "OUTPOSTS")
+}
+
+type s3ObjectAttributes struct {
+	s3.GetObjectAttributesOutput
+	parentRow *s3ObjectRow
+}
+
+type s3ObjectContent struct {
+	s3.GetObjectOutput
+	parentRow *s3ObjectRow
+}
+
+func (obj *s3ObjectContent) ReadBody() (interface{}, error) {
+	return io.ReadAll(obj.Body)
 }
