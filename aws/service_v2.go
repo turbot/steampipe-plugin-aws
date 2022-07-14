@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"math"
 	"math/rand"
@@ -203,7 +204,7 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	}
 
 	svc := sns.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	// d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
