@@ -20,7 +20,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_vault",
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"name"}),
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
 			},
@@ -151,6 +151,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	matrixKeyRegion := d.KeyColumnQualString(matrixKeyRegion)
 	// Create Session
 	svc, err := BackupService(ctx, d)
 	if err != nil {
@@ -162,7 +163,12 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		vault := h.Item.(*backup.VaultListMember)
 		name = *vault.BackupVaultName
 	} else {
+		// DescribeBackupVault API returns AccessDeniedException when it is called with other regions where the vault is unavailable
 		name = d.KeyColumnQuals["name"].GetStringValue()
+		region := d.KeyColumnQuals["region"].GetStringValue()
+		if matrixKeyRegion != region {
+			return nil, nil
+		}
 	}
 
 	params := &backup.DescribeBackupVaultInput{
@@ -171,7 +177,7 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	op, err := svc.DescribeBackupVault(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsBackupVault", "ERROR", err)
+		plugin.Logger(ctx).Error("getAwsBackupVault", "ERROR", err)
 		return nil, err
 	}
 
