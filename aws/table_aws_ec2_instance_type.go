@@ -204,6 +204,10 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		region = "us-gov-east-1"
 	} else if commonColumnData.Partition == "aws-cn" {
 		region = "cn-north-1"
+	} else if commonColumnData.Partition == "aws-iso" {
+		region = "us-iso-east-1"
+	} else if commonColumnData.Partition == "aws-iso-b" {
+		region = "us-isob-east-1"
 	}
 
 	// Create Session

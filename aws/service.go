@@ -2087,7 +2087,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 // if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
 	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1"}
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1", "us-iso-east-1", "us-iso-west-1", "us-isob-east-1"}
 
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
@@ -2142,6 +2142,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 		region = "us-gov-west-1"
 	} else if strings.HasPrefix(region, "cn") && !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "cn-northwest-1"
+	} else if strings.HasPrefix(region, "us-isob") && !helpers.StringSliceContains(allAwsRegions, region) {
+		region = "us-isob-east-1"
+	} else if strings.HasPrefix(region, "us-iso") && !helpers.StringSliceContains(allAwsRegions, region) {
+		region = "us-iso-east-1"
 	} else if !helpers.StringSliceContains(allAwsRegions, region) {
 		region = "us-east-1"
 	}
