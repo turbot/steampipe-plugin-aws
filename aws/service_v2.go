@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/ratelimit"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -28,13 +27,24 @@ func S3V2Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Cl
 		return cachedData.(*s3.Client), nil
 	}
 
+	awsConfig := GetConfig(d.Connection)
+
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
-	svc := s3.NewFromConfig(*cfg)
+	var svc *s3.Client
+
+	if awsConfig.S3ForcePathStyle != nil {
+		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
+			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+		})
+	} else {
+		svc = s3.NewFromConfig(*cfg)
+	}
+
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -59,27 +69,10 @@ func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) 
 	}
 
 	svc := sns.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	// d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
-
-// type ConnectionErrRetryerV2 struct {
-// 	retry.Standard
-// 	ctx context.Context
-// }
-
-// func NewConnectionErrRetryerV2(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryerV2 {
-// 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
-// 	return &ConnectionErrRetryerV2{
-// 		ctx: ctx,
-// 		Standard: retry.Standard{
-// 			options: retry.StandardOptions{
-// 				MaxAttempts: maxRetries, // MUST be set or all retrying is skipped!
-// 			},
-// 		},
-// 	}
-// }
 
 func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
 	awsConfig := GetConfig(d.Connection)
@@ -117,7 +110,7 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 }
 
 func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
-	sessionCacheKey := fmt.Sprintf("session-%s", region)
+	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*aws.Config), nil
 	}
@@ -126,10 +119,10 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
-	ratelimiter := ratelimit.NewTokenRateLimit(500)
+	// ratelimiter := ratelimit.NewTokenRateLimit(500)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
-		o.RateLimiter = ratelimiter
+		// o.RateLimiter = ratelimiter
 		backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
 		o.Backoff = backoff
 	})
@@ -145,22 +138,33 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	}
 
 	// handle custom endpoint URL, if any
-	// var awsEndpointUrl string
+	var awsEndpointUrl string
 
-	// awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
 
-	// if awsConfig.EndpointUrl != nil {
-	// 	config.LoadOptions.EndpointResolverWithOptions
-	// 	awsEndpointUrl = *awsConfig.EndpointUrl
-	// }
+	var customResolver aws.EndpointResolverWithOptionsFunc
+	if awsEndpointUrl != "" {
+		customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           awsEndpointUrl,
+				SigningRegion: region,
+			}, nil
+		})
+	}
 
-	// if awsEndpointUrl != "" {
-	// 	sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
-	// }
+	if awsEndpointUrl != "" {
+		cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
+			config.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			}),
+		)
+	}
 
-	// if awsConfig.S3ForcePathStyle != nil {
-	// 	sessionOptions.Config.S3ForcePathStyle = awsConfig.S3ForcePathStyle
-	// }
+	// awsConfig.S3ForcePathStyle - Moved to service specific configuration (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
 		cfg, err = config.LoadDefaultConfig(ctx,
@@ -168,7 +172,8 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 			config.WithRegion(region),
 			config.WithRetryer(func() aws.Retryer {
 				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}),
+			},
+			),
 		)
 	}
 
