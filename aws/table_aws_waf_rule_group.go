@@ -26,7 +26,7 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listWafRuleGroups,
 		},
-		Columns: awsDefaultColumns([]*plugin.Column{
+		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
