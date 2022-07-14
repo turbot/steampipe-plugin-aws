@@ -47,7 +47,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("WebACLId"),
 			},
 			{
-				Name:        "default_action",
+				Name:        "default_action_type",
 				Description: "The action to perform if none of the Rules contained in the WebACL match.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getWafWebAcl,
