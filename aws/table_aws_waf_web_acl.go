@@ -22,12 +22,12 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException"}),
 			},
-			Hydrate: getAwsWafWebAcl,
+			Hydrate: getWafWebAcl,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsWafWebAcls,
+			Hydrate: listWafWebAcls,
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsDefaultColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Web ACL. You cannot change the name of a Web ACL after you create it.",
@@ -37,7 +37,7 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the entity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafWebAcl,
+				Hydrate:     getWafWebAcl,
 				Transform:   transform.FromField("WebACLArn"),
 			},
 			{
@@ -50,14 +50,14 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Name:        "default_action",
 				Description: "The action to perform if none of the Rules contained in the WebACL match.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafWebAcl,
+				Hydrate:     getWafWebAcl,
 				Transform:   transform.FromField("DefaultAction.Type"),
 			},
 			{
 				Name:        "metric_name",
 				Description: "A friendly name or description for the metrics for this WebACL.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafWebAcl,
+				Hydrate:     getWafWebAcl,
 			},
 			{
 				Name:        "logging_configuration",
@@ -69,13 +69,13 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Name:        "rules",
 				Description: "The Rule statements used to identify the web requests that you want to allow, block, or count.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWafWebAcl,
+				Hydrate:     getWafWebAcl,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the resource.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForAwsWafWebAcl,
+				Hydrate:     listTagsForWafWebAcl,
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
@@ -90,14 +90,14 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForAwsWafWebAcl,
+				Hydrate:     listTagsForWafWebAcl,
 				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(classicWebAclTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWafWebAcl,
+				Hydrate:     getWafWebAcl,
 				Transform:   transform.FromField("WebACLArn").Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -106,11 +106,11 @@ func tableAwsWafWebAcl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.listAwsWafWebAcls", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.listWafWebAcls", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -159,7 +159,7 @@ func listAwsWafWebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	var id string
 	if h.Item != nil {
@@ -173,7 +173,7 @@ func getAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	// Create Session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.getAwsWafWebAcl", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getWafWebAcl", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -183,7 +183,7 @@ func getAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	op, err := svc.GetWebACL(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.getAwsWafWebAcl", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.getWafWebAcl", "api_error", err)
 		return nil, err
 	}
 
@@ -193,13 +193,13 @@ func getAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 // ListTagsForResource.NextMarker return empty string in API call
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
-func listTagsForAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listTagsForWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := classicWebAclData(h.Item, ctx, d, h)
 
 	// Create session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForAwsWafWebAcl", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForWafWebAcl", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -211,7 +211,7 @@ func listTagsForAwsWafWebAcl(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	webAclTags, err := svc.ListTagsForResource(param)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForAwsWafWebAcl", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_web_acl.listTagsForWafWebAcl", "api_error", err)
 		return nil, err
 	}
 	return webAclTags, nil
