@@ -2,22 +2,81 @@ package aws
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"io"
+	"log"
+	"math"
+	"math/big"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/ratelimit"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
-// SNSV2Service returns the service connection for AWS SNS service
-func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
+// IAMClient returns the service client for AWS IAM service
+func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "iam-v2"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*iam.Client), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+
+	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// S3Client returns the service client for AWS S3 service
+func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("s3-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*s3.Client), nil
+	}
+
+	awsConfig := GetConfig(d.Connection)
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var svc *s3.Client
+
+	if awsConfig.S3ForcePathStyle != nil {
+		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
+			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+		})
+	} else {
+		svc = s3.NewFromConfig(*cfg)
+	}
+
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// SNSClient returns the service client for AWS SNS service
+func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SNSV2Service")
@@ -35,27 +94,10 @@ func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) 
 	}
 
 	svc := sns.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	// d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
-
-// type ConnectionErrRetryerV2 struct {
-// 	retry.Standard
-// 	ctx context.Context
-// }
-
-// func NewConnectionErrRetryerV2(maxRetries int, minRetryDelay time.Duration, ctx context.Context) *ConnectionErrRetryerV2 {
-// 	rand.Seed(time.Now().UnixNano()) // reseting state of rand to generate different random values
-// 	return &ConnectionErrRetryerV2{
-// 		ctx: ctx,
-// 		Standard: retry.Standard{
-// 			options: retry.StandardOptions{
-// 				MaxAttempts: maxRetries, // MUST be set or all retrying is skipped!
-// 			},
-// 		},
-// 	}
-// }
 
 func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
 	awsConfig := GetConfig(d.Connection)
@@ -93,7 +135,7 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 }
 
 func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
-	sessionCacheKey := fmt.Sprintf("session-%s", region)
+	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*aws.Config), nil
 	}
@@ -102,11 +144,12 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 
 	// get aws config info
 	awsConfig := GetConfig(d.Connection)
-	ratelimiter := ratelimit.NewTokenRateLimit(500)
+	// ratelimiter := ratelimit.NewTokenRateLimit(500)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
-		o.RateLimiter = ratelimiter
-		backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
+		// o.RateLimiter = ratelimiter
+		// backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
+		backoff := NewExponentialJitterBackoff(5 * time.Minute)
 		o.Backoff = backoff
 	})
 
@@ -121,22 +164,33 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	}
 
 	// handle custom endpoint URL, if any
-	// var awsEndpointUrl string
+	var awsEndpointUrl string
 
-	// awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
+	if awsConfig.EndpointUrl != nil {
+		awsEndpointUrl = *awsConfig.EndpointUrl
+	}
 
-	// if awsConfig.EndpointUrl != nil {
-	// 	config.LoadOptions.EndpointResolverWithOptions
-	// 	awsEndpointUrl = *awsConfig.EndpointUrl
-	// }
+	var customResolver aws.EndpointResolverWithOptionsFunc
+	if awsEndpointUrl != "" {
+		customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           awsEndpointUrl,
+				SigningRegion: region,
+			}, nil
+		})
+	}
 
-	// if awsEndpointUrl != "" {
-	// 	sessionOptions.Config.Endpoint = aws.String(awsEndpointUrl)
-	// }
+	if awsEndpointUrl != "" {
+		cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
+			config.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			}),
+		)
+	}
 
-	// if awsConfig.S3ForcePathStyle != nil {
-	// 	sessionOptions.Config.S3ForcePathStyle = awsConfig.S3ForcePathStyle
-	// }
+	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
 		cfg, err = config.LoadDefaultConfig(ctx,
@@ -144,7 +198,8 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 			config.WithRegion(region),
 			config.WithRetryer(func() aws.Retryer {
 				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}),
+			},
+			),
 		)
 	}
 
@@ -173,4 +228,70 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	}
 
 	return &cfg, err
+}
+
+// ExponentialJitterBackoff provides backoff delays with jitter based on the
+// number of attempts.
+type ExponentialJitterBackoff struct {
+	maxBackoff time.Duration
+	// precomputed number of attempts needed to reach max backoff.
+	maxBackoffAttempts float64
+
+	randFloat64 func() (float64, error)
+}
+
+// NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+// for the max backoff.
+func NewExponentialJitterBackoff(maxBackoff time.Duration) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{
+		maxBackoff: maxBackoff,
+		maxBackoffAttempts: math.Log2(
+			float64(maxBackoff) / float64(time.Second)),
+		randFloat64: CryptoRandFloat64,
+	}
+}
+
+// BackoffDelay returns the duration to wait before the next attempt should be
+// made. Returns an error if unable get a duration.
+func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
+	log.Printf("[WARN] ***************** attempt: %d\n", attempt)
+	if attempt > int(j.maxBackoffAttempts) {
+		return j.maxBackoff, nil
+	}
+
+	b, err := j.randFloat64()
+	if err != nil {
+		return 0, err
+	}
+
+	// [0.0, 1.0) * 2 ^ attempts
+	ri := int64(1 << uint64(attempt))
+	delaySeconds := b * float64(ri)
+
+	delay := FloatSecondsDur(delaySeconds)
+	log.Printf("[WARN] ***************** delay: %v\n", delay)
+	return delay, nil
+}
+
+func CryptoRandFloat64() (float64, error) {
+	return Float64(Reader)
+}
+
+// Float64 returns a float64 read from an io.Reader source. The returned float will be between [0.0, 1.0).
+func Float64(reader io.Reader) (float64, error) {
+	bi, err := rand.Int(reader, floatMaxBigInt)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read random value, %v", err)
+	}
+
+	return float64(bi.Int64()) / (1 << 53), nil
+}
+
+var Reader io.Reader
+
+var floatMaxBigInt = big.NewInt(1 << 53)
+
+// FloatSecondsDur converts a fractional seconds to duration.
+func FloatSecondsDur(v float64) time.Duration {
+	return time.Duration(v * float64(time.Second))
 }
