@@ -8,7 +8,7 @@ _What's new?_
 
 _Enhancements_
 
-- Added column `associated_resources` in `aws_wafv2_web_acl` table. ([#1158](https://github.com/turbot/steampipe-plugin-aws/pull/1158))
+- Added column `associated_resources` to `aws_wafv2_web_acl` table. ([#1158](https://github.com/turbot/steampipe-plugin-aws/pull/1158))
 
 ## v0.69.0 [2022-07-12]
 
