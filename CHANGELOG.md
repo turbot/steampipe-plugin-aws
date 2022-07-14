@@ -1,3 +1,15 @@
+## v0.70.0 [2022-07-14]
+
+_What's new?_
+
+- New tables added
+  - [aws_waf_rule_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_waf_rule_group) ([#1160](https://github.com/turbot/steampipe-plugin-aws/pull/1160))
+  - [aws_waf_web_acl](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_waf_web_acl) ([#1151](https://github.com/turbot/steampipe-plugin-aws/pull/1151))
+
+_Enhancements_
+
+- Added column `associated_resources` in `aws_wafv2_web_acl` table. ([#1158](https://github.com/turbot/steampipe-plugin-aws/pull/1158))
+
 ## v0.69.0 [2022-07-12]
 
 _Enhancements_
