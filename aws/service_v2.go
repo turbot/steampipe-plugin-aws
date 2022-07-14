@@ -12,9 +12,33 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
+
+// SNSV2Service returns the service connection for AWS SNS service
+func S3V2Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("s3-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*s3.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := s3.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
 
 // SNSV2Service returns the service connection for AWS SNS service
 func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
