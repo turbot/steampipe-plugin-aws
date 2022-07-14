@@ -21,12 +21,12 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NonexistentItemException", "WAFNonexistentItemException"}),
 			},
-			Hydrate: getAwsWafRuleGroup,
+			Hydrate: getWafRuleGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsWafRuleGroups,
+			Hydrate: listWafRuleGroups,
 		},
-		Columns: awsRegionalColumns([]*plugin.Column{
+		Columns: awsDefaultColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the rule group.",
@@ -48,19 +48,19 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 				Name:        "metric_name",
 				Description: "A friendly name or description for the metrics for this RuleGroup.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getAwsWafRuleGroup,
+				Hydrate:     getWafRuleGroup,
 			},
 			{
 				Name:        "activated_rules",
 				Description: "A list of activated rules associated with the resource.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsWafRuleGroupActivatedRules,
+				Hydrate:     getWafRuleGroupActivatedRules,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the resource.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForAwsWafRuleGroup,
+				Hydrate:     listTagsForWafRuleGroup,
 				Transform:   transform.FromField("TagInfoForResource.TagList"),
 			},
 
@@ -75,7 +75,7 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     listTagsForAwsWafRuleGroup,
+				Hydrate:     listTagsForWafRuleGroup,
 				Transform:   transform.FromField("TagInfoForResource.TagList").Transform(classicRuleGroupTagListToTurbotTags),
 			},
 			{
@@ -91,11 +91,11 @@ func tableAwsWafRuleGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.listAwsWafRuleGroups", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func listAwsWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	for pagesLeft {
 		response, err := svc.ListRuleGroups(params)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_waf_rule_group.listAwsWafRuleGroups", "api_error", err)
+			plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "api_error", err)
 			return nil, err
 		}
 
@@ -146,7 +146,7 @@ func listAwsWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var id string
 	if h.Item != nil {
 		data := classicRuleGroupData(h.Item, ctx, d, h)
@@ -158,7 +158,7 @@ func getAwsWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create Session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getAwsWafRuleGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroup", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -168,26 +168,21 @@ func getAwsWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	op, err := svc.GetRuleGroup(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getAwsWafRuleGroup", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroup", "api_error", err)
 		return nil, err
 	}
 
 	return op.RuleGroup, nil
 }
 
-func getAwsWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var id string
-	if h.Item != nil {
-		data := classicRuleGroupData(h.Item, ctx, d, h)
-		id = data["rule_group_id"]
-	} else {
-		id = d.KeyColumnQuals["rule_group_id"].GetStringValue()
-	}
+func getWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	data := classicRuleGroupData(h.Item, ctx, d, h)
+	id := data["rule_group_id"]
 
 	// Create Session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getAwsWafRuleGroupRules", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupRules", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -197,7 +192,7 @@ func getAwsWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, 
 
 	op, err := svc.ListActivatedRulesInRuleGroup(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.getAwsWafRuleGroupRules", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.getWafRuleGroupRules", "api_error", err)
 		return nil, err
 	}
 
@@ -207,13 +202,13 @@ func getAwsWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, 
 // ListTagsForResource.NextMarker return empty string in API call
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
-func listTagsForAwsWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listTagsForWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := classicRuleGroupData(h.Item, ctx, d, h)
 
 	// Create session
 	svc, err := WAFService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForAwsWafRuleGroup", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForWafRuleGroup", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -225,7 +220,7 @@ func listTagsForAwsWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plu
 
 	ruleGroupTags, err := svc.ListTagsForResource(param)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForAwsWafRuleGroup", "api_error", err)
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listTagsForWafRuleGroup", "api_error", err)
 		return nil, err
 	}
 	return ruleGroupTags, nil
