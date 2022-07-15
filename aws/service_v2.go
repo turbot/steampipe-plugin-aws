@@ -16,13 +16,33 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
-// SNSV2Service returns the service connection for AWS SNS service
-func S3V2Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
+// IAMClient returns the service client for AWS IAM service
+func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "iam-v2"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*iam.Client), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+
+	svc := iam.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// S3Client returns the service client for AWS S3 service
+func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed S3Service")
 	}
@@ -55,8 +75,8 @@ func S3V2Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Cl
 	return svc, nil
 }
 
-// SNSV2Service returns the service connection for AWS SNS service
-func SNSV2Client(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
+// SNSClient returns the service client for AWS SNS service
+func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed SNSV2Service")

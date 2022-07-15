@@ -247,7 +247,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Get client
-	svc, err := S3V2Client(ctx, d, defaultRegion)
+	svc, err := S3Client(ctx, d, defaultRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err)
 		return nil, err
@@ -282,7 +282,7 @@ func getS3Bucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, defaultRegion)
+	svc, err := S3Client(ctx, d, defaultRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3Bucket", "client_error", err)
 		return nil, err
@@ -316,7 +316,7 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketEventNotificationConfigurations", "client_error", err)
 		return nil, err
@@ -338,7 +338,7 @@ func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, defaultRegion)
+	svc, err := S3Client(ctx, d, defaultRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLocation", "client_error", err)
 		return nil, err
@@ -382,7 +382,7 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketIsPublic", "client_error", err)
 		return nil, err
@@ -415,7 +415,7 @@ func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "client_error", err)
 		return nil, err
@@ -442,7 +442,7 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketVersioning", "client_error", err)
 		return nil, err
@@ -476,7 +476,7 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketPublicAccessBlock", "client_error", err)
 		return nil, err
@@ -518,7 +518,7 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketACL", "client_error", err)
 		return nil, err
@@ -546,7 +546,7 @@ func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLifecycle", "client_error", err)
 		return nil, err
@@ -580,7 +580,7 @@ func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketLogging", "client_error", err)
 		return nil, err
@@ -606,7 +606,7 @@ func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketPolicy", "client_error", err)
 		return nil, err
@@ -641,7 +641,7 @@ func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketReplication", "client_error", err)
 		return nil, err
@@ -674,7 +674,7 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketTagging", "client_error", err)
 		return nil, err
@@ -717,7 +717,7 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 	location := h.HydrateResults["getBucketLocation"].(*s3.GetBucketLocationOutput)
 
 	// Create client
-	svc, err := S3V2Client(ctx, d, string(location.LocationConstraint))
+	svc, err := S3Client(ctx, d, string(location.LocationConstraint))
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getObjectLockConfiguration", "client_error", err)
 		return nil, err
