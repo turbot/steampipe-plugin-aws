@@ -30,12 +30,12 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return cachedData.(*iam.Client), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	cfg, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
 
-	svc := iam.New(sess)
+	svc := iam.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
