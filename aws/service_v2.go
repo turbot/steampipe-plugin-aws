@@ -164,7 +164,7 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		)
 	}
 
-	// awsConfig.S3ForcePathStyle - Moved to service specific configuration (i.e. in S3V2Client)
+	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
 		cfg, err = config.LoadDefaultConfig(ctx,
