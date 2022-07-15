@@ -73,7 +73,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}

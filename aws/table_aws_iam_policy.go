@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -144,57 +144,65 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy.listIamPolicies", "client_error", err)
 		return nil, err
 	}
 
-	input := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
-	input.MaxItems = types.Int64(100)
+	params := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
+	maxItems := int32(100)
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			input.MaxItems = limit
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = limit
+		}
+	}
+	paginator := iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+	params.MaxItems = aws.Int32(maxItems)
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_policy.listIamPolicies", "api_error", err)
+			return nil, err
+		}
+
+		for _, policy := range output.Policies {
+			d.StreamListItem(ctx, policy)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
-	// List call
-	err = svc.ListPoliciesPages(&input, func(page *iam.ListPoliciesOutput, lastPage bool) bool {
-		for _, policy := range page.Policies {
-			d.StreamListItem(ctx, policy)
-			// Check if context has been cancelled or if the limit has been hit (if specified)
-			// if there is a limit, it will return the number of rows required to reach this limit
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return false
-			}
-		}
-
-		return !lastPage
-	},
-	)
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamPolicy")
-
 	var arn string
 	if h.Item != nil {
-		policy := h.Item.(*iam.Policy)
+		policy := h.Item.(types.Policy)
 		arn = *policy.Arn
 	} else {
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy.getIamPolicy", "client_error", err)
 		return nil, err
 	}
 
@@ -202,21 +210,22 @@ func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		PolicyArn: &arn,
 	}
 
-	op, err := svc.GetPolicy(params)
+	op, err := svc.GetPolicy(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy.getIamPolicy", "api_error", err)
 		return nil, err
 	}
 
-	return op.Policy, nil
+	return *op.Policy, nil
 }
 
 func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPolicyVersion")
-	policy := h.Item.(*iam.Policy)
+	policy := h.Item.(types.Policy)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy.getPolicyVersion", "client_error", err)
 		return nil, err
 	}
 
@@ -225,8 +234,9 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		VersionId: policy.DefaultVersionId,
 	}
 
-	version, err := svc.GetPolicyVersion(params)
+	version, err := svc.GetPolicyVersion(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy.getPolicyVersion", "api_error", err)
 		return nil, err
 	}
 
@@ -235,11 +245,7 @@ func getPolicyVersion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 // isPolicyAwsManaged returns true if policy is aws managed
 func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("isPolicyAwsManaged")
-
-	policy := h.Item.(*iam.Policy)
-
+	policy := h.Item.(types.Policy)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -261,9 +267,9 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 //// TRANSFORM FUNCTIONS
 
 func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	policy := d.HydrateItem.(*iam.Policy)
+	policy := d.HydrateItem.(types.Policy)
 	var turbotTagsMap map[string]string
-	if policy.Tags == nil {
+	if len(policy.Tags) == 0 {
 		return nil, nil
 	}
 
@@ -276,8 +282,8 @@ func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 }
 
 func attachementCountToBool(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	attachementCount := types.Int64Value((d.Value.(*int64)))
-	if attachementCount == 0 {
+	attachementCount, ok := d.Value.(*int32)
+	if ok && *attachementCount == 0 {
 		return false, nil
 	}
 	return true, nil
@@ -299,18 +305,18 @@ func buildIamPolicyFilter(equalQuals plugin.KeyColumnEqualsQualMap, quals plugin
 		if equalQuals[filterQual.ColumnName] != nil {
 			switch filterQual.ColumnType {
 			case "String":
-				input.PathPrefix = types.String(equalQuals[filterQual.ColumnName].GetStringValue())
+				input.PathPrefix = aws.String(equalQuals[filterQual.ColumnName].GetStringValue())
 			case "Bool":
 				if filterQual.ColumnName == "is_aws_managed" {
-					input.SetScope("Local")
+					input.Scope = "Local"
 					if equalQuals[filterQual.ColumnName].GetBoolValue() {
-						input.SetScope("AWS")
+						input.Scope = "AWS"
 					}
 				}
 				if filterQual.ColumnName == "is_attached" {
-					input.SetOnlyAttached(false)
+					input.OnlyAttached = false
 					if equalQuals[filterQual.ColumnName].GetBoolValue() {
-						input.SetOnlyAttached(true)
+						input.OnlyAttached = true
 					}
 				}
 			}
@@ -328,15 +334,15 @@ func buildIamPolicyFilter(equalQuals plugin.KeyColumnEqualsQualMap, quals plugin
 				value := q.Value.GetBoolValue()
 				if q.Operator == "<>" {
 					if qual == "is_aws_managed" {
-						input.SetScope("Local")
+						input.Scope = "Local"
 						if !value {
-							input.SetScope("AWS")
+							input.Scope = "AWS"
 						}
 					}
 					if qual == "is_attached" {
-						input.SetOnlyAttached(false)
+						input.OnlyAttached = false
 						if !value {
-							input.SetOnlyAttached(true)
+							input.OnlyAttached = true
 						}
 					}
 				}

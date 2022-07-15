@@ -2,12 +2,9 @@ package aws
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"io"
-	"log"
 	"math"
-	"math/big"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -22,6 +19,15 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
+// https://github.com/aws/aws-sdk-go-v2/issues/543
+type NoOpRateLimit struct{}
+
+func (NoOpRateLimit) AddTokens(uint) error { return nil }
+func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
+	return noOpToken, nil
+}
+func noOpToken() error { return nil }
+
 // IAMClient returns the service client for AWS IAM service
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	// have we already created and cached the service?
@@ -30,12 +36,12 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return cachedData.(*iam.Client), nil
 	}
 	// so it was not in cache - create service
-	sess, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	cfg, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
 
-	svc := iam.New(sess)
+	svc := iam.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -94,7 +100,7 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	}
 
 	svc := sns.NewFromConfig(*cfg)
-	// d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
 }
@@ -140,27 +146,21 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		return cachedData.(*aws.Config), nil
 	}
 
-	// If session was not in cache - create a session and save to cache
-
-	// get aws config info
-	awsConfig := GetConfig(d.Connection)
-	// ratelimiter := ratelimit.NewTokenRateLimit(500)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
+		// reseting state of rand to generate different random values
+		rand.Seed(time.Now().UnixNano())
 		o.MaxAttempts = maxRetries
-		// o.RateLimiter = ratelimiter
-		// backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
-		backoff := NewExponentialJitterBackoff(5 * time.Minute)
-		o.Backoff = backoff
+		o.MaxBackoff = 5 * time.Minute
+		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
+		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 
-	cfg, err := config.LoadDefaultConfig(ctx,
+	awsConfig := GetConfig(d.Connection)
+	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
 		config.WithRetryer(func() aws.Retryer {
-			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			return retryer
 		}),
-	)
-	if err != nil {
-		return nil, err
 	}
 
 	// handle custom endpoint URL, if any
@@ -171,36 +171,22 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		awsEndpointUrl = *awsConfig.EndpointUrl
 	}
 
-	var customResolver aws.EndpointResolverWithOptionsFunc
 	if awsEndpointUrl != "" {
-		customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
 				URL:           awsEndpointUrl,
 				SigningRegion: region,
 			}, nil
 		})
-	}
 
-	if awsEndpointUrl != "" {
-		cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}),
-		)
+		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(customResolver))
 	}
 
 	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
-		cfg, err = config.LoadDefaultConfig(ctx,
-			config.WithSharedConfigProfile(*awsConfig.Profile),
-			config.WithRegion(region),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			},
-			),
-		)
+		configOptions = append(configOptions, config.WithSharedConfigProfile(aws.ToString(awsConfig.Profile)))
 	}
 
 	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
@@ -208,24 +194,22 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
 		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
 	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-		cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		)),
-			config.WithRegion(region),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}))
+		var provider credentials.StaticCredentialsProvider
 
 		if awsConfig.SessionToken != nil {
-			cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-			)),
-				config.WithRegion(region),
-				config.WithRetryer(func() aws.Retryer {
-					return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-				}))
+			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken)
+		} else {
+			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, "")
 		}
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
+
+	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if err != nil {
+		plugin.Logger(ctx).Error("getAwsConfigWithMaxRetries", "load_default_config", err)
+		return nil, err
+	}
+	d.ConnectionManager.Cache.Set(sessionCacheKey, &cfg)
 
 	return &cfg, err
 }
@@ -233,65 +217,31 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
 // number of attempts.
 type ExponentialJitterBackoff struct {
-	maxBackoff time.Duration
-	// precomputed number of attempts needed to reach max backoff.
-	maxBackoffAttempts float64
-
-	randFloat64 func() (float64, error)
+	minDelay           time.Duration
+	maxBackoffAttempts int
 }
 
 // NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
 // for the max backoff.
-func NewExponentialJitterBackoff(maxBackoff time.Duration) *ExponentialJitterBackoff {
-	return &ExponentialJitterBackoff{
-		maxBackoff: maxBackoff,
-		maxBackoffAttempts: math.Log2(
-			float64(maxBackoff) / float64(time.Second)),
-		randFloat64: CryptoRandFloat64,
-	}
+func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{minDelay, maxAttempts}
 }
 
 // BackoffDelay returns the duration to wait before the next attempt should be
 // made. Returns an error if unable get a duration.
 func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
-	log.Printf("[WARN] ***************** attempt: %d\n", attempt)
-	if attempt > int(j.maxBackoffAttempts) {
-		return j.maxBackoff, nil
+	minDelay := j.minDelay
+
+	// The calculatted jitter will be between [0.8, 1.2)
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
+	// log.Printf("[INFO] *******INSIDE CODE********** Attempt: %d, DelayInSeconds: %f, Delay: %v", attempt, retryTime.Seconds(), retryTime)
+
+	// Cap retry time at 5 minutes to avoid too long a wait
+	if retryTime > time.Duration(5*time.Minute) {
+		retryTime = time.Duration(5 * time.Minute)
 	}
 
-	b, err := j.randFloat64()
-	if err != nil {
-		return 0, err
-	}
-
-	// [0.0, 1.0) * 2 ^ attempts
-	ri := int64(1 << uint64(attempt))
-	delaySeconds := b * float64(ri)
-
-	delay := FloatSecondsDur(delaySeconds)
-	log.Printf("[WARN] ***************** delay: %v\n", delay)
-	return delay, nil
-}
-
-func CryptoRandFloat64() (float64, error) {
-	return Float64(Reader)
-}
-
-// Float64 returns a float64 read from an io.Reader source. The returned float will be between [0.0, 1.0).
-func Float64(reader io.Reader) (float64, error) {
-	bi, err := rand.Int(reader, floatMaxBigInt)
-	if err != nil {
-		return 0, fmt.Errorf("failed to read random value, %v", err)
-	}
-
-	return float64(bi.Int64()) / (1 << 53), nil
-}
-
-var Reader io.Reader
-
-var floatMaxBigInt = big.NewInt(1 << 53)
-
-// FloatSecondsDur converts a fractional seconds to duration.
-func FloatSecondsDur(v float64) time.Duration {
-	return time.Duration(v * float64(time.Second))
+	return retryTime, nil
 }
