@@ -1,0 +1,10 @@
+[
+  {
+    "account_id": "{{output.account_id.value}}",
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "region": "{{output.aws_region.value}}",
+    "title": "{{ resourceName }}"
+  }
+]
