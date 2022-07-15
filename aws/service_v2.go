@@ -22,6 +22,15 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
+// https://github.com/aws/aws-sdk-go-v2/issues/543
+type NoOpRateLimit struct{}
+
+func (NoOpRateLimit) AddTokens(uint) error { return nil }
+func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
+	return noOpToken, nil
+}
+func noOpToken() error { return nil }
+
 // IAMClient returns the service client for AWS IAM service
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	// have we already created and cached the service?
@@ -147,6 +156,7 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	// ratelimiter := ratelimit.NewTokenRateLimit(500)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
+		o.RateLimiter = NoOpRateLimit{}
 		// o.RateLimiter = ratelimiter
 		// backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
 		backoff := NewExponentialJitterBackoff(5 * time.Minute)
