@@ -2,7 +2,12 @@ package aws
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"io"
+	"log"
+	"math"
+	"math/big"
 	"os"
 	"strconv"
 	"time"
@@ -123,7 +128,8 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
 		// o.RateLimiter = ratelimiter
-		backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
+		// backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
+		backoff := NewExponentialJitterBackoff(5 * time.Minute)
 		o.Backoff = backoff
 	})
 
@@ -202,4 +208,70 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	}
 
 	return &cfg, err
+}
+
+// ExponentialJitterBackoff provides backoff delays with jitter based on the
+// number of attempts.
+type ExponentialJitterBackoff struct {
+	maxBackoff time.Duration
+	// precomputed number of attempts needed to reach max backoff.
+	maxBackoffAttempts float64
+
+	randFloat64 func() (float64, error)
+}
+
+// NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+// for the max backoff.
+func NewExponentialJitterBackoff(maxBackoff time.Duration) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{
+		maxBackoff: maxBackoff,
+		maxBackoffAttempts: math.Log2(
+			float64(maxBackoff) / float64(time.Second)),
+		randFloat64: CryptoRandFloat64,
+	}
+}
+
+// BackoffDelay returns the duration to wait before the next attempt should be
+// made. Returns an error if unable get a duration.
+func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
+	log.Printf("[WARN] ***************** attempt: %d\n", attempt)
+	if attempt > int(j.maxBackoffAttempts) {
+		return j.maxBackoff, nil
+	}
+
+	b, err := j.randFloat64()
+	if err != nil {
+		return 0, err
+	}
+
+	// [0.0, 1.0) * 2 ^ attempts
+	ri := int64(1 << uint64(attempt))
+	delaySeconds := b * float64(ri)
+
+	delay := FloatSecondsDur(delaySeconds)
+	log.Printf("[WARN] ***************** delay: %v\n", delay)
+	return delay, nil
+}
+
+func CryptoRandFloat64() (float64, error) {
+	return Float64(Reader)
+}
+
+// Float64 returns a float64 read from an io.Reader source. The returned float will be between [0.0, 1.0).
+func Float64(reader io.Reader) (float64, error) {
+	bi, err := rand.Int(reader, floatMaxBigInt)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read random value, %v", err)
+	}
+
+	return float64(bi.Int64()) / (1 << 53), nil
+}
+
+var Reader io.Reader
+
+var floatMaxBigInt = big.NewInt(1 << 53)
+
+// FloatSecondsDur converts a fractional seconds to duration.
+func FloatSecondsDur(v float64) time.Duration {
+	return time.Duration(v * float64(time.Second))
 }
