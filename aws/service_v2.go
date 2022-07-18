@@ -2,12 +2,10 @@ package aws
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"io"
 	"log"
 	"math"
-	"math/big"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -152,14 +150,19 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	// If session was not in cache - create a session and save to cache
 
 	// get aws config info
-	awsConfig := GetConfig(d.Connection)
 	// ratelimiter := ratelimit.NewTokenRateLimit(500)
+	awsConfig := GetConfig(d.Connection)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
+		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{}
-		// o.RateLimiter = ratelimiter
-		// backoff := retry.NewExponentialJitterBackoff(5 * time.Minute)
-		backoff := NewExponentialJitterBackoff(5 * time.Minute)
+		backoff := NewExponentialJitterBackoff(minRetryDelay, maxRetries)
+		// if backoff != nil {
+		// 	plugin.Logger(ctx).Info("############## BACKOFF IS NOT NIL ##############")
+		// } else {
+		// 	plugin.Logger(ctx).Info("############## BACKOFF IS NIL ##############")
+		// }
+		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 		o.Backoff = backoff
 	})
 
@@ -243,65 +246,32 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
 // number of attempts.
 type ExponentialJitterBackoff struct {
-	maxBackoff time.Duration
-	// precomputed number of attempts needed to reach max backoff.
-	maxBackoffAttempts float64
-
-	randFloat64 func() (float64, error)
+	minDelay           time.Duration
+	maxBackoffAttempts int
 }
 
 // NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
 // for the max backoff.
-func NewExponentialJitterBackoff(maxBackoff time.Duration) *ExponentialJitterBackoff {
-	return &ExponentialJitterBackoff{
-		maxBackoff: maxBackoff,
-		maxBackoffAttempts: math.Log2(
-			float64(maxBackoff) / float64(time.Second)),
-		randFloat64: CryptoRandFloat64,
-	}
+func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{minDelay, maxAttempts}
 }
 
 // BackoffDelay returns the duration to wait before the next attempt should be
 // made. Returns an error if unable get a duration.
 func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
-	log.Printf("[WARN] ***************** attempt: %d\n", attempt)
-	if attempt > int(j.maxBackoffAttempts) {
-		return j.maxBackoff, nil
+	minDelay := j.minDelay
+
+	log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
+
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
+	log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
+
+	// Cap retry time at 5 minutes to avoid too long a wait
+	if retryTime > time.Duration(5*time.Minute) {
+		retryTime = time.Duration(5 * time.Minute)
 	}
 
-	b, err := j.randFloat64()
-	if err != nil {
-		return 0, err
-	}
-
-	// [0.0, 1.0) * 2 ^ attempts
-	ri := int64(1 << uint64(attempt))
-	delaySeconds := b * float64(ri)
-
-	delay := FloatSecondsDur(delaySeconds)
-	log.Printf("[WARN] ***************** delay: %v\n", delay)
-	return delay, nil
-}
-
-func CryptoRandFloat64() (float64, error) {
-	return Float64(Reader)
-}
-
-// Float64 returns a float64 read from an io.Reader source. The returned float will be between [0.0, 1.0).
-func Float64(reader io.Reader) (float64, error) {
-	bi, err := rand.Int(reader, floatMaxBigInt)
-	if err != nil {
-		return 0, fmt.Errorf("failed to read random value, %v", err)
-	}
-
-	return float64(bi.Int64()) / (1 << 53), nil
-}
-
-var Reader io.Reader
-
-var floatMaxBigInt = big.NewInt(1 << 53)
-
-// FloatSecondsDur converts a fractional seconds to duration.
-func FloatSecondsDur(v float64) time.Duration {
-	return time.Duration(v * float64(time.Second))
+	return retryTime, nil
 }
