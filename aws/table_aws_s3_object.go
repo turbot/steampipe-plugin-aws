@@ -24,6 +24,10 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3_object",
 		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
+		Get: &plugin.GetConfig{
+			KeyColumns: plugin.AllColumns([]string{"bucket", "key"}),
+			Hydrate:    getS3Object,
+		},
 		List: &plugin.ListConfig{
 			Hydrate:       listS3Objects,
 			ParentHydrate: listS3Buckets,
@@ -346,6 +350,87 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	})
 
 	return nil, err
+}
+
+func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	plugin.Logger(ctx).Trace("getS3Object")
+
+	bucketName := d.KeyColumnQualString("bucket")
+	key := d.KeyColumnQualString("key")
+
+	// Create Session,
+	bucketLocation, err := resolveBucketRegion(ctx, d, &bucketName)
+	if err != nil {
+		return nil, err
+	}
+	svc, err := S3Service(ctx, d, *bucketLocation.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	// we need to retain this, since a few fields in the objects will always be `nil` if this is `nil`
+	_, err = svc.GetObjectLockConfigurationWithContext(ctx, &s3.GetObjectLockConfigurationInput{
+		Bucket: &bucketName,
+	})
+	containerBucketHasLockConfig := true
+	if err != nil {
+		if strings.Contains(err.Error(), "ObjectLockConfigurationNotFoundError") {
+			containerBucketHasLockConfig = false
+		} else {
+			return nil, err
+		}
+	}
+
+	input := &s3.ListObjectsV2Input{
+		Bucket:     &bucketName,
+		MaxKeys:    PointerOf[int64](1),
+		FetchOwner: PointerOf(true),
+
+		// send the key as the prefix so that only this object gets returned
+		Prefix: &key,
+	}
+
+	var row *s3ObjectRow
+
+	err = svc.ListObjectsV2PagesWithContext(ctx, input, func(objectList *s3.ListObjectsV2Output, b bool) bool {
+
+		if len(objectList.Contents) == 0 {
+			return false
+		}
+
+		object := objectList.Contents[0]
+
+		derivedPrefix := ""
+		if strings.Contains(*object.Key, "/") {
+			derivedPrefix = (*object.Key)[:strings.LastIndex(*object.Key, "/")]
+			if len(d.KeyColumnQualString("prefix")) > 0 {
+				p := d.KeyColumnQualString("prefix")
+				derivedPrefix = p
+			}
+		}
+
+		if *object.Key != key {
+			plugin.Logger(ctx).Trace("getS3Object", "ignoring", *object.Key)
+			// do not return this if the key matches exactly.
+			// this is required, since S3 searches by prefix and we don't want to
+			// return it only with a prefix match
+			return true
+		}
+
+		plugin.Logger(ctx).Trace("getS3Object", "found match", *object.Key)
+		row = &s3ObjectRow{
+			Object:              *object,
+			Prefix:              &derivedPrefix,
+			BucketName:          &bucketName,
+			BucketRegion:        bucketLocation.LocationConstraint,
+			bucketHasLockConfig: containerBucketHasLockConfig,
+		}
+
+		return true
+	})
+
+	return row, err
 }
 
 func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
