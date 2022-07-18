@@ -205,6 +205,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	params := &ecs.DescribeClustersInput{
 		Clusters: []*string{aws.String(clusterArn)},
+		Include:  []*string{aws.String("ATTACHMENTS"), aws.String("SETTINGS"), aws.String("STATISTICS")},
 	}
 
 	op, err := svc.DescribeClusters(params)
