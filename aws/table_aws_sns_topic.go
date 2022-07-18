@@ -42,7 +42,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.DisplayName"),
 			},
-
 			{
 				Name:        "application_failure_feedback_role_arn",
 				Description: "IAM role for failed deliveries of notification messages sent to topics with platform application endpoint.",
@@ -56,6 +55,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.ApplicationSuccessFeedbackRoleArn"),
+			},
+			{
+				Name:        "application_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with platform application endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.ApplicationSuccessFeedbackSampleRate"),
 			},
 			{
 				Name:        "firehose_failure_feedback_role_arn",
@@ -72,6 +78,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.FirehoseSuccessFeedbackRoleArn"),
 			},
 			{
+				Name:        "firehose_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with firehose endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.FirehoseSuccessFeedbackSampleRate"),
+			},
+			{
 				Name:        "http_failure_feedback_role_arn",
 				Description: "IAM role for failed deliveries of notification messages sent to topics with http endpoint.",
 				Type:        proto.ColumnType_STRING,
@@ -86,6 +99,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.HTTPSuccessFeedbackRoleArn"),
 			},
 			{
+				Name:        "http_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with http endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.HTTPSuccessFeedbackSampleRate"),
+			},
+			{
 				Name:        "lambda_failure_feedback_role_arn",
 				Description: "IAM role for failed deliveries of notification messages sent to topics with lambda endpoint.",
 				Type:        proto.ColumnType_STRING,
@@ -98,6 +118,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.LambdaSuccessFeedbackRoleArn"),
+			},
+			{
+				Name:        "lambda_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with lambda endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.LambdaSuccessFeedbackSampleRate"),
 			},
 			{
 				Name:        "owner",
@@ -119,6 +146,13 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackRoleArn"),
+			},
+			{
+				Name:        "sqs_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with sqs endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackSampleRate"),
 			},
 			{
 				Name:        "subscriptions_confirmed",

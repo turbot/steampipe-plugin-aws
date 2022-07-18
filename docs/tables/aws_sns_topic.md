@@ -115,7 +115,12 @@ where
 select
   title,
   topic_arn,
-  region
+  region,
+  application_success_feedback_sample_rate,
+  firehose_success_feedback_sample_rate,
+  http_success_feedback_sample_rate,
+  lambda_success_feedback_sample_rate,
+  sqs_success_feedback_sample_rate
 from 
   aws_sns_topic
 where
