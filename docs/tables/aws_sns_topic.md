@@ -108,3 +108,20 @@ where
       and ssl :: bool = false
   );
 ```
+
+### List topics with delivery status logging for notification messages is disabled
+
+```sql
+select
+  title,
+  topic_arn,
+  region
+from 
+  aws_sns_topic
+where
+  application_failure_feedback_role_arn is null 
+    and firehose_failure_feedback_role_arn is null 
+    and http_failure_feedback_role_arn is null 
+    and lambda_failure_feedback_role_arn is null 
+    and sqs_failure_feedback_role_arn is null;
+```
