@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"strings"
 
@@ -11,15 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-	"golang.org/x/sync/singleflight"
 )
-
-// this is used to ensure that we execute for any given key only once
-// used for ObjectContent and TagSet
-// it does not look like HydrateFunc.WithCache locks on a per row basis
-// it is possible to use HydrateFunc.WithCache as is used in aws/common_columns.go, but using
-// singleFlight results in a cleaner code base which is easier to reason around
-var singleFlightGroup singleflight.Group
 
 func tableAwsS3Object(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -441,78 +432,70 @@ func getAWSS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Object := h.Item.(*s3ObjectRow)
 
-	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectContent-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
 
-		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-		if err != nil {
-			return nil, err
-		}
+	plugin.Logger(ctx).Trace("fetching content for ", *s3Object.Key)
+	plugin.Logger(ctx).Trace("sse_customer_algorithm", d.KeyColumnQualString("sse_customer_algorithm"))
 
-		plugin.Logger(ctx).Trace("fetching content for ", *s3Object.Key)
-		plugin.Logger(ctx).Trace("sse_customer_algorithm", d.KeyColumnQualString("sse_customer_algorithm"))
+	input := &s3.GetObjectInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
 
-		input := &s3.GetObjectInput{
-			Bucket: s3Object.BucketName,
-			Key:    s3Object.Key,
-		}
+	if len(d.KeyColumnQualString("sse_customer_algorithm")) > 0 {
+		input.SSECustomerAlgorithm = aws.String(d.KeyColumnQualString("sse_customer_algorithm"))
+	}
+	if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
+		input.SSECustomerKey = aws.String(d.KeyColumnQualString("sse_customer_key"))
+	}
+	if len(d.KeyColumnQualString("sse_customer_key_md5")) > 0 {
+		input.SSECustomerKeyMD5 = aws.String(d.KeyColumnQualString("sse_customer_key_md5"))
+	}
 
-		if len(d.KeyColumnQualString("sse_customer_algorithm")) > 0 {
-			input.SSECustomerAlgorithm = aws.String(d.KeyColumnQualString("sse_customer_algorithm"))
-		}
-		if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
-			input.SSECustomerKey = aws.String(d.KeyColumnQualString("sse_customer_key"))
-		}
-		if len(d.KeyColumnQualString("sse_customer_key_md5")) > 0 {
-			input.SSECustomerKeyMD5 = aws.String(d.KeyColumnQualString("sse_customer_key_md5"))
-		}
+	output, err := svc.GetObjectWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
 
-		output, err := svc.GetObjectWithContext(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-
-		return &s3ObjectContent{
-			GetObjectOutput: *output,
-			parentRow:       s3Object,
-		}, nil
-	})
-
-	return v, err
+	return &s3ObjectContent{
+		GetObjectOutput: *output,
+		parentRow:       s3Object,
+	}, nil
 }
 
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Object := h.Item.(*s3ObjectRow)
 
-	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectAttributes-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
-		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-		if err != nil {
-			return nil, err
-		}
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
 
-		plugin.Logger(ctx).Trace("fetching attributes for", s3Object.Key)
+	plugin.Logger(ctx).Trace("fetching attributes for", *s3Object.Key)
 
-		selectAttrs := aws.StringSlice([]string{
-			s3.ObjectAttributesChecksum,
-			s3.ObjectAttributesObjectParts,
-		})
-
-		input := &s3.GetObjectAttributesInput{
-			Bucket:           s3Object.BucketName,
-			Key:              s3Object.Key,
-			ObjectAttributes: selectAttrs,
-		}
-		output, err := svc.GetObjectAttributesWithContext(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-
-		return &s3ObjectAttributes{
-			GetObjectAttributesOutput: *output,
-			parentRow:                 s3Object,
-		}, nil
+	selectAttrs := aws.StringSlice([]string{
+		s3.ObjectAttributesChecksum,
+		s3.ObjectAttributesObjectParts,
 	})
 
-	return v, err
+	input := &s3.GetObjectAttributesInput{
+		Bucket:           s3Object.BucketName,
+		Key:              s3Object.Key,
+		ObjectAttributes: selectAttrs,
+	}
+	output, err := svc.GetObjectAttributesWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &s3ObjectAttributes{
+		GetObjectAttributesOutput: *output,
+		parentRow:                 s3Object,
+	}, nil
+
 }
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -580,22 +563,20 @@ func getS3ObjectTagSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if !s3Object.bucketHasLockConfig {
 		return nil, nil
 	}
-	v, err, _ := singleFlightGroup.Do(fmt.Sprintf("getS3ObjectTagSet-%s-%s", *s3Object.BucketName, *s3Object.Key), func() (interface{}, error) {
-		svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
-		if err != nil {
-			return nil, err
-		}
 
-		plugin.Logger(ctx).Trace("fetching tag set for ", s3Object.Key)
+	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	if err != nil {
+		return nil, err
+	}
 
-		input := &s3.GetObjectTaggingInput{
-			Bucket: s3Object.BucketName,
-			Key:    s3Object.Key,
-		}
-		return svc.GetObjectTaggingWithContext(ctx, input)
-	})
+	plugin.Logger(ctx).Trace("fetching tag set for ", s3Object.Key)
 
-	return v, err
+	input := &s3.GetObjectTaggingInput{
+		Bucket: s3Object.BucketName,
+		Key:    s3Object.Key,
+	}
+
+	return svc.GetObjectTaggingWithContext(ctx, input)
 }
 
 func getS3ObjectLegalHold(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
