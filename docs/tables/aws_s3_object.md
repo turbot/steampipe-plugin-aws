@@ -16,7 +16,7 @@ select
 from
   aws_s3_object
 where
-  prefix = 'cloudflare_logs_2021_03_01';
+  key = 'logs/application_logs/2020/11/04/14/40/dashboard/db_logs.json.gz';
 ```
 
 ### List all objects with a fixed `prefix`
