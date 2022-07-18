@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -26,15 +27,19 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 		Description: "List AWS S3 Objects in S3 buckets by bucket name.",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"bucket", "key"}),
-			Hydrate:    getS3Object,
+			Hydrate:    getAWSS3Object,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:       listS3Objects,
+			Hydrate:       listAWSS3Objects,
 			ParentHydrate: listS3Buckets,
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "bucket", Require: plugin.Optional},
 				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
+
+				// these are not used by the list/get calls, but need to be declared here
+				// otherwise, the SDK drops them and these won't be available when we want to
+				// hydrate the 'data' column
 				{Name: "sse_customer_algorithm", Require: plugin.Optional},
 				{Name: "sse_customer_key", Require: plugin.Optional},
 				{Name: "sse_customer_key_md5", Require: plugin.Optional},
@@ -240,7 +245,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     getS3ObjectContent,
 			},
 			{
-				Name:        "body",
+				Name:        "data",
 				Description: "The raw bytes of the object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromMethod("ReadBody"),
@@ -258,7 +263,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 	}
 }
 
-func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAWSS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	plugin.Logger(ctx).Trace("listS3Objects")
 
@@ -352,7 +357,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return nil, err
 }
 
-func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAWSS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	plugin.Logger(ctx).Trace("getS3Object")
 
@@ -384,8 +389,8 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 	input := &s3.ListObjectsV2Input{
 		Bucket:     &bucketName,
-		MaxKeys:    PointerOf[int64](1),
-		FetchOwner: PointerOf(true),
+		MaxKeys:    aws.Int64(1),
+		FetchOwner: aws.Bool(true),
 
 		// send the key as the prefix so that only this object gets returned
 		Prefix: &key,
@@ -443,7 +448,8 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 			return nil, err
 		}
 
-		plugin.Logger(ctx).Trace("fetching content for ", s3Object.Key)
+		plugin.Logger(ctx).Trace("fetching content for ", *s3Object.Key)
+		plugin.Logger(ctx).Trace("sse_customer_algorithm", d.KeyColumnQualString("sse_customer_algorithm"))
 
 		input := &s3.GetObjectInput{
 			Bucket: s3Object.BucketName,
@@ -451,13 +457,13 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		}
 
 		if len(d.KeyColumnQualString("sse_customer_algorithm")) > 0 {
-			input.SSECustomerAlgorithm = PointerOf(d.KeyColumnQualString("sse_customer_algorithm"))
+			input.SSECustomerAlgorithm = aws.String(d.KeyColumnQualString("sse_customer_algorithm"))
 		}
 		if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
-			input.SSECustomerKey = PointerOf(d.KeyColumnQualString("sse_customer_key"))
+			input.SSECustomerKey = aws.String(d.KeyColumnQualString("sse_customer_key"))
 		}
 		if len(d.KeyColumnQualString("sse_customer_key_md5")) > 0 {
-			input.SSECustomerKeyMD5 = PointerOf(d.KeyColumnQualString("sse_customer_key_md5"))
+			input.SSECustomerKeyMD5 = aws.String(d.KeyColumnQualString("sse_customer_key_md5"))
 		}
 
 		output, err := svc.GetObjectWithContext(ctx, input)
@@ -485,10 +491,10 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 		plugin.Logger(ctx).Trace("fetching attributes for", s3Object.Key)
 
-		selectAttrs := []*string{
-			PointerOf(s3.ObjectAttributesChecksum),
-			PointerOf(s3.ObjectAttributesObjectParts),
-		}
+		selectAttrs := aws.StringSlice([]string{
+			s3.ObjectAttributesChecksum,
+			s3.ObjectAttributesObjectParts,
+		})
 
 		input := &s3.GetObjectAttributesInput{
 			Bucket:           s3Object.BucketName,
