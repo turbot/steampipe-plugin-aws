@@ -107,13 +107,6 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Status").Transform(handleNilString).Transform(transform.ToBool),
 			},
 			{
-				Name:        "versioning_enabled1",
-				Description: "The versioning state of a bucket.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketVersioning,
-				Transform:   transform.FromField("Status"),
-			},
-			{
 				Name:        "versioning_mfa_delete",
 				Description: "The MFA Delete status of the versioning state.",
 				Type:        proto.ColumnType_BOOL,
