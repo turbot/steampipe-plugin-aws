@@ -4,6 +4,8 @@ Amazon S3 objects are stored in one or more Amazon S3 buckets, and each object c
 
 To list objects, you must mention the `bucket` which contains the objects.
 
+> Note: The `data` column in the `aws_s3_object` table requests and loads the raw data of the object. Extracting the data has cost implications.
+
 ## Examples
 
 ### Basic info
