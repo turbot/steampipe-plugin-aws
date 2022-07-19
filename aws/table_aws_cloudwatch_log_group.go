@@ -16,15 +16,11 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cloudwatch_log_group",
 		Description: "AWS CloudWatch Log Group",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			Hydrate:    getCloudwatchLogGroup,
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudwatchLogGroups,
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:    "name",
+					Name:    "name_prefix",
 					Require: plugin.Optional,
 				},
 			},
@@ -36,6 +32,12 @@ func tableAwsCloudwatchLogGroup(_ context.Context) *plugin.Table {
 				Description: "The name of the log group.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LogGroupName"),
+			},
+			{
+				Name:        "name_prefix",
+				Description: "The prefix to match when listing log groups.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("name_prefix"),
 			},
 			{
 				Name:        "arn",
@@ -105,8 +107,8 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		input.LogGroupNamePrefix = types.String(equalQuals["name"].GetStringValue())
+	if equalQuals["name_prefix"] != nil {
+		input.LogGroupNamePrefix = types.String(equalQuals["name_prefix"].GetStringValue())
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -142,37 +144,8 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
-
-	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	name := d.KeyColumnQuals["name"].GetStringValue()
-	params := &cloudwatchlogs.DescribeLogGroupsInput{
-		LogGroupNamePrefix: aws.String(name),
-	}
-
-	// execute list call
-	item, err := svc.DescribeLogGroups(params)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, logGroup := range item.LogGroups {
-		if types.SafeString(logGroup.LogGroupName) == name {
-			return logGroup, nil
-		}
-	}
-
-	return nil, nil
-}
-
 func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
+	plugin.Logger(ctx).Trace("getLogGroupTagging")
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session

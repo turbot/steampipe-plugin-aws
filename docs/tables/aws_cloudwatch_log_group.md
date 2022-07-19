@@ -2,9 +2,11 @@
 
 A log group is a group of log streams that share the same retention, monitoring, and access control settings.
 
+**Note**: We recommend you specify a `name_prefix` to speed up queries, especially in regions that have a large number of them.
+
 ## Examples
 
-### List all the log groups that are not encrypted
+### Basic info
 
 ```sql
 select
@@ -15,11 +17,25 @@ select
 from
   aws_cloudwatch_log_group
 where
-  kms_key_id is null;
+  name_prefix = '/aws/lambda/';
 ```
 
+### List log groups that are not encrypted
 
-### List of cloudwatch log groups whose retention period is less than 7 days
+```sql
+select
+  name,
+  kms_key_id,
+  metric_filter_count,
+  retention_in_days
+from
+  aws_cloudwatch_log_group
+where
+  kms_key_id is null
+  and name_prefix = '/aws/lambda/';
+```
+
+### List log groups whose retention period is less than 7 days
 
 ```sql
 select
@@ -28,20 +44,22 @@ select
 from
   aws_cloudwatch_log_group
 where
-  retention_in_days < 7;
+  retention_in_days < 7
+  and name_prefix = '/aws/lambda/';
 ```
 
-
-### Metric filters info attached to cloudwatch log groups
+### Get metric filter info for each log group
 
 ```sql
 select
-  groups.name as log_group_name,
-  metric.name as metric_filter_name,
-  metric.filter_pattern,
-  metric.metric_transformation_name,
-  metric.metric_transformation_value
+  g.name as log_group_name,
+  m.name as metric_filter_name,
+  m.filter_pattern,
+  m.metric_transformation_name,
+  m.metric_transformation_value
 from
-  aws_cloudwatch_log_group groups
-  join aws_cloudwatch_log_metric_filter metric on groups.name = metric.log_group_name;
+  aws_cloudwatch_log_group g
+  join aws_cloudwatch_log_metric_filter m on g.name = m.log_group_name
+where
+  g.name_prefix = '/aws/lambda/';
 ```
