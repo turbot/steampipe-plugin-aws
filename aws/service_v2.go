@@ -147,11 +147,6 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		return cachedData.(*aws.Config), nil
 	}
 
-	// If session was not in cache - create a session and save to cache
-
-	// get aws config info
-	// ratelimiter := ratelimit.NewTokenRateLimit(500)
-	awsConfig := GetConfig(d.Connection)
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		o.MaxAttempts = maxRetries
 		o.MaxBackoff = 5 * time.Minute
@@ -165,16 +160,29 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 		o.Backoff = backoff
 	})
+	// If session was not in cache - create a session and save to cache
 
-	cfg, err := config.LoadDefaultConfig(ctx,
+	// get aws config info
+	// ratelimiter := ratelimit.NewTokenRateLimit(500)
+	awsConfig := GetConfig(d.Connection)
+
+	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
+		config.WithRetryMaxAttempts(maxRetries),
 		config.WithRetryer(func() aws.Retryer {
 			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
 		}),
-	)
-	if err != nil {
-		return nil, err
 	}
+
+	// cfg, err := config.LoadDefaultConfig(ctx,
+	// 	config.WithRegion(region),
+	// 	config.WithRetryer(func() aws.Retryer {
+	// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+	// 	}),
+	// )
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// handle custom endpoint URL, if any
 	var awsEndpointUrl string
@@ -184,36 +192,41 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		awsEndpointUrl = *awsConfig.EndpointUrl
 	}
 
-	var customResolver aws.EndpointResolverWithOptionsFunc
+	// var customResolver aws.EndpointResolverWithOptionsFunc
 	if awsEndpointUrl != "" {
-		customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
 				URL:           awsEndpointUrl,
 				SigningRegion: region,
 			}, nil
 		})
+
+		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(customResolver))
 	}
 
-	if awsEndpointUrl != "" {
-		cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}),
-		)
-	}
+	// if awsEndpointUrl != "" {
+	// 	cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
+	// 		config.WithRetryer(func() aws.Retryer {
+	// 			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+	// 		}),
+	// 	)
+	// }
 
 	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
-		cfg, err = config.LoadDefaultConfig(ctx,
-			config.WithSharedConfigProfile(*awsConfig.Profile),
-			config.WithRegion(region),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			},
-			),
-		)
+		// if awsConfig.Profile != nil {
+		configOptions = append(configOptions, config.WithSharedConfigProfile(aws.ToString(awsConfig.Profile)))
+		// }
+		// cfg, err = config.LoadDefaultConfig(ctx,
+		// 	config.WithSharedConfigProfile(*awsConfig.Profile),
+		// 	config.WithRegion(region),
+		// 	config.WithRetryer(func() aws.Retryer {
+		// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+		// 	},
+		// 	),
+		// )
 	}
 
 	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
@@ -221,24 +234,40 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	} else if awsConfig.SecretKey != nil && awsConfig.AccessKey == nil {
 		return nil, fmt.Errorf("Partial credentials found in connection config, missing: access_key")
 	} else if awsConfig.AccessKey != nil && awsConfig.SecretKey != nil {
-		cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		)),
-			config.WithRegion(region),
-			config.WithRetryer(func() aws.Retryer {
-				return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-			}))
+		var provider credentials.StaticCredentialsProvider
 
 		if awsConfig.SessionToken != nil {
-			cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-			)),
-				config.WithRegion(region),
-				config.WithRetryer(func() aws.Retryer {
-					return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-				}))
+			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken)
+		} else {
+			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, "")
 		}
+		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+
+		// cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+		// 	*awsConfig.AccessKey, *awsConfig.SecretKey, "",
+		// )),
+		// 	config.WithRegion(region),
+		// 	config.WithRetryer(func() aws.Retryer {
+		// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+		// 	}))
+
+		// if awsConfig.SessionToken != nil {
+		// 	cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+		// 		*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
+		// 	)),
+		// 		config.WithRegion(region),
+		// 		config.WithRetryer(func() aws.Retryer {
+		// 			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+		// 		}))
+		// }
 	}
+
+	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
+	if err != nil {
+		plugin.Logger(ctx).Error("getAwsConfigWithMaxRetries", "load_default_config", err)
+		return nil, err
+	}
+	d.ConnectionManager.Cache.Set(sessionCacheKey, &cfg)
 
 	return &cfg, err
 }
