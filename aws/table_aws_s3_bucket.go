@@ -107,6 +107,13 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Status").Transform(handleNilString).Transform(transform.ToBool),
 			},
 			{
+				Name:        "versioning_enabled1",
+				Description: "The versioning state of a bucket.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBucketVersioning,
+				Transform:   transform.FromField("Status"),
+			},
+			{
 				Name:        "versioning_mfa_delete",
 				Description: "The MFA Delete status of the versioning state.",
 				Type:        proto.ColumnType_BOOL,
@@ -742,7 +749,7 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func s3TagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
