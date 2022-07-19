@@ -64,11 +64,15 @@ func resolveBucketRegion(ctx context.Context, d *plugin.QueryData, bucketname *s
 }
 
 type s3ObjectRow struct {
-	s3.Object
+	StorageClass        *string
+	Key                 *string
+	ETag                *string
+	Size                *int64
+	LastModified        *time.Time
 	BucketName          *string
 	BucketRegion        *string
 	bucketHasLockConfig bool
-	Prefix              *string
+	Prefix              string
 }
 
 func (o *s3ObjectRow) isOutpostObject() bool {
@@ -88,5 +92,9 @@ type s3ObjectContent struct {
 }
 
 func (obj *s3ObjectContent) ReadBody() (interface{}, error) {
-	return io.ReadAll(obj.Body)
+	body, err := io.ReadAll(obj.Body)
+	if err != nil {
+		return nil, err
+	}
+	return string(body), err
 }
