@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -174,16 +173,6 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		}),
 	}
 
-	// cfg, err := config.LoadDefaultConfig(ctx,
-	// 	config.WithRegion(region),
-	// 	config.WithRetryer(func() aws.Retryer {
-	// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-	// 	}),
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	// handle custom endpoint URL, if any
 	var awsEndpointUrl string
 
@@ -192,7 +181,6 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		awsEndpointUrl = *awsConfig.EndpointUrl
 	}
 
-	// var customResolver aws.EndpointResolverWithOptionsFunc
 	if awsEndpointUrl != "" {
 		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
@@ -205,28 +193,10 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(customResolver))
 	}
 
-	// if awsEndpointUrl != "" {
-	// 	cfg, err = config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver),
-	// 		config.WithRetryer(func() aws.Retryer {
-	// 			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-	// 		}),
-	// 	)
-	// }
-
 	// awsConfig.S3ForcePathStyle - Moved to service specific client (i.e. in S3V2Client)
 
 	if awsConfig.Profile != nil {
-		// if awsConfig.Profile != nil {
 		configOptions = append(configOptions, config.WithSharedConfigProfile(aws.ToString(awsConfig.Profile)))
-		// }
-		// cfg, err = config.LoadDefaultConfig(ctx,
-		// 	config.WithSharedConfigProfile(*awsConfig.Profile),
-		// 	config.WithRegion(region),
-		// 	config.WithRetryer(func() aws.Retryer {
-		// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-		// 	},
-		// 	),
-		// )
 	}
 
 	if awsConfig.AccessKey != nil && awsConfig.SecretKey == nil {
@@ -242,24 +212,6 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 			provider = credentials.NewStaticCredentialsProvider(*awsConfig.AccessKey, *awsConfig.SecretKey, "")
 		}
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
-
-		// cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-		// 	*awsConfig.AccessKey, *awsConfig.SecretKey, "",
-		// )),
-		// 	config.WithRegion(region),
-		// 	config.WithRetryer(func() aws.Retryer {
-		// 		return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-		// 	}))
-
-		// if awsConfig.SessionToken != nil {
-		// 	cfg, err = config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-		// 		*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
-		// 	)),
-		// 		config.WithRegion(region),
-		// 		config.WithRetryer(func() aws.Retryer {
-		// 			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
-		// 		}))
-		// }
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, configOptions...)
@@ -290,12 +242,12 @@ func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *Expon
 func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
 	minDelay := j.minDelay
 
-	log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
+	// log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
 
 	var jitter = float64(rand.Intn(120-80)+80) / 100
 
 	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
-	log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
+	// log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
 
 	// Cap retry time at 5 minutes to avoid too long a wait
 	if retryTime > time.Duration(5*time.Minute) {
