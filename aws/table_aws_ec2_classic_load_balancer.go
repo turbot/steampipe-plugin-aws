@@ -150,8 +150,8 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("HealthCheck.HealthyThreshold"),
 			},
 			{
-				Name:        "heath_check_target",
-				Description: "The instance being checked.",
+				Name:        "health_check_target",
+				Description: "The instance being checked. The protocol is either TCP, HTTP, HTTPS, or SSL. The range of valid ports is one (1) through 65535.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("HealthCheck.Target"),
 			},
