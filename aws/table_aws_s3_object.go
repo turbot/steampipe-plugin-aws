@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/base64"
 	"io"
 	"strings"
 
@@ -28,12 +30,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
 
-				// these are not used by the list/get calls, but need to be declared here
-				// otherwise, the SDK drops them and these won't be available when we want to
-				// hydrate the 'data' column
-				{Name: "sse_customer_algorithm", Require: plugin.Optional},
 				{Name: "sse_customer_key", Require: plugin.Optional},
-				{Name: "sse_customer_key_md5", Require: plugin.Optional},
 			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
@@ -64,11 +61,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "owner",
-				Description: "The owner of the object.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "prefix",
 				Description: "The prefix of the key of the object.",
 				Type:        proto.ColumnType_STRING,
@@ -78,6 +70,13 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "The name of the container bucket of this object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BucketName"),
+			},
+			{
+				Name:        "owner",
+				Description: "The owner of the object.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Owner"),
+				Hydrate:     getS3ObjectACL,
 			},
 			{
 				Name:        "acl",
@@ -194,24 +193,17 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     getS3ObjectContent,
 			},
 			{
-				Name:        "sse_customer_algorithm",
-				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SSECustomerAlgorithm"),
-				Hydrate:     getS3ObjectContent,
-			},
-			{
 				Name:        "sse_customer_key",
-				Description: "If server-side encryption with a customer-provided encryption key was requested, this will contain the encryption key.",
+				Description: "If server-side encryption is set on the object, use this to provide the 256-bit, base64-encoded encryption key which Amazon S3 will use to decrypt your data.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("sse_customer_key"),
 				Hydrate:     getS3ObjectContent,
 			},
 			{
-				Name:        "sse_customer_key_md5",
-				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header to provide round-trip message integrity verification of the customer-provided encryption key.",
+				Name:        "sse_customer_algorithm",
+				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SSECustomerKeyMD5"),
+				Transform:   transform.FromField("SSECustomerAlgorithm"),
 				Hydrate:     getS3ObjectContent,
 			},
 			{
@@ -252,6 +244,59 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+func getAWSS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAWSS3Object")
+
+	bucketName := d.KeyColumnQualString("bucket")
+	key := d.KeyColumnQualString("key")
+	// Create Session,
+	bucketLocation, err := resolveBucketRegion(ctx, d, &bucketName)
+	if err != nil {
+		return nil, err
+	}
+	svc, err := S3Service(ctx, d, *bucketLocation.LocationConstraint)
+	if err != nil {
+		return nil, err
+	}
+
+	// we need to retain this, since a few fields in the objects will always be `nil` if this is `nil`
+	_, err = svc.GetObjectLockConfigurationWithContext(ctx, &s3.GetObjectLockConfigurationInput{
+		Bucket: &bucketName,
+	})
+	bucketHasLockConfig := true
+	if err != nil {
+		if strings.Contains(err.Error(), "ObjectLockConfigurationNotFoundError") {
+			bucketHasLockConfig = false
+		} else {
+			return nil, err
+		}
+	}
+
+	input := &s3.GetObjectAttributesInput{}
+	input.
+		SetBucket(bucketName).
+		SetKey(key).
+		SetObjectAttributes(aws.StringSlice(s3.ObjectAttributes_Values()))
+
+	output, err := svc.GetObjectAttributesWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	row := &s3ObjectRow{
+		BucketName:          &bucketName,
+		BucketRegion:        bucketLocation.LocationConstraint,
+		bucketHasLockConfig: bucketHasLockConfig,
+		StorageClass:        output.StorageClass,
+		Key:                 &key,
+		ETag:                output.ETag,
+		Size:                output.ObjectSize,
+		LastModified:        output.LastModified,
+		Prefix:              derivePrefix(ctx, key, d.KeyColumnQualString("prefix")),
+	}
+
+	return row, nil
 }
 
 func listAWSS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -296,11 +341,10 @@ func listAWSS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		limit = *d.QueryContext.Limit
 	}
 
-	fetchOwner := true
 	input := &s3.ListObjectsV2Input{
 		Bucket:     &bucketName,
 		MaxKeys:    &limit,
-		FetchOwner: &fetchOwner,
+		FetchOwner: aws.Bool(false),
 	}
 
 	if len(d.KeyColumnQualString("prefix")) > 0 {
@@ -316,21 +360,17 @@ func listAWSS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	err = svc.ListObjectsV2PagesWithContext(ctx, input, func(objectList *s3.ListObjectsV2Output, b bool) bool {
 		for _, object := range objectList.Contents {
-			derivedPrefix := ""
-			if strings.Contains(*object.Key, "/") {
-				derivedPrefix = (*object.Key)[:strings.LastIndex(*object.Key, "/")]
-				if len(d.KeyColumnQualString("prefix")) > 0 {
-					p := d.KeyColumnQualString("prefix")
-					derivedPrefix = p
-				}
-			}
 
 			row := &s3ObjectRow{
-				Object:              *object,
-				Prefix:              &derivedPrefix,
+				StorageClass:        object.StorageClass,
+				Key:                 object.Key,
+				ETag:                object.ETag,
+				Size:                object.Size,
+				LastModified:        object.LastModified,
 				BucketName:          &bucketName,
 				BucketRegion:        bucketLocation.LocationConstraint,
 				bucketHasLockConfig: bucketHasLockConfig,
+				Prefix:              derivePrefix(ctx, *object.Key, d.KeyColumnQualString("prefix")),
 			}
 
 			d.StreamListItem(ctx, row)
@@ -348,86 +388,15 @@ func listAWSS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return nil, err
 }
 
-func getAWSS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	plugin.Logger(ctx).Trace("getS3Object")
-
-	bucketName := d.KeyColumnQualString("bucket")
-	key := d.KeyColumnQualString("key")
-
-	// Create Session,
-	bucketLocation, err := resolveBucketRegion(ctx, d, &bucketName)
-	if err != nil {
-		return nil, err
+func derivePrefix(ctx context.Context, key string, knownPrefix string) string {
+	derivedPrefix := knownPrefix
+	if strings.Contains(key, "/") && len(knownPrefix) == 0 {
+		derivedPrefix = (key)[:strings.LastIndex(key, "/")]
 	}
-	svc, err := S3Service(ctx, d, *bucketLocation.LocationConstraint)
-	if err != nil {
-		return nil, err
-	}
-
-	// we need to retain this, since a few fields in the objects will always be `nil` if this is `nil`
-	_, err = svc.GetObjectLockConfigurationWithContext(ctx, &s3.GetObjectLockConfigurationInput{
-		Bucket: &bucketName,
-	})
-	containerBucketHasLockConfig := true
-	if err != nil {
-		if strings.Contains(err.Error(), "ObjectLockConfigurationNotFoundError") {
-			containerBucketHasLockConfig = false
-		} else {
-			return nil, err
-		}
-	}
-
-	input := &s3.ListObjectsV2Input{
-		Bucket:     &bucketName,
-		MaxKeys:    aws.Int64(1),
-		FetchOwner: aws.Bool(true),
-
-		// send the key as the prefix so that only this object gets returned
-		Prefix: &key,
-	}
-
-	var row *s3ObjectRow
-
-	err = svc.ListObjectsV2PagesWithContext(ctx, input, func(objectList *s3.ListObjectsV2Output, b bool) bool {
-
-		if len(objectList.Contents) == 0 {
-			return false
-		}
-
-		object := objectList.Contents[0]
-
-		derivedPrefix := ""
-		if strings.Contains(*object.Key, "/") {
-			derivedPrefix = (*object.Key)[:strings.LastIndex(*object.Key, "/")]
-			if len(d.KeyColumnQualString("prefix")) > 0 {
-				p := d.KeyColumnQualString("prefix")
-				derivedPrefix = p
-			}
-		}
-
-		if *object.Key != key {
-			plugin.Logger(ctx).Trace("getS3Object", "ignoring", *object.Key)
-			// do not return this if the key matches exactly.
-			// this is required, since S3 searches by prefix and we don't want to
-			// return it only with a prefix match
-			return true
-		}
-
-		plugin.Logger(ctx).Trace("getS3Object", "found match", *object.Key)
-		row = &s3ObjectRow{
-			Object:              *object,
-			Prefix:              &derivedPrefix,
-			BucketName:          &bucketName,
-			BucketRegion:        bucketLocation.LocationConstraint,
-			bucketHasLockConfig: containerBucketHasLockConfig,
-		}
-
-		return true
-	})
-
-	return row, err
+	return derivedPrefix
 }
+
+// Column hydrates
 
 func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	s3Object := h.Item.(*s3ObjectRow)
@@ -444,15 +413,23 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		Bucket: s3Object.BucketName,
 		Key:    s3Object.Key,
 	}
-
-	if len(d.KeyColumnQualString("sse_customer_algorithm")) > 0 {
-		input.SSECustomerAlgorithm = aws.String(d.KeyColumnQualString("sse_customer_algorithm"))
-	}
 	if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
-		input.SSECustomerKey = aws.String(d.KeyColumnQualString("sse_customer_key"))
-	}
-	if len(d.KeyColumnQualString("sse_customer_key_md5")) > 0 {
-		input.SSECustomerKeyMD5 = aws.String(d.KeyColumnQualString("sse_customer_key_md5"))
+		hasher := md5.New()
+		b64, err := base64.StdEncoding.DecodeString(d.KeyColumnQualString("sse_customer_key"))
+		if err != nil {
+			return nil, err
+		}
+		keyMd5 := base64.StdEncoding.EncodeToString(hasher.Sum(b64))
+
+		// Refer:
+		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerSideEncryptionCustomerKeys.html#specifying-s3-c-encryption
+		input.
+			// the 256-bit, base64-encoded encryption key
+			SetSSECustomerKey(d.KeyColumnQualString("sse_customer_key")).
+			// value must be "AES256"
+			SetSSECustomerAlgorithm("AES256").
+			// the base64-encoded 128-bit MD5 digest of the encryption key according to RFC 1321
+			SetSSECustomerKeyMD5(keyMd5)
 	}
 
 	output, err := svc.GetObjectWithContext(ctx, input)
@@ -467,24 +444,18 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	s3Object := h.Item.(*s3ObjectRow)
-
-	svc, err := S3Service(ctx, d, *s3Object.BucketRegion)
+	row := h.Item.(*s3ObjectRow)
+	svc, err := S3Service(ctx, d, *row.BucketRegion)
 	if err != nil {
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Trace("fetching attributes for", *s3Object.Key)
-
-	selectAttrs := aws.StringSlice([]string{
-		s3.ObjectAttributesChecksum,
-		s3.ObjectAttributesObjectParts,
-	})
+	plugin.Logger(ctx).Trace("fetching attributes for", *row.Key)
 
 	input := &s3.GetObjectAttributesInput{
-		Bucket:           s3Object.BucketName,
-		Key:              s3Object.Key,
-		ObjectAttributes: selectAttrs,
+		Bucket:           row.BucketName,
+		Key:              row.Key,
+		ObjectAttributes: aws.StringSlice(s3.ObjectAttributes_Values()),
 	}
 	output, err := svc.GetObjectAttributesWithContext(ctx, input)
 	if err != nil {
@@ -493,9 +464,8 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	return &s3ObjectAttributes{
 		GetObjectAttributesOutput: *output,
-		parentRow:                 s3Object,
+		parentRow:                 row,
 	}, nil
-
 }
 
 func getS3ObjectACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
