@@ -1,3 +1,35 @@
+## v0.71.0 [2022-07-20]
+
+_What's new?_
+
+- New tables added
+  - [aws_networkfirewall_firewall_policy](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_networkfirewall_firewall_policy) ([#1171](https://github.com/turbot/steampipe-plugin-aws/pull/1171))
+
+_Enhancements_
+
+- Added the following new columns to `aws_sns_topic` table: ([#1176](https://github.com/turbot/steampipe-plugin-aws/pull/1176))
+  - application_failure_feedback_role_arn
+  - application_success_feedback_role_arn
+  - application_success_feedback_sample_rate
+  - firehose_failure_feedback_role_arn
+  - firehose_success_feedback_role_arn
+  - firehose_success_feedback_sample_rate
+  - http_failure_feedback_role_arn
+  - http_success_feedback_role_arn
+  - http_success_feedback_sample_rate
+  - lambda_failure_feedback_role_arn
+  - lambda_success_feedback_role_arn
+  - lambda_success_feedback_sample_rate
+  - sqs_failure_feedback_role_arn
+  - sqs_success_feedback_role_arn
+  - sqs_success_feedback_sample_rate
+- Added support for `us-iso` and `us-isob` regions. ([#1168](https://github.com/turbot/steampipe-plugin-aws/pull/1168))
+
+_Bug fixes_
+
+- Fixed the typo in column name to use `health_check_target` instead of `heath_check_target` in `aws_ec2_classic_load_balancer` table. ([#1179](https://github.com/turbot/steampipe-plugin-aws/pull/1179))
+- Fixed the `settings` column in the `aws_ecs_cluster` table to correctly return data instead of `null`. ([#1175](https://github.com/turbot/steampipe-plugin-aws/pull/1175))
+
 ## v0.70.0 [2022-07-14]
 
 _What's new?_
