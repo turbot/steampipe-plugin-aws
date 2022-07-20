@@ -33,6 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/codeartifact"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
@@ -326,6 +327,27 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	svc := cloudcontrolapi.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
+	return svc, nil
+}
+
+// CodeArtifactService returns the service connection for AWS CodeArtifact service
+func CodeArtifactService(ctx context.Context, d *plugin.QueryData) (*codeartifact.CodeArtifact, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodeArtifactService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codeartifact-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codeartifact.CodeArtifact), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codeartifact.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }
 
