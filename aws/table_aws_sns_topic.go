@@ -147,6 +147,7 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	params := &sns.ListTopicsInput{}
+	// Does not support limit
 	paginator := sns.NewListTopicsPaginator(svc, params, func(o *sns.ListTopicsPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})

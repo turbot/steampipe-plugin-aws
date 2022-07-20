@@ -152,24 +152,21 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	params := buildIamPolicyFilter(d.KeyColumnQuals, d.Quals)
-	maxItems := aws.Int32(100)
-	paginator := iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
-		o.Limit = 100
-		o.StopOnDuplicateToken = true
-	})
+	maxItems := int32(100)
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-
 	if d.QueryContext.Limit != nil {
-		limit := *d.QueryContext.Limit
-		if limit < int64(*maxItems) {
-			paginator = iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
-				o.Limit = int32(limit)
-				o.StopOnDuplicateToken = true
-			})
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			maxItems = limit
 		}
 	}
+	paginator := iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+	params.MaxItems = aws.Int32(maxItems)
 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)

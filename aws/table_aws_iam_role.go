@@ -191,40 +191,36 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 
-	maxItems := aws.Int32(1000)
-	input := iam.ListRolesInput{
-		MaxItems: maxItems,
-	}
+	maxItems := int32(1000)
 
+	input := iam.ListRolesInput{}
 	equalQual := d.KeyColumnQuals
 	if equalQual["path"] != nil {
 		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
 
-	paginator := iam.NewListRolesPaginator(svc, &input, func(o *iam.ListRolesPaginatorOptions) {
-		o.Limit = 1000
-		o.StopOnDuplicateToken = true
-	})
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		limit := *d.QueryContext.Limit
-		if limit < int64(*maxItems) {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
 			if limit < 1 {
-				paginator = iam.NewListRolesPaginator(svc, &input, func(o *iam.ListRolesPaginatorOptions) {
-					o.Limit = 1
-					o.StopOnDuplicateToken = true
-				})
+				maxItems = int32(1)
 			} else {
-				paginator = iam.NewListRolesPaginator(svc, &input, func(o *iam.ListRolesPaginatorOptions) {
-					o.Limit = int32(limit)
-					o.StopOnDuplicateToken = true
-				})
+				maxItems = int32(limit)
 			}
 		}
 	}
 
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := iam.NewListRolesPaginator(svc, &input, func(o *iam.ListRolesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	page := 0
 	for paginator.HasMorePages() {
+		page++
+		plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "page", page)
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
