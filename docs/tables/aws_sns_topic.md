@@ -109,18 +109,13 @@ where
   );
 ```
 
-### List topics with delivery status logging for notification messages is disabled
+### List topics which have delivery status logging for notification messages disabled
 
 ```sql
 select
   title,
   topic_arn,
-  region,
-  application_success_feedback_sample_rate,
-  firehose_success_feedback_sample_rate,
-  http_success_feedback_sample_rate,
-  lambda_success_feedback_sample_rate,
-  sqs_success_feedback_sample_rate
+  region
 from 
   aws_sns_topic
 where
