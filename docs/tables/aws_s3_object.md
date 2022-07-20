@@ -2,9 +2,7 @@
 
 Amazon S3 objects are stored in one or more Amazon S3 buckets, and each object can be up to 5 TB in size.
 
-To list objects, you must mention the `bucket` which contains the objects.
-
-> Note: The `data` column in the `aws_s3_object` table requests and loads the raw data of the object. Extracting the data has cost implications.
+> Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to AWS S3 Pricing to understand the cost implications.
 
 ## Examples
 
@@ -65,22 +63,6 @@ from
 where
   prefix = 'static_assets'
   and last_modified < current_date - interval '3 months';
-```
-
-### Get object data for server-side encrypted objects
-
-```sql
-select
-  key,
-  bucket,
-  data
-from
-  aws_s3_object
-where
-  key = 'db_connection_params.json'
-  and bucket = 'application_secrets'
-  and sse_customer_algorithm = 'AES256'
-  and sse_customer_key = 'K01iUWVUaFdtWnE0dDd3OXokQyZGKUpATmNSZlVqWG4=';
 ```
 
 ### List all objects in a bucket where any user other than the `OWNER` has `FULL_CONTROL`
