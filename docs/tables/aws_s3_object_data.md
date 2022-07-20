@@ -72,11 +72,11 @@ where
   and event ->> 'level' = 'error';
 ```
 
-### Export binary `data` by converting back from `base64`
+### Get the raw binary `data` by converting back from `base64`
 
 ```sql
 select
-  lo_export(decode(data, 'base64'), '/app_data/user_data/avatars/' || key || ".png") 
+  decode(data, 'base64')
 from
   aws_s3_object_data 
 where
