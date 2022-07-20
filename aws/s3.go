@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -88,7 +90,6 @@ type s3ObjectAttributes struct {
 
 type s3ObjectContent struct {
 	s3.GetObjectOutput
-	parentRow *s3ObjectRow
 }
 
 func (obj *s3ObjectContent) ReadBody() (interface{}, error) {
@@ -96,5 +97,10 @@ func (obj *s3ObjectContent) ReadBody() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return string(body), err
+
+	if utf8.Valid(body) {
+		return string(body), nil
+	}
+
+	return base64.StdEncoding.EncodeToString(body), nil
 }
