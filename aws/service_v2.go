@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -30,6 +31,30 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 	return noOpToken, nil
 }
 func noOpToken() error { return nil }
+
+// ACMClient returns the service client for AWS SNS service
+func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SNSV2Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("acm-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*acm.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := acm.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
 
 // IAMClient returns the service client for AWS IAM service
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {

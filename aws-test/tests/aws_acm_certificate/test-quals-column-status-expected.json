@@ -1,0 +1,6 @@
+[
+    {
+        "status": "ISSUED",
+        "title": "{{ output.resource_aka.value.split('/').pop() }}"
+    }
+]

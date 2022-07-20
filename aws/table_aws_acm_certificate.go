@@ -5,10 +5,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/turbot/go-kit/types"
+	go_kit_packs "github.com/turbot/go-kit/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/acm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -223,51 +224,61 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		logger.Trace("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &acm.ListCertificatesInput{
-		MaxItems: aws.Int64(1000),
+		MaxItems: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["status"] != nil {
-		input.CertificateStatuses = []*string{types.String(equalQuals["status"].GetStringValue())}
+		input.CertificateStatuses = []types.CertificateStatus{
+			types.CertificateStatus(equalQuals["status"].GetStringValue()),
+		}
 	}
+	paginator := acm.NewListCertificatesPaginator(svc, input, func(o *acm.ListCertificatesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
-			} else {
-				input.MaxItems = limit
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_acm_certificate.listAwsAcmCertificates", "api_error", err)
+			return nil, err
+		}
+
+		for _, certificate := range output.CertificateSummaryList {
+			d.StreamListItem(ctx, &types.CertificateDetail{
+				CertificateArn: certificate.CertificateArn,
+			})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListCertificatesPages(
-		input,
-		func(page *acm.ListCertificatesOutput, lastPage bool) bool {
-			for _, certificate := range page.CertificateSummaryList {
-				d.StreamListItem(ctx, &acm.CertificateDetail{
-					CertificateArn: certificate.CertificateArn,
-				})
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !lastPage
-		},
-	)
 	return nil, err
 }
 
@@ -277,14 +288,14 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 	plugin.Logger(ctx).Trace("getAwsAcmCertificateAttributes")
 
 	// Create session
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	var arn string
 	if h.Item != nil {
-		arn = *h.Item.(*acm.CertificateDetail).CertificateArn
+		arn = *h.Item.(*types.CertificateDetail).CertificateArn
 	} else {
 		arn = d.KeyColumnQuals["certificate_arn"].GetStringValue()
 	}
@@ -293,7 +304,7 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		CertificateArn: aws.String(arn),
 	}
 
-	detail, err := svc.DescribeCertificate(params)
+	detail, err := svc.DescribeCertificate(ctx, params)
 	if err != nil {
 		log.Println("[DEBUG] getAwsAcmCertificateAttributes__", "ERROR", err)
 		return nil, err
@@ -303,15 +314,15 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsAcmCertificateProperties")
-	item := h.Item.(*acm.CertificateDetail)
+	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	detail, err := svc.GetCertificate(&acm.GetCertificateInput{
+	detail, err := svc.GetCertificate(ctx, &acm.GetCertificateInput{
 		CertificateArn: item.CertificateArn,
 	})
 
@@ -323,10 +334,10 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTagsForAcmCertificate")
-	item := h.Item.(*acm.CertificateDetail)
+	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMService(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +347,7 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 		CertificateArn: item.CertificateArn,
 	}
 
-	certificateTags, err := svc.ListTagsForCertificate(param)
+	certificateTags, err := svc.ListTagsForCertificate(ctx, param)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +369,7 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 }
 
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	item := types.SafeString(d.Value)
+	item := go_kit_packs.SafeString(d.Value)
 
 	// Get the resource title
 	title := item[strings.LastIndex(item, "/")+1:]
