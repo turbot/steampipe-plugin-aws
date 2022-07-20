@@ -86,4 +86,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-// replace github.com/aws/aws-sdk-go-v2 => /Users/lalit/WORK/Turbot/steampipe/plugins/aws-sdk-go-v2
+replace github.com/aws/aws-sdk-go-v2 => /Users/lalit/WORK/Turbot/steampipe/plugins/aws-sdk-go-v2

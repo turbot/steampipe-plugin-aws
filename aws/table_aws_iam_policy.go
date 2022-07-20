@@ -272,7 +272,7 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	policy := d.HydrateItem.(types.Policy)
 	var turbotTagsMap map[string]string
-	if policy.Tags == nil {
+	if len(policy.Tags) == 0 {
 		return nil, nil
 	}
 
