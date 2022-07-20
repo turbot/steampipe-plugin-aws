@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/base64"
 	"io"
 	"strings"
 
@@ -142,7 +140,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DeleteMarker"),
 				Hydrate:     getS3ObjectAttributes,
 			},
-
 			{
 				Name:        "content_type",
 				Description: "A standard MIME type describing the format of the object data.",
@@ -193,27 +190,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     getS3ObjectContent,
 			},
 			{
-				Name:        "sse_customer_key",
-				Description: "If server-side encryption is set on the object, use this to provide the 256-bit, base64-encoded encryption key which Amazon S3 will use to decrypt your data.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("sse_customer_key"),
-				Hydrate:     getS3ObjectContent,
-			},
-			{
-				Name:        "sse_customer_algorithm",
-				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header confirming the encryption algorithm used.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SSECustomerAlgorithm"),
-				Hydrate:     getS3ObjectContent,
-			},
-			{
-				Name:        "sse_kms_key_id",
-				Description: "If present, specifies the ID of the Amazon Web Services Key Management Service (Amazon Web Services KMS) symmetric customer managed key that was used for the object.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SSEKMSKeyId"),
-				Hydrate:     getS3ObjectContent,
-			},
-			{
 				Name:        "server_side_encryption",
 				Description: "The server-side encryption algorithm used when storing this object in Amazon S3.",
 				Type:        proto.ColumnType_STRING,
@@ -225,13 +201,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "If the bucket is configured as a website, redirects requests for this object  to another object in the same bucket or to an external URL.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("WebsiteRedirectLocation"),
-				Hydrate:     getS3ObjectContent,
-			},
-			{
-				Name:        "data",
-				Description: "The raw bytes of the object.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromMethod("ReadBody"),
 				Hydrate:     getS3ObjectContent,
 			},
 
@@ -407,29 +376,10 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	plugin.Logger(ctx).Trace("fetching content for ", *s3Object.Key)
-	plugin.Logger(ctx).Trace("sse_customer_algorithm", d.KeyColumnQualString("sse_customer_algorithm"))
 
 	input := &s3.GetObjectInput{
 		Bucket: s3Object.BucketName,
 		Key:    s3Object.Key,
-	}
-	if len(d.KeyColumnQualString("sse_customer_key")) > 0 {
-		hasher := md5.New()
-		b64, err := base64.StdEncoding.DecodeString(d.KeyColumnQualString("sse_customer_key"))
-		if err != nil {
-			return nil, err
-		}
-		keyMd5 := base64.StdEncoding.EncodeToString(hasher.Sum(b64))
-
-		// Refer:
-		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerSideEncryptionCustomerKeys.html#specifying-s3-c-encryption
-		input.
-			// the 256-bit, base64-encoded encryption key
-			SetSSECustomerKey(d.KeyColumnQualString("sse_customer_key")).
-			// value must be "AES256"
-			SetSSECustomerAlgorithm("AES256").
-			// the base64-encoded 128-bit MD5 digest of the encryption key according to RFC 1321
-			SetSSECustomerKeyMD5(keyMd5)
 	}
 
 	output, err := svc.GetObjectWithContext(ctx, input)
@@ -439,7 +389,6 @@ func getS3ObjectContent(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	return &s3ObjectContent{
 		GetObjectOutput: *output,
-		parentRow:       s3Object,
 	}, nil
 }
 
