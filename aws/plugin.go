@@ -294,6 +294,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_s3_account_settings":                                      tableAwsS3AccountSettings(ctx),
 			"aws_s3_bucket":                                                tableAwsS3Bucket(ctx),
 			"aws_s3_object":                                                tableAwsS3Object(ctx),
+			"aws_s3_object_data":                                           tableAwsS3ObjectData(ctx),
 			"aws_sagemaker_app":                                            tableAwsSageMakerApp(ctx),
 			"aws_sagemaker_domain":                                         tableAwsSageMakerDomain(ctx),
 			"aws_sagemaker_endpoint_configuration":                         tableAwsSageMakerEndpointConfiguration(ctx),
