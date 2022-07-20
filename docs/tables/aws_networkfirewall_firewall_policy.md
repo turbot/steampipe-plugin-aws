@@ -29,7 +29,8 @@ select
   encryption_configuration
 from
   aws_networkfirewall_firewall_policy
-where encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
+where 
+  encryption_configuration ->> 'Type' = 'AWS_OWNED_KMS_KEY';
 ```
 
 ### List inactive policies
