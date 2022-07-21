@@ -110,9 +110,7 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
 	// waiting too long to return results
 	maxRetries := 9
-	var minRetryDelay time.Duration = 5 * time.Minute // Default minimum delay
-	// var minRetryDelay time.Duration = 30 * time.Second // Default minimum delay
-	// var minRetryDelay time.Duration = 3 * time.Millisecond // Default minimum delay
+	var maxRetryDelay time.Duration = 5 * time.Minute // Default minimum delay
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsConfig.MaxErrorRetryAttempts != nil {
@@ -125,22 +123,22 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 		maxRetries = maxRetriesEnvVar
 	}
 
-	// Set min delay time from config file
-	if awsConfig.MinErrorRetryDelay != nil {
-		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
-	}
+	// // Set min delay time from config file
+	// if awsConfig.MinErrorRetryDelay != nil {
+	// 	minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	// }
 
 	if maxRetries < 1 {
 		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
 	}
-	if minRetryDelay < 1 {
-		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	}
+	// if minRetryDelay < 1 {
+	// 	panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	// }
 
-	return getSessionV2WithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+	return getSessionV2WithMaxRetries(ctx, d, region, maxRetries, maxRetryDelay)
 }
 
-func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
+func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, maxRetryDelay time.Duration) (*aws.Config, error) {
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*aws.Config), nil
@@ -157,7 +155,7 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
 		config.WithRetryer(func() aws.Retryer {
-			return retry.AddWithMaxBackoffDelay(retryer, 5*time.Minute)
+			return retry.AddWithMaxBackoffDelay(retryer, maxRetryDelay)
 		}),
 	}
 
