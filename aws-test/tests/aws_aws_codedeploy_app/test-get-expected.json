@@ -1,0 +1,36 @@
+[
+  {
+    "artifacts": {
+      "ArtifactIdentifier": null,
+      "BucketOwnerAccess": null,
+      "EncryptionDisabled": null,
+      "Location": null,
+      "Name": null,
+      "NamespaceType": null,
+      "OverrideArtifactName": false,
+      "Packaging": null,
+      "Path": null,
+      "Type": "NO_ARTIFACTS"
+    },
+    "cache": {
+      "Location": "{{resourceName}}",
+      "Modes": null,
+      "Type": "S3"
+    },
+    "description": "Resource for testing",
+    "name": "{{resourceName}}",
+    "source": {
+      "Auth": null,
+      "BuildStatusConfig": null,
+      "Buildspec": "",
+      "GitCloneDepth": 0,
+      "GitSubmodulesConfig": null,
+      "InsecureSsl": false,
+      "Location": "https://github.com/mitchellh/packer.git",
+      "ReportBuildStatus": false,
+      "SourceIdentifier": null,
+      "Type": "GITHUB"
+    },
+    "title": "{{resourceName}}"
+  }
+]
