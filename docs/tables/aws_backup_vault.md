@@ -4,7 +4,7 @@ AWS Backup vault is a container that you organize your backups in. You can use b
 
 If you require different encryption keys or access policies for different groups of backups, you can optionally create multiple backup vaults. Otherwise, you can have all your backups organized in the default backup vault.
 
-**Note:** If you pass in the name of a vault in where clause that doesn't exist or you don't have access to (through the vault's access policy), you will get no rows.
+**Note:** If you pass in the name of a vault in where clause that doesn't exist or you don't have access to (through the vault's access policy), you will get empty row.
 
 ## Examples
 
