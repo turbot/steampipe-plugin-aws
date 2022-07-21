@@ -209,36 +209,3 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 
 	return &cfg, err
 }
-
-// ExponentialJitterBackoff provides backoff delays with jitter based on the
-// number of attempts.
-// type ExponentialJitterBackoff struct {
-// 	minDelay           time.Duration
-// 	maxBackoffAttempts int
-// }
-
-// // NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
-// // for the max backoff.
-// func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
-// 	return &ExponentialJitterBackoff{minDelay, maxAttempts}
-// }
-
-// // BackoffDelay returns the duration to wait before the next attempt should be
-// // made. Returns an error if unable get a duration.
-// func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
-// 	minDelay := j.minDelay
-
-// 	// log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
-
-// 	var jitter = float64(rand.Intn(120-80)+80) / 100
-
-// 	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
-// 	// log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
-
-// 	// Cap retry time at 5 minutes to avoid too long a wait
-// 	if retryTime > time.Duration(5*time.Minute) {
-// 		retryTime = time.Duration(5 * time.Minute)
-// 	}
-
-// 	return retryTime, nil
-// }
