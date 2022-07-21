@@ -3,8 +3,6 @@ package aws
 import (
 	"context"
 	"fmt"
-	"math"
-	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -112,7 +110,9 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
 	// waiting too long to return results
 	maxRetries := 9
-	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+	var minRetryDelay time.Duration = 5 * time.Minute // Default minimum delay
+	// var minRetryDelay time.Duration = 30 * time.Second // Default minimum delay
+	// var minRetryDelay time.Duration = 3 * time.Millisecond // Default minimum delay
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsConfig.MaxErrorRetryAttempts != nil {
@@ -147,29 +147,17 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	}
 
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
-		o.MaxAttempts = maxRetries
-		o.MaxBackoff = 5 * time.Minute
+		// operation error IAM: ListInstanceProfilesForRole, failed to get rate limit token, retry quota exceeded, 3 available, 5 requested
 		o.RateLimiter = NoOpRateLimit{}
-		backoff := NewExponentialJitterBackoff(minRetryDelay, maxRetries)
-		// if backoff != nil {
-		// 	plugin.Logger(ctx).Info("############## BACKOFF IS NOT NIL ##############")
-		// } else {
-		// 	plugin.Logger(ctx).Info("############## BACKOFF IS NIL ##############")
-		// }
-		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
-		o.Backoff = backoff
+		o.MaxAttempts = maxRetries
 	})
-	// If session was not in cache - create a session and save to cache
 
-	// get aws config info
-	// ratelimiter := ratelimit.NewTokenRateLimit(500)
 	awsConfig := GetConfig(d.Connection)
 
 	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
-		config.WithRetryMaxAttempts(maxRetries),
 		config.WithRetryer(func() aws.Retryer {
-			return retry.AddWithMaxBackoffDelay(retryer, minRetryDelay)
+			return retry.AddWithMaxBackoffDelay(retryer, 5*time.Minute)
 		}),
 	}
 
@@ -226,33 +214,33 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 
 // ExponentialJitterBackoff provides backoff delays with jitter based on the
 // number of attempts.
-type ExponentialJitterBackoff struct {
-	minDelay           time.Duration
-	maxBackoffAttempts int
-}
+// type ExponentialJitterBackoff struct {
+// 	minDelay           time.Duration
+// 	maxBackoffAttempts int
+// }
 
-// NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
-// for the max backoff.
-func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
-	return &ExponentialJitterBackoff{minDelay, maxAttempts}
-}
+// // NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+// // for the max backoff.
+// func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
+// 	return &ExponentialJitterBackoff{minDelay, maxAttempts}
+// }
 
-// BackoffDelay returns the duration to wait before the next attempt should be
-// made. Returns an error if unable get a duration.
-func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
-	minDelay := j.minDelay
+// // BackoffDelay returns the duration to wait before the next attempt should be
+// // made. Returns an error if unable get a duration.
+// func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
+// 	minDelay := j.minDelay
 
-	// log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
+// 	// log.Printf("[WARN] ***************** AM I HERE-1 SERVICE %s: %d", "retryCount", attempt)
 
-	var jitter = float64(rand.Intn(120-80)+80) / 100
+// 	var jitter = float64(rand.Intn(120-80)+80) / 100
 
-	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
-	// log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
+// 	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
+// 	// log.Printf("[WARN] ***************** AM I HERE-2 SERICE %s: %d retryTime: %v", "retryCount", attempt, retryTime)
 
-	// Cap retry time at 5 minutes to avoid too long a wait
-	if retryTime > time.Duration(5*time.Minute) {
-		retryTime = time.Duration(5 * time.Minute)
-	}
+// 	// Cap retry time at 5 minutes to avoid too long a wait
+// 	if retryTime > time.Duration(5*time.Minute) {
+// 		retryTime = time.Duration(5 * time.Minute)
+// 	}
 
-	return retryTime, nil
-}
+// 	return retryTime, nil
+// }

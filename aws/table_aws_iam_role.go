@@ -217,10 +217,7 @@ func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		o.StopOnDuplicateToken = true
 	})
 
-	page := 0
 	for paginator.HasMorePages() {
-		page++
-		plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "page", page)
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
