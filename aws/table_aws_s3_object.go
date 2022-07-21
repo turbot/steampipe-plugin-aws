@@ -27,8 +27,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				{Name: "bucket", Require: plugin.Optional},
 				{Name: "key", Require: plugin.Optional},
 				{Name: "prefix", Require: plugin.Optional},
-
-				{Name: "sse_customer_key", Require: plugin.Optional},
 			},
 		},
 		Columns: awsDefaultColumns([]*plugin.Column{
