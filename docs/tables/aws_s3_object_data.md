@@ -6,6 +6,8 @@ The data is serialized into a string if it contains valid UTF8 bytes, otherwise 
 
 To list objects, you must mention the `key` and the name of the container `bucket` which contains the objects.
 
+When requesting **Server Side Encrypted** objects, you will need to mention the `SSECustomerKey` using the `sse_customer_key` column ([refer example below](#get-a-server-side-encrypted-object)). This column accepts the *Base64* encoding of the encryption key.
+
 > Note: Using this table adds to cost to your monthly bill from AWS. Optimizations have been put in place to minimize the impact as much as possible. Please refer to [AWS S3 Pricing](https://aws.amazon.com/s3/pricing/) to understand the cost implications.
 
 ## Examples
