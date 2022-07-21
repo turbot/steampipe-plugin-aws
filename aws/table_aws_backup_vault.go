@@ -21,6 +21,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
+			// DescribeBackupVault API returns AccessDeniedException when it is called with other regions where the vault is unavailable
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
