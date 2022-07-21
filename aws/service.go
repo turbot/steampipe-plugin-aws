@@ -35,6 +35,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/codecommit"
+	"github.com/aws/aws-sdk-go/service/codedeploy"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
@@ -367,6 +368,27 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 		return nil, err
 	}
 	svc := codecommit.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+	return svc, nil
+}
+
+// CodeDeployService returns the service connection for AWS CodeDeploy service
+func CodeDeployService(ctx context.Context, d *plugin.QueryData) (*codedeploy.CodeDeploy, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodeDeployService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codedeploy-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codedeploy.CodeDeploy), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codedeploy.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 	return svc, nil
 }

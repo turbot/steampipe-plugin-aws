@@ -1,0 +1,22 @@
+[
+  {
+    "artifacts": {
+      "ArtifactIdentifier": null,
+      "BucketOwnerAccess": null,
+      "EncryptionDisabled": null,
+      "Location": null,
+      "Name": null,
+      "NamespaceType": null,
+      "OverrideArtifactName": false,
+      "Packaging": null,
+      "Path": null,
+      "Type": "NO_ARTIFACTS"
+    },
+    "description": "Resource for testing",
+    "name": "{{resourceName}}",
+    "tags": {
+      "foo": "bar"
+    },
+    "title": "{{resourceName}}"
+  }
+]
