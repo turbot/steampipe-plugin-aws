@@ -12,14 +12,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -32,7 +33,7 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 }
 func noOpToken() error { return nil }
 
-// ACMClient returns the service client for AWS SNS service
+// ACMClient returns the service client for AWS ACM service
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
@@ -51,6 +52,30 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	}
 
 	svc := acm.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// APIGatewayClient returns the service client for AWS API Gateway service
+func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed SNSV2Service")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("acm-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*apigateway.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := apigateway.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
