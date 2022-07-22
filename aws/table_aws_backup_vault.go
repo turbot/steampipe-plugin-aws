@@ -20,9 +20,10 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_vault",
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"name"}),
+			KeyColumns: plugin.SingleColumn("name"),
+			// DescribeBackupVault API returns AccessDeniedException instead of a not found error when it is called for vaults that do not exist
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
 			},
 			Hydrate: getAwsBackupVault,
 		},
