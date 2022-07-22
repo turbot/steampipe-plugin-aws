@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
+	"github.com/aws/smithy-go/middleware"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -146,7 +147,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "A container for specifying the notification configuration of the bucket. If this element is empty, notifications are turned off for the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getS3BucketEventNotificationConfigurations,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromValue().Transform(removeMedataFromS3BucketEventNotificationConfigurations),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
@@ -160,7 +161,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
-				Transform:   transform.FromValue(),
+				Transform:   tremoveMedataFromS3BucketACLransform.FromValue().Transform(),
 			},
 			{
 				Name:        "lifecycle_rules",
@@ -325,12 +326,13 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 	// Build param
 	input := &s3.GetBucketNotificationConfigurationInput{Bucket: name}
 
-	notificatiionDetails, err := svc.GetBucketNotificationConfiguration(ctx, input)
+	notificationDetails, err := svc.GetBucketNotificationConfiguration(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketEventNotificationConfigurations", "api_error", err)
 		return nil, err
 	}
-	return notificatiionDetails, nil
+	// &notificationDetails.ResultMetadata =
+	return notificationDetails, nil
 }
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -531,6 +533,11 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		plugin.Logger(ctx).Error("aws_s3_bucket.getBucketACL", "api_error", err)
 		return nil, err
 	}
+
+	var metadata middleware.Metadata
+	acl.ResultMetadata = metadata
+
+	// delete(*acl, "ResultMetadata")
 
 	return acl, nil
 }
@@ -755,4 +762,31 @@ func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 	}
 
 	return turbotTagsMap, nil
+}
+
+func removeMedataFromS3BucketEventNotificationConfigurations(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	value, ok := d.Value.(*s3.GetBucketNotificationConfigurationOutput)
+	if !ok {
+		return nil, nil
+	}
+
+	output := map[string]any{}
+	output["EventBridgeConfiguration"] = value.EventBridgeConfiguration
+	output["LambdaFunctionConfigurations"] = value.LambdaFunctionConfigurations
+	output["QueueConfigurations"] = value.QueueConfigurations
+	output["TopicConfigurations"] = value.TopicConfigurations
+
+	return &output, nil
+}
+
+func removeMedataFromS3BucketACL(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	value, ok := d.Value.(*s3.GetBucketAclOutput)
+	if !ok {
+		return nil, nil
+	}
+
+	output := map[string]any{}
+	output["Grants"] = value.Grants
+	output["Owner"] = value.Owner
+	return &output, nil
 }
