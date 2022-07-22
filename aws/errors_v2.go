@@ -30,28 +30,3 @@ func isNotFoundErrorV2(notFoundErrors []string) plugin.ErrorPredicateWithContext
 		return false
 	}
 }
-
-// shouldIgnoreErrorPluginDefault:: Plugin level default function to ignore a set errors for hydrate functions based on "ignore_error_codes" config argument
-// func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
-// 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, err error) bool {
-// 		if !hasIgnoredErrorCodes(d.Connection) {
-// 			return false
-// 		}
-
-// 		awsConfig := GetConfig(d.Connection)
-// 		if awsErr, ok := err.(awserr.Error); ok {
-// 			// Added to support regex in ignoring errors
-// 			for _, pattern := range awsConfig.IgnoreErrorCodes {
-// 				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
-// 					return true
-// 				}
-// 			}
-// 		}
-// 		return false
-// 	}
-// }
-
-// func hasIgnoredErrorCodes(connection *plugin.Connection) bool {
-// 	awsConfig := GetConfig(connection)
-// 	return len(awsConfig.IgnoreErrorCodes) > 0
-// }
