@@ -161,7 +161,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
-				Transform:   tremoveMedataFromS3BucketACLransform.FromValue().Transform(),
+				Transform:   transform.FromValue().Transform(removeMedataFromS3BucketACL),
 			},
 			{
 				Name:        "lifecycle_rules",
