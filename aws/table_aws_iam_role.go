@@ -26,7 +26,7 @@ func tableAwsIamRole(ctx context.Context) *plugin.Table {
 			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
 			Hydrate:    getIamRole,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
 			},
 		},
 		List: &plugin.ListConfig{
