@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	go_kit_packs "github.com/turbot/go-kit/types"
@@ -226,7 +225,7 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create service
 	svc, err := ACMClient(ctx, d)
 	if err != nil {
-		logger.Trace("listAwsAcmCertificates", "connection error", err)
+		logger.Error("listAwsAcmCertificates", "connection error", err)
 		return nil, err
 	}
 
@@ -285,7 +284,6 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAcmCertificateAttributes")
 
 	// Create session
 	svc, err := ACMClient(ctx, d)
@@ -306,14 +304,13 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 
 	detail, err := svc.DescribeCertificate(ctx, params)
 	if err != nil {
-		log.Println("[DEBUG] getAwsAcmCertificateAttributes__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "api_error", err)
 		return nil, err
 	}
 	return detail.Certificate, nil
 }
 
 func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAcmCertificateProperties")
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
@@ -333,7 +330,6 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAcmCertificate")
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
@@ -349,6 +345,7 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 
 	certificateTags, err := svc.ListTagsForCertificate(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "api_error", err)
 		return nil, err
 	}
 	return certificateTags, nil
