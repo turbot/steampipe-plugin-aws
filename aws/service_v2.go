@@ -3,6 +3,9 @@ package aws
 import (
 	"context"
 	"fmt"
+	"log"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -110,7 +113,7 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
 	// waiting too long to return results
 	maxRetries := 9
-	var maxRetryDelay time.Duration = 5 * time.Minute // Default minimum delay
+	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsConfig.MaxErrorRetryAttempts != nil {
@@ -123,39 +126,41 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 		maxRetries = maxRetriesEnvVar
 	}
 
-	// // Set min delay time from config file
-	// if awsConfig.MinErrorRetryDelay != nil {
-	// 	minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
-	// }
+	// Set min delay time from config file
+	if awsConfig.MinErrorRetryDelay != nil {
+		minRetryDelay = time.Duration(*awsConfig.MinErrorRetryDelay) * time.Millisecond
+	}
 
 	if maxRetries < 1 {
 		panic("\nconnection config has invalid value for \"max_error_retry_attempts\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
 	}
-	// if minRetryDelay < 1 {
-	// 	panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
-	// }
+	if minRetryDelay < 1 {
+		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
+	}
 
-	return getSessionV2WithMaxRetries(ctx, d, region, maxRetries, maxRetryDelay)
+	return getSessionV2WithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
 }
 
-func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, maxRetryDelay time.Duration) (*aws.Config, error) {
+func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
 		return cachedData.(*aws.Config), nil
 	}
 
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
-		// operation error IAM: ListInstanceProfilesForRole, failed to get rate limit token, retry quota exceeded, 3 available, 5 requested
-		o.RateLimiter = NoOpRateLimit{}
+		// reseting state of rand to generate different random values
+		rand.Seed(time.Now().UnixNano())
 		o.MaxAttempts = maxRetries
+		o.MaxBackoff = 5 * time.Minute
+		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
+		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
 	})
 
 	awsConfig := GetConfig(d.Connection)
-
 	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
 		config.WithRetryer(func() aws.Retryer {
-			return retry.AddWithMaxBackoffDelay(retryer, maxRetryDelay)
+			return retryer
 		}),
 	}
 
@@ -208,4 +213,36 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 	d.ConnectionManager.Cache.Set(sessionCacheKey, &cfg)
 
 	return &cfg, err
+}
+
+// ExponentialJitterBackoff provides backoff delays with jitter based on the
+// number of attempts.
+type ExponentialJitterBackoff struct {
+	minDelay           time.Duration
+	maxBackoffAttempts int
+}
+
+// NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+// for the max backoff.
+func NewExponentialJitterBackoff(minDelay time.Duration, maxAttempts int) *ExponentialJitterBackoff {
+	return &ExponentialJitterBackoff{minDelay, maxAttempts}
+}
+
+// BackoffDelay returns the duration to wait before the next attempt should be
+// made. Returns an error if unable get a duration.
+func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Duration, error) {
+	minDelay := j.minDelay
+
+	// The calculatted jitter will be between [0.8, 1.2)
+	var jitter = float64(rand.Intn(120-80)+80) / 100
+
+	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
+	log.Printf("[INFO] *******INSIDE CODE********** Attempt: %d, DelayInSeconds: %f, Delay: %v", attempt, retryTime.Seconds(), retryTime)
+
+	// Cap retry time at 5 minutes to avoid too long a wait
+	if retryTime > time.Duration(5*time.Minute) {
+		retryTime = time.Duration(5 * time.Minute)
+	}
+
+	return retryTime, nil
 }
