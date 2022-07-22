@@ -39,13 +39,11 @@ func tableAwsS3ObjectData(_ context.Context) *plugin.Table {
 				Name:        "content_encoding",
 				Description: "Specifies what content encodings have been applied to the object.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContentEncoding"),
 			},
 			{
 				Name:        "content_type",
 				Description: "A standard MIME type describing the format of the object data.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ContentType"),
 			},
 			{
 				Name:        "sse_customer_key",
