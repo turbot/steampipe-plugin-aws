@@ -107,6 +107,7 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Description: "A list of groups attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserGroups,
+				Transform:   transform.FromField("Groups").Transform(userGroups),
 			},
 			{
 				Name:        "inline_policies",
@@ -373,8 +374,6 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	// userData.Groups
-
 	return userData, nil
 }
 
@@ -514,4 +513,13 @@ func userMfaDevices(_ context.Context, d *transform.TransformData) (interface{},
 	}
 
 	return mfaDevices, nil
+}
+
+func userGroups(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	groups, ok := d.Value.([]types.Group)
+	if !ok || len(groups) == 0 {
+		return nil, nil
+	}
+
+	return groups, nil
 }
