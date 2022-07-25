@@ -65,6 +65,10 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15 h1:QquxR7NH3ULBsKC+NoTpilzbKKS
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15/go.mod h1:Tkrthp/0sNBShQQsamR7j/zY4p19tVTAs+nnqhH6R3c=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.5 h1:tEEHn+PGAxRVqMPEhtU8oCSW/1Ge3zP5nUgPrGQNUPs=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.5/go.mod h1:aIwFF3dUk95ocCcA3zfk3nhz0oLkpzHFWuMp8l/4nNs=
+github.com/aws/aws-sdk-go-v2/service/acm v1.14.8 h1:4JNBqDNPNp+0ZLZMIaY8iMwZ9czfd8RseQOb3MhxuaY=
+github.com/aws/aws-sdk-go-v2/service/acm v1.14.8/go.mod h1:GTgi0ZKMFHpAkRxM8VfZ2wpz7GdUeOMZYrKD5WcFt6k=
+github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10 h1:ECUkYfucRYCdxewYfnBAhKNfwSLLjLWtnN1hHEDaGR8=
+github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10/go.mod h1:AcRUtiDXHcF542IVjLDSsNnmEkhi089SnyRmrarZakg=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9/go.mod h1:ARVuo+lYC2ibYxny/PKC3maaWKLAg25KSq0dkSkE2WE=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 h1:4n4KCtv5SUoT5Er5XV41huuzrCqepxlW3SDI9qHQebc=
