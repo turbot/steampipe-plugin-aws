@@ -374,6 +374,8 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	// userData.Groups
+
 	return userData, nil
 }
 
