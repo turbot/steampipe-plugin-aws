@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	snsTypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -187,7 +188,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(snsTopicSrcTags),
 			},
 			{
 				Name:        "policy",
@@ -343,12 +344,23 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*sns.ListTagsForResourceOutput)
-	var turbotTagsMap map[string]string
-	if tags.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tags.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
-		}
+	if len(tags.Tags) == 0 {
+		return nil, nil
 	}
+
+	turbotTagsMap := map[string]string{}
+	for _, i := range tags.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
 	return turbotTagsMap, nil
+}
+
+func snsTopicSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags, ok := d.Value.([]snsTypes.Tag)
+	if !ok || len(tags) == 0 {
+		return nil, nil
+	}
+
+	return tags, nil
 }
