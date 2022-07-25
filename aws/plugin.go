@@ -242,6 +242,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_lambda_function_metric_invocations_daily":                 tableAwsLambdaFunctionMetricInvocationsDaily(ctx),
 			"aws_lambda_layer":                                             tableAwsLambdaLayer(ctx),
 			"aws_lambda_layer_version":                                     tableAwsLambdaLayerVersion(ctx),
+			"aws_lambda_log_event":                                         tableAwsLambdaLogEvent(ctx),
 			"aws_lambda_version":                                           tableAwsLambdaVersion(ctx),
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
