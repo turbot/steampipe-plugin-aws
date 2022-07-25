@@ -100,7 +100,7 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Description: "A list of MFA devices attached to the user.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsIamUserMfaDevices,
-				Transform:   transform.FromField("MFADevices"),
+				Transform:   transform.FromField("MFADevices").Transform(userMfaDevices),
 			},
 			{
 				Name:        "groups",
@@ -373,6 +373,8 @@ func getAwsIamUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	// userData.Groups
+
 	return userData, nil
 }
 
@@ -503,4 +505,13 @@ func userMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, 
 	}
 
 	return false, nil
+}
+
+func userMfaDevices(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	mfaDevices, ok := d.Value.([]types.MFADevice)
+	if !ok || len(mfaDevices) == 0 {
+		return nil, nil
+	}
+
+	return mfaDevices, nil
 }
