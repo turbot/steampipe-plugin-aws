@@ -180,7 +180,7 @@ func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 	detail, err := svc.GetApiKey(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIKey__", "ERROR", err)
+		plugin.Logger(ctx).Error("getAPIKey__", "ERROR", err)
 		return nil, err
 	}
 	return detail, nil

@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+	go_kit_packs "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -138,53 +140,61 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		logger.Trace("listRestAPI", "connection error", err)
 		return nil, err
 	}
 
-	input := &apigateway.GetRestApisInput{
-		Limit: aws.Int64(500),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetRestApisPages(
-		input,
-		func(page *apigateway.GetRestApisOutput, lastPage bool) bool {
-			for _, items := range page.Items {
-				d.StreamListItem(ctx, items)
+	input := &apigateway.GetRestApisInput{
+		Limit: aws.Int32(maxLimit),
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := apigateway.NewGetRestApisPaginator(svc, input, func(o *apigateway.GetRestApisPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Items {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+
+	}
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRestAPI")
 
 	// Create session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -194,9 +204,12 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		RestApiId: aws.String(id),
 	}
 
-	detail, err := svc.GetRestApi(params)
+	detail, err := svc.GetRestApi(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetRestApi__", "ERROR", err)
+		if strings.Contains(err.Error(), "NotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("GetRestApi__", "ERROR", err)
 		return nil, err
 	}
 	return detail, nil
@@ -205,7 +218,14 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsRestAPITurbotData")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	item := h.Item.(*apigateway.RestApi)
+	id := ""
+
+	switch h.Item.(type) {
+	case *apigateway.GetRestApiOutput:
+		id = *h.Item.(*apigateway.GetRestApiOutput).Id
+	case types.RestApi:
+		id = *h.Item.(types.RestApi).Id
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -215,7 +235,7 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Get data for turbot defined properties
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/restapis/" + *item.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/restapis/" + id}
 
 	return akas, nil
 }
@@ -224,7 +244,7 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 
 // unmarshalJSON :: parse the yaml-encoded data and return the result
 func unmarshalJSON(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	inputStr := types.SafeString(d.Value)
+	inputStr := go_kit_packs.SafeString(d.Value)
 	var result interface{}
 	if inputStr != "" {
 		// Resource IAM policy for aws_api_gateway_rest_api is stored as stringified json object after removing the double quotes from end
