@@ -81,7 +81,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the resource.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamServerCertificate,
-				Transform:   transform.From(getIamServerCertificateTags),
+				Transform:   transform.From(getIamServerCertificateSrcTags),
 			},
 
 			// Steampipe standard columns
@@ -96,7 +96,7 @@ func tableAwsIamServerCertificate(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamServerCertificate,
-				Transform:   transform.From(getIamServerCertificateSrcTags),
+				Transform:   transform.From(getIamServerCertificateTags),
 			},
 			{
 				Name:        "akas",
