@@ -15,9 +15,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -58,10 +60,10 @@ func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed SNSV2Service")
+		return nil, fmt.Errorf("region must be passed apigateway client")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("acm-v2-%s", region)
+	serviceCacheKey := fmt.Sprintf("apigateway-v2-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*apigateway.Client), nil
 	}
@@ -73,6 +75,54 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 	}
 
 	svc := apigateway.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// APIGatewayV2Client returns the service client for AWS API GatewayV2 service
+func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed APIGatewayV2 Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("apigatewayv2-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*apigatewayv2.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := apigatewayv2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// DynamoDbClient returns the service client for AWS DynamoDb service
+func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("dynamodb-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*dynamodb.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := dynamodb.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
