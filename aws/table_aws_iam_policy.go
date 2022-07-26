@@ -162,6 +162,7 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 			maxItems = limit
 		}
 	}
+
 	paginator := iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
 		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
