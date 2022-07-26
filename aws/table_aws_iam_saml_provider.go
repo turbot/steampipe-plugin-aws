@@ -95,7 +95,20 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		return nil, err
 	}
 
+	maxItems := int32(1000)
 	params := &iam.ListSAMLProvidersInput{}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
 
 	// List call
 	// SDK doesn't have new paginator for ListSAMLProviders action
