@@ -40,19 +40,15 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
 
 resource "aws_iam_saml_provider" "named_test_resource" {
   name                   = var.resource_name
-  saml_metadata_document = file("/Users/karanpopat/work/steampipe/aws/steampipe-plugin-aws1/aws-test/tests/aws_iam_saml_provider/saml-metadata.xml")
+  saml_metadata_document = file("${path.cwd}/saml-metadata.xml")
   tags = {
     name = var.resource_name
   }
 }
+
 
 output "resource_aka" {
   value = aws_iam_saml_provider.named_test_resource.arn
