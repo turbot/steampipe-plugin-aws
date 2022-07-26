@@ -20,7 +20,7 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIKey,
 		},
