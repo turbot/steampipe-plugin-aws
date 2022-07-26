@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -19,7 +20,7 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"api_id", "stage_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
 			},
 			Hydrate: getAPIGatewayV2Stage,
 		},
@@ -149,19 +150,19 @@ func tableAwsAPIGatewayV2Stage(_ context.Context) *plugin.Table {
 }
 
 type v2StageRowData = struct {
-	Stage *apigatewayv2.Stage
+	Stage types.Stage
 	APIId *string
 }
 
 //// LIST FUNCTION
 
 func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var stages []*apigatewayv2.Stage
+	var stages []types.Stage
 
 	// Get API details
-	apiGatewayv2API := h.Item.(*apigatewayv2.Api)
+	apiGatewayv2API := h.Item.(types.Api)
 
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +173,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	for pagesLeft {
-		result, err := svc.GetStages(params)
+		result, err := svc.GetStages(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -201,10 +202,9 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayV2Stage")
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -217,13 +217,13 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		StageName: aws.String(stageName),
 	}
 
-	stageData, err := svc.GetStage(input)
+	stageData, err := svc.GetStage(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIGatewayStage__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "ERROR", err)
 		return nil, err
 	}
 	if stageData != nil {
-		stage := &apigatewayv2.Stage{
+		stage := &types.Stage{
 			StageName:                   stageData.StageName,
 			AccessLogSettings:           stageData.AccessLogSettings,
 			ApiGatewayManaged:           stageData.ApiGatewayManaged,
@@ -239,7 +239,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			StageVariables:              stageData.StageVariables,
 			Tags:                        stageData.Tags,
 		}
-		rowData := &v2StageRowData{stage, aws.String(apiID)}
+		rowData := &v2StageRowData{*stage, aws.String(apiID)}
 
 		return rowData, nil
 	}
