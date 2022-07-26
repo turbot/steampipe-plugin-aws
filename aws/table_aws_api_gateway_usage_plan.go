@@ -124,7 +124,7 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listRestAPI", "api_error", err)
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.listUsagePlans", "api_error", err)
 			return nil, err
 		}
 

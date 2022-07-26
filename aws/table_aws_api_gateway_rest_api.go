@@ -216,7 +216,6 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 }
 
 func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRestAPITurbotData")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := ""
 
