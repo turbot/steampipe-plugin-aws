@@ -150,8 +150,9 @@ func listS3AccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	// Create Session
-	svc, err := S3ControlClient(ctx, d)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.listS3AccessPoints", "client_error", err)
 		return nil, err
@@ -221,7 +222,7 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlClient(ctx, d)
+	svc, err := S3ControlClient(ctx, d, matrixRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPoint", "client_error", err)
 		return nil, err
@@ -258,6 +259,7 @@ func getS3AccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Get account details
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -269,7 +271,7 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlClient(ctx, d)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicyStatus", "client_error", err)
 		return nil, err
@@ -299,6 +301,8 @@ func getS3AccessPointPolicyStatus(ctx context.Context, d *plugin.QueryData, h *p
 }
 
 func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	// Get account details
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -309,7 +313,7 @@ func getS3AccessPointPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := S3ControlClient(ctx, d)
+	svc, err := S3ControlClient(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_access_point.getS3AccessPointPolicy", "client_error", err)
 		return nil, err

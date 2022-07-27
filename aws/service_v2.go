@@ -186,8 +186,7 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 // S3ControlClient returns the service connection for AWS s3control service
-func S3ControlClient(ctx context.Context, d *plugin.QueryData) (*s3control.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
 	if region == "" {
 		return nil, fmt.Errorf("region must be passed S3ControlClient")
 	}
