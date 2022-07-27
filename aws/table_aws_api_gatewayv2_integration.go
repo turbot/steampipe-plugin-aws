@@ -3,15 +3,16 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 type integrationInfo = struct {
-	apigatewayv2.Integration
+	types.Integration
 	ApiId string
 }
 
@@ -24,7 +25,7 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"integration_id", "api_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException", "TooManyRequestsException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException", "TooManyRequestsException"}),
 			},
 			Hydrate: getAPIGatewayV2Integration,
 		},
@@ -169,11 +170,12 @@ func tableAwsAPIGatewayV2Integration(_ context.Context) *plugin.Table {
 
 func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get API details
-	api := h.Item.(*apigatewayv2.Api)
+	api := h.Item.(types.Api)
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "service_client_error", err)
 		return nil, err
 	}
 
@@ -183,13 +185,14 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	for pagesLeft {
-		result, err := svc.GetIntegrations(params)
+		result, err := svc.GetIntegrations(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "api_error", err)
 			return nil, err
 		}
 
 		for _, integration := range result.Items {
-			d.StreamLeafListItem(ctx, integrationInfo{*integration, *api.ApiId})
+			d.StreamLeafListItem(ctx, integrationInfo{integration, *api.ApiId})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -211,11 +214,11 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 //// HYDRATE FUNCTIONS
 
 func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayV2Integration")
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "service_client_error", err)
 		return nil, err
 	}
 
@@ -226,15 +229,15 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 		IntegrationId: aws.String(key),
 	}
 
-	item, err := svc.GetIntegration(params)
+	item, err := svc.GetIntegration(ctx, params)
 
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIGatewayV2API__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "api_error", err)
 		return nil, err
 	}
 
 	if item != nil {
-		integration := &apigatewayv2.Integration{
+		integration := &types.Integration{
 			ApiGatewayManaged:                      item.ApiGatewayManaged,
 			ConnectionId:                           item.ConnectionId,
 			ConnectionType:                         item.ConnectionType,
