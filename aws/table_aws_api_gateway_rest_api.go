@@ -142,7 +142,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	// Create service
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Trace("aws_api_gateway_rest_api.listRestAPI", "connection error", err)
+		logger.Error("aws_api_gateway_rest_api.listRestAPI", "connection error", err)
 		return nil, err
 	}
 
