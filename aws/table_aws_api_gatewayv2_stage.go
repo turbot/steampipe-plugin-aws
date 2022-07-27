@@ -222,7 +222,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	stageData, err := svc.GetStage(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "api_error", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "api_error", err)
 		return nil, err
 	}
 	if stageData != nil {
