@@ -40,12 +40,6 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 resource "aws_s3_bucket" "named_test_resource" {
   bucket = var.resource_name
 }
@@ -58,9 +52,33 @@ resource "aws_s3_access_point" "named_test_resource" {
   bucket = aws_s3_bucket.named_test_resource.id
   name   = var.resource_name
 
+  public_access_block_configuration {
+    block_public_acls       = true
+    block_public_policy     = false
+    ignore_public_acls      = true
+    restrict_public_buckets = false
+  }
+
   vpc_configuration {
     vpc_id = aws_vpc.named_test_resource.id
   }
+}
+
+
+resource "aws_s3control_access_point_policy" "access_point_policy" {
+  access_point_arn = aws_s3_access_point.named_test_resource.arn
+
+  policy = jsonencode({
+    Version = "2008-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "s3:GetObjectTagging"
+      Principal = {
+        AWS = "*"
+      }
+      Resource = "${aws_s3_access_point.named_test_resource.arn}/object/*"
+    }]
+  })
 }
 
 output "vpc_id" {

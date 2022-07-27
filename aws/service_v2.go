@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -179,6 +180,31 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 		svc = s3.NewFromConfig(*cfg)
 	}
 
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// S3ControlClient returns the service connection for AWS s3control service
+func S3ControlClient(ctx context.Context, d *plugin.QueryData) (*s3control.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3ControlClient")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("s3control-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*s3control.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := s3control.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
