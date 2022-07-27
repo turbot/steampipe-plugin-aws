@@ -29,7 +29,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

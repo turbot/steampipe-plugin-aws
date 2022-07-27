@@ -28,7 +28,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +27,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopics,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "topic_arn",
@@ -132,27 +132,6 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getTopicAttributes,
 				Transform:   transform.FromField("Attributes.Owner"),
-			},
-			{
-				Name:        "sqs_failure_feedback_role_arn",
-				Description: "IAM role for failed deliveries of notification messages sent to topics with sqs endpoint.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getTopicAttributes,
-				Transform:   transform.FromField("Attributes.SQSFailureFeedbackRoleArn"),
-			},
-			{
-				Name:        "sqs_success_feedback_role_arn",
-				Description: "IAM role for successful deliveries of notification messages sent to topics with sqs endpoint.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getTopicAttributes,
-				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackRoleArn"),
-			},
-			{
-				Name:        "sqs_success_feedback_sample_rate",
-				Description: "Sample rate for successful deliveries of notification messages sent to topics with sqs endpoint.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getTopicAttributes,
-				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackSampleRate"),
 			},
 			{
 				Name:        "sqs_failure_feedback_role_arn",

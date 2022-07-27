@@ -29,7 +29,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ContainerInUseException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -188,11 +188,6 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
-
-	// check if name is empty
-	if containerName == "" {
-		return nil, nil
-	}
 
 	// check if name is empty
 	if containerName == "" {

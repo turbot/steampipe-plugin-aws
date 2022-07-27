@@ -1,8 +1,8 @@
 package aws
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/schema"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/schema"
 )
 
 type awsConfig struct {
@@ -47,9 +47,6 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"endpoint_url": {
 		Type: schema.TypeString,
-	},
-	"s3_force_path_style": {
-		Type: schema.TypeBool,
 	},
 	"s3_force_path_style": {
 		Type: schema.TypeBool,

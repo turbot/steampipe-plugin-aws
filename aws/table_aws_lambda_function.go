@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -24,7 +24,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -348,33 +348,6 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 	return op, nil
-}
-
-func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
-
-	functionName := functionName(h.Item)
-
-	// Create Session
-	svc, err := LambdaService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &lambda.GetFunctionUrlConfigInput{
-		FunctionName: aws.String(functionName),
-	}
-
-	urlConfigs, err := svc.GetFunctionUrlConfig(input)
-	if err != nil {
-		if strings.Contains(err.Error(), "ResourceNotFoundException") {
-			return nil, nil
-		}
-		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "GetFunctionUrlConfig_error", err)
-		return nil, err
-	}
-
-	return urlConfigs, nil
 }
 
 func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
