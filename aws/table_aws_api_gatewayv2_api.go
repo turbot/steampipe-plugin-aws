@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -98,9 +99,23 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	pagesLeft := true
-	// In Go SDK MaxResults takes the data as string but the api throws an error operation error ApiGatewayV2: GetApis, https response error StatusCode: 400, RequestID: 441dc7b3-e43a-49df-8bb2-58fd50df4a70, BadRequestException: maxResults must be an integer
-	params := &apigatewayv2.GetApisInput{}
+	params := &apigatewayv2.GetApisInput{
+		MaxResults: aws.String(fmt.Sprint(maxLimit)),
+	}
 
 	for pagesLeft {
 		result, err := svc.GetApis(ctx, params)

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -168,9 +169,23 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	params := &apigatewayv2.GetStagesInput{
-		ApiId: apiGatewayv2API.ApiId,
+		ApiId:      apiGatewayv2API.ApiId,
+		MaxResults: aws.String(fmt.Sprint(maxLimit)),
 	}
 
 	for pagesLeft {
