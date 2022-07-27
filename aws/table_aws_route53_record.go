@@ -20,11 +20,10 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_record",
 		Description: "AWS Route53 Record",
 		List: &plugin.ListConfig{
-			// Some optional key columns are disabled due to https://github.com/aws/aws-sdk-go/issues/4386
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "zone_id", Require: plugin.Required},
-				//	{Name: "name", Require: plugin.Optional},
-				//	{Name: "type", Require: plugin.Optional},
+				{Name: "name", Require: plugin.Optional},
+				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
 		},
@@ -146,24 +145,23 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	// Optional parameters not included due to incorrect API response for `name` and `type`
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &hostedZoneID,
 		MaxItems:     aws.String("1000"),
 	}
 
-	// Some optional key columns are disabled due to https://github.com/aws/aws-sdk-go/issues/4386
-	// equalQuals := d.KeyColumnQuals
-	// if equalQuals["name"] != nil {
-	// 	if equalQuals["name"].GetStringValue() != "" {
-	// 		input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
-	// 	}
-	// }
-	// if equalQuals["type"] != nil {
-	// 	if equalQuals["type"].GetStringValue() != "" {
-	// 		input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
-	// 	}
-	// }
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		if equalQuals["name"].GetStringValue() != "" {
+			input.StartRecordName = aws.String(equalQuals["name"].GetStringValue())
+		}
+	}
+	if equalQuals["type"] != nil {
+		// StartRecordType has a constraint that it must be used with StartRecordName
+		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
+			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
+		}
+	}
 
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
 	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
@@ -183,6 +181,21 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input,
 		func(page *route53.ListResourceRecordSetsOutput, isLast bool) bool {
 			for _, record := range page.ResourceRecordSets {
+				// The StartRecordName and StartRecordType input parameters only tell
+				// the API where to start when returning results, so any records/types
+				// that are greater in lexicographic order will also be returned.
+				// Since Postgres will filter on exact matches anyway, check for exact
+				// matches as an optimization to reduce the number of requests.
+				if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
+					plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
+					return false
+				}
+
+				if input.StartRecordType != nil && *record.Type != *input.StartRecordType {
+					plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", *input.StartRecordType, "record.Type", *record.Type)
+					return false
+				}
+
 				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
