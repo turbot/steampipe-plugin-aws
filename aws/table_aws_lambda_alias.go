@@ -272,3 +272,31 @@ func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	return urlConfigs, nil
 }
+
+func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaAliasUrlConfig")
+
+	alias := h.Item.(*aliasRowData)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.GetFunctionUrlConfigInput{
+		FunctionName: alias.FunctionName,
+		Qualifier:    alias.Alias.Name,
+	}
+
+	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	if err != nil {
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getLambdaAliasUrlConfig", "GetFunctionUrlConfig_err", err)
+		return nil, err
+	}
+
+	return urlConfigs, nil
+}

@@ -155,6 +155,27 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackSampleRate"),
 			},
 			{
+				Name:        "sqs_failure_feedback_role_arn",
+				Description: "IAM role for failed deliveries of notification messages sent to topics with sqs endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.SQSFailureFeedbackRoleArn"),
+			},
+			{
+				Name:        "sqs_success_feedback_role_arn",
+				Description: "IAM role for successful deliveries of notification messages sent to topics with sqs endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackRoleArn"),
+			},
+			{
+				Name:        "sqs_success_feedback_sample_rate",
+				Description: "Sample rate for successful deliveries of notification messages sent to topics with sqs endpoint.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTopicAttributes,
+				Transform:   transform.FromField("Attributes.SQSSuccessFeedbackSampleRate"),
+			},
+			{
 				Name:        "subscriptions_confirmed",
 				Description: "The number of confirmed subscriptions for the topic.",
 				Type:        proto.ColumnType_INT,

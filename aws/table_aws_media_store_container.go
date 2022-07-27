@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
@@ -188,6 +188,11 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
+
+	// check if name is empty
+	if containerName == "" {
+		return nil, nil
+	}
 
 	// check if name is empty
 	if containerName == "" {

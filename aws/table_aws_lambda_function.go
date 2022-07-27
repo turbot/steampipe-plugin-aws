@@ -377,6 +377,33 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	return urlConfigs, nil
 }
 
+func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
+
+	functionName := functionName(h.Item)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.GetFunctionUrlConfigInput{
+		FunctionName: aws.String(functionName),
+	}
+
+	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	if err != nil {
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "GetFunctionUrlConfig_error", err)
+		return nil, err
+	}
+
+	return urlConfigs, nil
+}
+
 func functionName(item interface{}) string {
 	switch item := item.(type) {
 	case *lambda.FunctionConfiguration:

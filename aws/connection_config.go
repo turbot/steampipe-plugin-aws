@@ -51,6 +51,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	"s3_force_path_style": {
 		Type: schema.TypeBool,
 	},
+	"s3_force_path_style": {
+		Type: schema.TypeBool,
+	},
 }
 
 func ConfigInstance() interface{} {

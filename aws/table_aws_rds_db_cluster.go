@@ -303,6 +303,13 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Transform:   transform.FromValue(),
 			},
 			{
+				Name:        "pending_maintenance_actions",
+				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Hydrate:     getRDSDBClusterPendingMaintenanceAction,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "read_replica_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -416,6 +423,35 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	if op.DBClusters != nil && len(op.DBClusters) > 0 {
 		return op.DBClusters[0], nil
+	}
+	return nil, nil
+}
+
+func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dbClusterIdentifier := *h.Item.(*rds.DBCluster).DBClusterIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := &rds.Filter{
+		Name:   aws.String("db-cluster-id"),
+		Values: aws.StringSlice([]string{dbClusterIdentifier}),
+	}
+	params := &rds.DescribePendingMaintenanceActionsInput{
+		Filters: []*rds.Filter{filter},
+	}
+
+	op, err := svc.DescribePendingMaintenanceActions(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBClusterPendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		return nil, err
+	}
+
+	if len(op.PendingMaintenanceActions) > 0 {
+		return op.PendingMaintenanceActions, nil
 	}
 	return nil, nil
 }

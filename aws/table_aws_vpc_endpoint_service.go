@@ -242,6 +242,42 @@ func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData,
 	return allowedPrincipals, nil
 }
 
+func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listVpcEndpointServicePermissions")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	serviceId := h.Item.(*ec2.ServiceDetail).ServiceId
+
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &ec2.DescribeVpcEndpointServicePermissionsInput{
+		ServiceId:  serviceId,
+		MaxResults: aws.Int64(1000),
+	}
+
+	allowedPrincipals := []*ec2.AllowedPrincipal{}
+	err = svc.DescribeVpcEndpointServicePermissionsPages(
+		params,
+		func(page *ec2.DescribeVpcEndpointServicePermissionsOutput, isLast bool) bool {
+			allowedPrincipals = append(allowedPrincipals, page.AllowedPrincipals...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		if strings.Contains(err.Error(), "NotFound") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listVpcEndpointServicePermissions", "ERROR", err)
+		return nil, err
+	}
+
+	return allowedPrincipals, nil
+}
+
 func getVpcEndpointServiceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getVpcEndpointServiceAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)

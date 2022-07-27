@@ -28,7 +28,7 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_store_id",
