@@ -121,7 +121,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -144,7 +144,7 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		input.CustomerId = aws.String(equalQuals["customer_id"].GetStringValue())
 	}
 
-		paginator := apigateway.NewGetApiKeysPaginator(svc, input, func(o *apigateway.GetApiKeysPaginatorOptions) {
+	paginator := apigateway.NewGetApiKeysPaginator(svc, input, func(o *apigateway.GetApiKeysPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
