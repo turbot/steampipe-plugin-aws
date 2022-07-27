@@ -94,7 +94,7 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create service
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_api_gateway_usage_plan.listUsagePlans", "connection error", err)
+		logger.Error("aws_api_gateway_usage_plan.listUsagePlans", "service_client_error", err)
 		return nil, err
 	}
 
@@ -144,11 +144,11 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 //// HYDRATE FUNCTIONS
 
 func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getUsagePlan")
 
 	// Create session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getUsagePlan", "service_cllient_error", err)
 		return nil, err
 	}
 
@@ -159,7 +159,7 @@ func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 	op, err := svc.GetUsagePlan(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_api_gateway_usage_plan.getUsagePlan", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_usage_plan.getUsagePlan", "api_error", err)
 		return nil, err
 	}
 

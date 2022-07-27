@@ -175,6 +175,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 	// Create Session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "service_client_error", err)
 		return nil, err
 	}
 
@@ -186,6 +187,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 	for pagesLeft {
 		result, err := svc.GetIntegrations(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "api_error", err)
 			return nil, err
 		}
 
@@ -216,6 +218,7 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 	// Create Session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "service_client_error", err)
 		return nil, err
 	}
 
@@ -229,7 +232,7 @@ func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plu
 	item, err := svc.GetIntegration(ctx, params)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "api_error", err)
 		return nil, err
 	}
 

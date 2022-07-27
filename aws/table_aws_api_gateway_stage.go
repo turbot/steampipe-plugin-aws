@@ -209,6 +209,7 @@ func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create Session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_stage.getAPIGatewayStage", "service_client_error", err)
 		return nil, err
 	}
 

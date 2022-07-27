@@ -136,6 +136,7 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create Session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_api.getAPIGatewayV2API", "service_client_error", err)
 		return nil, err
 	}
 
@@ -146,6 +147,7 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	apiData, err := svc.GetApi(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_api.getAPIGatewayV2API", "api_error", err)
 		return nil, err
 	}
 

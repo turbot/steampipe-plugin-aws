@@ -164,6 +164,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "service_client_error", err)
 		return nil, err
 	}
 
@@ -175,6 +176,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	for pagesLeft {
 		result, err := svc.GetStages(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "api_error", err)
 			return nil, err
 		}
 
@@ -206,6 +208,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create Session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "service_client_error", err)
 		return nil, err
 	}
 
@@ -219,7 +222,7 @@ func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	stageData, err := svc.GetStage(ctx, input)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "api_error", err)
 		return nil, err
 	}
 	if stageData != nil {

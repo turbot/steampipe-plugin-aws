@@ -71,6 +71,7 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("APIGatewayClient", "service_client_error")
 		return nil, err
 	}
 
@@ -95,6 +96,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("APIGatewayV2Client", "service_client_error")
 		return nil, err
 	}
 
@@ -119,6 +121,7 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("DynamoDbClient", "service_client_error")
 		return nil, err
 	}
 

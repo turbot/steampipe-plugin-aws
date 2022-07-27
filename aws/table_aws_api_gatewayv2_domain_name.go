@@ -73,6 +73,7 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	// Create session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "service_client_error", err)
 		return nil, err
 	}
 	params := &apigatewayv2.GetDomainNamesInput{}
@@ -81,6 +82,7 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for pagesLeft {
 		result, err := svc.GetDomainNames(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "api_error", err)
 			return nil, err
 		}
 
@@ -111,7 +113,7 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	// Create Session
 	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "service_client_error", err)
 		return nil, err
 	}
 
@@ -122,6 +124,7 @@ func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 	op, err := svc.GetDomainName(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "api_error", err)
 		return nil, err
 	}
 

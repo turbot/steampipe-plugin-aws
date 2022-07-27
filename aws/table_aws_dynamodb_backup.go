@@ -118,6 +118,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Create Session
 	svc, err := DynamoDbClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "service_connection_error", err)
 		return nil, err
 	}
 
@@ -154,6 +155,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Pagination not supported as of date
 	results, err := svc.ListBackups(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "api_error", err)
 		return nil, err
 	}
 
@@ -180,6 +182,7 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// Create Session
 	svc, err := DynamoDbClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "service_client_error", err)
 		return nil, err
 	}
 
@@ -189,7 +192,7 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	item, err := svc.DescribeBackup(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("aws_dynamodb_backup.getDynamodbBackup", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "api_error", err)
 		return nil, err
 	}
 

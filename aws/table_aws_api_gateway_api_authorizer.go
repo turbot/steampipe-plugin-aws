@@ -116,6 +116,7 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Create Session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.listRestAPIAuthorizers", "service_client_error", err)
 		return nil, err
 	}
 
@@ -161,6 +162,7 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create Session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.getRestAPIAuthorizer", "service_client_error", err)
 		return nil, err
 	}
 

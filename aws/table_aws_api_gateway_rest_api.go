@@ -142,7 +142,7 @@ func listRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	// Create service
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
-		logger.Trace("listRestAPI", "connection error", err)
+		logger.Trace("aws_api_gateway_rest_api.listRestAPI", "connection error", err)
 		return nil, err
 	}
 
@@ -196,6 +196,7 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	// Create session
 	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getRestAPI", "connection_error", err)
 		return nil, err
 	}
 
@@ -209,7 +210,7 @@ func getRestAPI(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		if strings.Contains(err.Error(), "NotFoundException") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("GetRestApi__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getRestAPI", "api_error", err)
 		return nil, err
 	}
 	return detail, nil
@@ -242,18 +243,20 @@ func getAwsRestAPITurbotData(ctx context.Context, d *plugin.QueryData, h *plugin
 //// TRANSFORM FUNCTION
 
 // unmarshalJSON :: parse the yaml-encoded data and return the result
-func unmarshalJSON(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func unmarshalJSON(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	inputStr := go_kit_packs.SafeString(d.Value)
 	var result interface{}
 	if inputStr != "" {
 		// Resource IAM policy for aws_api_gateway_rest_api is stored as stringified json object after removing the double quotes from end
 		decoded, err := url.QueryUnescape("\"" + inputStr + "\"")
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.unmarshalJSON", err)
 			return nil, err
 		}
 
 		err = json.Unmarshal([]byte(decoded), &result)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_api_gateway_rest_api.unmarshalJSON", err)
 			return nil, err
 		}
 	}

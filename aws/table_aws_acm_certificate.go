@@ -316,6 +316,7 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	// Create session
 	svc, err := ACMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "service_client_error", err)
 		return nil, err
 	}
 
@@ -324,6 +325,7 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	})
 
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "api_error", err)
 		return nil, err
 	}
 	return detail, nil
@@ -335,6 +337,7 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 	// Create session
 	svc, err := ACMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "service_client_error", err)
 		return nil, err
 	}
 
