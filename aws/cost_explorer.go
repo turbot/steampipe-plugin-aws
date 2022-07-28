@@ -4,7 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
@@ -132,13 +134,13 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 	logger.Trace("streamCostAndUsage")
 
 	// Create session
-	svc, err := CostExplorerService(ctx, d)
+	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	// List call
 	for {
-		output, err := svc.GetCostAndUsage(params)
+		output, err := svc.GetCostAndUsage(ctx, params)
 		if err != nil {
 			logger.Error("streamCostAndUsage", "err", err)
 			return nil, err
@@ -157,7 +159,7 @@ func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costex
 		if output.NextPageToken == nil {
 			break
 		}
-		params.SetNextPageToken(*output.NextPageToken)
+		params.NextPageToken = output.NextPageToken
 	}
 
 	return nil, nil
@@ -177,7 +179,10 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 			row.Estimated = result.Estimated
 			row.PeriodStart = result.TimePeriod.Start
 			row.PeriodEnd = result.TimePeriod.End
-
+			// rowMetrics := make(map[string]*types.MetricValue, len(result.Total))
+			// for k, v := range result.Total {
+			// 	rowMetrics[k] = &v
+			// }
 			row.setRowMetrics(result.Total)
 			rows = append(rows, row)
 		}
@@ -190,11 +195,15 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 			row.PeriodEnd = result.TimePeriod.End
 
 			if len(group.Keys) > 0 {
-				row.Dimension1 = group.Keys[0]
+				row.Dimension1 = aws.String(group.Keys[0])
 				if len(group.Keys) > 1 {
-					row.Dimension2 = group.Keys[1]
+					row.Dimension2 = aws.String(group.Keys[1])
 				}
 			}
+			// groupMetrics := make(map[string]*types.MetricValue, len(group.Metrics))
+			// for k, v := range group.Metrics {
+			// 	groupMetrics[k] = &v
+			// }
 			row.setRowMetrics(group.Metrics)
 			rows = append(rows, row)
 		}
@@ -204,7 +213,7 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 
 // CEMetricRow is the flattened, aggregated value for a metric.
 type CEMetricRow struct {
-	Estimated *bool
+	Estimated bool
 
 	// The time period that the result covers.
 	PeriodStart *string
@@ -231,36 +240,29 @@ type CEMetricRow struct {
 	NormalizedUsageUnit  *string
 }
 
-func (row *CEMetricRow) setRowMetrics(metrics map[string]*costexplorer.MetricValue) {
+func (row *CEMetricRow) setRowMetrics(metrics map[string]types.MetricValue) {
 
-	if metrics["BlendedCost"] != nil {
-		row.BlendedCostAmount = metrics["BlendedCost"].Amount
-		row.BlendedCostUnit = metrics["BlendedCost"].Unit
-	}
-	if metrics["UnblendedCost"] != nil {
-		row.UnblendedCostAmount = metrics["UnblendedCost"].Amount
-		row.UnblendedCostUnit = metrics["UnblendedCost"].Unit
-	}
-	if metrics["NetUnblendedCost"] != nil {
-		row.NetUnblendedCostAmount = metrics["NetUnblendedCost"].Amount
-		row.NetUnblendedCostUnit = metrics["NetUnblendedCost"].Unit
-	}
-	if metrics["AmortizedCost"] != nil {
-		row.AmortizedCostAmount = metrics["AmortizedCost"].Amount
-		row.AmortizedCostUnit = metrics["AmortizedCost"].Unit
-	}
-	if metrics["NetAmortizedCost"] != nil {
-		row.NetAmortizedCostAmount = metrics["NetAmortizedCost"].Amount
-		row.NetAmortizedCostUnit = metrics["NetAmortizedCost"].Unit
-	}
-	if metrics["UsageQuantity"] != nil {
-		row.UsageQuantityAmount = metrics["UsageQuantity"].Amount
-		row.UsageQuantityUnit = metrics["UsageQuantity"].Unit
-	}
-	if metrics["NormalizedUsageAmount"] != nil {
-		row.NormalizedUsageAmount = metrics["NormalizedUsageAmount"].Amount
-		row.NormalizedUsageUnit = metrics["NormalizedUsageAmount"].Unit
-	}
+	row.BlendedCostAmount = metrics["BlendedCost"].Amount
+	row.BlendedCostUnit = metrics["BlendedCost"].Unit
+
+	row.UnblendedCostAmount = metrics["UnblendedCost"].Amount
+	row.UnblendedCostUnit = metrics["UnblendedCost"].Unit
+
+	row.NetUnblendedCostAmount = metrics["NetUnblendedCost"].Amount
+	row.NetUnblendedCostUnit = metrics["NetUnblendedCost"].Unit
+
+	row.AmortizedCostAmount = metrics["AmortizedCost"].Amount
+	row.AmortizedCostUnit = metrics["AmortizedCost"].Unit
+
+	row.NetAmortizedCostAmount = metrics["NetAmortizedCost"].Amount
+	row.NetAmortizedCostUnit = metrics["NetAmortizedCost"].Unit
+
+	row.UsageQuantityAmount = metrics["UsageQuantity"].Amount
+	row.UsageQuantityUnit = metrics["UsageQuantity"].Unit
+
+	row.NormalizedUsageAmount = metrics["NormalizedUsageAmount"].Amount
+	row.NormalizedUsageUnit = metrics["NormalizedUsageAmount"].Unit
+
 }
 
 func getCEStartDateForGranularity(granularity string) time.Time {

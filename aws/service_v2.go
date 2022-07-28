@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -102,6 +103,26 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	}
 
 	svc := apigatewayv2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CostExplorerClient returns the connection client for AWS Cost Explorer service
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "costexplorer-v2"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*costexplorer.Client), nil
+	}
+
+	cfg, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		plugin.Logger(ctx).Error("APIGatewayV2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := costexplorer.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
