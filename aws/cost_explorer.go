@@ -130,19 +130,18 @@ func costExplorerColumns(columns []*plugin.Column) []*plugin.Column {
 //// LIST FUNCTION
 
 func streamCostAndUsage(ctx context.Context, d *plugin.QueryData, params *costexplorer.GetCostAndUsageInput) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("streamCostAndUsage")
 
 	// Create session
 	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("streamCostAndUsage", "client_error", err)
 		return nil, err
 	}
 	// List call
 	for {
 		output, err := svc.GetCostAndUsage(ctx, params)
 		if err != nil {
-			logger.Error("streamCostAndUsage", "err", err)
+			plugin.Logger(ctx).Error("streamCostAndUsage", "api_error", err)
 			return nil, err
 		}
 
@@ -179,10 +178,6 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 			row.Estimated = result.Estimated
 			row.PeriodStart = result.TimePeriod.Start
 			row.PeriodEnd = result.TimePeriod.End
-			// rowMetrics := make(map[string]*types.MetricValue, len(result.Total))
-			// for k, v := range result.Total {
-			// 	rowMetrics[k] = &v
-			// }
 			row.setRowMetrics(result.Total)
 			rows = append(rows, row)
 		}
@@ -200,10 +195,6 @@ func buildCEMetricRows(ctx context.Context, costUsageData *costexplorer.GetCostA
 					row.Dimension2 = aws.String(group.Keys[1])
 				}
 			}
-			// groupMetrics := make(map[string]*types.MetricValue, len(group.Metrics))
-			// for k, v := range group.Metrics {
-			// 	groupMetrics[k] = &v
-			// }
 			row.setRowMetrics(group.Metrics)
 			rows = append(rows, row)
 		}
