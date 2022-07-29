@@ -717,3 +717,15 @@ func getListValues(listValue *proto.QualValueList) []*string {
 	}
 	return values
 }
+
+func getListValuesV2(listValue *proto.QualValueList) []string {
+	values := make([]string, 0)
+	if listValue != nil {
+		for _, value := range listValue.Values {
+			if value.GetStringValue() != "" {
+				values = append(values, value.GetStringValue())
+			}
+		}
+	}
+	return values
+}
