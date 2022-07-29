@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	ec2_v2_types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
@@ -19,6 +20,20 @@ import (
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
+	var turbotTagsMap map[string]string
+	if tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
+}
+
+func ec2TagsToMapV2(tags []ec2_v2_types.Tag) (*map[string]string, error) {
 	var turbotTagsMap map[string]string
 	if tags == nil {
 		return nil, nil
