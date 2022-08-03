@@ -314,9 +314,7 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	err = svc.DescribeImagesPages(
 		params,
 		func(page *ecr.DescribeImagesOutput, isLast bool) bool {
-			for _, op := range page.ImageDetails {
-				result = append(result, op)
-			}
+			result = append(result, page.ImageDetails...)
 			return !isLast
 		},
 	)
