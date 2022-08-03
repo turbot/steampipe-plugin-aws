@@ -87,6 +87,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Description: "A list of ImageDetail objects that contain data about the image.",
 				Hydrate:     getAwsEcrDescribeImages,
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "image_scanning_configuration",
@@ -305,16 +306,27 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Build the params
 	params := &ecr.DescribeImagesInput{
 		RepositoryName: repositoryName,
+		MaxResults:     aws.Int64(100),
 	}
 
-	// Get call
-	op, err := svc.DescribeImages(params)
+	var result []*ecr.ImageDetail
+
+	err = svc.DescribeImagesPages(
+		params,
+		func(page *ecr.DescribeImagesOutput, isLast bool) bool {
+			for _, op := range page.ImageDetails {
+				result = append(result, op)
+			}
+			return !isLast
+		},
+	)
+
 	if err != nil {
-		logger.Debug("getAwsEcrDescribeImages", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImages", err)
 		return nil, err
 	}
 
-	return op, nil
+	return result, nil
 }
 
 func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
