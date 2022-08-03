@@ -87,7 +87,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and tiem when bucket was created.",
+				Description: "The date and time when bucket was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
