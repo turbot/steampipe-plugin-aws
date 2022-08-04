@@ -125,6 +125,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				Name:        "attachments",
 				Description: "Information about the volume attachments.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(formatEBSVolumeAttachment),
 			},
 			{
 				Name:        "product_codes",
@@ -197,13 +198,13 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		input.Filters = filters
 	}
 
-paginator := ec2.NewDescribeVolumesPaginator(svc, input, func(o *ec2.DescribeVolumesPaginatorOptions) {
+	paginator := ec2.NewDescribeVolumesPaginator(svc, input, func(o *ec2.DescribeVolumesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
 	for paginator.HasMorePages() {
-			output, err := paginator.NextPage(ctx)
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_ebs_volume.listEBSVolume", "api_error", err)
 			return nil, err
@@ -304,6 +305,10 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
+	if volumeAttributes != nil && len(volumeAttributes.ProductCodes) == 0 {
+		return nil, nil
+	}
+
 	return volumeAttributes, nil
 }
 
@@ -343,6 +348,16 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 	}
 
 	return title, nil
+}
+
+func formatEBSVolumeAttachment(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	volume := d.HydrateItem.(types.Volume)
+
+	if volume.Attachments == nil || len(volume.Attachments) == 0 {
+		return nil, nil
+	}
+
+	return volume.Attachments, nil
 }
 
 //// UTILITY FUNCTION

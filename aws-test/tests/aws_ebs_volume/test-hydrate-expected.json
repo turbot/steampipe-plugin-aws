@@ -1,7 +1,7 @@
 [
 	{
 		"auto_enable_io": false,
-		"product_codes": [],
+		"product_codes": null,
 		"volume_id": "{{ output.resource_id.value }}"
 	}
 ]
