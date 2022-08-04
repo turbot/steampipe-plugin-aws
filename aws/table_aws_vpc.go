@@ -322,3 +322,4 @@ func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.Key
 
 	return filters
 }
+
