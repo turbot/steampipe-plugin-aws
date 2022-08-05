@@ -25,8 +25,7 @@ import (
 type Policy struct {
 	Id         string     `json:"Id,omitempty"` // Optional, case sensitive
 	Statements Statements `json:"Statement"`    // Required, array of Statements or single statement
-	// 2012-10-17 or 2008-10-17 old policies, do NOT use this for new policies
-	Version string `json:"Version"` // Required, version date string
+	Version    string     `json:"Version"`      // Required, version date string, 2012-10-17 for latest policy model, previous version was 2008-10-17
 }
 
 // Statement represents a Statement in an IAM Policy.
@@ -34,14 +33,14 @@ type Policy struct {
 // "does not preserve the order of object keys",
 // per https://www.postgresql.org/docs/9.4/datatype-json.html
 type Statement struct {
-	Action       Value                  `json:"Action,omitempty"`       // Optional, string or array of strings, case insensitive
+	Action       Value                  `json:"Action,omitempty"`       // Required if NotAction element is missing, string or array of strings, case insensitive <- TODO: Add check
 	Condition    map[string]interface{} `json:"Condition,omitempty"`    // Optional, map of conditions
-	Effect       string                 `json:"Effect"`                 // Required, Allow or Deny, case sensitive
-	NotAction    Value                  `json:"NotAction,omitempty"`    // Optional, string or array of strings, case insensitive
-	NotPrincipal Principal              `json:"NotPrincipal,omitempty"` // Optional, string (*) or map of strings/arrays
-	NotResource  CaseSensitiveValue     `json:"NotResource,omitempty"`  // Optional, string or array of strings, case sensitive
-	Principal    Principal              `json:"Principal,omitempty"`    // Optional, string (*) or map of strings/arrays
-	Resource     CaseSensitiveValue     `json:"Resource,omitempty"`     // Optional, string or array of strings, case sensitive
+	Effect       string                 `json:"Effect"`                 // Required, Allow or Deny, case sensitive <- TODO: Add check
+	NotAction    Value                  `json:"NotAction,omitempty"`    // Required if Action element is missing, string or array of strings, case insensitive  <- TODO: Add check
+	NotPrincipal Principal              `json:"NotPrincipal,omitempty"` // Optional for Identity Policies, Required for Resource Policies if NotResource element is missing, string (*) or map of strings/arrays
+	NotResource  CaseSensitiveValue     `json:"NotResource,omitempty"`  // Required if Resource element is missing, string or array of strings, case sensitive  <- TODO: Add check
+	Principal    Principal              `json:"Principal,omitempty"`    // Optional for Identity Policies, Required for Resource Policies if NotResource element is missing, string (*) or map of strings/arrays
+	Resource     CaseSensitiveValue     `json:"Resource,omitempty"`     // Required if NotResource element is missing, string or array of strings, case sensitive  <- TODO: Add check
 	Sid          string                 `json:"Sid,omitempty"`          // Optional, case sensitive
 }
 
@@ -95,7 +94,6 @@ func (statement *Statements) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
-
 }
 
 // UnmarshalJSON for the Statement struct
@@ -153,8 +151,6 @@ func canonicalCondition(src map[string]interface{}) (map[string]interface{}, err
 				return nil, err
 			}
 
-			newSlice = uniqueStrings(newSlice)
-			sort.Strings(newSlice)
 			newCondition[newKey] = newSlice
 		}
 
@@ -168,6 +164,7 @@ func canonicalCondition(src map[string]interface{}) (map[string]interface{}, err
 // array element to the AWS principal type.
 // Each value in the map may be a string or []string, we convert everything to []string
 // and sort it and remove duplicates
+// NOTE: We have the tests in place and we could change this type
 type Principal map[string]interface{}
 
 // UnmarshalJSON for the Principal struct
@@ -178,30 +175,28 @@ func (principal *Principal) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	switch typedValue := raw.(type) {
+	switch principalValue := raw.(type) {
 	case string:
 		p := make(map[string]interface{})
-		p["AWS"] = []string{typedValue}
+		p["AWS"] = []string{principalValue}
 		*principal = p
 
 	case map[string]interface{}:
 		// convert each sub item to array of string
 		p := make(map[string]interface{})
-		for k, v := range typedValue {
+		for k, v := range principalValue {
 			newSlice, err := toSliceOfStrings(v)
 			if err != nil {
 				return nil
 			}
 
-			// remove duplicates and sort
-			newSlice = uniqueStrings(newSlice)
-			sort.Strings(newSlice)
 			p[k] = newSlice
 		}
+
 		*principal = p
 
 	default:
-		return fmt.Errorf("invalid %s value element: allowed is only string or map[]interface{}", reflect.TypeOf(principal))
+		return fmt.Errorf("only string or map[]interface{} values are allowed for the Principal type")
 	}
 
 	return nil
@@ -214,30 +209,22 @@ func (principal *Principal) UnmarshalJSON(b []byte) error {
 type Value []string
 
 // UnmarshalJSON for the Value struct
-func (value *Value) UnmarshalJSON(b []byte) error {
+func (result *Value) UnmarshalJSON(data []byte) error {
 	var raw interface{}
-	err := json.Unmarshal(b, &raw)
+
+	err := json.Unmarshal(data, &raw)
 	if err != nil {
 		return err
 	}
 
 	// convert the value to an array of strings
-	newSlice, err := toSliceOfStrings(raw)
+	newSlice, err := toSliceOfLowerStrings(raw)
 	if err != nil {
 		return err
 	}
 
-	//convert to lowercase
-	var values []string
-	for _, item := range newSlice {
-		values = append(values, strings.ToLower(item))
-	}
+	*result = newSlice
 
-	// remove duplicates and sort
-	values = uniqueStrings(values)
-	sort.Strings(values)
-
-	*value = values
 	return nil
 }
 
@@ -249,10 +236,10 @@ func (value *Value) UnmarshalJSON(b []byte) error {
 type CaseSensitiveValue []string
 
 // UnmarshalJSON for the CaseSensitiveValue struct
-func (value *CaseSensitiveValue) UnmarshalJSON(b []byte) error {
+func (result *CaseSensitiveValue) UnmarshalJSON(data []byte) error {
 	var raw interface{}
 
-	err := json.Unmarshal(b, &raw)
+	err := json.Unmarshal(data, &raw)
 	if err != nil {
 		return err
 	}
@@ -263,10 +250,7 @@ func (value *CaseSensitiveValue) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// remove duplicates and sort
-	newSlice = uniqueStrings(newSlice)
-	sort.Strings(newSlice)
-	*value = newSlice
+	*result = newSlice
 	return nil
 }
 
@@ -275,7 +259,7 @@ func canonicalPolicy(src string) (interface{}, error) {
 	var policy Policy
 
 	if err := json.Unmarshal([]byte(src), &policy); err != nil {
-		return nil, fmt.Errorf("Convert policy failed unmarshalling source data: %+v.  src: %s", err, url.QueryEscape(src))
+		return nil, fmt.Errorf("canonicalPolicy failed unmarshalling source data: %+v.  src: %s", err, url.QueryEscape(src))
 	}
 
 	return policy, nil
@@ -285,24 +269,70 @@ func canonicalPolicy(src string) (interface{}, error) {
 
 // toSliceOfStrings converts a string or array value to an array of strings
 func toSliceOfStrings(scalarOrSlice interface{}) ([]string, error) {
-	newSlice := make([]string, 0)
+	slice := []string{}
+	set := map[string]bool{}
 
 	if reflect.TypeOf(scalarOrSlice).Kind() == reflect.Slice {
 		switch item := scalarOrSlice.(type) {
 		case []string:
-			for _, v := range item {
-				newSlice = append(newSlice, types.ToString(v))
+			for _, value := range item {
+				if _, exists := set[value]; !exists {
+					slice = append(slice, value)
+					set[value] = true
+				}
 			}
 		default:
-			for _, v := range scalarOrSlice.([]interface{}) {
-				newSlice = append(newSlice, types.ToString(v))
+			for _, rawValue := range scalarOrSlice.([]interface{}) {
+				value := types.ToString(rawValue)
+				if _, exists := set[value]; !exists {
+					slice = append(slice, value)
+					set[value] = true
+				}
 			}
 		}
+
+		sort.Strings(slice)
 	} else {
-		newSlice = append(newSlice, types.ToString(scalarOrSlice))
+		slice = append(slice, types.ToString(scalarOrSlice))
 	}
 
-	return newSlice, nil
+	return slice, nil
+}
+
+// toSliceOfLowerStrings converts a string or array value to an array of strings and lowercase's the values
+func toSliceOfLowerStrings(scalarOrSlice interface{}) ([]string, error) {
+	slice := []string{}
+	set := map[string]bool{}
+
+	if reflect.TypeOf(scalarOrSlice).Kind() == reflect.Slice {
+		switch item := scalarOrSlice.(type) {
+		case []string:
+			for _, value := range item {
+				value = strings.ToLower(value)
+				if _, exists := set[value]; !exists {
+					slice = append(slice, value)
+					set[value] = true
+				}
+			}
+		default:
+			for _, rawValue := range scalarOrSlice.([]interface{}) {
+				value := types.ToString(rawValue)
+				value = strings.ToLower(value)
+				if _, exists := set[value]; !exists {
+					slice = append(slice, value)
+					set[value] = true
+				}
+			}
+		}
+
+		sort.Strings(slice)
+	} else {
+		value := types.ToString(scalarOrSlice)
+		value = strings.ToLower(value)
+		slice = append(slice, value)
+	}
+
+	return slice, nil
 }
 
 // uniqueStrings removes duplicate items from a slice of strings

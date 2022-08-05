@@ -1,273 +1,3011 @@
 package aws
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
 	"testing"
 )
 
-func TestConvertPolicySortAndDups(t *testing.T) {
-	testCase := string(
-		//// sort things, remove duplicates
-		`{
-			"Version": "2012-10-17",
-			"Id": "TestSortAndRemoveDuplicates",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Action": [
-						"C",
-						"A",
-						"B",
-						"b",
-						"c",
-						"a",
-						"2",
-						"1"
-					],
-					"NotAction": [
-						"C",
-						"A",
-						"B",
-						"b",
-						"c",
-						"a",
-						"2",
-						"1"
-					],
-					"Principal": {
-						"AWS": [
-							"C",
-							"A",
-							"B"
-						],
-						"Service": [
-							"C",
-							"A",
-							"B"
-						],
-						"Federated": [
-							"C",
-							"A",
-							"B"
-						]
-					},
-					"NotPrincipal": {
-						"Federated": [
-							"C",
-							"A",
-							"B"
-						],
-						"AWS": [
-							"C",
-							"A",
-							"B"
-						],
-						"Service": [
-							"C",
-							"A",
-							"B"
-						]
-					},
-					"Resource": [
-						"C",
-						"A",
-						"B",
-						"b",
-						"c",
-						"a",
-						"2",
-						"1"
-					],
-					"NotResource": [
-						"C",
-						"A",
-						"B",
-						"b",
-						"c",
-						"a",
-						"2",
-						"1"
-					],
-					"Condition": {
-						"z": {
-							"a": false
-						},
-						"y": {
-							"a": [
-								"b",
-								"c"
-							]
-						},
-						"x": {
-							"b": "b"
-						},
-						"a": {
-							"b": "b",
-							"c": "c",
-							"d": "d",
-							"e": "e",
-							"a": [
-								"c",
-								"b",
-								"a"
-							],
-							"g": "g",
-							"f": "f"
+func TestNoPolicyFails(t *testing.T) {
+	// Set up
+	var policyContent string
 
-						}
+	// Test
+	_, err := canonicalPolicy(policyContent)
 
-					}
-				}
-			]
-		}`)
-
-	pol, err := canonicalPolicy(testCase)
-	if err != nil {
-		t.Errorf("Convert failed for case '%s': %v", pol, err)
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
 	}
-	prettyPrint(pol)
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: unexpected end of JSON input.  src: "
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
 }
 
-func TestConvertPolicyWithSingleStatement(t *testing.T) {
-	testCase := string(
-		// single statement policies
-		`{
-			"Version": "2012-10-17",
-			"Statement": {
-				"Effect": "Allow",
-				"Action": [
-					"acm:DescribeCertificate",
-					"acm:ListCertificates",
-					"acm:GetCertificate",
-					"acm:ListTagsForCertificate"
-				],
-				"Resource": "*"
-			}
-		}`)
+func TestEmptyPolicy(t *testing.T) {
+	// Set up
+	policyContent := `{}`
 
-	pol, err := canonicalPolicy(testCase)
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
 	if err != nil {
-		t.Errorf("Convert failed for case '%s': %v", pol, err)
+		t.Fatalf("Unexpected error while parsing data: %s", err)
 	}
-	prettyPrint(pol)
+
+	policy := policyInterface.(Policy)
+
+	expectedVersion := ""
+	if policy.Version != expectedVersion {
+		t.Logf("Unexpected Policy Version: `%s` Policy Version expected: `%s`", policy.Version, expectedVersion)
+		t.Fail()
+	}
+
+	expectedId := ""
+	if policy.Id != expectedId {
+		t.Logf("Unexpected Policy ID: `%s` Policy ID expected: `%s`", policy.Id, expectedId)
+		t.Fail()
+	}
+
+	expectedStatements := 0
+	numberStatements := len(policy.Statements)
+	if numberStatements != expectedStatements {
+		t.Logf("Unexpected number of Statements: `%d` Statements expected: `%d`", numberStatements, expectedStatements)
+		t.Fail()
+	}
 }
 
-func TestConvertPolicyWithBoolsAndInts(t *testing.T) {
-	testCase := string(
-		// s/// boolean, int in condition
-		`{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Action": [
-						"ec2:ModifyVpcEndpoint",
-						"ec2:DeleteVpcEndpoints"
-					],
-					"Resource": "arn:aws:ec2:*:*:vpc-endpoint/*",
-					"Condition": {
-						"Null": {
-							"aws:ResourceTag/AmazonMWAAManaged": false
-						},
-						"StringEquals": {
-							"ec2:CreateAction": [
-								"CreateVpcEndpoint",
-								"DeleteVpcEndpoint"
-							]
-						},
-						"ForAnyValue:StringEquals": {
-							"aws:TagKeys": "AmazonMWAAManaged"
-						},
-						"ThisIsJustToTestConversion": {
-							"int_as_string": "42",
-							"int_as_int": 42,
-							"bool_as_string_true": "true",
-							"bool_as_bool_true": true,
-							"bool_as_string_false": "false",
-							"bool_as_bool_false": false,
-							"string": "this is a string"
+func TestVersionElement(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Version": "2012-10-17"
+    }
+	`
 
-						}
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
 
-					}
-				}
-			]
-		}`)
-
-	pol, err := canonicalPolicy(testCase)
+	// Expected
 	if err != nil {
-		t.Errorf("Convert failed for case '%s': %v", pol, err)
+		t.Fatalf("Unexpected error while parsing data: %s", err)
 	}
-	prettyPrint(pol)
+
+	policy := policyInterface.(Policy)
+
+	expectedVersion := "2012-10-17"
+	if policy.Version != expectedVersion {
+		t.Fatalf("Unexpected Policy Version: `%s` Policy Version expected: `%s`", policy.Version, expectedVersion)
+	}
 }
 
-func TestConvertPolicy(t *testing.T) {
-	cases := []string{
+func TestIdElement(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Id": "cd3ad3d9-2776-4ef1-a904-4c229d1642ee"
+    }
+	`
 
-		// Regressions
-		`{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": [ "logs:CreateLogStream", "logs:CreateLogGroup", "logs:DescribeLogGroups" ], "Resource": "arn:aws:logs:*:*:log-group:airflow-*:*" }, { "Effect": "Allow", "Action": [ "ec2:AttachNetworkInterface", "ec2:CreateNetworkInterface", "ec2:CreateNetworkInterfacePermission", "ec2:DeleteNetworkInterface", "ec2:DeleteNetworkInterfacePermission", "ec2:DescribeDhcpOptions", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcEndpoints", "ec2:DescribeVpcs", "ec2:DetachNetworkInterface" ], "Resource": "*" }, { "Effect": "Allow", "Action": "ec2:CreateVpcEndpoint", "Resource": "arn:aws:ec2:*:*:vpc-endpoint/*", "Condition": { "ForAnyValue:StringEquals": { "aws:TagKeys": "AmazonMWAAManaged" } } }, { "Effect": "Allow", "Action": [ "ec2:ModifyVpcEndpoint", "ec2:DeleteVpcEndpoints" ], "Resource": "arn:aws:ec2:*:*:vpc-endpoint/*", "Condition": { "Null": { "aws:ResourceTag/AmazonMWAAManaged": false } } }, { "Effect": "Allow", "Action": [ "ec2:CreateVpcEndpoint", "ec2:ModifyVpcEndpoint" ], "Resource": [ "arn:aws:ec2:*:*:vpc/*", "arn:aws:ec2:*:*:security-group/*", "arn:aws:ec2:*:*:subnet/*" ] }, { "Effect": "Allow", "Action": "ec2:CreateTags", "Resource": "arn:aws:ec2:*:*:vpc-endpoint/*", "Condition": { "StringEquals": { "ec2:CreateAction": "CreateVpcEndpoint" }, "ForAnyValue:StringEquals": { "aws:TagKeys": "AmazonMWAAManaged" } } } ] }`,
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
 
-		// //// S3 bucket policies
-		`{"Version":"2012-10-17","Statement":[{"Sid":"AWSCloudTrailAclCheck","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Action":"s3:GetBucketAcl","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1"},{"Sid":"AWSCloudTrailWrite","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/AWSLogs/876515858155/*","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}}},{"Sid":"AWSELBWrite","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::507241528517:root"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/*"},{"Sid":"AWSRedshiftAclCheck","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::075028567923:user/logs"},"Action":"s3:GetBucketAcl","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1"},{"Sid":"AWSRedshiftWrite","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::075028567923:user/logs"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/*"},{"Sid":"AWSLogDeliveryAclCheck","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Action":"s3:GetBucketAcl","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1"},{"Sid":"AWSLogDeliveryWrite","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/AWSLogs/876515858155/*","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}}}]}`,
-
-		`{"Id":"Policy1590074992386","Statement":[{"Action":"s3:listBucket","Condition":{"StringEquals":{"AWS:anything":["ACCOUNT-ID"]}},"Effect":"Allow","Principal":{"AWS":["AROASNJZ76JBEFDBLBIMV","arn:aws:iam::039305405804:root","arn:aws:iam::166014743106:user/jsmyth","arn:aws:iam::235268162285:root"],"Federated":["literally anything","accounts.google.com","arn:aws:iam::AWS-account-ID:saml-provider/provider-name","graph.facebook.com","cognito-identity.amazonaws.com"],"Service":["cloudtrail.amazonaws.com","sns.amazonaws.com"]},"Resource":"arn:aws:s3:::JSMYTH-test-bucket-8765","Sid":"Stmt1590074983320"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:LISTBUCKET","Effect":"Allow","Principal":"*","Resource":"arn:aws:s3:::vandelay-INSECURE-test-bucket-do-not-use","Sid":"Stmt1600291154570"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:*","Condition":{"Bool":{"aws:SecureTransport":"false"}},"Effect":"Deny","Principal":"*","Resource":["arn:aws:s3:::vandelay-industries-elaines-bucket","arn:aws:s3:::vandelay-industries-elaines-bucket/*"],"Sid":"MustBeEncryptedInTransit"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::127311923021:root"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::193672423079:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::193672423079:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::033677994240:root"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::391106570357:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::391106570357:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-east-2/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::985666609251:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::907379612154:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::907379612154:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ca-central-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:*","Condition":{"Bool":{"aws:SecureTransport":"false"}},"Effect":"Deny","Principal":"*","Resource":["arn:aws:s3:::vandelay-industries-darins-bucket","arn:aws:s3:::vandelay-industries-darins-bucket/*"],"Sid":"MustBeEncryptedInTransit"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::797873946194:root"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::902366379725:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::902366379725:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-2/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::652711504416:root"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::307160386991:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::307160386991:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-2/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::009996457667:root"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::915173422425:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::915173422425:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-3/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::156460612806:root"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::210876761215:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::210876761215:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-west-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::054676820928:root"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::053454850223:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::053454850223:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-central-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::582318560864:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::404641285394:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::404641285394:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::897822967062:root"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::729911121831:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::729911121831:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-eu-north-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::507241528517:root"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::075028567923:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::075028567923:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-sa-east-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::600734575887:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::760740231472:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::760740231472:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-northeast-2/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::783225319266:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::762762565011:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::762762565011:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-2/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::718504428378:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::865932855811:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::865932855811:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-south-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::114774131450:root"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::361669875840:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::361669875840:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-ap-southeast-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1","Sid":"AWSCloudTrailAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"cloudtrail.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1/AWSLogs/876515858155/*","Sid":"AWSCloudTrailWrite"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::027434742980:root"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1/*","Sid":"AWSELBWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::262260360010:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1","Sid":"AWSRedshiftAclCheck"},{"Action":"s3:PutObject","Effect":"Allow","Principal":{"AWS":"arn:aws:iam::262260360010:user/logs"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1/*","Sid":"AWSRedshiftWrite"},{"Action":"s3:GetBucketAcl","Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1","Sid":"AWSLogDeliveryAclCheck"},{"Action":"s3:PutObject","Condition":{"StringEquals":{"s3:x-amz-acl":"bucket-owner-full-control"}},"Effect":"Allow","Principal":{"Service":"delivery.logs.amazonaws.com"},"Resource":"arn:aws:s3:::turbot-876515858155-us-west-1/AWSLogs/876515858155/*","Sid":"AWSLogDeliveryWrite"}],"Version":"2012-10-17"}`,
-
-		/// IAM policies
-		`{"Statement":[{"Action":["acm:*"],"Effect":"Allow","Resource":"*","Sid":"AWSacmAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["dynamodb:*"],"Effect":"Allow","Resource":"*","Sid":"AWSdynamodbOwner"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["acm:listc*","application-autoscaling:der*","application-autoscaling:des*","application-autoscaling:r*","autoscaling:a*","autoscaling:co*","autoscaling:createorupdatet*","autoscaling:deleten*","autoscaling:deleteta*","autoscaling:des*","autoscaling:det*","autoscaling:di*","autoscaling:e*","autoscaling:putn*","autoscaling:r*","autoscaling:seti*","autoscaling:su*","autoscaling:t*","ec2:copys*","ec2:createsn*","ec2:createta*","ec2:deleteta*","ec2:describea*","ec2:describeb*","ec2:describecl*","ec2:describeco*","ec2:describeel*","ec2:describeex*","ec2:describefp*","ec2:describeh*","ec2:describeia*","ec2:describeid*","ec2:describeim*","ec2:describeins*","ec2:describek*","ec2:describel*","ec2:describem*","ec2:describenetworki*","ec2:describepl*","ec2:describere*","ec2:describesc*","ec2:describese*","ec2:describesn*","ec2:describesp*","ec2:describest*","ec2:describet*","ec2:describevo*","ec2:getc*","ec2:geth*","ec2:getl*","ec2:getr*","ec2:reb*","ec2:repo*","ec2:st*","elasticloadbalancing:addt*","elasticloadbalancing:der*","elasticloadbalancing:des*","elasticloadbalancing:reg*","elasticloadbalancing:removet*"],"Effect":"Allow","Resource":"*","Sid":"AWSec2Operator"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["logs:*"],"Effect":"Allow","Resource":"*","Sid":"AWSlogsAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["dynamodb:b*","dynamodb:c*","dynamodb:d*","dynamodb:g*","dynamodb:l*","dynamodb:put*","dynamodb:q*","dynamodb:r*","dynamodb:s*","dynamodb:t*","dynamodb:u*"],"Effect":"Allow","Resource":"*","Sid":"AWSdynamodbAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["ec2:describeac*","ec2:describeav*","ec2:describesecuritygroups*","ec2:describevpcs*","elasticache:ad*","elasticache:co*","elasticache:createcachec*","elasticache:createcachep*","elasticache:createcachesu*","elasticache:creater*","elasticache:creates*","elasticache:dec*","elasticache:deletecachec*","elasticache:deletecachep*","elasticache:deletecachesu*","elasticache:deleter*","elasticache:deletes*","elasticache:des*","elasticache:i*","elasticache:l*","elasticache:m*","elasticache:reb*","elasticache:rem*","elasticache:res*","elasticache:t*","sns:listsubscriptions","sns:listto*"],"Effect":"Allow","Resource":"*","Sid":"AWSelastiCacheAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["elasticfilesystem:*"],"Effect":"Allow","Resource":"*","Sid":"AWSefsAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["acm-pca:*","acm:*","amplify:*","apigateway:*","application-autoscaling:*","appmesh:*","athena:*","autoscaling:a*","autoscaling:co*","autoscaling:createorupdatet*","autoscaling:deleten*","autoscaling:deleteta*","autoscaling:des*","autoscaling:det*","autoscaling:di*","autoscaling:e*","autoscaling:putn*","autoscaling:r*","autoscaling:seti*","autoscaling:su*","autoscaling:t*","aws-marketplace-management:v*","aws-marketplace:b*","aws-marketplace:g*","aws-marketplace:m*","aws-marketplace:r*","aws-marketplace:v*","aws-portal:v*","backup-storage:*","backup:*","ce:*","cloudformation:ca*","cloudformation:co*","cloudformation:createc*","cloudformation:createstack","cloudformation:createu*","cloudformation:deletec*","cloudformation:deletestack","cloudformation:des*","cloudformation:det*","cloudformation:e*","cloudformation:g*","cloudformation:l*","cloudformation:se*","cloudformation:si*","cloudformation:updatestack","cloudformation:updatet*","cloudfront:*","cloudsearch:*","cloudtrail:*","cloudwatch:*","codebuild:*","codecommit:*","config:*","dax:*","ds:describedi*","dynamodb:b*","dynamodb:c*","dynamodb:d*","dynamodb:g*","dynamodb:l*","dynamodb:put*","dynamodb:q*","dynamodb:r*","dynamodb:s*","dynamodb:t*","dynamodb:u*","ec2-reports:*","ec2:acceptr*","ec2:al*","ec2:assi*","ec2:associatea*","ec2:associatei*","ec2:attachn*","ec2:attachvo*","ec2:cancels*","ec2:copys*","ec2:createk*","ec2:createl*","ec2:createnetworki*","ec2:createp*","ec2:createsn*","ec2:createsp*","ec2:createta*","ec2:createvo*","ec2:deletek*","ec2:deletel*","ec2:deletenetworki*","ec2:deletep*","ec2:deletesn*","ec2:deletesp*","ec2:deleteta*","ec2:deletevo*","ec2:describea*","ec2:describeb*","ec2:describec*","ec2:described*","ec2:describeel*","ec2:describeex*","ec2:describefp*","ec2:describeh*","ec2:describei*","ec2:describek*","ec2:describel*","ec2:describem*","ec2:describene*","ec2:describepl*","ec2:describer*","ec2:describes*","ec2:describet*","ec2:describevo*","ec2:describevpca*","ec2:describevpcpeeringconnection","ec2:describevpcs*","ec2:describevpn*","ec2:detachn*","ec2:detachvo*","ec2:disassociatea*","ec2:disassociatei*","ec2:enablevo*","ec2:g*","ec2:importk*","ec2:modifyh*","ec2:modifyid*","ec2:modifyin*","ec2:modifyl*","ec2:modifyn*","ec2:modifyr*","ec2:modifysn*","ec2:modifysp*","ec2:modifyvo*","ec2:mon*","ec2:purchaseh*","ec2:purchaser*","ec2:reb*","ec2:rel*","ec2:replacei*","ec2:repo*","ec2:req*","ec2:resetin*","ec2:resets*","ec2:ru*","ec2:st*","ec2:t*","ec2:un*","ec2messages:*","ecr:b*","ecr:c*","ecr:d*","ecr:g*","ecr:i*","ecr:l*","ecr:p*","ecr:st*","ecr:t*","ecr:u*","ecs:c*","ecs:de*","ecs:l*","ecs:pu*","ecs:registert*","ecs:ru*","ecs:startta*","ecs:sto*","ecs:t*","ecs:u*","eks:*","elasticache:ad*","elasticache:co*","elasticache:createcachec*","elasticache:createcachep*","elasticache:createcachesu*","elasticache:creater*","elasticache:creates*","elasticache:dec*","elasticache:deletecachec*","elasticache:deletecachep*","elasticache:deletecachesu*","elasticache:deleter*","elasticache:deletes*","elasticache:des*","elasticache:i*","elasticache:l*","elasticache:m*","elasticache:reb*","elasticache:rem*","elasticache:res*","elasticache:t*","elasticbeanstalk:*","elasticfilesystem:*","elasticloadbalancing:*","elasticmapreduce:*","es:a*","es:c*"],"Effect":"Allow","Resource":"*","Sid":"AWSAdmin1"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["athena:*"],"Effect":"Allow","Resource":"*","Sid":"AWSathenaAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["health:*","waf:*","route53:*","cloudFront:*","iam:*","sts:*"],"Effect":"Allow","Resource":"*"},{"Action":["xray:*","workspaces:*","snowball:*","servicecatalog:*","route53resolver:*","ram:*","glue:*","dms:*","datapipeline:*","comprehend:*","codedeploy:*","cloudhsm:*","batch:*","artifact:*","waf-regional:*","states:*","sqs:*","shield:*","securityHub:*","secretsManager:*","roboMaker:*","redshift:*","kafka:*","mq:*","lambda:*","kinesis:*","inspector:*","guardDuty:*","glacier:*","fsx:*","elasticmapreduce:*","es:*","elasticBeanstalk:*","elasticache:*","eks:*","elasticfilesystem:*","ecs:*","ecr:*","dynamodb:*","dax:*","codeCommit:*","codeBuild:*","cloudWatch:*","cloudTrail:*","cloudSearch:*","cloudFormation:*","backup:*","athena:*","appMesh:*","apiGateway:*","amplify:*","acm:*","ssm:*","rds:*","ec2:*","autoscaling:*","elasticloadbalancing:*","config:*","s3:*","sns:*","logs:*","kms:*","events:*"],"Condition":{"StringLike":{"aws:RequestedRegion":["*"]}},"Effect":"Allow","Resource":"*"},{"Action":["aws-marketplace-management:*","aws-portal:*","ce:*","pricing:*","sts:*","support:*"],"Effect":"Allow","Resource":"*","Sid":"DefaultPermissions"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["ec2:describeac*","ec2:describeav*","ec2:describesecuritygroups*","ec2:describevpcs*","elasticache:ad*","elasticache:co*","elasticache:createcachec*","elasticache:createcachep*","elasticache:createcachesu*","elasticache:creater*","elasticache:creates*","elasticache:dec*","elasticache:deletecachec*","elasticache:deletecachep*","elasticache:deletecachesu*","elasticache:deleter*","elasticache:deletes*","elasticache:des*","elasticache:i*","elasticache:l*","elasticache:m*","elasticache:p*","elasticache:reb*","elasticache:rem*","elasticache:res*","elasticache:t*","sns:listsubscriptions","sns:listto*"],"Effect":"Allow","Resource":"*","Sid":"AWSelastiCacheOwner"}],"Version":"2012-10-17"}`,
-
-		`{"Statement":[{"Action":["acm:*"],"Effect":"Allow","Resource":"*","Sid":"AWSacmAdmin"}],"Version":"2012-10-17"}`,
-		`{"Statement":[{"Action":["es:d*","es:e*","es:g*","es:l*","es:r*","es:s*","es:u*","events:d*","events:e*","events:l*","events:pute*","events:putr*","events:putt*","events:removet*","events:t*","execute-api:*","firehose:*","fsx:*","glacier:abortm*","glacier:ad*","glacier:completem*","glacier:cr*","glacier:d*","glacier:g*","glacier:initiatej*","glacier:initiatem*","glacier:l*","glacier:p*","glacier:r*","glacier:s*","glacier:u*","guardduty:ar*","guardduty:created*","guardduty:createf*","guardduty:createi*","guardduty:creates*","guardduty:createt*","guardduty:dec*","guardduty:deleted*","guardduty:deletef*","guardduty:deleteip*","guardduty:deletet*","guardduty:g*","guardduty:l*","guardduty:s*","guardduty:t*","guardduty:u*","health:describeeventa*","iam:g*","iam:l*","iam:pa*","iam:si*","iam:t*","iam:un*","inspector:*","kafka:*","kinesis:*","kinesisanalytics:*","kinesisvideo:*","kms:*","lambda:*","logs:*","marketplacecommerceanalytics:*","mq:*","pi:*","pricing:*","ram:**","rds:ad*","rds:ap*","rds:b*","rds:co*","rds:createdbc*","rds:createdbi*","rds:createdbp*","rds:createdbsn*","rds:createe*","rds:createo*","rds:deletedbc*","rds:deletedbi*","rds:deletedbp*","rds:deletedbsn*","rds:deletee*","rds:deleteo*","rds:des*","rds:do*","rds:f*","rds:l*","rds:modifyc*","rds:modifydbc*","rds:modifydbi*","rds:modifydbp*","rds:modifydbsn*","rds:modifye*","rds:modifyo*","rds:pr*","rds:reb*","rds:rem*","rds:res*","rds:s*","redshift:ac*","redshift:authorizes*","redshift:b*","redshift:ca*","redshift:co*","redshift:createcluster","redshift:createclusterp*","redshift:createclustersn*","redshift:createclustersu*","redshift:createclusteru*","redshift:createe*","redshift:createsa*","redshift:createsnapshots*","redshift:createt*","redshift:deletecluster","redshift:deleteclusterp*","redshift:deleteclustersn*","redshift:deleteclustersu*","redshift:deletee*","redshift:deletesa*","redshift:deletesnapshots*","redshift:deletet*","redshift:des*","redshift:disables*","redshift:enables*","redshift:ex*","redshift:f*","redshift:g*","redshift:j*","redshift:l*","redshift:m*","redshift:reb*","redshift:res*","redshift:revokes*","redshift:ro*","redshift:v*","robomaker:*","route53:*","route53domains:*","s3:a*","s3:c*","s3:deletea*","s3:deleteb*","s3:deleteo*","s3:g*","s3:h*","s3:l*","s3:puta*","s3:putbuckete*","s3:putbucketn*","s3:putbucketp*","s3:putbuckett*","s3:putbucketv*","s3:putbucketw*","s3:pute*","s3:puti*","s3:putl*","s3:putm*","s3:putobject","s3:putobjectt*","s3:putobjectversiont*","s3:r*","sdb:s*","secretsmanager:*","securityhub:*","shield:*","sns:c*","sns:d*","sns:g*","sns:l*","sns:o*","sns:p*","sns:s*","sns:t*","sns:u*","sqs:c*","sqs:d*","sqs:g*","sqs:l*","sqs:p*","sqs:rec*","sqs:s*","sqs:t*","sqs:u*","ssm:*","states:*","sts:*","support:*","tagging:*","waf-regional:*","waf:*","wafv2:*"],"Effect":"Allow","Resource":"*","Sid":"AWSAdmin2"}],"Version":"2012-10-17"}`,
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
 	}
 
-	for i, testCase := range cases {
+	policy := policyInterface.(Policy)
 
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			pol, err := canonicalPolicy(testCase)
-			if err != nil {
-				t.Errorf("Convert failed for case '%s': %v", pol, err)
-			}
-			prettyPrint(pol)
-		})
+	expectedId := "cd3ad3d9-2776-4ef1-a904-4c229d1642ee"
+	if policy.Id != expectedId {
+		t.Fatalf("Unexpected Policy ID: `%s` Policy ID expected: `%s`", policy.Id, expectedId)
 	}
-
 }
 
-func prettyPrint(src interface{}) {
-	pretty, err := json.MarshalIndent(src, "", "  ")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	fmt.Printf("\n %s\n", string(pretty))
+func TestSingleEmptyStatement(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+        }
+      ]
+    }
+	`
 
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedStatements := 1
+	numberStatements := len(policy.Statements)
+	if numberStatements != expectedStatements {
+		t.Fatalf("Unexpected number of Statements: `%d` Statements expected: `%d`", numberStatements, expectedStatements)
+	}
+
+	statement := policy.Statements[0]
+
+	expectedEffect := ""
+	if statement.Effect != expectedEffect {
+		t.Logf("Unexpected Statement Effect: `%s` Statement Effect expected: `%s`", statement.Effect, expectedEffect)
+		t.Fail()
+	}
+
+	expectedSid := ""
+	if statement.Sid != expectedSid {
+		t.Logf("Unexpected Statement SID: `%s` Statement SID expected: `%s`", statement.Sid, expectedSid)
+		t.Fail()
+	}
+
+	if len(statement.Action) > 0 {
+		t.Logf("Unexpected Statement Action: `%s`", statement.Action)
+		t.Fail()
+	}
+
+	if len(statement.NotAction) > 0 {
+		t.Logf("Unexpected Statement NotAction: `%s`", statement.NotAction)
+		t.Fail()
+	}
+
+	if len(statement.Principal) > 0 {
+		t.Logf("Unexpected Statement Principal: `%s`", statement.Principal)
+		t.Fail()
+	}
+
+	if len(statement.NotPrincipal) > 0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s`", statement.NotPrincipal)
+		t.Fail()
+	}
+
+	if len(statement.NotResource) > 0 {
+		t.Logf("Unexpected Statement NotResource: `%s`", statement.NotResource)
+		t.Fail()
+	}
+
+	if len(statement.Resource) > 0 {
+		t.Logf("Unexpected Statement Principal: `%s`", statement.Principal)
+		t.Fail()
+	}
+
+	if len(statement.Condition) > 0 {
+		t.Logf("Unexpected Statement Condition: `%s`", statement.Condition)
+		t.Fail()
+	}
+}
+
+func TestMultipleEmptyStatements(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+        },
+        {
+        },
+        {
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedStatements := 3
+	numberStatements := len(policy.Statements)
+	if numberStatements != expectedStatements {
+		t.Fatalf("Unexpected number of Statements: `%d` Statements expected: `%d`", numberStatements, expectedStatements)
+	}
+
+	for index, statement := range policy.Statements {
+		expectedEffect := ""
+		if statement.Effect != expectedEffect {
+			t.Logf("Unexpected Statement Effect: `%s` Statement Effect expected: `%s` for index: %d", statement.Effect, expectedEffect, index)
+			t.Fail()
+		}
+
+		expectedSid := ""
+		if statement.Sid != expectedSid {
+			t.Logf("Unexpected Statement SID: `%s` Statement SID expected: `%s`", statement.Sid, expectedSid)
+			t.Fail()
+		}
+
+		if len(statement.Action) > 0 {
+			t.Logf("Unexpected Statement Action: `%s`", statement.Action)
+			t.Fail()
+		}
+
+		if len(statement.NotAction) > 0 {
+			t.Logf("Unexpected Statement NotAction: `%s`", statement.NotAction)
+			t.Fail()
+		}
+
+		if len(statement.Principal) > 0 {
+			t.Logf("Unexpected Statement Principal: `%s`", statement.Principal)
+			t.Fail()
+		}
+
+		if len(statement.NotPrincipal) > 0 {
+			t.Logf("Unexpected Statement NotPrincipal: `%s`", statement.NotPrincipal)
+			t.Fail()
+		}
+
+		if len(statement.NotResource) > 0 {
+			t.Logf("Unexpected Statement NotResource: `%s`", statement.NotResource)
+			t.Fail()
+		}
+
+		if len(statement.Resource) > 0 {
+			t.Logf("Unexpected Statement Principal: `%s`", statement.Principal)
+			t.Fail()
+		}
+
+		if len(statement.Condition) > 0 {
+			t.Logf("Unexpected Statement Condition: `%s`", statement.Condition)
+			t.Fail()
+		}
+	}
+}
+
+func TestStatementPrincipalElement(t *testing.T) {
+	t.Run("TestStatementPrincipalElementSingleValue", testStatementPrincipalElementSingleValue)
+	t.Run("TestStatementPrincipalElementMultipleValue", testStatementPrincipalElementMultipleValue)
+	t.Run("TestStatementPrincipalElementMultipleValueAtPrincipalFails", testStatementPrincipalElementMultipleValueAtPrincipalFails)
+	t.Run("TestStatementPrincipalElementRemoveDeplicateValues", testStatementPrincipalElementRemoveDuplicateValues)
+	t.Run("TestStatementPrincipalElementSortValues", testStatementPrincipalElementSortValues)
+	t.Run("TestStatementPrincipalElementValuesOtherThanStringsFails", testStatementPrincipalElementValuesOtherThanStringsFails)
+}
+
+func testStatementPrincipalElementValuesOtherThanStringsFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Principal": 10
+        }
+      ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22Principal%22%3A+10%0A++++++++%7D%0A++++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22Principal%22%3A+10%0A++++++++%7D%0A++++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func testStatementPrincipalElementSingleValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Principal": "*"
+        },
+        {
+          "Principal": { "AWS": "*" }
+        },
+        {
+          "Principal": { "CanonicalUser": "*" }
+        },
+        {
+          "Principal": { "Service": "*" }
+        },
+        {
+          "Principal": { "Any Value": "*" }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValue := "*"
+	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	expectedEntries := 1
+	if len(policy.Statements[0].Principal) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[0].Principal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["AWS"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].Principal) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["CanonicalUser"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].Principal) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[2].Principal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Service"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].Principal) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[3].Principal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[4].Principal["Any Value"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[4].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[4].Principal) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[4].Principal), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementPrincipalElementMultipleValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Principal": { "AWS": ["111199991111", "999911119999"] }
+        },
+        {
+          "Principal": { "CanonicalUser": ["111199991111", "999911119999"] }
+        },
+        {
+          "Principal": { "Service": ["111199991111", "999911119999"] }
+        },
+        {
+          "Principal": { "Any Value": ["111199991111", "999911119999"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].Principal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].Principal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].Principal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].Principal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[2].Principal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].Principal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[3].Principal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementPrincipalElementSortValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Principal": { "AWS": ["999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "CanonicalUser": ["999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "Service": ["999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "Any Value": ["999911119999", "111199991111"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].Principal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].Principal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].Principal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].Principal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[2].Principal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].Principal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[3].Principal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementPrincipalElementRemoveDuplicateValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Principal": { "AWS": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "CanonicalUser": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "Service": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "Principal": { "Any Value": ["111199991111", "999911119999", "111199991111"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].Principal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].Principal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].Principal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[1].Principal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].Principal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[1].Principal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].Principal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[2].Principal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].Principal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[2].Principal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].Principal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[3].Principal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].Principal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement Principal has: `%d` entries but: `%d` expected", len(policy.Statements[3].Principal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementPrincipalElementMultipleValueAtPrincipalFails(t *testing.T) {
+	// Set up
+	policyContent := `{ "Statement": [{ "Principal": ["111199991111", "999911119999"] }] }`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%7B+%22Principal%22%3A+%5B%22111199991111%22%2C+%22999911119999%22%5D+%7D%5D.  src: %7B+%22Statement%22%3A+%5B%7B+%22Principal%22%3A+%5B%22111199991111%22%2C+%22999911119999%22%5D+%7D%5D+%7D"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func TestStatementNotPrincipalElement(t *testing.T) {
+	t.Run("TestStatementNotPrincipalElementSingleValue", testStatementNotPrincipalElementSingleValue)
+	t.Run("TestStatementNotPrincipalElementMultipleValue", testStatementNotPrincipalElementMultipleValue)
+	t.Run("TestStatementNotPrincipalElementMultipleValueAtNotPrincipalFails", testStatementNotPrincipalElementMultipleValueAtNotPrincipalFails)
+	t.Run("TestStatementNotPrincipalElementRemoveDeplicateValues", testStatementNotPrincipalElementRemoveDuplicateValues)
+	t.Run("TestStatementNotPrincipalElementSortValues", testStatementNotPrincipalElementSortValues)
+	t.Run("TestStatementNotPrincipalElementValuesOtherThanStringsFails", testStatementNotPrincipalValuesOtherThanStringsFails)
+}
+
+func testStatementNotPrincipalValuesOtherThanStringsFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotPrincipal": 10
+        }
+      ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22NotPrincipal%22%3A+10%0A++++++++%7D%0A++++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22NotPrincipal%22%3A+10%0A++++++++%7D%0A++++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func testStatementNotPrincipalElementSingleValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotPrincipal": "*"
+        },
+        {
+          "NotPrincipal": { "AWS": "*" }
+        },
+        {
+          "NotPrincipal": { "CanonicalUser": "*" }
+        },
+        {
+          "NotPrincipal": { "Service": "*" }
+        },
+        {
+          "NotPrincipal": { "Any Value": "*" }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValue := "*"
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	expectedEntries := 1
+	if len(policy.Statements[0].NotPrincipal) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[0].NotPrincipal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["AWS"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].NotPrincipal) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["CanonicalUser"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].NotPrincipal) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[2].NotPrincipal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Service"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].NotPrincipal) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[3].NotPrincipal), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[4].NotPrincipal["Any Value"].([]string)[0] != expectedValue {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[4].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if len(policy.Statements[4].NotPrincipal) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[4].NotPrincipal), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementNotPrincipalElementMultipleValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotPrincipal": { "AWS": ["111199991111", "999911119999"] }
+        },
+        {
+          "NotPrincipal": { "CanonicalUser": ["111199991111", "999911119999"] }
+        },
+        {
+          "NotPrincipal": { "Service": ["111199991111", "999911119999"] }
+        },
+        {
+          "NotPrincipal": { "Any Value": ["111199991111", "999911119999"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].NotPrincipal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].NotPrincipal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[2].NotPrincipal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].NotPrincipal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[3].NotPrincipal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementNotPrincipalElementSortValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotPrincipal": { "AWS": ["999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "CanonicalUser": ["999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "Service": ["999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "Any Value": ["999911119999", "111199991111"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].NotPrincipal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].NotPrincipal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[2].NotPrincipal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].NotPrincipal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[3].NotPrincipal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementNotPrincipalElementRemoveDuplicateValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotPrincipal": { "AWS": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "CanonicalUser": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "Service": ["111199991111", "999911119999", "111199991111"] }
+        },
+        {
+          "NotPrincipal": { "Any Value": ["111199991111", "999911119999", "111199991111"] }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	// NOTE: Why we casting
+	expectedValueIndex0 := "111199991111"
+	expectedValueIndex1 := "999911119999"
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[0].NotPrincipal["AWS"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[1])
+		t.Fail()
+	}
+
+	expectedEntries := 2
+	if len(policy.Statements[0].NotPrincipal["AWS"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["AWS"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[1].NotPrincipal["CanonicalUser"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotPrincipal["Service"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[2].NotPrincipal["Service"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[2].NotPrincipal["Service"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[2].NotPrincipal["Service"].([]string)), expectedEntries)
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[0] != expectedValueIndex0 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[0])
+		t.Fail()
+	}
+
+	if policy.Statements[3].NotPrincipal["Any Value"].([]string)[1] != expectedValueIndex1 {
+		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[3].NotPrincipal["Any Value"].([]string)[1])
+		t.Fail()
+	}
+
+	if len(policy.Statements[3].NotPrincipal["Any Value"].([]string)) != expectedEntries {
+		t.Logf("Unexpected Statement NotPrincipal has: `%d` entries but: `%d` expected", len(policy.Statements[3].NotPrincipal["Any Value"].([]string)), expectedEntries)
+		t.Fail()
+	}
+}
+
+func testStatementNotPrincipalElementMultipleValueAtNotPrincipalFails(t *testing.T) {
+	// Set up
+	policyContent := `{ "Statement": [{ "NotPrincipal": ["111199991111", "999911119999"] }] }`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%7B+%22NotPrincipal%22%3A+%5B%22111199991111%22%2C+%22999911119999%22%5D+%7D%5D.  src: %7B+%22Statement%22%3A+%5B%7B+%22NotPrincipal%22%3A+%5B%22111199991111%22%2C+%22999911119999%22%5D+%7D%5D+%7D"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func TestStatementActionElement(t *testing.T) {
+	t.Run("TestActionValuesAreLowercased", testActionValuesAreLowercased)
+	t.Run("TestDuplicateValuesInActionAreRemoved", testDuplicateValuesInActionAreRemoved)
+	t.Run("TestActionSortsValues", testActionSortsValues)
+	t.Run("TestActionWhenValueIsNotAString", testActionWhenValueIsNotAString)
+}
+
+func testActionWhenValueIsNotAString(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Action": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedAction := "3"
+	if policy.Statements[0].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[0].Action[0], expectedAction)
+		t.Fail()
+	}
+}
+
+func testActionSortsValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Action": ["S3:List*", "S3:Get*"]
+        },
+        {
+          "Action": ["S3:List*", "S3:Get*", "EC2:Launch*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedAction := "s3:get*"
+	if policy.Statements[0].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[0].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "s3:list*"
+	if policy.Statements[0].Action[1] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[0].Action[1], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "ec2:launch*"
+	if policy.Statements[1].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "s3:get*"
+	if policy.Statements[1].Action[1] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[1], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "s3:list*"
+	if policy.Statements[1].Action[2] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[2], expectedAction)
+		t.Fail()
+	}
+}
+
+func testDuplicateValuesInActionAreRemoved(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Action": ["S3:Get*", "S3:Get*"]
+        },
+        {
+          "Action": ["S3:Get*", "S3:List*", "S3:Get*", "S3:List*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedAction := "s3:get*"
+	if policy.Statements[0].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[0].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	if len(policy.Statements[0].Action) != 1 {
+		t.Logf("Unexpected Statement Action - too many actions returned")
+		t.Fail()
+	}
+
+	if policy.Statements[1].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "s3:list*"
+	if policy.Statements[1].Action[1] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[1], expectedAction)
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].Action) != 2 {
+		t.Logf("Unexpected Statement Action - too many actions returned")
+		t.Fail()
+	}
+}
+
+func testActionValuesAreLowercased(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Action": "S3:Get*"
+        },
+        {
+          "Action": ["S3:Get*"]
+        },
+        {
+          "Action": ["S3:Get*", "S3:List*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedAction := "s3:get*"
+	if policy.Statements[0].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[0].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[1].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Action[0] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[2].Action[0], expectedAction)
+		t.Fail()
+	}
+
+	expectedAction = "s3:list*"
+	if policy.Statements[2].Action[1] != expectedAction {
+		t.Logf("Unexpected Statement Action: `%s` Statement Action expected: `%s`", policy.Statements[2].Action[1], expectedAction)
+		t.Fail()
+	}
+}
+
+func TestStatementNotActionElement(t *testing.T) {
+	t.Run("TestNotActionValuesAreLowercased", testNotActionValuesAreLowercased)
+	t.Run("TestDuplicateValuesInNotActionAreRemoved", testDuplicateValuesInNotActionAreRemoved)
+	t.Run("TestNotActionSortsValues", testNotActionSortsValues)
+	t.Run("TestNotActionWhenValueIsNotAString", testNotActionWhenValueIsNotAString)
+}
+
+func testNotActionValuesAreLowercased(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotAction": "S3:Get*"
+        },
+        {
+          "NotAction": ["S3:Get*"]
+        },
+        {
+          "NotAction": ["S3:Get*", "S3:List*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedNotAction := "s3:get*"
+	if policy.Statements[0].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[0].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[2].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "s3:list*"
+	if policy.Statements[2].NotAction[1] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[2].NotAction[1], expectedNotAction)
+		t.Fail()
+	}
+}
+
+func testDuplicateValuesInNotActionAreRemoved(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotAction": ["S3:Get*", "S3:Get*"]
+        },
+        {
+          "NotAction": ["S3:Get*", "S3:List*", "S3:Get*", "S3:List*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedNotAction := "s3:get*"
+	if policy.Statements[0].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[0].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	if len(policy.Statements[0].NotAction) != 1 {
+		t.Logf("Unexpected Statement NotAction - too many actions returned")
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "s3:list*"
+	if policy.Statements[1].NotAction[1] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[1], expectedNotAction)
+		t.Fail()
+	}
+
+	if len(policy.Statements[1].NotAction) != 2 {
+		t.Logf("Unexpected Statement NotAction - too many actions returned")
+		t.Fail()
+	}
+}
+
+func testNotActionSortsValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotAction": ["S3:List*", "S3:Get*"]
+        },
+        {
+          "NotAction": ["S3:List*", "S3:Get*", "EC2:Launch*"]
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedNotAction := "s3:get*"
+	if policy.Statements[0].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[0].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "s3:list*"
+	if policy.Statements[0].NotAction[1] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[0].NotAction[1], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "ec2:launch*"
+	if policy.Statements[1].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "s3:get*"
+	if policy.Statements[1].NotAction[1] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[1], expectedNotAction)
+		t.Fail()
+	}
+
+	expectedNotAction = "s3:list*"
+	if policy.Statements[1].NotAction[2] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[1].NotAction[2], expectedNotAction)
+		t.Fail()
+	}
+}
+
+func testNotActionWhenValueIsNotAString(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotAction": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedNotAction := "3"
+	if policy.Statements[0].NotAction[0] != expectedNotAction {
+		t.Logf("Unexpected Statement NotAction: `%s` Statement NotAction expected: `%s`", policy.Statements[0].NotAction[0], expectedNotAction)
+		t.Fail()
+	}
+}
+
+func TestStatementEffectElement(t *testing.T) {
+	t.Run("TestStatementEffectElementAllStringsValid", testStatementEffectElementAllStringsValid)
+	t.Run("TestStatementEffectElementForMultipleValuesFails", testStatementEffectElementForMultipleValuesFails)
+	t.Run("TestStatementEffectElementValuesOtherThanStringsFails", testStatementEffectElementValuesOtherThanStringsFails)
+}
+
+func testStatementEffectElementValuesOtherThanStringsFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Sid": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+3%0A++++++++%7D%0A+++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+3%0A++++++++%7D%0A+++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func testStatementEffectElementForMultipleValuesFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Sid": ["Sid1", "Sid2"]
+        }
+      ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+%5B%22Sid1%22%2C+%22Sid2%22%5D%0A++++++++%7D%0A++++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+%5B%22Sid1%22%2C+%22Sid2%22%5D%0A++++++++%7D%0A++++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func testStatementEffectElementAllStringsValid(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Effect": "Allow"
+        },
+        {
+          "Effect": "Deny"
+        },
+        {
+          "Effect": "CanBeAnyValue"
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	var expectedStatement1Effect = "Allow"
+	if policy.Statements[0].Effect != expectedStatement1Effect {
+		t.Logf("Unexpected Statement Effect: `%s` Statement Effect expected: `%s`", policy.Statements[0].Effect, expectedStatement1Effect)
+		t.Fail()
+	}
+
+	var expectedStatement2Effect = "Deny"
+	if policy.Statements[1].Effect != expectedStatement2Effect {
+		t.Logf("Unexpected Statement Effect: `%s` Statement Effect expected: `%s`", policy.Statements[1].Effect, expectedStatement2Effect)
+		t.Fail()
+	}
+
+	var expectedStatement3Effect = "CanBeAnyValue"
+	if policy.Statements[2].Effect != expectedStatement3Effect {
+		t.Logf("Unexpected Statement Effect: `%s` Statement Effect expected: `%s`", policy.Statements[2].Effect, expectedStatement3Effect)
+		t.Fail()
+	}
+}
+
+func TestStatementSidElement(t *testing.T) {
+	t.Run("TestStatementSidElementAllStringsValid", testStatementSidElementAllStringsValid)
+	t.Run("TestStatementSidElementForMultipleValuesFails", testStatementSidElementForMultipleValuesFails)
+	t.Run("TestStatementSidElementValuesOtherThanStringsFails", testStatementSidElementValuesOtherThanStringsFails)
+}
+
+func testStatementSidElementValuesOtherThanStringsFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Sid": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+3%0A++++++++%7D%0A+++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+3%0A++++++++%7D%0A+++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func testStatementSidElementAllStringsValid(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Sid": "Sid1"
+        },
+        {
+          "Sid": "Sid2"
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	var expectedStatement1Sid = "Sid1"
+	if policy.Statements[0].Sid != expectedStatement1Sid {
+		t.Logf("Unexpected Statement Sid: `%s` Statement Sid expected: `%s`", policy.Statements[0].Sid, expectedStatement1Sid)
+		t.Fail()
+	}
+
+	var expectedStatement2Sid = "Sid2"
+	if policy.Statements[1].Sid != expectedStatement2Sid {
+		t.Logf("Unexpected Statement Sid: `%s` Statement Sid expected: `%s`", policy.Statements[1].Sid, expectedStatement2Sid)
+		t.Fail()
+	}
+}
+
+func testStatementSidElementForMultipleValuesFails(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Sid": ["Sid1", "Sid2"]
+        }
+      ]
+    }
+	`
+
+	// Test
+	_, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err == nil {
+		t.Fatal("An error is expected when parsing no content")
+	}
+
+	expectedErrorMsg := "canonicalPolicy failed unmarshalling source data: UnmarshalJSON failed for Statements (Array of Statement): %5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+%5B%22Sid1%22%2C+%22Sid2%22%5D%0A++++++++%7D%0A++++++%5D.  src: %0A++++%7B%0A++++++%22Statement%22%3A+%5B%0A++++++++%7B%0A++++++++++%22Sid%22%3A+%5B%22Sid1%22%2C+%22Sid2%22%5D%0A++++++++%7D%0A++++++%5D%0A++++%7D%0A%09"
+
+	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+		t.Fatalf("The error message returned is expected to be: %s", expectedErrorMsg)
+	}
+}
+
+func TestStatementResourceElement(t *testing.T) {
+	t.Run("TestStatementResourceElementLeavesCasingUnchanged", testStatementResourceElementLeavesCasingUnchanged)
+	t.Run("TestStatementResourceElementSorts", testStatementResourceElementSorts)
+	t.Run("TestActionWhenValueIsNotAString", testResourceWhenValueIsNotAString)
+}
+
+func testResourceWhenValueIsNotAString(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Resource": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "3"
+	if policy.Statements[0].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[0].Resource[0], expectedValue)
+		t.Fail()
+	}
+}
+
+func testStatementResourceElementSorts(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Resource": ["ccc/*", "bbb/*", "aaa/*"]
+        },
+        {
+          "Resource": ["arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*", "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"]
+        }
+      ]
+    }
+    `
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "aaa/*"
+	if policy.Statements[0].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Effect: `%s` Statement Resource expected: `%s`", policy.Statements[0].Resource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "bbb/*"
+	if policy.Statements[0].Resource[1] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[0].Resource[1], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "ccc/*"
+	if policy.Statements[0].Resource[2] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[0].Resource[2], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+	if policy.Statements[1].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[1].Resource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"
+	if policy.Statements[1].Resource[1] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[1].Resource[1], expectedValue)
+		t.Fail()
+	}
+}
+
+func testStatementResourceElementLeavesCasingUnchanged(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Resource": "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+        },
+        {
+          "Resource": ["arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"]
+        },
+        {
+          "Resource": ["arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*", "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"]
+        }
+      ]
+    }
+    `
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+	if policy.Statements[0].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[0].Resource[0], expectedValue)
+		t.Fail()
+	}
+
+	if policy.Statements[1].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[1].Resource[0], expectedValue)
+		t.Fail()
+	}
+
+	if policy.Statements[2].Resource[0] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[2].Resource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"
+	if policy.Statements[2].Resource[1] != expectedValue {
+		t.Logf("Unexpected Statement Resource: `%s` Statement Resource expected: `%s`", policy.Statements[2].Resource[1], expectedValue)
+		t.Fail()
+	}
+}
+
+func TestStatementNotResourceElement(t *testing.T) {
+	t.Run("TestStatementNotResourceElementLeavesCasingUnchanged", testStatementNotResourceElementLeavesCasingUnchanged)
+	t.Run("TestStatementNotResourceElementSorts", testStatementNotResourceElementSorts)
+	t.Run("TestNotResourceWhenValueIsNotAString", testNotResourceWhenValueIsNotAString)
+}
+
+func testNotResourceWhenValueIsNotAString(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotResource": 3
+        }
+     ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "3"
+	if policy.Statements[0].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[0].NotResource[0], expectedValue)
+		t.Fail()
+	}
+}
+
+func testStatementNotResourceElementSorts(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotResource": ["ccc/*", "bbb/*", "aaa/*"]
+        },
+        {
+          "NotResource": ["arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*", "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"]
+        }
+      ]
+    }
+    `
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "aaa/*"
+	if policy.Statements[0].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[0].NotResource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "bbb/*"
+	if policy.Statements[0].NotResource[1] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[0].NotResource[1], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "ccc/*"
+	if policy.Statements[0].NotResource[2] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[0].NotResource[2], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+	if policy.Statements[1].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[1].NotResource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"
+	if policy.Statements[1].NotResource[1] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[1].NotResource[1], expectedValue)
+		t.Fail()
+	}
+}
+
+func testStatementNotResourceElementLeavesCasingUnchanged(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "NotResource": "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+        },
+        {
+          "NotResource": ["arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"]
+        },
+        {
+          "NotResource": ["arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*", "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"]
+        }
+      ]
+    }
+    `
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	expectedValue := "arn:aws:dynamodb:us-east-1:account-ID-without-hyphens:table/*"
+	if policy.Statements[0].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[0].NotResource[0], expectedValue)
+		t.Fail()
+	}
+
+	if policy.Statements[1].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[1].NotResource[0], expectedValue)
+		t.Fail()
+	}
+
+	if policy.Statements[2].NotResource[0] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[2].NotResource[0], expectedValue)
+		t.Fail()
+	}
+
+	expectedValue = "arn:aws:dynamodb:us-east-2:account-ID-without-hyphens:table/*"
+	if policy.Statements[2].NotResource[1] != expectedValue {
+		t.Logf("Unexpected Statement NotResource: `%s` Statement NotResource expected: `%s`", policy.Statements[2].NotResource[1], expectedValue)
+		t.Fail()
+	}
+}
+
+func TestStatementConditionElement(t *testing.T) {
+	t.Run("TestSingleConditions", testSingleConditions)
+	t.Run("TestMultipleConditions", testMultipleConditions)
+	t.Run("TestSingleSubCondition", testSingleSubCondition)
+	t.Run("TestMultipleSubConditions", testMultipleSubConditions)
+	t.Run("TestMultipleValuesInSubConditionsInAscendingOrder", testMultipleValuesInSubConditionsInAscendingOrder)
+	t.Run("TestMultipleValuesInSubConditionsInDecendingOrder", testMultipleValuesInSubConditionsInDecendingOrder)
+	t.Run("TestRemoveDuplicatesFromMultipleValuesInSubConditions", testRemoveDuplicatesFromMultipleValuesInSubConditions)
+	t.Run("TestValueThatAreNotStringInSubConditionValues", testValueThatAreNotStringInSubConditionValues)
+	t.Run("testMultipleValuesThatAreNotStringInSubConditionValue", testMultipleValuesThatAreNotStringInSubConditionValue)
+	t.Run("testRemoveDuplicatesFromMultipleValuesThatAreNotStringInSubConditionValue", testRemoveDuplicatesFromMultipleValuesThatAreNotStringInSubConditionValue)
+	t.Run("TestAllSubConditionCategories", testAllSubConditionCategories)
+}
+
+func testSingleConditions(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "StringEquals": { "StringCondition": "Value" }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "Value"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testMultipleConditions(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "StringEquals": { "StringCondition": "Value" },
+			"NumericEquals": { "NumericCondition": "10" }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 2
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "Value"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["NumericEquals"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["numericcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "10"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testSingleSubCondition(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "StringEquals": {
+              "StringCondition1": "Value1"
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition1"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "Value1"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testMultipleSubConditions(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "StringEquals": {
+              "StringCondition1": "Value1",
+              "StringCondition2": "Value2"
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 2
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition1"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "Value1"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["stringcondition2"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "Value2"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testMultipleValuesInSubConditionsInAscendingOrder(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": { "StringEquals": { "StringCondition": ["AAAAA", "ZZZZZ"] } }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 2
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "AAAAA"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[1]
+	expectedSubConditionValue = "ZZZZZ"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testMultipleValuesInSubConditionsInDecendingOrder(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": { "StringEquals": { "StringCondition": ["ZZZZZ", "AAAAA"] } }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 2
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "AAAAA"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[1]
+	expectedSubConditionValue = "ZZZZZ"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testRemoveDuplicatesFromMultipleValuesInSubConditions(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": { "StringEquals": { "StringCondition": ["AAAAA", "AAAAA"] } }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "AAAAA"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testValueThatAreNotStringInSubConditionValues(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "NumericEquals": { "NumericCondition": 10 },
+            "Bool": { "BoolCondition": true }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 2
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["NumericEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["numericcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "10"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["Bool"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["boolcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "true"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testMultipleValuesThatAreNotStringInSubConditionValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "NumericEquals": { "NumericCondition": [10, 20] },
+            "Bool": { "BoolCondition": [true, false] }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 2
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["NumericEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["numericcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 2
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "10"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[1]
+	expectedSubConditionValue = "20"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["Bool"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["boolcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 2
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "false"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[1]
+	expectedSubConditionValue = "true"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testRemoveDuplicatesFromMultipleValuesThatAreNotStringInSubConditionValue(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": {
+            "NumericEquals": { "NumericCondition": [10, 10] },
+            "Bool": { "BoolCondition": [true, true] }
+          }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 2
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["NumericEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["numericcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "10"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["Bool"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["boolcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "true"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+}
+
+func testAllSubConditionCategories(t *testing.T) {
+	// Set up
+	policyContent := `
+    {
+      "Statement": [
+        {
+          "Condition": { "StringEquals": { "StringCondition": "Value" } }
+        },
+        {
+          "Condition": { "NumericEquals": { "NumericCondition": "10" } }
+        },
+        {
+          "Condition": { "DateGreaterThan": { "DateCondition": "2020-01-01T00:00:01Z" } }
+        },
+        {
+          "Condition": { "Bool": { "BoolCondition": "false" } }
+        },
+        {
+          "Condition": { "BinaryEquals": { "BinaryCondition": "QmluYXJ5VmFsdWVJbkJhc2U2NA==" } }
+        },
+        {
+          "Condition": { "IpAddress": { "IpCondition": "203.0.113.0/24" } }
+        },
+        {
+          "Condition": { "ArnEquals": { "ArnCondition": "arn:aws:sns:REGION:123456789012:TOPIC-ID" } }
+        },
+        {
+          "Condition": { "Null": { "AnyCondition": "true" } }
+        }
+      ]
+    }
+	`
+
+	// Test
+	policyInterface, err := canonicalPolicy(policyContent)
+
+	// Expected
+	if err != nil {
+		t.Fatalf("Unexpected error while parsing data: %s", err)
+	}
+
+	policy := policyInterface.(Policy)
+
+	currentCondition := policy.Statements[0].Condition
+	currentConditionCount := len(currentCondition)
+	expectedConditionCount := 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition := currentCondition["StringEquals"].(map[string]interface{})
+	currentSubConditionCount := len(currentSubCondition)
+	expectedSubConditionCount := 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues := currentSubCondition["stringcondition"].([]string)
+	currentSubConditionValuesCount := len(currentSubConditionValues)
+	expectedSubConditionValuesCount := 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue := currentSubConditionValues[0]
+	expectedSubConditionValue := "Value"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[1].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["NumericEquals"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["numericcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "10"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[2].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["DateGreaterThan"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["datecondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "2020-01-01T00:00:01Z"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[3].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["Bool"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["boolcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "false"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[4].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["BinaryEquals"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["binarycondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "QmluYXJ5VmFsdWVJbkJhc2U2NA=="
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[5].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["IpAddress"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["ipcondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "203.0.113.0/24"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[6].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["ArnEquals"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["arncondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "arn:aws:sns:REGION:123456789012:TOPIC-ID"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
+
+	currentCondition = policy.Statements[7].Condition
+	currentConditionCount = len(currentCondition)
+	expectedConditionCount = 1
+	if currentConditionCount != expectedConditionCount {
+		t.Logf("Unexpected number of Conditions: `%d` Conditions expected: `%d`", currentConditionCount, expectedConditionCount)
+		t.Fail()
+	}
+
+	currentSubCondition = currentCondition["Null"].(map[string]interface{})
+	currentSubConditionCount = len(currentSubCondition)
+	expectedSubConditionCount = 1
+	if currentSubConditionCount != expectedSubConditionCount {
+		t.Logf("Unexpected number of Sub Conditions: `%d` Sub Conditions expected: `%d`", currentSubConditionCount, expectedSubConditionCount)
+		t.Fail()
+	}
+
+	currentSubConditionValues = currentSubCondition["anycondition"].([]string)
+	currentSubConditionValuesCount = len(currentSubConditionValues)
+	expectedSubConditionValuesCount = 1
+	if currentSubConditionValuesCount != expectedSubConditionValuesCount {
+		t.Logf("Unexpected number of Sub Conditions values: `%d` Sub Conditions expected values: `%d`", currentSubConditionValuesCount, expectedSubConditionValuesCount)
+		t.Fail()
+	}
+
+	currentSubConditionValue = currentSubConditionValues[0]
+	expectedSubConditionValue = "true"
+	if currentSubConditionValue != expectedSubConditionValue {
+		t.Logf("Unexpected Statement Sub Condition value: `%s` Statement Sub Condition value expected: `%s`", currentSubConditionValue, expectedSubConditionValue)
+		t.Fail()
+	}
 }
