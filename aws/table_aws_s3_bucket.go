@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
-	"github.com/aws/smithy-go/middleware"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -147,7 +146,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "A container for specifying the notification configuration of the bucket. If this element is empty, notifications are turned off for the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getS3BucketEventNotificationConfigurations,
-				Transform:   transform.FromValue().Transform(removeMedataFromS3BucketEventNotificationConfigurations),
+				Transform:   transform.FromValue().Transform(removeMetadataFromBucketEventNotificationConfigurations),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
@@ -161,7 +160,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
-				Transform:   transform.FromValue().Transform(removeMedataFromS3BucketACL),
+				Transform:   transform.FromValue().Transform(removeMetadataFromBucketAclOutput),
 			},
 			{
 				Name:        "lifecycle_rules",
@@ -534,11 +533,6 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 
-	var metadata middleware.Metadata
-	acl.ResultMetadata = metadata
-
-	// delete(*acl, "ResultMetadata")
-
 	return acl, nil
 }
 
@@ -764,7 +758,7 @@ func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 	return turbotTagsMap, nil
 }
 
-func removeMedataFromS3BucketEventNotificationConfigurations(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func removeMetadataFromBucketEventNotificationConfigurations(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	value, ok := d.Value.(*s3.GetBucketNotificationConfigurationOutput)
 	if !ok {
 		return nil, nil
@@ -779,7 +773,7 @@ func removeMedataFromS3BucketEventNotificationConfigurations(_ context.Context, 
 	return &output, nil
 }
 
-func removeMedataFromS3BucketACL(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func removeMetadataFromBucketAclOutput(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	value, ok := d.Value.(*s3.GetBucketAclOutput)
 	if !ok {
 		return nil, nil
