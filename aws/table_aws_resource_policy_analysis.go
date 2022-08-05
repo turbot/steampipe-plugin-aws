@@ -94,20 +94,7 @@ func listResourcePolicyAnalysis(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, nil
 	}
 
-	// convert input policy to canonical form for easier handling
-	policy, err := canonicalPolicy(policyVal)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_canonicalization_error", err)
-		return nil, err
-	}
-
-	policyObject, ok := policy.(Policy)
-	if !ok {
-		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_coercion_error", err)
-		return nil, err
-	}
-
-	evaluation, err := policyObject.EvaluatePolicy(accountID)
+	evaluation, err := EvaluatePolicy(policyVal, accountID)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_evaluation_error", err)
 		return nil, err
