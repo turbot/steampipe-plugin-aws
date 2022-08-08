@@ -21,6 +21,7 @@ type EvaluatedStatements struct {
 	allowedPrincipalsSet                   map[string]bool
 	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedOrganizationIds                 map[string]bool
+	publicStatementIds                     map[string]bool
 	isPublic                               bool
 	isShared                               bool
 }
@@ -71,6 +72,7 @@ func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy
 	evaluatedPolicy.AllowedPrincipals = setToSortedSlice(evaluatedStatements.allowedPrincipalsSet)
 	evaluatedPolicy.AllowedPrincipalAccountIds = setToSortedSlice(evaluatedStatements.allowedPrincipalAccountIdsSet)
 	evaluatedPolicy.AllowedOrganizationIds = setToSortedSlice(evaluatedStatements.allowedOrganizationIds)
+	evaluatedPolicy.PublicStatementIds = setToSortedSlice(evaluatedStatements.publicStatementIds)
 	evaluatedPolicy.IsPublic = evaluatedStatements.isPublic
 
 	return evaluatedPolicy, nil
@@ -90,7 +92,9 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 
 func evaluateStatements(statements []Statement, userAccountId string) (EvaluatedStatements, error) {
 	evaluatedStatement := EvaluatedStatements{}
-	for _, statement := range statements {
+	publicStatementIds := map[string]bool{}
+
+	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
 			return evaluatedStatement, fmt.Errorf("element Effect is invalid - valid choices are 'Allow' or 'Deny'")
 		}
@@ -128,10 +132,26 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 
 		evaluatedStatement.isPublic = evaluatedStatement.isPublic || evaluatedPrinciple.isPublic
 		evaluatedStatement.isShared = evaluatedStatement.isShared || evaluatedPrinciple.isShared
-		//		evaluatedStatement.isShared
+
+		if evaluatedPrinciple.isPublic {
+			sid := evaluatedSid(statement, statementIndex)
+			if _, exists := publicStatementIds[sid]; !exists {
+				publicStatementIds[sid] = true
+			}
+		}
 	}
 
+	evaluatedStatement.publicStatementIds = publicStatementIds
+
 	return evaluatedStatement, nil
+}
+
+func evaluatedSid(statement Statement, statementIndex int) string {
+	if statement.Sid == "" {
+		return fmt.Sprintf("Statement[%d]", statementIndex+1)
+	}
+
+	return statement.Sid
 }
 
 func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrincipal, error) {

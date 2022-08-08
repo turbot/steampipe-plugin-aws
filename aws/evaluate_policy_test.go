@@ -119,7 +119,7 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countPublicStatementIds := len(source.PublicStatementIds)
 	expectedCountPublicStatementIds := len(expected.PublicStatementIds)
 	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
+		t.Logf("Unexpected PublicStatementIds has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
 		t.Fail()
 	} else {
 		for index := range source.PublicStatementIds {
@@ -522,7 +522,7 @@ func TestPolicyPrincipalElement(t *testing.T) {
 
 	t.Run("TestWhenPrincipalIsMultipleTypes", testWhenPrincipalIsMultipleTypes)
 	t.Run("TestWhenPrincipalIsMultipleTypesWithWildcard", testWhenPrincipalIsMultipleTypesWithWildcard)
-	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
+	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", testWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
 }
 
@@ -625,7 +625,7 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -672,7 +672,7 @@ func testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -713,7 +713,7 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -1135,7 +1135,7 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2045,7 +2045,7 @@ func testWhenPricipalIsAService(t *testing.T) {
 		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2089,7 +2089,7 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
-		PublicStatementIds: []string{},
+		PublicStatementIds: []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2133,7 +2133,7 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
-		PublicStatementIds: []string{},
+		PublicStatementIds: []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2198,7 +2198,12 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
-		PublicStatementIds: []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+			"Statement[3]",
+			"Statement[4]",
+		},
 	}
 
 	// Test
@@ -2241,7 +2246,7 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2290,7 +2295,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -2304,7 +2309,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 	evaluateResults(t, evaluated, expected)
 }
 
-func TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
+func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -2366,7 +2371,11 @@ func TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
-		PublicStatementIds: []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+			"Statement[3]",
+		},
 	}
 
 	// Test
@@ -2444,7 +2453,361 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
-		PublicStatementIds: []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+			"Statement[3]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func TestSidElement(t *testing.T) {
+	t.Run("TestKnownSidInASingleStatementThatAllowsSharedAccess", testKnownSidInASingleStatementThatAllowsSharedAccess)
+	t.Run("TestKnownSidInASingleStatementThatAllowsPrivateAccess", testKnownSidInASingleStatementThatAllowsPrivateAccess)
+
+	t.Run("TestKnownSidInASingleStatementThatAllowsPublicAccess", testKnownSidInASingleStatementThatAllowsPublicAccess)
+	t.Run("TestKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder", testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder)
+	t.Run("TestKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder", testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder)
+	t.Run("TestKnownSidsInMultipleStatementsThatHaveDuplicateNames", testKnownSidsInMultipleStatementsThatHaveDuplicateNames)
+	t.Run("TestUnknownSidInASingleStatementThatAllowsPublicAccess", testUnknownSidInASingleStatementThatAllowsPublicAccess)
+	t.Run("TestUnknownSidsInMultipleStatementsThatAllowsPublicAccess", testUnknownSidsInMultipleStatementsThatAllowsPublicAccess)
+}
+
+func testKnownSidInASingleStatementThatAllowsSharedAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "444455554444" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"444455554444"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{"Sid_Statement_1"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        },
+        {
+          "Sid": "Sid_Statement_2",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds: []string{
+			"Sid_Statement_1",
+			"Sid_Statement_2",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_2",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        },
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds: []string{
+			"Sid_Statement_1",
+			"Sid_Statement_2",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testKnownSidsInMultipleStatementsThatHaveDuplicateNames(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        },
+        {
+          "Sid": "Sid_Statement_1",
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{"Sid_Statement_1"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        },
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
 	}
 
 	// Test
