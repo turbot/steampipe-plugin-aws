@@ -1,54 +1,61 @@
 package aws
 
 import (
+	"fmt"
 	"testing"
 )
 
-// TODO: Our tests are too broad in testing and we will get false positives, refine the evaulation step
-/// Evaluation Functions
-func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) {
+func evaluateAccessLevelTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+	errors := []string{}
 	currentAccessLevel := source.AccessLevel
 	expectedAccessLevel := expected.AccessLevel
 	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel))
 	}
+
+	return errors
+}
+
+func evaluateSidTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+	errors := []string{}
+
+	countPublicStatementIds := len(source.PublicStatementIds)
+	expectedCountPublicStatementIds := len(expected.PublicStatementIds)
+	if countPublicStatementIds != expectedCountPublicStatementIds {
+		errors = append(errors, fmt.Sprintf("Unexpected PublicStatementIds has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds))
+	} else {
+		for index := range source.PublicStatementIds {
+			currentPublicStatementIds := source.PublicStatementIds[index]
+			expectedPublicStatementIds := expected.PublicStatementIds[index]
+			if currentPublicStatementIds != expectedPublicStatementIds {
+				errors = append(errors, fmt.Sprintf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds))
+			}
+		}
+	}
+
+	return errors
+}
+
+/// Evaluation Functions
+func evaluatePrincipalTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+	errors := []string{}
 
 	currentIsPublic := source.IsPublic
 	expectedIsPublic := expected.IsPublic
 	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(source.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := len(expected.AllowedOrganizationIds)
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	} else {
-		for index := range source.AllowedOrganizationIds {
-			currentAllowedOrganizationIds := source.AllowedOrganizationIds[index]
-			expectedAllowedOrganizationIds := expected.AllowedOrganizationIds[index]
-			if currentAllowedOrganizationIds != expectedAllowedOrganizationIds {
-				t.Logf("Unexpected AllowedOrganizationIds: `%s` AllowedOrganizationIds expected: `%s`", currentAllowedOrganizationIds, expectedAllowedOrganizationIds)
-				t.Fail()
-			}
-		}
+		errors = append(errors, fmt.Sprintf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic))
 	}
 
 	countAllowedPrincipals := len(source.AllowedPrincipals)
 	expectedCountAllowedPrincipals := len(expected.AllowedPrincipals)
 	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals))
 	} else {
 		for index := range source.AllowedPrincipals {
 			currentAllowedPrincipals := source.AllowedPrincipals[index]
 			expectedAllowedPrincipals := expected.AllowedPrincipals[index]
 			if currentAllowedPrincipals != expectedAllowedPrincipals {
-				t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals))
 			}
 		}
 	}
@@ -56,15 +63,13 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countAllowedPrincipalAccountIds := len(source.AllowedPrincipalAccountIds)
 	expectedCountAllowedPrincipalAccountIds := len(expected.AllowedPrincipalAccountIds)
 	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds))
 	} else {
 		for index := range source.AllowedPrincipalAccountIds {
 			currentAllowedPrincipalAccountIds := source.AllowedPrincipalAccountIds[index]
 			expectedAllowedPrincipalAccountIds := expected.AllowedPrincipalAccountIds[index]
 			if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-				t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds))
 			}
 		}
 	}
@@ -72,15 +77,13 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countAllowedPrincipalFederatedIdentities := len(source.AllowedPrincipalFederatedIdentities)
 	expectedCountAllowedPrincipalFederatedIdentities := len(expected.AllowedPrincipalFederatedIdentities)
 	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities))
 	} else {
 		for index := range source.AllowedPrincipalFederatedIdentities {
 			currentAllowedPrincipalFederatedIdentities := source.AllowedPrincipalFederatedIdentities[index]
 			expectedAllowedPrincipalFederatedIdentities := expected.AllowedPrincipalFederatedIdentities[index]
 			if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-				t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities))
 			}
 		}
 	}
@@ -88,15 +91,100 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countAllowedPrincipalServices := len(source.AllowedPrincipalServices)
 	expectedCountAllowedPrincipalServices := len(expected.AllowedPrincipalServices)
 	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices))
 	} else {
 		for index := range source.AllowedPrincipalServices {
 			currentAllowedPrincipalServices := source.AllowedPrincipalServices[index]
 			expectedAllowedPrincipalServices := expected.AllowedPrincipalServices[index]
 			if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-				t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices))
+			}
+		}
+	}
+
+	return errors
+}
+
+func evaluateIntegration(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+	errors := []string{}
+	currentAccessLevel := source.AccessLevel
+	expectedAccessLevel := expected.AccessLevel
+	if currentAccessLevel != expectedAccessLevel {
+		errors = append(errors, fmt.Sprintf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel))
+	}
+
+	currentIsPublic := source.IsPublic
+	expectedIsPublic := expected.IsPublic
+	if currentIsPublic != expectedIsPublic {
+		errors = append(errors, fmt.Sprintf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic))
+	}
+
+	countAllowedOrganizationIds := len(source.AllowedOrganizationIds)
+	expectedCountAllowedOrganizationIds := len(expected.AllowedOrganizationIds)
+	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds))
+	} else {
+		for index := range source.AllowedOrganizationIds {
+			currentAllowedOrganizationIds := source.AllowedOrganizationIds[index]
+			expectedAllowedOrganizationIds := expected.AllowedOrganizationIds[index]
+			if currentAllowedOrganizationIds != expectedAllowedOrganizationIds {
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedOrganizationIds: `%s` AllowedOrganizationIds expected: `%s`", currentAllowedOrganizationIds, expectedAllowedOrganizationIds))
+			}
+		}
+	}
+
+	countAllowedPrincipals := len(source.AllowedPrincipals)
+	expectedCountAllowedPrincipals := len(expected.AllowedPrincipals)
+	if countAllowedPrincipals != expectedCountAllowedPrincipals {
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals))
+	} else {
+		for index := range source.AllowedPrincipals {
+			currentAllowedPrincipals := source.AllowedPrincipals[index]
+			expectedAllowedPrincipals := expected.AllowedPrincipals[index]
+			if currentAllowedPrincipals != expectedAllowedPrincipals {
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals))
+			}
+		}
+	}
+
+	countAllowedPrincipalAccountIds := len(source.AllowedPrincipalAccountIds)
+	expectedCountAllowedPrincipalAccountIds := len(expected.AllowedPrincipalAccountIds)
+	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds))
+	} else {
+		for index := range source.AllowedPrincipalAccountIds {
+			currentAllowedPrincipalAccountIds := source.AllowedPrincipalAccountIds[index]
+			expectedAllowedPrincipalAccountIds := expected.AllowedPrincipalAccountIds[index]
+			if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds))
+			}
+		}
+	}
+
+	countAllowedPrincipalFederatedIdentities := len(source.AllowedPrincipalFederatedIdentities)
+	expectedCountAllowedPrincipalFederatedIdentities := len(expected.AllowedPrincipalFederatedIdentities)
+	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities))
+	} else {
+		for index := range source.AllowedPrincipalFederatedIdentities {
+			currentAllowedPrincipalFederatedIdentities := source.AllowedPrincipalFederatedIdentities[index]
+			expectedAllowedPrincipalFederatedIdentities := expected.AllowedPrincipalFederatedIdentities[index]
+			if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities))
+			}
+		}
+	}
+
+	countAllowedPrincipalServices := len(source.AllowedPrincipalServices)
+	expectedCountAllowedPrincipalServices := len(expected.AllowedPrincipalServices)
+	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
+		errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices))
+	} else {
+		for index := range source.AllowedPrincipalServices {
+			currentAllowedPrincipalServices := source.AllowedPrincipalServices[index]
+			expectedAllowedPrincipalServices := expected.AllowedPrincipalServices[index]
+			if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
+				errors = append(errors, fmt.Sprintf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices))
 			}
 		}
 	}
@@ -104,15 +192,13 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countPublicAccessLevels := len(source.PublicAccessLevels)
 	expectedCountPublicAccessLevels := len(expected.PublicAccessLevels)
 	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels))
 	} else {
 		for index := range source.PublicAccessLevels {
 			currentPublicAccessLevels := source.PublicAccessLevels[index]
 			expectedPublicAccessLevels := expected.PublicAccessLevels[index]
 			if currentPublicAccessLevels != expectedPublicAccessLevels {
-				t.Logf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels))
 			}
 		}
 	}
@@ -120,18 +206,18 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	countPublicStatementIds := len(source.PublicStatementIds)
 	expectedCountPublicStatementIds := len(expected.PublicStatementIds)
 	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicStatementIds has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
+		errors = append(errors, fmt.Sprintf("Unexpected PublicStatementIds has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds))
 	} else {
 		for index := range source.PublicStatementIds {
 			currentPublicStatementIds := source.PublicStatementIds[index]
 			expectedPublicStatementIds := expected.PublicStatementIds[index]
 			if currentPublicStatementIds != expectedPublicStatementIds {
-				t.Logf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds)
-				t.Fail()
+				errors = append(errors, fmt.Sprintf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds))
 			}
 		}
 	}
+
+	return errors
 }
 
 /// Test start here
@@ -172,7 +258,13 @@ func testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates(t *testing
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Empty policy is not in its expected format")
+	}
 }
 
 func testPolicyCreatedByStringEvaluates(t *testing.T) {
@@ -198,7 +290,13 @@ func testPolicyCreatedByStringEvaluates(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Empty policy is not in its expected format")
+	}
 }
 
 func testPolicyCreatedByEmptyJsonStringEvaluates(t *testing.T) {
@@ -224,7 +322,13 @@ func testPolicyCreatedByEmptyJsonStringEvaluates(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Empty policy is not in its expected format")
+	}
 }
 
 func TestPolicyEffectElement(t *testing.T) {
@@ -270,7 +374,14 @@ func testEffectElementWithValidValues(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testIfEffectElementWhenValueAllowHasWrongCasingFails(t *testing.T) {
@@ -448,7 +559,14 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesItEvaluates(t *t
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZeroItEvaluates(t *testing.T) {
@@ -474,7 +592,14 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZer
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func TestPolicyPrincipalElement(t *testing.T) {
@@ -598,7 +723,22 @@ func testWhenPrincipalIsWildcarded(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
@@ -637,7 +777,22 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic(t *testing.T) {
@@ -684,7 +839,22 @@ func testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsAUserAccountId(t *testing.T) {
@@ -725,7 +895,22 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsAUserAccountArn(t *testing.T) {
@@ -766,7 +951,22 @@ func testWhenPrincipalIsAUserAccountArn(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
@@ -807,7 +1007,22 @@ func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsACrossAccountId(t *testing.T) {
@@ -848,7 +1063,22 @@ func testWhenPrincipalIsACrossAccountId(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
@@ -892,7 +1122,14 @@ func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -957,7 +1194,22 @@ func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *te
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
@@ -1004,7 +1256,14 @@ func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
@@ -1051,7 +1310,22 @@ func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
@@ -1097,7 +1371,22 @@ func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
@@ -1147,7 +1436,22 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsAUserAccountRole(t *testing.T) {
@@ -1188,7 +1492,22 @@ func testWhenPricipalIsAUserAccountRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsACrossAccountRole(t *testing.T) {
@@ -1229,7 +1548,22 @@ func testWhenPricipalIsACrossAccountRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) {
@@ -1276,7 +1610,22 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T) {
@@ -1323,7 +1672,22 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T)
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -1388,7 +1752,22 @@ func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
@@ -1432,7 +1811,22 @@ func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
@@ -1483,7 +1877,22 @@ func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
@@ -1524,7 +1933,22 @@ func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
@@ -1565,7 +1989,22 @@ func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
@@ -1609,7 +2048,22 @@ func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *testing.T) {
@@ -1659,7 +2113,22 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *test
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *testing.T) {
@@ -1706,7 +2175,22 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -1771,7 +2255,22 @@ func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatem
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
@@ -1822,7 +2321,22 @@ func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsAFederatedUser(t *testing.T) {
@@ -1863,7 +2377,22 @@ func testWhenPricipalIsAFederatedUser(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
@@ -1907,7 +2436,22 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
@@ -1951,7 +2495,22 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -2016,7 +2575,22 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPricipalIsAService(t *testing.T) {
@@ -2057,7 +2631,22 @@ func testWhenPricipalIsAService(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
@@ -2101,7 +2690,22 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
@@ -2145,7 +2749,22 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -2215,7 +2834,22 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleTypes(t *testing.T) {
@@ -2258,7 +2892,22 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
@@ -2307,7 +2956,22 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
@@ -2387,7 +3051,22 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *testing.T) {
@@ -2469,7 +3148,22 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func TestSidElement(t *testing.T) {
@@ -2520,7 +3214,22 @@ func testKnownSidInASingleStatementThatAllowsSharedAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
@@ -2559,7 +3268,22 @@ func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
@@ -2598,7 +3322,22 @@ func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t *testing.T) {
@@ -2645,7 +3384,22 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t *testing.T) {
@@ -2692,7 +3446,22 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testKnownSidsInMultipleStatementsThatHaveDuplicateNames(t *testing.T) {
@@ -2736,7 +3505,22 @@ func testKnownSidsInMultipleStatementsThatHaveDuplicateNames(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
@@ -2774,7 +3558,22 @@ func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
@@ -2819,7 +3618,22 @@ func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateSidTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Sid Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func TestAccessLevel(t *testing.T) {
@@ -2867,7 +3681,22 @@ func testPublicPrincipalIsPublicAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testServicePrincipalIsPublicAccess(t *testing.T) {
@@ -2905,7 +3734,22 @@ func testServicePrincipalIsPublicAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testCrossAccountPrincipalIsSharedAccess(t *testing.T) {
@@ -2943,7 +3787,22 @@ func testCrossAccountPrincipalIsSharedAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testUserAccountPrincipalIsPrivateAccess(t *testing.T) {
@@ -2981,7 +3840,22 @@ func testUserAccountPrincipalIsPrivateAccess(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testAccessLevelSharedHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T) {
@@ -3026,7 +3900,22 @@ func testAccessLevelSharedHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T) {
@@ -3071,7 +3960,22 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
 
 func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T) {
@@ -3119,5 +4023,20 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	evaluateResults(t, evaluated, expected)
+	errors := evaluateAccessLevelTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("AccessLevel Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
 }
