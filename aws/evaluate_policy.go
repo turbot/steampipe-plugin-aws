@@ -81,9 +81,9 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 		return "public"
 	}
 
-	// if statements.isShared {
-	// 	return "shared"
-	// }
+	if statements.isShared {
+		return "shared"
+	}
 
 	return "private"
 }
