@@ -4,6 +4,137 @@ import (
 	"testing"
 )
 
+/// Evaluation Functions
+func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) {
+	currentAccessLevel := source.AccessLevel
+	expectedAccessLevel := expected.AccessLevel
+	if currentAccessLevel != expectedAccessLevel {
+		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
+		t.Fail()
+	}
+
+	currentIsPublic := source.IsPublic
+	expectedIsPublic := expected.IsPublic
+	if currentIsPublic != expectedIsPublic {
+		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
+		t.Fail()
+	}
+
+	countAllowedOrganizationIds := len(source.AllowedOrganizationIds)
+	expectedCountAllowedOrganizationIds := len(expected.AllowedOrganizationIds)
+	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
+		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
+		t.Fail()
+	}
+
+	for index := range source.AllowedOrganizationIds {
+		currentAllowedOrganizationIds := source.AllowedOrganizationIds[index]
+		expectedAllowedOrganizationIds := expected.AllowedOrganizationIds[index]
+		if currentAllowedOrganizationIds != expectedAllowedOrganizationIds {
+			t.Logf("Unexpected AllowedOrganizationIds: `%s` AllowedOrganizationIds expected: `%s`", currentAllowedOrganizationIds, expectedAllowedOrganizationIds)
+			t.Fail()
+		}
+	}
+
+	countAllowedPrincipals := len(source.AllowedPrincipals)
+	expectedCountAllowedPrincipals := len(expected.AllowedPrincipals)
+	if countAllowedPrincipals != expectedCountAllowedPrincipals {
+		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
+		t.Fail()
+	}
+
+	for index := range source.AllowedPrincipals {
+		currentAllowedPrincipals := source.AllowedPrincipals[index]
+		expectedAllowedPrincipals := expected.AllowedPrincipals[index]
+		if currentAllowedPrincipals != expectedAllowedPrincipals {
+			t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
+			t.Fail()
+		}
+	}
+
+	countAllowedPrincipalAccountIds := len(source.AllowedPrincipalAccountIds)
+	expectedCountAllowedPrincipalAccountIds := len(expected.AllowedPrincipalAccountIds)
+	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
+		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
+		t.Fail()
+	}
+
+	for index := range source.AllowedPrincipalAccountIds {
+		currentAllowedPrincipalAccountIds := source.AllowedPrincipalAccountIds[index]
+		expectedAllowedPrincipalAccountIds := expected.AllowedPrincipalAccountIds[index]
+		if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
+			t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
+			t.Fail()
+		}
+	}
+
+	countAllowedPrincipalFederatedIdentities := len(source.AllowedPrincipalFederatedIdentities)
+	expectedCountAllowedPrincipalFederatedIdentities := len(expected.AllowedPrincipalFederatedIdentities)
+	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
+		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
+		t.Fail()
+	}
+
+	for index := range source.AllowedPrincipalFederatedIdentities {
+		currentAllowedPrincipalFederatedIdentities := source.AllowedPrincipalFederatedIdentities[index]
+		expectedAllowedPrincipalFederatedIdentities := expected.AllowedPrincipalFederatedIdentities[index]
+		if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
+			t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
+			t.Fail()
+		}
+	}
+
+	countAllowedPrincipalServices := len(source.AllowedPrincipalServices)
+	expectedCountAllowedPrincipalServices := len(expected.AllowedPrincipalServices)
+	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
+		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
+		t.Fail()
+	}
+
+	for index := range source.AllowedPrincipalServices {
+		currentAllowedPrincipalServices := source.AllowedPrincipalServices[index]
+		expectedAllowedPrincipalServices := expected.AllowedPrincipalServices[index]
+		if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
+			t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
+			t.Fail()
+		}
+	}
+
+	countPublicAccessLevels := len(source.PublicAccessLevels)
+	expectedCountPublicAccessLevels := len(expected.PublicAccessLevels)
+	if countPublicAccessLevels != expectedCountPublicAccessLevels {
+		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
+		t.Fail()
+	}
+
+	for index := range source.PublicAccessLevels {
+		currentPublicAccessLevels := source.PublicAccessLevels[index]
+		expectedPublicAccessLevels := expected.PublicAccessLevels[index]
+		if currentPublicAccessLevels != expectedPublicAccessLevels {
+			t.Logf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels)
+			t.Fail()
+		}
+	}
+
+	countPublicStatementIds := len(source.PublicStatementIds)
+	expectedCountPublicStatementIds := len(expected.PublicStatementIds)
+	if countPublicStatementIds != expectedCountPublicStatementIds {
+		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
+		t.Fail()
+	}
+
+	for index := range source.PublicStatementIds {
+		currentPublicStatementIds := source.PublicStatementIds[index]
+		expectedPublicStatementIds := expected.PublicStatementIds[index]
+		if currentPublicStatementIds != expectedPublicStatementIds {
+			t.Logf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds)
+			t.Fail()
+		}
+	}
+}
+
+/// Test start here
+
 func TestPolicyStatementElement(t *testing.T) {
 	t.Run("TestPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates", testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates)
 
@@ -20,228 +151,79 @@ func testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates(t *testing
 	}
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testPolicyCreatedByStringEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy("", userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testPolicyCreatedByEmptyJsonStringEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy("{}", userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func TestPolicyEffectElement(t *testing.T) {
@@ -267,77 +249,27 @@ func testEffectElementWithValidValues(t *testing.T) {
       ]
     }
 	`
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testIfEffectElementWhenValueAllowHasWrongCasingFails(t *testing.T) {
@@ -495,153 +427,53 @@ func testIfSourceAccountIdContainsTooManyNumericalValuesItFails(t *testing.T) {
 func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesItEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy("", userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZeroItEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy("", userAccountId)
 
 	// Evaluate
 	if err != nil {
-		t.Fatalf("Unexpected error was returned from EvaluatePolicy: %s", err)
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func TestPolicyPrincipalElement(t *testing.T) {
@@ -743,6 +575,18 @@ func testWhenPrincipalIsWildcarded(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -751,75 +595,7 @@ func testWhenPrincipalIsWildcarded(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "012345678901"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
@@ -838,6 +614,18 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -846,82 +634,7 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "*"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "*"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsAUserAccountId(t *testing.T) {
@@ -942,6 +655,18 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -950,101 +675,38 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "*"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "*"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsAUserAccountArn(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Allow",
-			  "Action": "sts:AssumeRole",
-			  "Principal": {
-				"AWS": "arn:aws:iam::012345678901:root"
-			  }
-			}
-		  ]
-		}
-		`
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": {
+            "AWS": "arn:aws:iam::012345678901:root"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
@@ -1054,75 +716,7 @@ func testWhenPrincipalIsAUserAccountArn(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
@@ -1143,6 +737,18 @@ func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1151,82 +757,7 @@ func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsACrossAccountId(t *testing.T) {
@@ -1247,6 +778,18 @@ func testWhenPrincipalIsACrossAccountId(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"444455554444"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1255,82 +798,7 @@ func testWhenPrincipalIsACrossAccountId(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "444455554444"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
@@ -1351,6 +819,21 @@ func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"arn:aws:iam::012345678901:root",
+		},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1359,82 +842,7 @@ func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "012345678901"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -1476,6 +884,21 @@ func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *te
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::012345678901:root",
+			"arn:aws:iam::444455554444:root",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1484,89 +907,7 @@ func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *te
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
@@ -1587,6 +928,24 @@ func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"444455554444",
+			"arn:aws:iam::555544445555:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1595,96 +954,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "444455554444"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
@@ -1705,6 +975,24 @@ func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"444455554444",
+			"arn:aws:iam::555544445555:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1713,96 +1001,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "444455554444"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
@@ -1823,6 +1022,23 @@ func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"444455554444",
+			"arn:aws:iam::012345678901:root",
+			"arn:aws:iam::444455554444:root",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1831,103 +1047,7 @@ func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 4
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "012345678901"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "444455554444"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[3]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
@@ -1948,6 +1068,27 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"*",
+			"012345678901",
+			"444455554444",
+			"arn:aws:iam::012345678901:root",
+			"arn:aws:iam::444455554444:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"*",
+			"444455554444",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -1956,117 +1097,7 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 5
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "*"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "012345678901"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "444455554444"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[3]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[4]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "*"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsAUserAccountRole(t *testing.T) {
@@ -2087,6 +1118,18 @@ func testWhenPricipalIsAUserAccountRole(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:role/role-name"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2095,94 +1138,38 @@ func testWhenPricipalIsAUserAccountRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsACrossAccountRole(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Allow",
-			  "Action": "sts:AssumeRole",
-			  "Principal": {
-				"AWS": "arn:aws:iam::444455554444:role/role-name"
-			  }
-			}
-		  ]
-		}
-		`
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": {
+            "AWS": "arn:aws:iam::444455554444:role/role-name"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:role/role-name"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
@@ -2192,82 +1179,7 @@ func testWhenPricipalIsACrossAccountRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::444455554444:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) {
@@ -2288,6 +1200,24 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) 
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::444455554444:role/role-name",
+			"arn:aws:iam::555544445555:role/role-name",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2296,96 +1226,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::444455554444:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T) {
@@ -2406,6 +1247,24 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T)
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::444455554444:role/role-name",
+			"arn:aws:iam::555544445555:role/role-name",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2414,96 +1273,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T)
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::444455554444:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -2545,6 +1315,21 @@ func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t 
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::012345678901:role/role-name",
+			"arn:aws:iam::444455554444:role/role-name",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2553,89 +1338,7 @@ func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t 
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:role/role-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
@@ -2656,6 +1359,21 @@ func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::012345678901:role/role-name-1",
+			"arn:aws:iam::012345678901:role/role-name-2",
+		},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2664,82 +1382,7 @@ func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:role/role-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:role/role-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
@@ -2765,6 +1408,23 @@ func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::012345678901:role/role-name-1",
+			"arn:aws:iam::012345678901:role/role-name-2",
+			"arn:aws:iam::444455554444:role/role-name-1",
+			"arn:aws:iam::444455554444:role/role-name-2",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2773,103 +1433,7 @@ func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 4
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:role/role-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:role/role-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:role/role-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[3]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:role/role-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
@@ -2890,6 +1454,18 @@ func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -2898,94 +1474,38 @@ func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Allow",
-			  "Action": "sts:AssumeRole",
-			  "Principal": {
-				"AWS": "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
-			  }
-			}
-		  ]
-		}
-		`
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": {
+            "AWS": "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
@@ -2995,82 +1515,7 @@ func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
@@ -3091,6 +1536,21 @@ func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-1",
+			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-2",
+		},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3099,82 +1559,7 @@ func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *testing.T) {
@@ -3188,12 +1573,33 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *test
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-			"AWS": ["arn:aws:sts::444455554444:assumed-role/role-name/role-session-name", "arn:aws:sts::555544445555:assumed-role/role-name/role-session-name"]
+            "AWS": [
+              "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
+              "arn:aws:sts::555544445555:assumed-role/role-name/role-session-name"
+            ]
           }
         }
       ]
     }
 	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
+			"arn:aws:sts::555544445555:assumed-role/role-name/role-session-name",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
 
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
@@ -3203,96 +1609,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *test
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:sts::555544445555:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *testing.T) {
@@ -3313,6 +1630,24 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *tes
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
+			"arn:aws:sts::555544445555:assumed-role/role-name/role-session-name",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3321,96 +1656,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:sts::555544445555:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -3452,6 +1698,21 @@ func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatem
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name",
+			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3460,89 +1721,7 @@ func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatem
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
@@ -3568,6 +1747,23 @@ func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-1",
+			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-2",
+			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name-1",
+			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name-2",
+		},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3576,103 +1772,7 @@ func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 4
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name-1"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[3]
-	expectedAllowedPrincipals = "arn:aws:sts::444455554444:assumed-role/role-name/role-session-name-2"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsAFederatedUser(t *testing.T) {
@@ -3693,6 +1793,18 @@ func testWhenPricipalIsAFederatedUser(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3701,75 +1813,7 @@ func testWhenPricipalIsAFederatedUser(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 1
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "cognito-identity.amazonaws.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
@@ -3790,6 +1834,21 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                "",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"accounts.google.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		PublicStatementIds:       []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3798,82 +1857,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 2
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "accounts.google.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[1]
-	expectedAllowedPrincipalFederatedIdentities = "graph.facebook.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
@@ -3894,6 +1878,21 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                "",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"accounts.google.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		PublicStatementIds:       []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -3902,82 +1901,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 2
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "accounts.google.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[1]
-	expectedAllowedPrincipalFederatedIdentities = "graph.facebook.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -4019,6 +1943,21 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                "",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"accounts.google.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		PublicStatementIds:       []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4027,82 +1966,7 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 2
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "accounts.google.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[1]
-	expectedAllowedPrincipalFederatedIdentities = "graph.facebook.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 0
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := false
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPricipalIsAService(t *testing.T) {
@@ -4123,6 +1987,18 @@ func testWhenPricipalIsAService(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4131,75 +2007,7 @@ func testWhenPricipalIsAService(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 1
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ec2.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
@@ -4220,6 +2028,21 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices: []string{
+			"ecs.amazonaws.com",
+			"elasticloadbalancing.amazonaws.com",
+		},
+		IsPublic:           true,
+		PublicAccessLevels: []string{},
+		PublicStatementIds: []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4228,82 +2051,7 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 2
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[1]
-	expectedAllowedPrincipalServices = "elasticloadbalancing.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
@@ -4324,6 +2072,21 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices: []string{
+			"ecs.amazonaws.com",
+			"elasticloadbalancing.amazonaws.com",
+		},
+		IsPublic:           true,
+		PublicAccessLevels: []string{},
+		PublicStatementIds: []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4332,82 +2095,7 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 2
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[1]
-	expectedAllowedPrincipalServices = "elasticloadbalancing.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *testing.T) {
@@ -4449,6 +2137,21 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices: []string{
+			"ecs.amazonaws.com",
+			"elasticloadbalancing.amazonaws.com",
+		},
+		IsPublic:           true,
+		PublicAccessLevels: []string{},
+		PublicStatementIds: []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4457,82 +2160,7 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 0
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 0
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 0
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 2
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[1]
-	expectedAllowedPrincipalServices = "elasticloadbalancing.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleTypes(t *testing.T) {
@@ -4555,6 +2183,18 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
+		AllowedPrincipalAccountIds:          []string{"444455554444"},
+		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
+		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4563,96 +2203,7 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 1
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 1
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 1
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "cognito-identity.amazonaws.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 1
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
@@ -4675,6 +2226,24 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"*",
+			"arn:aws:iam::444455554444:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"*",
+			"444455554444",
+		},
+		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
+		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4683,110 +2252,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 2
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "*"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "*"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 1
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "cognito-identity.amazonaws.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 1
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
@@ -4827,6 +2293,32 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::012345678901:root",
+			"arn:aws:iam::444455554444:root",
+			"arn:aws:iam::555544445555:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{
+			"accounts.google.com",
+			"cognito-identity.amazonaws.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{
+			"dynamodb.amazonaws.com",
+			"ecs.amazonaws.com",
+		},
+		IsPublic:           true,
+		PublicAccessLevels: []string{},
+		PublicStatementIds: []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -4835,145 +2327,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 3
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 2
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 3
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "accounts.google.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[1]
-	expectedAllowedPrincipalFederatedIdentities = "cognito-identity.amazonaws.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[2]
-	expectedAllowedPrincipalFederatedIdentities = "graph.facebook.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 3
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "dynamodb.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[1]
-	expectedAllowedPrincipalServices = "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[2]
-	expectedAllowedPrincipalServices = "elasticloadbalancing.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
 
 func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *testing.T) {
@@ -5014,6 +2368,35 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
     }
 	`
 
+	expected := EvaluatedPolicy{
+		AccessLevel:            "",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"*",
+			"arn:aws:iam::012345678901:root",
+			"arn:aws:iam::444455554444:root",
+			"arn:aws:iam::555544445555:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"*",
+			"444455554444",
+			"555544445555",
+		},
+		AllowedPrincipalFederatedIdentities: []string{
+			"accounts.google.com",
+			"cognito-identity.amazonaws.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{
+			"dynamodb.amazonaws.com",
+			"ecs.amazonaws.com",
+			"elasticloadbalancing.amazonaws.com",
+		},
+		IsPublic:           true,
+		PublicAccessLevels: []string{},
+		PublicStatementIds: []string{},
+	}
+
 	// Test
 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
@@ -5022,157 +2405,5 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
 	}
 
-	currentAccessLevel := evaluated.AccessLevel
-	expectedAccessLevel := ""
-	if currentAccessLevel != expectedAccessLevel {
-		t.Logf("Unexpected AccessLevel: `%s` AccessLevel expected: `%s`", currentAccessLevel, expectedAccessLevel)
-		t.Fail()
-	}
-
-	countAllowedOrganizationIds := len(evaluated.AllowedOrganizationIds)
-	expectedCountAllowedOrganizationIds := 0
-	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
-		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipals := len(evaluated.AllowedPrincipals)
-	expectedCountAllowedPrincipals := 4
-	if countAllowedPrincipals != expectedCountAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals := evaluated.AllowedPrincipals[0]
-	expectedAllowedPrincipals := "*"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[1]
-	expectedAllowedPrincipals = "arn:aws:iam::012345678901:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[2]
-	expectedAllowedPrincipals = "arn:aws:iam::444455554444:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	currentAllowedPrincipals = evaluated.AllowedPrincipals[3]
-	expectedAllowedPrincipals = "arn:aws:iam::555544445555:root"
-	if currentAllowedPrincipals != expectedAllowedPrincipals {
-		t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-		t.Fail()
-	}
-
-	countAllowedPrincipalAccountIds := len(evaluated.AllowedPrincipalAccountIds)
-	expectedCountAllowedPrincipalAccountIds := 3
-	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds := evaluated.AllowedPrincipalAccountIds[0]
-	expectedAllowedPrincipalAccountIds := "*"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[1]
-	expectedAllowedPrincipalAccountIds = "444455554444"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalAccountIds = evaluated.AllowedPrincipalAccountIds[2]
-	expectedAllowedPrincipalAccountIds = "555544445555"
-	if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-		t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-		t.Fail()
-	}
-
-	countAllowedPrincipalFederatedIdentities := len(evaluated.AllowedPrincipalFederatedIdentities)
-	expectedCountAllowedPrincipalFederatedIdentities := 3
-	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities := evaluated.AllowedPrincipalFederatedIdentities[0]
-	expectedAllowedPrincipalFederatedIdentities := "accounts.google.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[1]
-	expectedAllowedPrincipalFederatedIdentities = "cognito-identity.amazonaws.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalFederatedIdentities = evaluated.AllowedPrincipalFederatedIdentities[2]
-	expectedAllowedPrincipalFederatedIdentities = "graph.facebook.com"
-	if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-		t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-		t.Fail()
-	}
-
-	countAllowedPrincipalServices := len(evaluated.AllowedPrincipalServices)
-	expectedCountAllowedPrincipalServices := 3
-	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices := evaluated.AllowedPrincipalServices[0]
-	expectedAllowedPrincipalServices := "dynamodb.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[1]
-	expectedAllowedPrincipalServices = "ecs.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentAllowedPrincipalServices = evaluated.AllowedPrincipalServices[2]
-	expectedAllowedPrincipalServices = "elasticloadbalancing.amazonaws.com"
-	if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-		t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-		t.Fail()
-	}
-
-	currentIsPublic := evaluated.IsPublic
-	expectedIsPublic := true
-	if currentIsPublic != expectedIsPublic {
-		t.Logf("Unexpected IsPublic: `%t` IsPublic expected: `%t`", currentIsPublic, expectedIsPublic)
-		t.Fail()
-	}
-
-	countPublicAccessLevels := len(evaluated.PublicAccessLevels)
-	expectedCountPublicAccessLevels := 0
-	if countPublicAccessLevels != expectedCountPublicAccessLevels {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
-		t.Fail()
-	}
-
-	countPublicStatementIds := len(evaluated.PublicStatementIds)
-	expectedCountPublicStatementIds := 0
-	if countPublicStatementIds != expectedCountPublicStatementIds {
-		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
-		t.Fail()
-	}
+	evaluateResults(t, evaluated, expected)
 }
