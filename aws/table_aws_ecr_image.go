@@ -88,8 +88,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 
 func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var repositoryName *string
-	repositoryName = h.Item.(*ecr.Repository).RepositoryName
+	repositoryName := h.Item.(*ecr.Repository).RepositoryName
 
 	repoName := d.KeyColumnQuals["repository_name"].GetStringValue()
 
