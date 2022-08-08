@@ -335,23 +335,6 @@ func toSliceOfLowerStrings(scalarOrSlice interface{}) ([]string, error) {
 	return slice, nil
 }
 
-// uniqueStrings removes duplicate items from a slice of strings
-func uniqueStrings(arr []string) []string {
-	occured := map[string]bool{}
-	result := []string{}
-	for e := range arr {
-		// check if already the mapped (if true)
-		if !occured[arr[e]] {
-			occured[arr[e]] = true
-
-			// Append to result slice.
-			result = append(result, arr[e])
-		}
-	}
-
-	return result
-}
-
 //// TRANSFORM FUNCTIONS
 
 // unescape a string.  Often (but not always), a policy doc is an escaped string,
