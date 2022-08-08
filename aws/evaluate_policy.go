@@ -22,6 +22,7 @@ type EvaluatedStatements struct {
 	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedOrganizationIds                 map[string]bool
 	isPublic                               bool
+	isShared                               bool
 }
 
 type EvaluatedPolicy struct {
@@ -37,7 +38,9 @@ type EvaluatedPolicy struct {
 }
 
 func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy, error) {
-	evaluatedPolicy := EvaluatedPolicy{}
+	evaluatedPolicy := EvaluatedPolicy{
+		AccessLevel: "private",
+	}
 
 	// Check source account id which should be valid.
 	re := regexp.MustCompile(`^[0-9]{12}$`)
@@ -78,26 +81,11 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 		return "public"
 	}
 
-	return ""
-
 	// if statements.isShared {
 	// 	return "shared"
 	// }
 
-	// if len(policyEvaluation.AllowedPrincipalAccountIds) > 0 {
-	// 	for _, item := range policyEvaluation.AllowedPrincipalAccountIds {
-
-	// 		if arn.IsARN(item) {
-	// 			arnParts, _ := arn.Parse(item)
-	// 			if arnParts.AccountID != sourceAccountID {
-	// 				policyEvaluation.AccessLevel = "shared"
-	// 			}
-	// 		} else if item != sourceAccountID {
-	// 			policyEvaluation.AccessLevel = "shared"
-	// 		}
-	// 	}
-
-	//return "private"
+	return "private"
 }
 
 func evaluateStatements(statements []Statement, userAccountId string) (EvaluatedStatements, error) {
@@ -139,6 +127,7 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 		)
 
 		evaluatedStatement.isPublic = evaluatedStatement.isPublic || evaluatedPrinciple.isPublic
+		evaluatedStatement.isShared = evaluatedStatement.isShared || evaluatedPrinciple.isShared
 		//		evaluatedStatement.isShared
 	}
 
