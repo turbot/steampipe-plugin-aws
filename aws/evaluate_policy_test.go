@@ -513,7 +513,7 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPricipalIsAFederatedUser", testWhenPricipalIsAFederatedUser)
 	t.Run("TestWhenPricipalIsMulitpleFederatedUserInAscendingOrder", testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder)
 	t.Run("TestWhenPrincipalIsMulitpleFederatedUserInDescendingOrder", testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder)
-	t.Run("TestWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatements", testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements)
+	t.Run("TestWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements", testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements)
 
 	t.Run("TestWhenPricipalIsAService", testWhenPricipalIsAService)
 	t.Run("TestWhenPrincipalIsMulitpleServicesInAscendingOrder", testWhenPrincipalIsMulitpleServicesInAscendingOrder)
@@ -787,7 +787,7 @@ func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
 		AllowedPrincipalAccountIds:          []string{"444455554444"},
@@ -828,7 +828,7 @@ func testWhenPrincipalIsACrossAccountId(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"444455554444"},
 		AllowedPrincipalAccountIds:          []string{"444455554444"},
@@ -934,7 +934,7 @@ func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *te
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::012345678901:root",
@@ -978,7 +978,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"444455554444",
@@ -1025,7 +1025,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"444455554444",
@@ -1072,7 +1072,7 @@ func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"012345678901",
@@ -1209,7 +1209,7 @@ func testWhenPricipalIsACrossAccountRole(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:role/role-name"},
 		AllowedPrincipalAccountIds:          []string{"444455554444"},
@@ -1250,7 +1250,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) 
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::444455554444:role/role-name",
@@ -1297,7 +1297,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T)
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::444455554444:role/role-name",
@@ -1365,7 +1365,7 @@ func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t 
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::012345678901:role/role-name",
@@ -1458,7 +1458,7 @@ func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::012345678901:role/role-name-1",
@@ -1545,7 +1545,7 @@ func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"},
 		AllowedPrincipalAccountIds:          []string{"444455554444"},
@@ -1633,7 +1633,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *test
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
@@ -1680,7 +1680,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *tes
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name",
@@ -1748,7 +1748,7 @@ func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatem
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name",
@@ -1797,7 +1797,7 @@ func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "private",
+		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name-1",
