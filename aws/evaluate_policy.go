@@ -12,13 +12,15 @@ type EvaluatedPrincipal struct {
 	allowedPrincipalsSet                   map[string]bool
 	allowedPrincipalAccountIdsSet          map[string]bool
 	isPublic                               bool
+	isShared                               bool
 }
 
-type EvaluatedStatement struct {
+type EvaluatedStatements struct {
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
 	allowedPrincipalAccountIdsSet          map[string]bool
+	allowedOrganizationIds                 map[string]bool
 	isPublic                               bool
 }
 
@@ -55,22 +57,51 @@ func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy
 
 	policy := policyInterface.(Policy)
 
-	evaluatedStatement, err := evaluateStatements(policy.Statements, userAccountId)
+	evaluatedStatements, err := evaluateStatements(policy.Statements, userAccountId)
 	if err != nil {
 		return evaluatedPolicy, err
 	}
 
-	evaluatedPolicy.AllowedPrincipalFederatedIdentities = setToSortedSlice(evaluatedStatement.allowedPrincipalFederatedIdentitiesSet)
-	evaluatedPolicy.AllowedPrincipalServices = setToSortedSlice(evaluatedStatement.allowedPrincipalServicesSet)
-	evaluatedPolicy.AllowedPrincipals = setToSortedSlice(evaluatedStatement.allowedPrincipalsSet)
-	evaluatedPolicy.AllowedPrincipalAccountIds = setToSortedSlice(evaluatedStatement.allowedPrincipalAccountIdsSet)
-	evaluatedPolicy.IsPublic = evaluatedStatement.isPublic
+	evaluatedPolicy.AccessLevel = evaluateAccessLevel(evaluatedStatements)
+	evaluatedPolicy.AllowedPrincipalFederatedIdentities = setToSortedSlice(evaluatedStatements.allowedPrincipalFederatedIdentitiesSet)
+	evaluatedPolicy.AllowedPrincipalServices = setToSortedSlice(evaluatedStatements.allowedPrincipalServicesSet)
+	evaluatedPolicy.AllowedPrincipals = setToSortedSlice(evaluatedStatements.allowedPrincipalsSet)
+	evaluatedPolicy.AllowedPrincipalAccountIds = setToSortedSlice(evaluatedStatements.allowedPrincipalAccountIdsSet)
+	evaluatedPolicy.AllowedOrganizationIds = setToSortedSlice(evaluatedStatements.allowedOrganizationIds)
+	evaluatedPolicy.IsPublic = evaluatedStatements.isPublic
 
 	return evaluatedPolicy, nil
 }
 
-func evaluateStatements(statements []Statement, userAccountId string) (EvaluatedStatement, error) {
-	evaluatedStatement := EvaluatedStatement{}
+func evaluateAccessLevel(statements EvaluatedStatements) string {
+	if statements.isPublic {
+		return "public"
+	}
+
+	return ""
+
+	// if statements.isShared {
+	// 	return "shared"
+	// }
+
+	// if len(policyEvaluation.AllowedPrincipalAccountIds) > 0 {
+	// 	for _, item := range policyEvaluation.AllowedPrincipalAccountIds {
+
+	// 		if arn.IsARN(item) {
+	// 			arnParts, _ := arn.Parse(item)
+	// 			if arnParts.AccountID != sourceAccountID {
+	// 				policyEvaluation.AccessLevel = "shared"
+	// 			}
+	// 		} else if item != sourceAccountID {
+	// 			policyEvaluation.AccessLevel = "shared"
+	// 		}
+	// 	}
+
+	//return "private"
+}
+
+func evaluateStatements(statements []Statement, userAccountId string) (EvaluatedStatements, error) {
+	evaluatedStatement := EvaluatedStatements{}
 	for _, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
 			return evaluatedStatement, fmt.Errorf("element Effect is invalid - valid choices are 'Allow' or 'Deny'")
@@ -107,7 +138,8 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 			evaluatedPrinciple.allowedPrincipalAccountIdsSet,
 		)
 
-		evaluatedStatement.isPublic = evaluatedPrinciple.isPublic
+		evaluatedStatement.isPublic = evaluatedStatement.isPublic || evaluatedPrinciple.isPublic
+		//		evaluatedStatement.isShared
 	}
 
 	return evaluatedStatement, nil
@@ -146,6 +178,7 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 				}
 
 				if userAccountId != account {
+					evaluatedPrinciple.isShared = true
 					evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 				}
 

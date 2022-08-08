@@ -25,14 +25,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countAllowedOrganizationIds != expectedCountAllowedOrganizationIds {
 		t.Logf("Unexpected AllowedOrganizationIds has: `%d` entries but: `%d` expected", countAllowedOrganizationIds, expectedCountAllowedOrganizationIds)
 		t.Fail()
-	}
-
-	for index := range source.AllowedOrganizationIds {
-		currentAllowedOrganizationIds := source.AllowedOrganizationIds[index]
-		expectedAllowedOrganizationIds := expected.AllowedOrganizationIds[index]
-		if currentAllowedOrganizationIds != expectedAllowedOrganizationIds {
-			t.Logf("Unexpected AllowedOrganizationIds: `%s` AllowedOrganizationIds expected: `%s`", currentAllowedOrganizationIds, expectedAllowedOrganizationIds)
-			t.Fail()
+	} else {
+		for index := range source.AllowedOrganizationIds {
+			currentAllowedOrganizationIds := source.AllowedOrganizationIds[index]
+			expectedAllowedOrganizationIds := expected.AllowedOrganizationIds[index]
+			if currentAllowedOrganizationIds != expectedAllowedOrganizationIds {
+				t.Logf("Unexpected AllowedOrganizationIds: `%s` AllowedOrganizationIds expected: `%s`", currentAllowedOrganizationIds, expectedAllowedOrganizationIds)
+				t.Fail()
+			}
 		}
 	}
 
@@ -41,14 +41,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countAllowedPrincipals != expectedCountAllowedPrincipals {
 		t.Logf("Unexpected AllowedPrincipals has: `%d` entries but: `%d` expected", countAllowedPrincipals, expectedCountAllowedPrincipals)
 		t.Fail()
-	}
-
-	for index := range source.AllowedPrincipals {
-		currentAllowedPrincipals := source.AllowedPrincipals[index]
-		expectedAllowedPrincipals := expected.AllowedPrincipals[index]
-		if currentAllowedPrincipals != expectedAllowedPrincipals {
-			t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
-			t.Fail()
+	} else {
+		for index := range source.AllowedPrincipals {
+			currentAllowedPrincipals := source.AllowedPrincipals[index]
+			expectedAllowedPrincipals := expected.AllowedPrincipals[index]
+			if currentAllowedPrincipals != expectedAllowedPrincipals {
+				t.Logf("Unexpected AllowedPrincipals: `%s` AllowedPrincipals expected: `%s`", currentAllowedPrincipals, expectedAllowedPrincipals)
+				t.Fail()
+			}
 		}
 	}
 
@@ -57,14 +57,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countAllowedPrincipalAccountIds != expectedCountAllowedPrincipalAccountIds {
 		t.Logf("Unexpected AllowedPrincipalAccountIds has: `%d` entries but: `%d` expected", countAllowedPrincipalAccountIds, expectedCountAllowedPrincipalAccountIds)
 		t.Fail()
-	}
-
-	for index := range source.AllowedPrincipalAccountIds {
-		currentAllowedPrincipalAccountIds := source.AllowedPrincipalAccountIds[index]
-		expectedAllowedPrincipalAccountIds := expected.AllowedPrincipalAccountIds[index]
-		if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
-			t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
-			t.Fail()
+	} else {
+		for index := range source.AllowedPrincipalAccountIds {
+			currentAllowedPrincipalAccountIds := source.AllowedPrincipalAccountIds[index]
+			expectedAllowedPrincipalAccountIds := expected.AllowedPrincipalAccountIds[index]
+			if currentAllowedPrincipalAccountIds != expectedAllowedPrincipalAccountIds {
+				t.Logf("Unexpected AllowedPrincipalAccountIds: `%s` AllowedPrincipalAccountIds expected: `%s`", currentAllowedPrincipalAccountIds, expectedAllowedPrincipalAccountIds)
+				t.Fail()
+			}
 		}
 	}
 
@@ -73,14 +73,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countAllowedPrincipalFederatedIdentities != expectedCountAllowedPrincipalFederatedIdentities {
 		t.Logf("Unexpected AllowedPrincipalFederatedIdentities has: `%d` entries but: `%d` expected", countAllowedPrincipalFederatedIdentities, expectedCountAllowedPrincipalFederatedIdentities)
 		t.Fail()
-	}
-
-	for index := range source.AllowedPrincipalFederatedIdentities {
-		currentAllowedPrincipalFederatedIdentities := source.AllowedPrincipalFederatedIdentities[index]
-		expectedAllowedPrincipalFederatedIdentities := expected.AllowedPrincipalFederatedIdentities[index]
-		if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
-			t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
-			t.Fail()
+	} else {
+		for index := range source.AllowedPrincipalFederatedIdentities {
+			currentAllowedPrincipalFederatedIdentities := source.AllowedPrincipalFederatedIdentities[index]
+			expectedAllowedPrincipalFederatedIdentities := expected.AllowedPrincipalFederatedIdentities[index]
+			if currentAllowedPrincipalFederatedIdentities != expectedAllowedPrincipalFederatedIdentities {
+				t.Logf("Unexpected AllowedPrincipalFederatedIdentities: `%s` AllowedPrincipalFederatedIdentities expected: `%s`", currentAllowedPrincipalFederatedIdentities, expectedAllowedPrincipalFederatedIdentities)
+				t.Fail()
+			}
 		}
 	}
 
@@ -89,14 +89,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countAllowedPrincipalServices != expectedCountAllowedPrincipalServices {
 		t.Logf("Unexpected AllowedPrincipalServices has: `%d` entries but: `%d` expected", countAllowedPrincipalServices, expectedCountAllowedPrincipalServices)
 		t.Fail()
-	}
-
-	for index := range source.AllowedPrincipalServices {
-		currentAllowedPrincipalServices := source.AllowedPrincipalServices[index]
-		expectedAllowedPrincipalServices := expected.AllowedPrincipalServices[index]
-		if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
-			t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
-			t.Fail()
+	} else {
+		for index := range source.AllowedPrincipalServices {
+			currentAllowedPrincipalServices := source.AllowedPrincipalServices[index]
+			expectedAllowedPrincipalServices := expected.AllowedPrincipalServices[index]
+			if currentAllowedPrincipalServices != expectedAllowedPrincipalServices {
+				t.Logf("Unexpected AllowedPrincipalServices: `%s` AllowedPrincipalServices expected: `%s`", currentAllowedPrincipalServices, expectedAllowedPrincipalServices)
+				t.Fail()
+			}
 		}
 	}
 
@@ -105,14 +105,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countPublicAccessLevels != expectedCountPublicAccessLevels {
 		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels)
 		t.Fail()
-	}
-
-	for index := range source.PublicAccessLevels {
-		currentPublicAccessLevels := source.PublicAccessLevels[index]
-		expectedPublicAccessLevels := expected.PublicAccessLevels[index]
-		if currentPublicAccessLevels != expectedPublicAccessLevels {
-			t.Logf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels)
-			t.Fail()
+	} else {
+		for index := range source.PublicAccessLevels {
+			currentPublicAccessLevels := source.PublicAccessLevels[index]
+			expectedPublicAccessLevels := expected.PublicAccessLevels[index]
+			if currentPublicAccessLevels != expectedPublicAccessLevels {
+				t.Logf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels)
+				t.Fail()
+			}
 		}
 	}
 
@@ -121,14 +121,14 @@ func evaluateResults(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	if countPublicStatementIds != expectedCountPublicStatementIds {
 		t.Logf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicStatementIds, expectedCountPublicStatementIds)
 		t.Fail()
-	}
-
-	for index := range source.PublicStatementIds {
-		currentPublicStatementIds := source.PublicStatementIds[index]
-		expectedPublicStatementIds := expected.PublicStatementIds[index]
-		if currentPublicStatementIds != expectedPublicStatementIds {
-			t.Logf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds)
-			t.Fail()
+	} else {
+		for index := range source.PublicStatementIds {
+			currentPublicStatementIds := source.PublicStatementIds[index]
+			expectedPublicStatementIds := expected.PublicStatementIds[index]
+			if currentPublicStatementIds != expectedPublicStatementIds {
+				t.Logf("Unexpected PublicStatementIds: `%s` PublicStatementIds expected: `%s`", currentPublicStatementIds, expectedPublicStatementIds)
+				t.Fail()
+			}
 		}
 	}
 }
@@ -480,6 +480,8 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPricipalIsAMisformedArnFails", testWhenPricipalIsAMisformedArnFails)
 	t.Run("TestWhenPrincipalIsWildcarded", testWhenPrincipalIsWildcarded)
 	t.Run("TestWhenAwsPrincipalIsWildcarded", testWhenAwsPrincipalIsWildcarded)
+	t.Run("TestWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepIsPublic", testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic)
+
 	t.Run("TestWhenPrincipalIsAUserAccountId", testWhenPrincipalIsAUserAccountId)
 	t.Run("TestWhenPrincipalIsAUserAccountArn", testWhenPrincipalIsAUserAccountArn)
 	t.Run("TestWhenPrincipalIsACrossAccountId", testWhenPrincipalIsACrossAccountId)
@@ -520,7 +522,7 @@ func TestPolicyPrincipalElement(t *testing.T) {
 
 	t.Run("TestWhenPrincipalIsMultipleTypes", testWhenPrincipalIsMultipleTypes)
 	t.Run("TestWhenPrincipalIsMultipleTypesWithWildcard", testWhenPrincipalIsMultipleTypesWithWildcard)
-	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", testWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
+	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
 }
 
@@ -615,9 +617,56 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	evaluateResults(t, evaluated, expected)
+}
+
+func testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": "*"
+        },
+        {
+			"Effect": "Allow",
+			"Action": "sts:AssumeRole",
+			"Principal": "012345678901"
+		  } 
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:            "public",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"*",
+			"012345678901",
+		},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -656,7 +705,7 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
@@ -1069,7 +1118,7 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "",
+		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"*",
@@ -1988,7 +2037,7 @@ func testWhenPricipalIsAService(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
@@ -2029,7 +2078,7 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
@@ -2073,7 +2122,7 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
@@ -2138,7 +2187,7 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
@@ -2184,7 +2233,7 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
 		AllowedPrincipalAccountIds:          []string{"444455554444"},
@@ -2227,7 +2276,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "",
+		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"*",
@@ -2255,7 +2304,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
 	evaluateResults(t, evaluated, expected)
 }
 
-func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
+func TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -2294,7 +2343,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "",
+		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"arn:aws:iam::012345678901:root",
@@ -2313,6 +2362,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
 		AllowedPrincipalServices: []string{
 			"dynamodb.amazonaws.com",
 			"ecs.amazonaws.com",
+			"elasticloadbalancing.amazonaws.com",
 		},
 		IsPublic:           true,
 		PublicAccessLevels: []string{},
@@ -2369,7 +2419,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:            "",
+		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
 			"*",
