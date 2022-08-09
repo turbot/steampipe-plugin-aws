@@ -5,8 +5,30 @@ import (
 	"testing"
 )
 
+/// Evaluation Functions
+func evaluatePublicAccessLevelsTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+	errors := []string{}
+
+	countPublicAccessLevels := len(source.PublicAccessLevels)
+	expectedCountPublicAccessLevels := len(expected.PublicAccessLevels)
+	if countPublicAccessLevels != expectedCountPublicAccessLevels {
+		errors = append(errors, fmt.Sprintf("Unexpected PublicAccessLevels has: `%d` entries but: `%d` expected", countPublicAccessLevels, expectedCountPublicAccessLevels))
+	} else {
+		for index := range source.PublicAccessLevels {
+			currentPublicAccessLevels := source.PublicAccessLevels[index]
+			expectedPublicAccessLevels := expected.PublicAccessLevels[index]
+			if currentPublicAccessLevels != expectedPublicAccessLevels {
+				errors = append(errors, fmt.Sprintf("Unexpected PublicAccessLevels: `%s` PublicAccessLevels expected: `%s`", currentPublicAccessLevels, expectedPublicAccessLevels))
+			}
+		}
+	}
+
+	return errors
+}
+
 func evaluateAccessLevelTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
 	errors := []string{}
+
 	currentAccessLevel := source.AccessLevel
 	expectedAccessLevel := expected.AccessLevel
 	if currentAccessLevel != expectedAccessLevel {
@@ -36,7 +58,6 @@ func evaluateSidTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	return errors
 }
 
-/// Evaluation Functions
 func evaluatePrincipalTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
 	errors := []string{}
 
@@ -4040,3 +4061,507 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
 		t.Fail()
 	}
 }
+
+func TestPolicyActionElement(t *testing.T) {
+	t.Run("testUnknownAwsServiceNameInAction", testUnknownAwsServiceNameInAction)
+	t.Run("testUnknownAwsApiFunctionNameInAction", testUnknownAwsApiFunctionNameInAction)
+	t.Run("testSingleKnownApiFunctionInSingleStatement", testSingleKnownApiFunctionInSingleStatement)
+	t.Run("TestSingleKnownFullWildcardApiFunctionInSingleStatement", testSingleFullWildcardAtEndOfAction)
+	t.Run("TestSinglePartialWildcardAtEndOfAction", testSinglePartialWildcardAtEndOfAction)
+	t.Run("TestSinglePartialWildcardAtEndOfKnownApiFunctionAction", testSinglePartialWildcardAtEndOfKnownApiFunctionAction)
+	t.Run("TestSingleFullWildcardAtEndOfKnownApiFunctionAction", testSingleFullWildcardAtEndOfKnownApiFunctionAction)
+}
+
+func testUnknownAwsServiceNameInAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec:StartInstances"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testUnknownAwsApiFunctionNameInAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:ZtartInztancez"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSingleKnownApiFunctionInSingleStatement(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:StartInstances"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSingleFullWildcardAtEndOfAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:Start*"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSinglePartialWildcardAtEndOfAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:StartInstance?"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:StartInstances?"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:StartInstances*"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+// TODO:
+//func testSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
+func testUnknown1(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+// TODO:
+func testUnknown2(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:"
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+// TODO: Check multiple statements
+// TODO: Check Wildcards in the front (most inefficient search)
+// TODO: Check for multiple wildcards
+// TODO: Make sure there are other Access Levels
