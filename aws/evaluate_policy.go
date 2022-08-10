@@ -110,12 +110,15 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
 	var evaluatedStatement EvaluatedStatements
-	publicStatementIds := map[string]bool{}
 	allowedActionSet := map[string]bool{}
 	deniedActionSet := map[string]bool{}
 
-	allowedStatements := EvaluatedStatements{}
-	deniedStatements := EvaluatedStatements{}
+	allowedStatements := EvaluatedStatements{
+		publicStatementIds: map[string]bool{},
+	}
+	deniedStatements := EvaluatedStatements{
+		publicStatementIds: map[string]bool{},
+	}
 
 	var currentStatements *EvaluatedStatements
 	var currentActionSet *map[string]bool
@@ -167,11 +170,11 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		if evaluatedPrinciple.isPublic {
 			sid := evaluatedSid(statement, statementIndex)
 
-			if _, exists := publicStatementIds[sid]; exists {
+			if _, exists := (*currentStatements).publicStatementIds[sid]; exists {
 				return evaluatedStatement, fmt.Errorf("duplicate Sid found: %s", sid)
 			}
 
-			publicStatementIds[sid] = true
+			(*currentStatements).publicStatementIds[sid] = true
 		}
 
 		// Actions
@@ -179,20 +182,44 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			if _, exists := (*currentActionSet)[action]; !exists {
 				(*currentActionSet)[action] = true
 			}
-
 		}
 	}
 
-	allowedStatements.publicAccessLevels = evaluateActionSet(allowedActionSet, permissions)
-	allowedStatements.publicStatementIds = publicStatementIds
-
-	evaluatedStatement.publicStatementIds = mergeSet(
-		allowedStatements.publicStatementIds,
-		deniedStatements.publicStatementIds,
+	evaluatedStatement = evaluateOverallStatements(
+		allowedStatements,
+		deniedStatements,
+		allowedActionSet,
+		deniedActionSet,
+		permissions,
 	)
 
-	evaluatedStatement = allowedStatements
 	return evaluatedStatement, nil
+}
+
+func evaluateOverallStatements(
+	allowedStatements EvaluatedStatements,
+	deniedStatements EvaluatedStatements,
+	allowedActionSet map[string]bool,
+	deniedActionSet map[string]bool,
+	permissions map[string]Permissions,
+) EvaluatedStatements {
+	overallStatements := EvaluatedStatements{}
+
+	if deniedStatements.isPublic {
+		return overallStatements
+	}
+
+	overallStatements.allowedPrincipalFederatedIdentitiesSet = allowedStatements.allowedPrincipalFederatedIdentitiesSet
+	overallStatements.allowedPrincipalServicesSet = allowedStatements.allowedPrincipalServicesSet
+	overallStatements.allowedPrincipalsSet = allowedStatements.allowedPrincipalsSet
+	overallStatements.allowedPrincipalAccountIdsSet = allowedStatements.allowedPrincipalAccountIdsSet
+	overallStatements.allowedOrganizationIds = allowedStatements.allowedOrganizationIds
+	overallStatements.publicStatementIds = allowedStatements.publicStatementIds
+	overallStatements.publicAccessLevels = evaluateActionSet(allowedActionSet, permissions)
+	overallStatements.isPublic = allowedStatements.isPublic
+	overallStatements.isShared = allowedStatements.isShared
+
+	return overallStatements
 }
 
 func evaluateAction(action string) EvaluatedAction {
