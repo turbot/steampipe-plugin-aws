@@ -626,7 +626,7 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZer
 func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPricipalIsAMisformedArnFails", testWhenPricipalIsAMisformedArnFails)
 	t.Run("TestWhenPrincipalIsWildcarded", testWhenPrincipalIsWildcarded)
-	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", TestWhenAwsPrincipalIsWildcardedAndEffectDenied)
+	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", testWhenAwsPrincipalIsWildcardedAndEffectDenied)
 	t.Run("TestWhenAwsPrincipalIsWildcarded", testWhenAwsPrincipalIsWildcarded)
 	t.Run("TestWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepIsPublic", testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic)
 
@@ -817,7 +817,7 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 	}
 }
 
-func TestWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
+func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -834,14 +834,14 @@ func TestWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
 		`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "public",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels:                  []string{"Write"},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 

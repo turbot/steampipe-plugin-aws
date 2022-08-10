@@ -111,9 +111,14 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
 	var evaluatedStatement EvaluatedStatements
 	publicStatementIds := map[string]bool{}
-	actionSet := map[string]bool{}
+	allowedActionSet := map[string]bool{}
+	deniedActionSet := map[string]bool{}
 
 	allowedStatements := EvaluatedStatements{}
+	deniedStatements := EvaluatedStatements{}
+
+	var currentStatements *EvaluatedStatements
+	var currentActionSet *map[string]bool
 
 	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
@@ -122,7 +127,11 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 
 		// TODO: For phase 1 - we are only interested in allow else continue with next
 		if statement.Effect == "Deny" {
-			continue
+			currentStatements = &deniedStatements
+			currentActionSet = &deniedActionSet
+		} else {
+			currentStatements = &allowedStatements
+			currentActionSet = &allowedActionSet
 		}
 
 		// Principal
@@ -131,29 +140,29 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			return evaluatedStatement, err
 		}
 
-		allowedStatements.allowedPrincipalFederatedIdentitiesSet = mergeSet(
-			allowedStatements.allowedPrincipalFederatedIdentitiesSet,
+		currentStatements.allowedPrincipalFederatedIdentitiesSet = mergeSet(
+			currentStatements.allowedPrincipalFederatedIdentitiesSet,
 			evaluatedPrinciple.allowedPrincipalFederatedIdentitiesSet,
 		)
 
-		allowedStatements.allowedPrincipalServicesSet = mergeSet(
-			allowedStatements.allowedPrincipalServicesSet,
+		currentStatements.allowedPrincipalServicesSet = mergeSet(
+			currentStatements.allowedPrincipalServicesSet,
 			evaluatedPrinciple.allowedPrincipalServicesSet,
 		)
 
-		allowedStatements.allowedPrincipalsSet = mergeSet(
-			allowedStatements.allowedPrincipalsSet,
+		currentStatements.allowedPrincipalsSet = mergeSet(
+			currentStatements.allowedPrincipalsSet,
 			evaluatedPrinciple.allowedPrincipalsSet,
 		)
 
-		allowedStatements.allowedPrincipalAccountIdsSet = mergeSet(
-			allowedStatements.allowedPrincipalAccountIdsSet,
+		currentStatements.allowedPrincipalAccountIdsSet = mergeSet(
+			currentStatements.allowedPrincipalAccountIdsSet,
 			evaluatedPrinciple.allowedPrincipalAccountIdsSet,
 		)
 
 		// Visibility
-		allowedStatements.isPublic = allowedStatements.isPublic || evaluatedPrinciple.isPublic
-		allowedStatements.isShared = allowedStatements.isShared || evaluatedPrinciple.isShared
+		currentStatements.isPublic = currentStatements.isPublic || evaluatedPrinciple.isPublic
+		currentStatements.isShared = currentStatements.isShared || evaluatedPrinciple.isShared
 
 		if evaluatedPrinciple.isPublic {
 			sid := evaluatedSid(statement, statementIndex)
@@ -167,15 +176,20 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 
 		// Actions
 		for _, action := range statement.Action {
-			if _, exists := actionSet[action]; !exists {
-				actionSet[action] = true
+			if _, exists := (*currentActionSet)[action]; !exists {
+				(*currentActionSet)[action] = true
 			}
 
 		}
 	}
 
-	allowedStatements.publicAccessLevels = evaluateActionSet(actionSet, permissions)
+	allowedStatements.publicAccessLevels = evaluateActionSet(allowedActionSet, permissions)
 	allowedStatements.publicStatementIds = publicStatementIds
+
+	evaluatedStatement.publicStatementIds = mergeSet(
+		allowedStatements.publicStatementIds,
+		deniedStatements.publicStatementIds,
+	)
 
 	evaluatedStatement = allowedStatements
 	return evaluatedStatement, nil
@@ -216,8 +230,8 @@ func evaluateAction(action string) EvaluatedAction {
 	return evaluated
 }
 
-func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permissions) []string {
-	if _, exists := actionSet["*"]; exists {
+func evaluateActionSet(allowedActionSet map[string]bool, permissions map[string]Permissions) []string {
+	if _, exists := allowedActionSet["*"]; exists {
 		return []string{
 			"List",
 			"Permissions management",
@@ -230,7 +244,7 @@ func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permiss
 	//permissionsLength := len(permissions)
 	accessLevels := map[string]bool{}
 
-	for action := range actionSet {
+	for action := range allowedActionSet {
 		evaluatedAction := evaluateAction(action)
 
 		if !evaluatedAction.process {
