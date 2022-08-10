@@ -626,7 +626,6 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZer
 func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPricipalIsAMisformedArnFails", testWhenPricipalIsAMisformedArnFails)
 	t.Run("TestWhenPrincipalIsWildcarded", testWhenPrincipalIsWildcarded)
-	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", testWhenAwsPrincipalIsWildcardedAndEffectDenied)
 	t.Run("TestWhenAwsPrincipalIsWildcarded", testWhenAwsPrincipalIsWildcarded)
 	t.Run("TestWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepIsPublic", testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic)
 
@@ -672,6 +671,9 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleTypesWithWildcard", testWhenPrincipalIsMultipleTypesWithWildcard)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", testWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
+
+	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", testWhenAwsPrincipalIsWildcardedAndEffectDenied)
+	t.Run("TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed", TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed)
 }
 
 func testWhenPricipalIsAMisformedArnFails(t *testing.T) {
@@ -788,60 +790,6 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
 		PublicAccessLevels:                  []string{"Write"},
-		PublicStatementIds:                  []string{"Statement[1]"},
-	}
-
-	// Test
-	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
-
-	// Evaluate
-	if err != nil {
-		t.Fatalf("Unexpected error while evaluating policy: %s", err)
-	}
-
-	errors := evaluatePrincipalTest(t, evaluated, expected)
-	if len(errors) > 0 {
-		for _, error := range errors {
-			t.Log(error)
-		}
-		t.Fatal("Principal Unit Test error detected")
-	}
-
-	errors = evaluateIntegration(t, evaluated, expected)
-	if len(errors) > 0 {
-		for _, error := range errors {
-			t.Log(error)
-		}
-		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
-		t.Fail()
-	}
-}
-
-func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
-	// Set up
-	userAccountId := "012345678901"
-	policyContent := `
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Deny",
-			  "Action": "sts:AssumeRole",
-			  "Principal": "*"
-			}
-		  ]
-		}
-		`
-
-	expected := EvaluatedPolicy{
-		AccessLevel:                         "private",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
-		AllowedPrincipalFederatedIdentities: []string{},
-		AllowedPrincipalServices:            []string{},
-		IsPublic:                            false,
-		PublicAccessLevels:                  []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
 	}
 
@@ -3214,6 +3162,119 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 			"Statement[2]",
 			"Statement[3]",
 		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+		{
+		  "Version": "2012-10-17",
+		  "Statement": [
+			{
+			  "Effect": "Deny",
+			  "Action": "sts:AssumeRole",
+			  "Principal": "*"
+			}
+		  ]
+		}
+		`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Deny",
+          "Action": "sts:AssumeRole",
+          "Principal": "*"
+        },
+        {
+			"Effect": "Allow",
+			"Action": "sts:AssumeRole",
+			"Principal": "012345678901"
+		  } 
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		PublicStatementIds:                  []string{},
 	}
 
 	// Test
