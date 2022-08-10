@@ -339,7 +339,6 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	var jitter = float64(rand.Intn(120-80)+80) / 100
 
 	retryTime := time.Duration(int(float64(int(minDelay.Nanoseconds())*int(math.Pow(3, float64(attempt)))) * jitter))
-	// log.Printf("[INFO] *******INSIDE CODE********** Attempt: %d, DelayInSeconds: %f, Delay: %v", attempt, retryTime.Seconds(), retryTime)
 
 	// Cap retry time at 5 minutes to avoid too long a wait
 	if retryTime > time.Duration(5*time.Minute) {

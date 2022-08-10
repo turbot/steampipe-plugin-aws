@@ -146,7 +146,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "A container for specifying the notification configuration of the bucket. If this element is empty, notifications are turned off for the bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getS3BucketEventNotificationConfigurations,
-				Transform:   transform.FromValue().Transform(removeMetadataFromBucketEventNotificationConfigurations),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "server_side_encryption_configuration",
@@ -160,7 +160,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: "The access control list (ACL) of a bucket.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketACL,
-				Transform:   transform.FromValue().Transform(removeMetadataFromBucketAclOutput),
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "lifecycle_rules",
@@ -215,7 +215,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketTagging,
-				Transform:   transform.FromField("TagSet").Transform(s3TagsToTurbotTags),
+				Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -330,8 +330,17 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 		plugin.Logger(ctx).Error("aws_s3_bucket.getS3BucketEventNotificationConfigurations", "api_error", err)
 		return nil, err
 	}
-	// &notificationDetails.ResultMetadata =
-	return notificationDetails, nil
+
+	if notificationDetails != nil {
+		output := map[string]any{}
+		output["EventBridgeConfiguration"] = notificationDetails.EventBridgeConfiguration
+		output["LambdaFunctionConfigurations"] = notificationDetails.LambdaFunctionConfigurations
+		output["QueueConfigurations"] = notificationDetails.QueueConfigurations
+		output["TopicConfigurations"] = notificationDetails.TopicConfigurations
+		return output, nil
+	}
+
+	return nil, nil
 }
 
 func getBucketLocation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -533,7 +542,14 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 
-	return acl, nil
+	if acl != nil {
+		output := map[string]any{}
+		output["Grants"] = acl.Grants
+		output["Owner"] = acl.Owner
+		return &output, nil
+	}
+
+	return nil, nil
 }
 
 func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -743,7 +759,7 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleS3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
@@ -756,31 +772,4 @@ func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 	}
 
 	return turbotTagsMap, nil
-}
-
-func removeMetadataFromBucketEventNotificationConfigurations(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value, ok := d.Value.(*s3.GetBucketNotificationConfigurationOutput)
-	if !ok {
-		return nil, nil
-	}
-
-	output := map[string]any{}
-	output["EventBridgeConfiguration"] = value.EventBridgeConfiguration
-	output["LambdaFunctionConfigurations"] = value.LambdaFunctionConfigurations
-	output["QueueConfigurations"] = value.QueueConfigurations
-	output["TopicConfigurations"] = value.TopicConfigurations
-
-	return &output, nil
-}
-
-func removeMetadataFromBucketAclOutput(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value, ok := d.Value.(*s3.GetBucketAclOutput)
-	if !ok {
-		return nil, nil
-	}
-
-	output := map[string]any{}
-	output["Grants"] = value.Grants
-	output["Owner"] = value.Owner
-	return &output, nil
 }

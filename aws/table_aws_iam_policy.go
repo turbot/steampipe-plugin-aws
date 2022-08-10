@@ -114,7 +114,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the IAM policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamPolicy,
-				Transform:   transform.FromField("Tags").Transform(iamPolicyTurbotTagsNullValue),
+				Transform:   transform.FromField("Tags").Transform(handleIAMPolicyEmptyTags),
 			},
 
 			// Standard columns for all tables
@@ -123,7 +123,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamPolicy,
-				Transform:   transform.From(iamPolicyTurbotTags),
+				Transform:   transform.From(handleIAMPolicyTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -267,7 +267,7 @@ func isPolicyAwsManaged(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// TRANSFORM FUNCTIONS
 
-func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleIAMPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	policy := d.HydrateItem.(types.Policy)
 	var turbotTagsMap map[string]string
 	if len(policy.Tags) == 0 {
@@ -282,7 +282,7 @@ func iamPolicyTurbotTags(_ context.Context, d *transform.TransformData) (interfa
 	return &turbotTagsMap, nil
 }
 
-func iamPolicyTurbotTagsNullValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleIAMPolicyEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags, ok := d.Value.([]types.Tag)
 	if ok || len(tags) == 0 {
 		return nil, nil

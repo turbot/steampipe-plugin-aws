@@ -62,7 +62,7 @@ func tableAwsIamVirtualMfaDevice(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the MFA device.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamMfaDeviceTags,
-				Transform:   transform.From(virtualMfaDeviceSrcTags),
+				Transform:   transform.From(handleVirtualMfaDeviceSrcTags),
 			},
 
 			// {
@@ -200,7 +200,7 @@ func virtualMfaDeviceTurbotTags(_ context.Context, d *transform.TransformData) (
 	return &turbotTagsMap, nil
 }
 
-func virtualMfaDeviceSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleVirtualMfaDeviceSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*iam.ListMFADeviceTagsOutput)
 
 	if len(data.Tags) == 0 {

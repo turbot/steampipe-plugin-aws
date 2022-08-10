@@ -56,7 +56,7 @@ func tableAwsIamSamlProvider(_ context.Context) *plugin.Table {
 				Description: "A list of tags that are attached to the specified IAM SAML provider.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamSamlProvider,
-				Transform:   transform.From(samlProviderSrcTags),
+				Transform:   transform.From(handleSAMLProviderEmptyTags),
 			},
 
 			// Steampipe standard columns
@@ -180,7 +180,7 @@ func samlProviderTurbotTags(_ context.Context, d *transform.TransformData) (inte
 	return turbotTagsMap, nil
 }
 
-func samlProviderSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleSAMLProviderEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	provider := d.HydrateItem.(SAMLProvider)
 	if len(provider.Tags) == 0 {
 		return nil, nil

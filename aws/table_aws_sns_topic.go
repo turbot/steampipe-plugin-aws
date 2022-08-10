@@ -188,7 +188,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags").Transform(formatSnsTopicEmptyTags),
+				Transform:   transform.FromField("Tags").Transform(handleSNSTopicEmptyTags),
 			},
 			{
 				Name:        "policy",
@@ -230,7 +230,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.From(snsTopicTurbotTags),
+				Transform:   transform.From(handleSNSTopicTurbotTags),
 			},
 			{
 				Name:        "akas",
@@ -342,7 +342,7 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// TRANSFORM FUNCTIONS
 
-func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*sns.ListTagsForResourceOutput)
 	if len(tags.Tags) == 0 {
 		return nil, nil
@@ -356,7 +356,7 @@ func snsTopicTurbotTags(_ context.Context, d *transform.TransformData) (interfac
 	return turbotTagsMap, nil
 }
 
-func formatSnsTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleSNSTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags, ok := d.Value.([]snsTypes.Tag)
 	if !ok || len(tags) == 0 {
 		return nil, nil
