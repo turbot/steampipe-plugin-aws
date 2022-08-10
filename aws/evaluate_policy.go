@@ -109,9 +109,11 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 }
 
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
-	evaluatedStatement := EvaluatedStatements{}
+	var evaluatedStatement EvaluatedStatements
 	publicStatementIds := map[string]bool{}
 	actionSet := map[string]bool{}
+
+	allowedStatements := EvaluatedStatements{}
 
 	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
@@ -129,29 +131,29 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			return evaluatedStatement, err
 		}
 
-		evaluatedStatement.allowedPrincipalFederatedIdentitiesSet = mergeSet(
-			evaluatedStatement.allowedPrincipalFederatedIdentitiesSet,
+		allowedStatements.allowedPrincipalFederatedIdentitiesSet = mergeSet(
+			allowedStatements.allowedPrincipalFederatedIdentitiesSet,
 			evaluatedPrinciple.allowedPrincipalFederatedIdentitiesSet,
 		)
 
-		evaluatedStatement.allowedPrincipalServicesSet = mergeSet(
-			evaluatedStatement.allowedPrincipalServicesSet,
+		allowedStatements.allowedPrincipalServicesSet = mergeSet(
+			allowedStatements.allowedPrincipalServicesSet,
 			evaluatedPrinciple.allowedPrincipalServicesSet,
 		)
 
-		evaluatedStatement.allowedPrincipalsSet = mergeSet(
-			evaluatedStatement.allowedPrincipalsSet,
+		allowedStatements.allowedPrincipalsSet = mergeSet(
+			allowedStatements.allowedPrincipalsSet,
 			evaluatedPrinciple.allowedPrincipalsSet,
 		)
 
-		evaluatedStatement.allowedPrincipalAccountIdsSet = mergeSet(
-			evaluatedStatement.allowedPrincipalAccountIdsSet,
+		allowedStatements.allowedPrincipalAccountIdsSet = mergeSet(
+			allowedStatements.allowedPrincipalAccountIdsSet,
 			evaluatedPrinciple.allowedPrincipalAccountIdsSet,
 		)
 
 		// Visibility
-		evaluatedStatement.isPublic = evaluatedStatement.isPublic || evaluatedPrinciple.isPublic
-		evaluatedStatement.isShared = evaluatedStatement.isShared || evaluatedPrinciple.isShared
+		allowedStatements.isPublic = allowedStatements.isPublic || evaluatedPrinciple.isPublic
+		allowedStatements.isShared = allowedStatements.isShared || evaluatedPrinciple.isShared
 
 		if evaluatedPrinciple.isPublic {
 			sid := evaluatedSid(statement, statementIndex)
@@ -172,9 +174,10 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		}
 	}
 
-	evaluatedStatement.publicAccessLevels = evaluateActionSet(actionSet, permissions)
-	evaluatedStatement.publicStatementIds = publicStatementIds
+	allowedStatements.publicAccessLevels = evaluateActionSet(actionSet, permissions)
+	allowedStatements.publicStatementIds = publicStatementIds
 
+	evaluatedStatement = allowedStatements
 	return evaluatedStatement, nil
 }
 
