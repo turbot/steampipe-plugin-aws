@@ -9,6 +9,7 @@ import (
 )
 
 type EvaluatedAction struct {
+	process    bool
 	prefix     string
 	priviledge string
 	matcher    string
@@ -47,6 +48,11 @@ type EvaluatedPolicy struct {
 	PublicStatementIds                  []string `json:"public_statement_ids"`
 }
 
+type Permissions struct {
+	privileges  []string
+	accessLevel map[string]string
+}
+
 func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy, error) {
 	evaluatedPolicy := EvaluatedPolicy{
 		AccessLevel: "private",
@@ -68,9 +74,11 @@ func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy
 		return evaluatedPolicy, err
 	}
 
+	permissions := getSortedPermissions()
+
 	policy := policyInterface.(Policy)
 
-	evaluatedStatements, err := evaluateStatements(policy.Statements, userAccountId)
+	evaluatedStatements, err := evaluateStatements(policy.Statements, userAccountId, permissions)
 	if err != nil {
 		return evaluatedPolicy, err
 	}
@@ -100,7 +108,7 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 	return "private"
 }
 
-func evaluateStatements(statements []Statement, userAccountId string) (EvaluatedStatements, error) {
+func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
 	evaluatedStatement := EvaluatedStatements{}
 	publicStatementIds := map[string]bool{}
 	actionSet := map[string]bool{}
@@ -147,9 +155,12 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 
 		if evaluatedPrinciple.isPublic {
 			sid := evaluatedSid(statement, statementIndex)
-			if _, exists := publicStatementIds[sid]; !exists {
-				publicStatementIds[sid] = true
+
+			if _, exists := publicStatementIds[sid]; exists {
+				return evaluatedStatement, fmt.Errorf("duplicate Sid found: %s", sid)
 			}
+
+			publicStatementIds[sid] = true
 		}
 
 		// Actions
@@ -161,7 +172,7 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 		}
 	}
 
-	evaluatedStatement.publicAccessLevels = evaluateActionSet(actionSet)
+	evaluatedStatement.publicAccessLevels = evaluateActionSet(actionSet, permissions)
 	evaluatedStatement.publicStatementIds = publicStatementIds
 
 	return evaluatedStatement, nil
@@ -169,9 +180,17 @@ func evaluateStatements(statements []Statement, userAccountId string) (Evaluated
 
 func evaluateAction(action string) EvaluatedAction {
 	evaluated := EvaluatedAction{}
+
 	lowerAction := strings.ToLower(action)
 	actionParts := strings.Split(lowerAction, ":")
 	evaluated.prefix = actionParts[0]
+
+	if len(actionParts) < 2 || actionParts[1] == "" {
+		return evaluated
+	}
+
+	evaluated.process = true
+
 	raw := actionParts[1]
 
 	wildcardLocator := regexp.MustCompile(`[0-9a-z:]*(\*|\?)`)
@@ -194,7 +213,7 @@ func evaluateAction(action string) EvaluatedAction {
 	return evaluated
 }
 
-func evaluateActionSet(actionSet map[string]bool) []string {
+func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permissions) []string {
 	if _, exists := actionSet["*"]; exists {
 		return []string{
 			"List",
@@ -205,43 +224,32 @@ func evaluateActionSet(actionSet map[string]bool) []string {
 		}
 	}
 
-	permissions := getParliamentIamPermissions()
-	permissionsLength := len(permissions)
+	//permissionsLength := len(permissions)
 	accessLevels := map[string]bool{}
 
 	for action := range actionSet {
 		evaluatedAction := evaluateAction(action)
 
-		// Find service
-		index := sort.Search(
-			permissionsLength,
-			func(index int) bool {
-				return permissions[index].Prefix >= evaluatedAction.prefix
-			},
-		)
-
-		if index >= permissionsLength || permissions[index].Prefix != evaluatedAction.prefix {
+		if !evaluatedAction.process {
 			continue
 		}
 
-		// Find API Call
-		permissionPrivilegesLength := len(permissions[index].Privileges)
-		evaluatedPrivilegeLength := len(evaluatedAction.priviledge)
-		permissionPrivilegesIndex := sort.Search(
-			permissionPrivilegesLength,
-			func(privilegesIndex int) bool {
-				currentPrivilege := permissions[index].Privileges[privilegesIndex].Privilege[:evaluatedPrivilegeLength]
-				currentPrivilege = strings.ToLower(currentPrivilege)
-				return currentPrivilege >= evaluatedAction.priviledge
-			},
-		)
+		// Find service
+		if _, exists := permissions[evaluatedAction.prefix]; !exists {
+			continue
+		}
 
-		if permissionPrivilegesIndex >= permissionPrivilegesLength {
+		permission := permissions[evaluatedAction.prefix]
+
+		// Find API Call
+		privilegesLen := len(permission.privileges)
+		checkIndex := sort.SearchStrings(permission.privileges, evaluatedAction.priviledge)
+		if checkIndex >= privilegesLen {
 			continue
 		}
 
 		if evaluatedAction.matcher == "" {
-			accessLevel := permissions[index].Privileges[permissionPrivilegesIndex].AccessLevel
+			accessLevel := permission.accessLevel[evaluatedAction.priviledge]
 
 			if _, exists := accessLevels[accessLevel]; !exists {
 				accessLevels[accessLevel] = true
@@ -249,13 +257,14 @@ func evaluateActionSet(actionSet map[string]bool) []string {
 			continue
 		}
 
+		evaluatedPriviledgeLen := len(evaluatedAction.priviledge)
 		matcher := regexp.MustCompile(evaluatedAction.matcher)
-		for {
-			currentPrivilege := strings.ToLower(permissions[index].Privileges[permissionPrivilegesIndex].Privilege)
-			splitIndex := int(math.Min(float64(len(currentPrivilege)), float64(evaluatedPrivilegeLength)))
-			partialPriviledge := currentPrivilege[0:splitIndex]
+		for ; checkIndex < privilegesLen; checkIndex++ {
+			currentPrivilege := permission.privileges[checkIndex]
+			currentPrivilegeLen := len(currentPrivilege)
 
-			permissionPrivilegesIndex++
+			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
+			partialPriviledge := currentPrivilege[0:splitIndex]
 
 			if partialPriviledge != evaluatedAction.priviledge {
 				break
@@ -263,7 +272,7 @@ func evaluateActionSet(actionSet map[string]bool) []string {
 			if !matcher.MatchString(currentPrivilege) {
 				continue
 			}
-			accessLevel := permissions[index].Privileges[permissionPrivilegesIndex].AccessLevel
+			accessLevel := permission.accessLevel[currentPrivilege]
 
 			if _, exists := accessLevels[accessLevel]; !exists {
 				accessLevels[accessLevel] = true
@@ -367,4 +376,32 @@ func setToSortedSlice(set map[string]bool) []string {
 	sort.Strings(slice)
 
 	return slice
+}
+
+//func getSortedPermissions() map[string][]ParliamentPrivilege {
+func getSortedPermissions() map[string]Permissions {
+	sorted := map[string]Permissions{}
+	unsorted := getParliamentIamPermissions()
+
+	for _, parliamentService := range unsorted {
+		if _, exist := sorted[parliamentService.Prefix]; !exist {
+			privileges := []string{}
+			accessLevel := map[string]string{}
+
+			for _, priviledge := range parliamentService.Privileges {
+				lowerPriviledge := strings.ToLower(priviledge.Privilege)
+				privileges = append(privileges, lowerPriviledge)
+				accessLevel[lowerPriviledge] = priviledge.AccessLevel
+			}
+
+			sort.Strings(privileges)
+
+			sorted[parliamentService.Prefix] = Permissions{
+				privileges:  privileges,
+				accessLevel: accessLevel,
+			}
+		}
+	}
+
+	return sorted
 }
