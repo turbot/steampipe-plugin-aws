@@ -638,7 +638,7 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleCrossAccountsInDescendingOrder", testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder)
 	t.Run("TestWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements", testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleMixedAccounts", testWhenPrincipalIsMultipleMixedAccounts)
-	// TODO: Questions
+
 	t.Run("TestWhenPrincipalIsMultipleMixedAccountsWithWildcard", testWhenPrincipalIsMultipleMixedAccountsWithWildcard)
 
 	t.Run("TestWhenPricipalIsAUserAccountRole", testWhenPricipalIsAUserAccountRole)
@@ -4949,8 +4949,3 @@ func testActionWhenServiceNameIsGivenOnly(t *testing.T) {
 		t.Fail()
 	}
 }
-
-// TODO: Check multiple statements
-// TODO: Check Wildcards in the front (most inefficient search)
-// TODO: Check for multiple wildcards
-// TODO: Make sure there are other Access Levels
