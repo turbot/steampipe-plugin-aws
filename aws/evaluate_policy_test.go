@@ -626,6 +626,7 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZer
 func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPricipalIsAMisformedArnFails", testWhenPricipalIsAMisformedArnFails)
 	t.Run("TestWhenPrincipalIsWildcarded", testWhenPrincipalIsWildcarded)
+	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", TestWhenAwsPrincipalIsWildcardedAndEffectDenied)
 	t.Run("TestWhenAwsPrincipalIsWildcarded", testWhenAwsPrincipalIsWildcarded)
 	t.Run("TestWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepIsPublic", testWhenAwsPrincipalIsWildcardedFollowedByNormalStatementShouldKeepItPublic)
 
@@ -777,6 +778,60 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
       ]
     }
 	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"Write"},
+		PublicStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+		{
+		  "Version": "2012-10-17",
+		  "Statement": [
+			{
+			  "Effect": "Deny",
+			  "Action": "sts:AssumeRole",
+			  "Principal": "*"
+			}
+		  ]
+		}
+		`
 
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "public",
