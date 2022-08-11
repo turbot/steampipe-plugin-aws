@@ -39,7 +39,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "public_statement_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The sid of the statements that makes the resource public. If sid is not available in statement it will be of the format Statement[index].",
+				Description: "The Sid of the statements that makes the resource public. If Sid is not given in statement it will be of the format Statement[index].",
 			},
 			{
 				Name:        "public_access_levels",

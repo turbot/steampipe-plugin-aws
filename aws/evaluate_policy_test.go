@@ -673,7 +673,7 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
 
 	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", testWhenAwsPrincipalIsWildcardedAndEffectDenied)
-	t.Run("TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed", TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed)
+	t.Run("TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed", testWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed)
 }
 
 func testWhenPricipalIsAMisformedArnFails(t *testing.T) {
@@ -3244,7 +3244,7 @@ func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
 	}
 }
 
-func TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed(t *testing.T) {
+func testWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4170,7 +4170,7 @@ func TestPolicyActionElement(t *testing.T) {
 	t.Run("TestSinglePartialWildcardAtFrontOfAction", testSinglePartialWildcardAtFrontOfAction)
 	t.Run("TestSinglePartialWildcardInMiddleOfAction", testSinglePartialWildcardInMiddleOfAction)
 	t.Run("TestSinglePartialWildcardAtEndOfAction", testSinglePartialWildcardAtEndOfAction)
-	t.Run("TestMultipleWildcardsInAction", TestMultipleWildcardsInAction)
+	t.Run("TestMultipleWildcardsInAction", testMultipleWildcardsInAction)
 
 	t.Run("TestSinglePartialWildcardAtEndOfKnownApiFunctionAction", testSinglePartialWildcardAtEndOfKnownApiFunctionAction)
 	t.Run("TestSingleFullWildcardAtEndOfKnownApiFunctionAction", testSingleFullWildcardAtEndOfKnownApiFunctionAction)
@@ -4793,7 +4793,7 @@ func testSinglePartialWildcardAtEndOfAction(t *testing.T) {
 	}
 }
 
-func TestMultipleWildcardsInAction(t *testing.T) {
+func testMultipleWildcardsInAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
