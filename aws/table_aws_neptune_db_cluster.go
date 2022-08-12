@@ -263,12 +263,6 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
 		MaxRecords: aws.Int64(100),
-		Filters: []*neptune.Filter{
-			{
-				Name:   aws.String("engine"),
-				Values: []*string{aws.String("neptune")},
-			},
-		},
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -288,11 +282,14 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *neptune.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+				if *dbCluster.Engine == "neptune" {
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
+					d.StreamListItem(ctx, dbCluster)
+
+					// Context may get cancelled due to manual cancellation or if the limit has been reached
+					if d.QueryStatus.RowsRemaining(ctx) == 0 {
+						return false
+					}
 				}
 			}
 			return !isLast
