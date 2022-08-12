@@ -16,8 +16,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -152,6 +155,81 @@ func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	}
 
 	svc := ec2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ELBv2Client returns the service client for AWS ElasticLoadBalance service
+func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elbv2-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elbv2.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("ELBv2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := elbv2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// ELBClient returns the service client for AWS ElasticLoadBalance service
+func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("elb-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*elb.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("ELBv2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := elb.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// AutoscalingClient returns the service client for AWS Autoscaling service
+func AutoscalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("autoscaling-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*autoscaling.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("AutoscalingClient", "service_client_error")
+		return nil, err
+	}
+
+	svc := autoscaling.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
