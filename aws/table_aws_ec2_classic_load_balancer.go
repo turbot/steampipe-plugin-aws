@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
+	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -20,7 +21,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"LoadBalancerNotFound"}),
 			},
 			Hydrate: getEc2ClassicLoadBalancer,
 		},
@@ -265,42 +266,52 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 
 func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBService(ctx, d)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.listEc2ClassicLoadBalancers", "connection_error", err)
 		return nil, err
 	}
 
-	input := &elb.DescribeLoadBalancersInput{
-		PageSize: aws.Int64(400),
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(400)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.PageSize {
-			if *limit < 1 {
-				input.PageSize = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.PageSize = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeLoadBalancersPages(
-		input,
-		func(page *elb.DescribeLoadBalancersOutput, isLast bool) bool {
-			for _, classicLoadBalancer := range page.LoadBalancerDescriptions {
-				d.StreamListItem(ctx, classicLoadBalancer)
+	input := &elb.DescribeLoadBalancersInput{
+		PageSize: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := elb.NewDescribeLoadBalancersPaginator(svc, input, func(o *elb.DescribeLoadBalancersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.listEc2ClassicLoadBalancers", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.LoadBalancerDescriptions {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
+
 	return nil, err
 }
 
@@ -310,17 +321,19 @@ func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 	loadBalancerName := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := ELBService(ctx, d)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancer", "connection_error", err)
 		return nil, err
 	}
 
 	params := &elb.DescribeLoadBalancersInput{
-		LoadBalancerNames: []*string{aws.String(loadBalancerName)},
+		LoadBalancerNames: []string{loadBalancerName},
 	}
 
-	op, err := svc.DescribeLoadBalancers(params)
+	op, err := svc.DescribeLoadBalancers(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancer", "api_error", err)
 		return nil, err
 	}
 
@@ -331,13 +344,13 @@ func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 }
 
 func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2ClassicLoadBalancerAttributes")
 
-	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
+	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBService(ctx, d)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -345,8 +358,9 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 		LoadBalancerName: classicLoadBalancer.LoadBalancerName,
 	}
 
-	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(params)
+	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(ctx,params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -354,22 +368,23 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 }
 
 func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2ClassicLoadBalancerTags")
 
-	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
+	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBService(ctx, d)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerTags", "connection_error", err)
 		return nil, err
 	}
 
 	params := &elb.DescribeTagsInput{
-		LoadBalancerNames: []*string{aws.String(*classicLoadBalancer.LoadBalancerName)},
+		LoadBalancerNames: []string{*classicLoadBalancer.LoadBalancerName},
 	}
 
-	loadBalancerData, err := svc.DescribeTags(params)
+	loadBalancerData, err := svc.DescribeTags(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerTags", "api_error", err)
 		return nil, err
 	}
 
@@ -384,7 +399,7 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
-	classicLoadBalancer := h.Item.(*elb.LoadBalancerDescription)
+	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -401,7 +416,7 @@ func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *p
 //// TRANSFORM FUNCTIONS
 
 func getEc2ClassicLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	classicLoadBalancerTags := d.HydrateItem.([]*elb.Tag)
+	classicLoadBalancerTags := d.HydrateItem.([]types.Tag)
 
 	if classicLoadBalancerTags != nil {
 		turbotTagsMap := map[string]string{}
