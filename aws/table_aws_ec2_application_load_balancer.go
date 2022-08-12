@@ -2,13 +2,12 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elbv2"
+	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -21,7 +20,7 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"LoadBalancerNotFound", "ValidationError"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"LoadBalancerNotFound", "ValidationError"}),
 			},
 			Hydrate: getEc2ApplicationLoadBalancer,
 		},
@@ -161,56 +160,62 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 
 func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.listEc2ApplicationLoadBalancers", "connection error", err)
 		return nil, err
 	}
 
 	input := &elbv2.DescribeLoadBalancersInput{}
+	maxLimit := int32(400)
 
 	// Additional Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.Names = []*string{aws.String(equalQuals["name"].GetStringValue())}
+		input.Names = []string{equalQuals["name"].GetStringValue()}
 	} else {
 		// If the names will be provided in param then page limit cannot be set, API throws an error
 		// ValidationError: Pagination is not supported when specifying load balancers
-		input.PageSize = aws.Int64(400)
 		// Limiting the results
-		limit := d.QueryContext.Limit
 		if d.QueryContext.Limit != nil {
-			if *limit < *input.PageSize {
-				if *limit < 1 {
-					input.PageSize = aws.Int64(1)
+			limit := int32(*d.QueryContext.Limit)
+			if limit < maxLimit {
+				if limit < 1 {
+					maxLimit = 1
 				} else {
-					input.PageSize = limit
+					maxLimit = limit
 				}
 			}
 		}
+		input.PageSize = &maxLimit
 	}
 
 	if equalQuals["arn"] != nil {
-		input.LoadBalancerArns = []*string{aws.String(equalQuals["arn"].GetStringValue())}
+		input.LoadBalancerArns = []string{equalQuals["arn"].GetStringValue()}
 	}
 
-	// List call
-	err = svc.DescribeLoadBalancersPages(
-		input,
-		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
-			for _, applicationLoadBalancer := range page.LoadBalancers {
-				// Filtering the response to return only application load balancers
-				if strings.ToLower(*applicationLoadBalancer.Type) == "application" {
-					d.StreamListItem(ctx, applicationLoadBalancer)
+	paginator := elbv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elbv2.DescribeLoadBalancersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.listEc2ApplicationLoadBalancers", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.LoadBalancers {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 	return nil, err
 }
 
@@ -225,17 +230,19 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getEc2ApplicationLoadBalancer", "connection_error", err)
 		return nil, err
 	}
 
 	params := &elbv2.DescribeLoadBalancersInput{
-		LoadBalancerArns: []*string{aws.String(loadBalancerArn)},
+		LoadBalancerArns: []string{loadBalancerArn},
 	}
 
-	op, err := svc.DescribeLoadBalancers(params)
+	op, err := svc.DescribeLoadBalancers(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getEc2ApplicationLoadBalancer", "api_error", err)
 		return nil, err
 	}
 
@@ -246,13 +253,13 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 }
 
 func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2ApplicationLoadBalancerAttributes")
 
-	applicationLoadBalancer := h.Item.(*elbv2.LoadBalancer)
+	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerAttributes", "connection_error", err)
 		return nil, err
 	}
 
@@ -260,8 +267,9 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 		LoadBalancerArn: applicationLoadBalancer.LoadBalancerArn,
 	}
 
-	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(params)
+	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerAttributes", "api_error", err)
 		return nil, err
 	}
 
@@ -269,22 +277,23 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 }
 
 func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2ApplicationLoadBalancerTags")
 
-	applicationLoadBalancer := h.Item.(*elbv2.LoadBalancer)
+	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerTags", "connection_error", err)
 		return nil, err
 	}
 
 	params := &elbv2.DescribeTagsInput{
-		ResourceArns: []*string{aws.String(*applicationLoadBalancer.LoadBalancerArn)},
+		ResourceArns: []string{*applicationLoadBalancer.LoadBalancerArn},
 	}
 
-	loadBalancerData, err := svc.DescribeTags(params)
+	loadBalancerData, err := svc.DescribeTags(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerTags", "api_error", err)
 		return nil, err
 	}
 
@@ -298,7 +307,7 @@ func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryDa
 //// TRANSFORM FUNCTIONS ////
 
 func getEc2ApplicationLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	applicationLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)
+	applicationLoadBalancerTags := d.HydrateItem.([]types.Tag)
 
 	if applicationLoadBalancerTags != nil {
 		turbotTagsMap := map[string]string{}
