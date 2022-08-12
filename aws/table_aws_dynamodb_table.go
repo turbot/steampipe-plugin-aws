@@ -395,7 +395,7 @@ func getTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	input := &dynamodb.ListExportsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int64(25),
 		TableArn: tableArn,
 	}
 
@@ -409,8 +409,8 @@ func getTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ListTablesPages", "list", err)
-	}
+		plugin.Logger(ctx).Error("getTableExports", err)
+		return nil, err	}
 	return exports, nil
 }
 
