@@ -22,6 +22,7 @@ type EvaluatedPrincipal struct {
 	allowedPrincipalAccountIdsSet          map[string]bool
 	isPublic                               bool
 	isShared                               bool
+	isPrivate                              bool
 }
 
 type EvaluatedStatements struct {
@@ -31,7 +32,10 @@ type EvaluatedStatements struct {
 	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedOrganizationIds                 map[string]bool
 	publicStatementIds                     map[string]bool
+	sharedStatementIds                     map[string]bool
 	publicAccessLevels                     []string
+	sharedAccessLevels                     []string
+	privateAccessLevels                    []string
 	isPublic                               bool
 	isShared                               bool
 }
@@ -45,7 +49,10 @@ type EvaluatedPolicy struct {
 	AllowedPrincipalServices            []string `json:"allowed_principal_services"`
 	IsPublic                            bool     `json:"is_public"`
 	PublicAccessLevels                  []string `json:"public_access_levels"`
+	SharedAccessLevels                  []string `json:"shared_access_levels"`
+	PrivateAccessLevels                 []string `json:"private_access_levels"`
 	PublicStatementIds                  []string `json:"public_statement_ids"`
+	SharedStatementIds                  []string `json:"shared_statement_ids"`
 }
 
 type Permissions struct {
@@ -90,7 +97,10 @@ func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy
 	evaluatedPolicy.AllowedPrincipalAccountIds = setToSortedSlice(evaluatedStatements.allowedPrincipalAccountIdsSet)
 	evaluatedPolicy.AllowedOrganizationIds = setToSortedSlice(evaluatedStatements.allowedOrganizationIds)
 	evaluatedPolicy.PublicStatementIds = setToSortedSlice(evaluatedStatements.publicStatementIds)
+	evaluatedPolicy.SharedStatementIds = setToSortedSlice(evaluatedStatements.sharedStatementIds)
 	evaluatedPolicy.PublicAccessLevels = evaluatedStatements.publicAccessLevels
+	evaluatedPolicy.SharedAccessLevels = evaluatedStatements.sharedAccessLevels
+	evaluatedPolicy.PrivateAccessLevels = evaluatedStatements.privateAccessLevels
 	evaluatedPolicy.IsPublic = evaluatedStatements.isPublic
 
 	return evaluatedPolicy, nil
@@ -108,20 +118,38 @@ func evaluateAccessLevel(statements EvaluatedStatements) string {
 	return "private"
 }
 
+type EvaluateStatements struct {
+	statements             EvaluatedStatements
+	publicAccessLevelsSet  map[string]bool
+	sharedAccessLevelsSet  map[string]bool
+	privateAccessLevelsSet map[string]bool
+}
+
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
 	var evaluatedStatement EvaluatedStatements
-	allowedActionSet := map[string]bool{}
-	deniedActionSet := map[string]bool{}
 
-	allowedStatements := EvaluatedStatements{
-		publicStatementIds: map[string]bool{},
+	allowedStatements := EvaluateStatements{
+		statements: EvaluatedStatements{
+			publicStatementIds: map[string]bool{},
+			sharedStatementIds: map[string]bool{},
+		},
+		publicAccessLevelsSet:  map[string]bool{},
+		sharedAccessLevelsSet:  map[string]bool{},
+		privateAccessLevelsSet: map[string]bool{},
 	}
-	deniedStatements := EvaluatedStatements{
-		publicStatementIds: map[string]bool{},
+	deniedStatements := EvaluateStatements{
+		statements: EvaluatedStatements{
+			publicStatementIds: map[string]bool{},
+			sharedStatementIds: map[string]bool{},
+		},
+		publicAccessLevelsSet:  map[string]bool{},
+		sharedAccessLevelsSet:  map[string]bool{},
+		privateAccessLevelsSet: map[string]bool{},
 	}
 
-	var currentStatements *EvaluatedStatements
-	var currentActionSet *map[string]bool
+	uniqueStatementIds := map[string]bool{}
+
+	var currentStatements *EvaluateStatements
 
 	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
@@ -131,10 +159,8 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		// TODO: For phase 1 - we are only interested in allow else continue with next
 		if statement.Effect == "Deny" {
 			currentStatements = &deniedStatements
-			currentActionSet = &deniedActionSet
 		} else {
 			currentStatements = &allowedStatements
-			currentActionSet = &allowedActionSet
 		}
 
 		// Principal
@@ -143,44 +169,73 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			return evaluatedStatement, err
 		}
 
-		currentStatements.allowedPrincipalFederatedIdentitiesSet = mergeSet(
-			currentStatements.allowedPrincipalFederatedIdentitiesSet,
+		evaluatedCondition, err := evaluateCondition(statement.Condition, userAccountId)
+		if err != nil {
+			return evaluatedStatement, err
+		}
+
+		currentStatements.statements.allowedPrincipalFederatedIdentitiesSet = mergeSets(
+			currentStatements.statements.allowedPrincipalFederatedIdentitiesSet,
 			evaluatedPrinciple.allowedPrincipalFederatedIdentitiesSet,
+			evaluatedCondition.allowedPrincipalFederatedIdentitiesSet,
 		)
 
-		currentStatements.allowedPrincipalServicesSet = mergeSet(
-			currentStatements.allowedPrincipalServicesSet,
+		currentStatements.statements.allowedPrincipalServicesSet = mergeSets(
+			currentStatements.statements.allowedPrincipalServicesSet,
 			evaluatedPrinciple.allowedPrincipalServicesSet,
+			evaluatedCondition.allowedPrincipalServicesSet,
 		)
 
-		currentStatements.allowedPrincipalsSet = mergeSet(
-			currentStatements.allowedPrincipalsSet,
+		currentStatements.statements.allowedPrincipalsSet = mergeSets(
+			currentStatements.statements.allowedPrincipalsSet,
 			evaluatedPrinciple.allowedPrincipalsSet,
+			evaluatedCondition.allowedPrincipalsSet,
 		)
 
-		currentStatements.allowedPrincipalAccountIdsSet = mergeSet(
-			currentStatements.allowedPrincipalAccountIdsSet,
+		currentStatements.statements.allowedPrincipalAccountIdsSet = mergeSets(
+			currentStatements.statements.allowedPrincipalAccountIdsSet,
 			evaluatedPrinciple.allowedPrincipalAccountIdsSet,
+			evaluatedCondition.allowedPrincipalAccountIdsSet,
 		)
 
 		// Visibility
-		currentStatements.isPublic = currentStatements.isPublic || evaluatedPrinciple.isPublic
-		currentStatements.isShared = currentStatements.isShared || evaluatedPrinciple.isShared
+		isStatementPublic := evaluatedPrinciple.isPublic || evaluatedCondition.isPublic
+		isStatementShared := evaluatedPrinciple.isShared || evaluatedCondition.isShared
+		isStatementPrivate := evaluatedPrinciple.isPrivate || evaluatedCondition.isPrivate
 
-		if evaluatedPrinciple.isPublic {
-			sid := evaluatedSid(statement, statementIndex)
+		// Before using Sid, let's check to see if it is unique
+		sid := evaluatedSid(statement, statementIndex)
+		if _, exists := uniqueStatementIds[sid]; exists {
+			return evaluatedStatement, fmt.Errorf("duplicate Sid found: %s", sid)
+		}
+		uniqueStatementIds[sid] = true
 
-			if _, exists := (*currentStatements).publicStatementIds[sid]; exists {
-				return evaluatedStatement, fmt.Errorf("duplicate Sid found: %s", sid)
+		if isStatementPublic {
+			currentStatements.statements.isPublic = true
+			currentStatements.statements.publicStatementIds[sid] = true
+			for _, action := range statement.Action {
+				if _, exists := currentStatements.publicAccessLevelsSet[action]; !exists {
+					currentStatements.publicAccessLevelsSet[action] = true
+				}
 			}
-
-			(*currentStatements).publicStatementIds[sid] = true
 		}
 
-		// Actions
-		for _, action := range statement.Action {
-			if _, exists := (*currentActionSet)[action]; !exists {
-				(*currentActionSet)[action] = true
+		if isStatementShared {
+			currentStatements.statements.isShared = true
+			currentStatements.statements.sharedStatementIds[sid] = true
+			for _, action := range statement.Action {
+				if _, exists := currentStatements.sharedAccessLevelsSet[action]; !exists {
+					currentStatements.sharedAccessLevelsSet[action] = true
+				}
+			}
+		}
+
+		if isStatementPrivate {
+			// Actions
+			for _, action := range statement.Action {
+				if _, exists := currentStatements.privateAccessLevelsSet[action]; !exists {
+					currentStatements.privateAccessLevelsSet[action] = true
+				}
 			}
 		}
 	}
@@ -188,36 +243,46 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 	evaluatedStatement = evaluateOverallStatements(
 		allowedStatements,
 		deniedStatements,
-		allowedActionSet,
-		deniedActionSet,
 		permissions,
 	)
+
+	// NOTE: Leave this code here for now and remove later.
+	//       This will evaluate visibility after analysis of accounts
+	// // Visibility
+	// if _, exist := evaluatedStatement.allowedPrincipalAccountIdsSet["*"]; exist {
+	// 	evaluatedStatement.isPublic = true
+	// } else if len(evaluatedStatement.allowedPrincipalServicesSet) > 0 {
+	// 	evaluatedStatement.isPublic = true
+	// } else if len(evaluatedStatement.allowedPrincipalAccountIdsSet) > 0 {
+	// 	evaluatedStatement.isShared = true
+	// }
 
 	return evaluatedStatement, nil
 }
 
 func evaluateOverallStatements(
-	allowedStatements EvaluatedStatements,
-	deniedStatements EvaluatedStatements,
-	allowedActionSet map[string]bool,
-	deniedActionSet map[string]bool,
+	allowedStatements EvaluateStatements,
+	deniedStatements EvaluateStatements,
 	permissions map[string]Permissions,
 ) EvaluatedStatements {
 	overallStatements := EvaluatedStatements{}
 
-	if deniedStatements.isPublic {
+	if deniedStatements.statements.isPublic {
 		return overallStatements
 	}
 
-	overallStatements.allowedPrincipalFederatedIdentitiesSet = allowedStatements.allowedPrincipalFederatedIdentitiesSet
-	overallStatements.allowedPrincipalServicesSet = allowedStatements.allowedPrincipalServicesSet
-	overallStatements.allowedPrincipalsSet = allowedStatements.allowedPrincipalsSet
-	overallStatements.allowedPrincipalAccountIdsSet = allowedStatements.allowedPrincipalAccountIdsSet
-	overallStatements.allowedOrganizationIds = allowedStatements.allowedOrganizationIds
-	overallStatements.publicStatementIds = allowedStatements.publicStatementIds
-	overallStatements.publicAccessLevels = evaluateActionSet(allowedActionSet, permissions)
-	overallStatements.isPublic = allowedStatements.isPublic
-	overallStatements.isShared = allowedStatements.isShared
+	overallStatements.allowedPrincipalFederatedIdentitiesSet = allowedStatements.statements.allowedPrincipalFederatedIdentitiesSet
+	overallStatements.allowedPrincipalServicesSet = allowedStatements.statements.allowedPrincipalServicesSet
+	overallStatements.allowedPrincipalsSet = allowedStatements.statements.allowedPrincipalsSet
+	overallStatements.allowedPrincipalAccountIdsSet = allowedStatements.statements.allowedPrincipalAccountIdsSet
+	overallStatements.allowedOrganizationIds = allowedStatements.statements.allowedOrganizationIds
+	overallStatements.publicStatementIds = allowedStatements.statements.publicStatementIds
+	overallStatements.sharedStatementIds = allowedStatements.statements.sharedStatementIds
+	overallStatements.publicAccessLevels = evaluateActionSet(allowedStatements.publicAccessLevelsSet, permissions)
+	overallStatements.sharedAccessLevels = evaluateActionSet(allowedStatements.sharedAccessLevelsSet, permissions)
+	overallStatements.privateAccessLevels = evaluateActionSet(allowedStatements.privateAccessLevelsSet, permissions)
+	overallStatements.isPublic = allowedStatements.statements.isPublic
+	overallStatements.isShared = allowedStatements.statements.isShared
 
 	return overallStatements
 }
@@ -268,7 +333,6 @@ func evaluateActionSet(allowedActionSet map[string]bool, permissions map[string]
 		}
 	}
 
-	//permissionsLength := len(permissions)
 	accessLevels := map[string]bool{}
 
 	for action := range allowedActionSet {
@@ -335,6 +399,154 @@ func evaluatedSid(statement Statement, statementIndex int) string {
 	return statement.Sid
 }
 
+type EvaluatedOperator struct {
+	category   string
+	isNegated  bool
+	isLike     bool
+	isCaseless bool
+}
+
+func evaulateOperator(operator string) (EvaluatedOperator, bool) {
+	// Check if there is an IfExists and then strip it.
+	operator = strings.ToLower(operator)
+	operator = strings.TrimSuffix(operator, "ifexists")
+
+	evaulatedOperator := EvaluatedOperator{}
+	evaluated := true
+	switch operator {
+	case "stringequals":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = false
+	case "stringnotequals":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = true
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = false
+	case "stringequalsignorecase":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = true
+	case "stringnotequalsignorecase":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = true
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = true
+	case "stringlike":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = true
+		evaulatedOperator.isCaseless = false
+	case "stringnotlike":
+		evaulatedOperator.category = "string"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = true
+		evaulatedOperator.isCaseless = false
+	case "arnequals":
+		evaulatedOperator.category = "arn"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = true
+	case "arnlike":
+		evaulatedOperator.category = "arn"
+		evaulatedOperator.isNegated = false
+		evaulatedOperator.isLike = true
+		evaulatedOperator.isCaseless = true
+	case "arnnotequals":
+		evaulatedOperator.category = "arn"
+		evaulatedOperator.isNegated = true
+		evaulatedOperator.isLike = false
+		evaulatedOperator.isCaseless = true
+	case "arnnotlike":
+		evaulatedOperator.category = "arn"
+		evaulatedOperator.isNegated = true
+		evaulatedOperator.isLike = true
+		evaulatedOperator.isCaseless = true
+	default:
+		evaluated = false
+	}
+
+	return evaulatedOperator, evaluated
+}
+
+func evaluateCondition(conditions map[string]interface{}, userAccountId string) (EvaluatedPrincipal, error) {
+	evaluatedPrinciple := EvaluatedPrincipal{
+		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
+		allowedPrincipalServicesSet:            map[string]bool{},
+		allowedPrincipalsSet:                   map[string]bool{},
+		allowedPrincipalAccountIdsSet:          map[string]bool{},
+	}
+
+	for operator, conditionKey := range conditions {
+		evaulatedOperator, _ := evaulateOperator(operator)
+		if evaulatedOperator.isNegated {
+			return evaluatedPrinciple, fmt.Errorf("TODO: Implement")
+			// NOTE: Here we have an issue with the table.
+			// 		 The problem is that if we say some principal is NOT an account, this means everything but.
+			// 		 I do not know how to represent this in the current table design.
+		}
+
+		for conditionName, conditionValues := range conditionKey.(map[string]interface{}) {
+			switch conditionName {
+			case "aws:principalaccount":
+				for _, principal := range conditionValues.([]string) {
+					if evaulatedOperator.category != "string" {
+						continue
+					}
+
+					if evaulatedOperator.isLike {
+						evaluatedPrinciple.isPublic = true
+						evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+						evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
+						continue
+					}
+
+					// Check if principal doesn't match an account ID, ignore
+					re := regexp.MustCompile(`^[0-9]{12}$`)
+					if !re.MatchString(principal) {
+						continue
+					}
+
+					evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+
+					if principal == userAccountId {
+						evaluatedPrinciple.isPrivate = true
+					} else {
+						evaluatedPrinciple.isShared = true
+						evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
+					}
+				}
+				// case "aws:sourcearn":
+
+				// 	reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
+				// 	if reIsAwsResource.MatchString(principalItem) {
+				// 		arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
+				// 		account = arnAccount[1]
+				// 	} else {
+
+				// 	}
+				// 	for _, principal := range conditionValues.([]string) {
+				// 		// NOTE: This is only TRUE for StringLike
+				// 		if principal == "*" || evaulatedOperator.isWildcard {
+				// 			evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
+				// 			evaluatedPrinciple.isPublic = true
+				// 		} else if principal != userAccountId {
+				// 			evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
+				// 			evaluatedPrinciple.isShared = true
+				// 		}
+
+				// 		evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+				// 	}
+				// }
+			}
+		}
+	}
+
+	return evaluatedPrinciple, nil
+}
+
 func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrincipal, error) {
 	evaluatedPrinciple := EvaluatedPrincipal{
 		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
@@ -352,37 +564,39 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 		for _, principalItem := range principalItems {
 			switch principalKey {
 			case "AWS":
-
 				var account string
 
-				if reIsAwsAccount.MatchString(principalItem) {
+				if principalItem == "*" {
 					account = principalItem
-				} else if reIsAwsResource.MatchString(principalItem) {
-					arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
-					account = arnAccount[1]
-				} else if principalItem == "*" {
 					evaluatedPrinciple.isPublic = true
-					account = principalItem
-				} else {
-					return evaluatedPrinciple, fmt.Errorf("unabled to parse arn: %s", principalItem)
-				}
-
-				if userAccountId != account {
-					evaluatedPrinciple.isShared = true
 					evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+				} else {
+					if reIsAwsAccount.MatchString(principalItem) {
+						account = principalItem
+					} else if reIsAwsResource.MatchString(principalItem) {
+						arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
+						account = arnAccount[1]
+					} else {
+						return evaluatedPrinciple, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
+					}
+
+					if userAccountId != account {
+						evaluatedPrinciple.isShared = true
+						evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+					} else {
+						evaluatedPrinciple.isPrivate = true
+					}
 				}
 
 				evaluatedPrinciple.allowedPrincipalsSet[principalItem] = true
 			case "Service":
 				evaluatedPrinciple.allowedPrincipalServicesSet[principalItem] = true
+				evaluatedPrinciple.isPublic = true
 			case "Federated":
 				evaluatedPrinciple.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
+				evaluatedPrinciple.isPrivate = true
 			}
 		}
-	}
-
-	if len(evaluatedPrinciple.allowedPrincipalServicesSet) > 0 {
-		evaluatedPrinciple.isPublic = true
 	}
 
 	return evaluatedPrinciple, nil
@@ -394,6 +608,13 @@ func checkEffectValid(effect string) bool {
 	}
 
 	return false
+}
+
+func mergeSets(dest map[string]bool, source1 map[string]bool, source2 map[string]bool) map[string]bool {
+	dest = mergeSet(dest, source1)
+	dest = mergeSet(dest, source2)
+
+	return dest
 }
 
 func mergeSet(set1 map[string]bool, set2 map[string]bool) map[string]bool {
