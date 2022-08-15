@@ -39,7 +39,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- `aws_backup_vault` table now returns no rows instead of an error when querying a vault the user does not have access to. ([#1163](https://github.com/turbot/steampipe-plugin-aws/pull/1163))
+- `aws_backup_vault` table now returns no rows instead of an error when querying a vault that does not exist. ([#1163](https://github.com/turbot/steampipe-plugin-aws/pull/1163))
 - `aws_neptune_db_cluster` table now only lists Neptune DB clusters. ([#1204](https://github.com/turbot/steampipe-plugin-aws/pull/1204))
 - `aws_rds_db_cluster` table now only lists RDS Aurora DB clusters. ([#1204](https://github.com/turbot/steampipe-plugin-aws/pull/1204))
 
