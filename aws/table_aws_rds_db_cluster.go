@@ -384,6 +384,8 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 				// The DescribeDBClusters API returns non-Aurora DB Clusters as well,
 				// but we only want Aurora clusters here, even if the 'engine' qual
 				// isn't passed in.
+				// Current supported engine values as of 2022/08/15 are "aurora",
+				// "aurora-mysql", "aurora-postgresql".
 				if strings.Contains(*dbCluster.Engine, "aurora") {
 					d.StreamListItem(ctx, dbCluster)
 				}
