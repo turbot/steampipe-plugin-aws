@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -380,7 +381,12 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		input,
 		func(page *rds.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+				// The DescribeDBClusters API returns non-Aurora DB Clusters as well,
+				// but we only want Aurora clusters here, even if the 'engine' qual
+				// isn't passed in.
+				if strings.Contains(*dbCluster.Engine, "aurora") {
+					d.StreamListItem(ctx, dbCluster)
+				}
 
 				// Check if context has been cancelled or if the limit has been reached (if specified)
 				// if there is a limit, it will return the number of rows required to reach this limit

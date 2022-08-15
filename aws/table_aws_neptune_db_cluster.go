@@ -260,7 +260,6 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
 		MaxRecords: aws.Int64(100),
 	}
@@ -282,14 +281,18 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *neptune.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
+				// The DescribeDBClusters API returns non-Neptune DB Clusters as well,
+				// but we only want Neptune clusters here. The input has a Filter param
+				// which can help filter out non-Neptune clusters, but as of 2022/08/15,
+				// the SDK says the Filter param is not currently supported.
+				// Related issue: https://github.com/aws/aws-sdk-go/issues/4515
 				if *dbCluster.Engine == "neptune" {
-
 					d.StreamListItem(ctx, dbCluster)
+				}
 
-					// Context may get cancelled due to manual cancellation or if the limit has been reached
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
 				}
 			}
 			return !isLast
