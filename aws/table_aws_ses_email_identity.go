@@ -87,7 +87,7 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// execute list call
 	input := &ses.ListIdentitiesInput{
 		MaxItems:     aws.Int64(1000),
-		IdentityType: &ses.IdentityType_Values()[0],
+		IdentityType: aws.String(ses.IdentityTypeEmailAddress),
 	}
 
 	// Limiting the results
