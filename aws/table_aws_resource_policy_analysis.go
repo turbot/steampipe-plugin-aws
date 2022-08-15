@@ -23,7 +23,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
-				Description: "Access level of the resource based of policy. Valid values are 'public', 'private' and 'shared'.",
+				Description: "Access level of the resource based of policy. Valid values are 'public', 'shared' and 'private'.",
 			},
 			{
 				Name:        "is_public",
@@ -39,12 +39,27 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "public_statement_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The Sid of the statements that makes the resource public. If Sid is not given in statement it will be of the format Statement[index].",
+				Description: "The Sid of the statements that shares a resource(s) publically. If Sid is not given in statement, an Sid will be generated with the name Statement[index].",
+			},
+			{
+				Name:        "shared_statement_ids",
+				Type:        proto.ColumnType_JSON,
+				Description: "The Sid of the statements that shares a resource(s) with other accounts. If Sid is not given in statement, an Sid will be generated with the name Statement[index].",
 			},
 			{
 				Name:        "public_access_levels",
 				Type:        proto.ColumnType_JSON,
 				Description: "Public access levels (based off parliament's levels).",
+			},
+			{
+				Name:        "shared_access_levels",
+				Type:        proto.ColumnType_JSON,
+				Description: "Shared access levels (based off parliament's levels).",
+			},
+			{
+				Name:        "private_access_levels",
+				Type:        proto.ColumnType_JSON,
+				Description: "Private access levels (based off parliament's levels).",
 			},
 			{
 				Name:        "allowed_organization_ids",

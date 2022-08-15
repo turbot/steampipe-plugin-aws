@@ -3009,3 +3009,5 @@ func testAllSubConditionCategories(t *testing.T) {
 		t.Fail()
 	}
 }
+
+// TODO: Add some tests to see if we have already canonicalised a policy, what does this function do.
