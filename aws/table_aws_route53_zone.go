@@ -222,7 +222,7 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	return &HostedZoneResult{
 		HostedZone: *item.HostedZone,
-		VPCs: item.VPCs,
+		VPCs:       item.VPCs,
 	}, nil
 }
 
