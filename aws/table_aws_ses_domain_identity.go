@@ -30,28 +30,28 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Name:        "arn",
 				Description: "The ARN of the AWS SES identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDomainIdentityARN,
+				Hydrate:     getSESIdentityARN,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "verification_status",
 				Description: "The verification status of the identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDomainIdentityVerificationAttributes,
+				Hydrate:     getSESIdentityVerificationAttributes,
 				Transform:   transform.FromField("VerificationStatus"),
 			},
 			{
 				Name:        "verification_token",
 				Description: "The verification token for a domain identity.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDomainIdentityVerificationAttributes,
+				Hydrate:     getSESIdentityVerificationAttributes,
 				Transform:   transform.FromField("VerificationToken"),
 			},
 			{
 				Name:        "notification_attributes",
 				Description: "Represents the notification attributes of an identity.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDomainIdentityNotificationAttributes,
+				Hydrate:     getSESIdentityNotificationAttributes,
 				Transform:   transform.FromValue(),
 			},
 
@@ -66,7 +66,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDomainIdentityARN,
+				Hydrate:     getSESIdentityARN,
 				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -119,68 +119,4 @@ func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin
 		},
 	)
 	return nil, err
-}
-
-//// HYDRATE FUNCTIONS
-
-func getDomainIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDomainIdentityVerificationAttributes")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &ses.GetIdentityVerificationAttributesInput{
-		Identities: []*string{&identity},
-	}
-	result, err := svc.GetIdentityVerificationAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.VerificationAttributes[identity], err
-}
-
-func getDomainIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getDomainIdentityNotificationAttributes")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &ses.GetIdentityNotificationAttributesInput{
-		Identities: []*string{&identity},
-	}
-	result, err := svc.GetIdentityNotificationAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.NotificationAttributes[identity], err
-}
-
-func getDomainIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDomainIdentityARN")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + identity
-	return arn, nil
 }
