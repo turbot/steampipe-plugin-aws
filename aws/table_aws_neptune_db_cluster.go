@@ -260,6 +260,7 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
 		MaxRecords: aws.Int64(100),
 	}
