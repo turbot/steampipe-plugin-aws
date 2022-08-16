@@ -171,13 +171,6 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ContinuousBackupsDescription.ContinuousBackupsStatus"),
 			},
 			{
-				Name:        "export",
-				Description: "A list of ExportSummary objects.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getTableExports,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "streaming_destination",
 				Description: "The list of replica structures for the table being described.",
 				Type:        proto.ColumnType_JSON,
@@ -383,35 +376,6 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	return tags, nil
-}
-
-func getTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	tableArn := h.Item.(*dynamodb.TableDescription).TableArn
-
-	// Create Session
-	svc, err := DynamoDbService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.ListExportsInput{
-		MaxResults: aws.Int64(25),
-		TableArn: tableArn,
-	}
-
-	var exports []*dynamodb.ExportSummary
-	err = svc.ListExportsPages(
-		input,
-		func(page *dynamodb.ListExportsOutput, lastPage bool) bool {
-			exports = append(exports, page.ExportSummaries...)
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("getTableExports", err)
-		return nil, err	}
-	return exports, nil
 }
 
 func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
