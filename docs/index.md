@@ -258,7 +258,7 @@ connection "aws_account_z" {
 Using named profiles allows Steampipe to work with your existing CLI configurations, including SSO and using role assumption.
 
 ### AWS Profile Credentials with AssumeRole
-You may have an IAM User in an AWS account used to hop-off to other accounts via assume role. In this case the AWS Credential files looks like this:
+You may have credentials in a profile used to assume a role in the same or different AWS account.
 
 #### aws credential file:
 
