@@ -2,7 +2,7 @@
 
 An Amazon Aurora DB cluster consists of one or more DB instances and a cluster volume that manages the data for those DB instances.
 
-**Note**: This table only returns Aurora DB clusters, not DocumentDB or Neptune DB clusters.
+**Note**: This table only returns RDS DB clusters, e.g., Aurora, MySQL, Postgres, not DocumentDB or Neptune DB clusters.
 
 ## Examples
 
