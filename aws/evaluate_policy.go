@@ -480,7 +480,11 @@ func evaluateCondition(conditions map[string]interface{}, userAccountId string) 
 	}
 
 	for operator, conditionKey := range conditions {
-		evaulatedOperator, _ := evaulateOperator(operator)
+		evaulatedOperator, evaluated := evaulateOperator(operator)
+		if !evaluated {
+			continue
+		}
+
 		if evaulatedOperator.isNegated {
 			return evaluatedPrinciple, fmt.Errorf("TODO: Implement")
 			// NOTE: Here we have an issue with the table.
@@ -518,6 +522,103 @@ func evaluateCondition(conditions map[string]interface{}, userAccountId string) 
 						evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
 					}
 				}
+			case "aws:sourcearn":
+				for _, principal := range conditionValues.([]string) {
+					if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
+						continue
+					}
+
+					if evaulatedOperator.isLike {
+						if evaulatedOperator.category == "string" {
+							evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+							// We need to pull the account out of a wildcard type
+							// Assume that account is before any other numeric
+							// There should never be any more that 13 digits
+							reAccountExtractor := regexp.MustCompile(`^.*[^0-9]+([0-9]{12})[^0-9]+.*$`)
+							arnAccount := reAccountExtractor.FindStringSubmatch(principal)
+							if len(arnAccount) > 0 {
+								account := arnAccount[1]
+								if account != userAccountId {
+									evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+									evaluatedPrinciple.isShared = true
+								} else {
+									evaluatedPrinciple.isPrivate = true
+								}
+							} else {
+								evaluatedPrinciple.isPublic = true
+								evaluatedPrinciple.allowedPrincipalAccountIdsSet["*"] = true
+							}
+						} else if evaulatedOperator.category == "arn" {
+							splitPrincipal := strings.Split(principal, ":")
+							// There should always be an account
+							if len(splitPrincipal) < 5 {
+								continue
+							}
+
+							account := splitPrincipal[4]
+							accountLength := len(account)
+
+							if strings.Contains(account, "*") && accountLength <= 12 {
+								evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+								evaluatedPrinciple.allowedPrincipalAccountIdsSet["*"] = true
+								evaluatedPrinciple.isPublic = true
+								continue
+							}
+
+							if accountLength == 0 || accountLength != 12 {
+								continue
+							}
+
+							if strings.Contains(account, "?") {
+								evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+								evaluatedPrinciple.allowedPrincipalAccountIdsSet["*"] = true
+								evaluatedPrinciple.isPublic = true
+								continue
+							}
+
+							re := regexp.MustCompile(`^[0-9]{12}$`)
+							if !re.MatchString(account) {
+								continue
+							}
+
+							evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+							if account != userAccountId {
+								evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+								evaluatedPrinciple.isShared = true
+								continue
+							}
+
+							evaluatedPrinciple.isPrivate = true
+						}
+
+						continue
+					}
+
+					// Check if principal doesn't match an the ARN format, ignore
+					reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
+					if !reIsAwsResource.MatchString(principal) {
+						continue
+					}
+
+					arnAccount := reIsAwsResource.FindStringSubmatch(principal)
+					account := arnAccount[1]
+
+					// Check if principal doesn't match an account ID, ignore
+					reAccount := regexp.MustCompile(`^[0-9]{12}$`)
+					if !reAccount.MatchString(account) {
+						continue
+					}
+
+					evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+
+					if account == userAccountId {
+						evaluatedPrinciple.isPrivate = true
+					} else {
+						evaluatedPrinciple.isShared = true
+						evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+					}
+				}
+
 				// case "aws:sourcearn":
 
 				// 	reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
