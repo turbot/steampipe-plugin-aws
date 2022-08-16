@@ -282,7 +282,7 @@ source_profile = profile_hop_off
 ```hcl
 connection "aws_account_hop_off" {
   plugin  = "aws"
-  profile = "profile_y"
+  profile = "profile_hop_off"
   regions = ["*"]
 }
 
