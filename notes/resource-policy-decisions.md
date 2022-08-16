@@ -48,3 +48,7 @@ Add `Shared Statement IDs` ...
 ## Issue 10
 
 Add `Shared` and `Private` access level
+
+## Issue 11
+
+AllowedPrincipalAccountIds should change the wildcard from `*` to `0123456789??`, if this is the principal ID
