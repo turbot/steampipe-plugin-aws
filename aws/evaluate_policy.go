@@ -664,6 +664,8 @@ func evaluateCondition(conditions map[string]interface{}, userAccountId string) 
 				evaluatedPrinciple = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
 			case "aws:sourceaccount":
 				evaluatedPrinciple = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+			case "aws:principalarn":
+				evaluatedPrinciple = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
 			case "aws:sourcearn":
 				evaluatedPrinciple = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
 			}
