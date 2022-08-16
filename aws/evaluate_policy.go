@@ -484,11 +484,11 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 				if len(arnAccount) > 0 {
 					account := arnAccount[1]
 					if account != userAccountId {
-						evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 						evaluatedPrinciple.isShared = true
 					} else {
 						evaluatedPrinciple.isPrivate = true
 					}
+					evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 				} else {
 					evaluatedPrinciple.isPublic = true
 					evaluatedPrinciple.allowedPrincipalAccountIdsSet["*"] = true
@@ -527,8 +527,9 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 				}
 
 				evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+				evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+
 				if account != userAccountId {
-					evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 					evaluatedPrinciple.isShared = true
 					continue
 				}
@@ -555,12 +556,12 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 		}
 
 		evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+		evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 
 		if account == userAccountId {
 			evaluatedPrinciple.isPrivate = true
 		} else {
 			evaluatedPrinciple.isShared = true
-			evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 		}
 	}
 
@@ -608,8 +609,8 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 			}
 
 			evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+			evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 			if account != userAccountId {
-				evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 				evaluatedPrinciple.isShared = true
 				continue
 			}
@@ -625,12 +626,12 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 		}
 
 		evaluatedPrinciple.allowedPrincipalsSet[principal] = true
+		evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
 
 		if principal == userAccountId {
 			evaluatedPrinciple.isPrivate = true
 		} else {
 			evaluatedPrinciple.isShared = true
-			evaluatedPrinciple.allowedPrincipalAccountIdsSet[principal] = true
 		}
 	}
 
@@ -710,10 +711,10 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 
 					if userAccountId != account {
 						evaluatedPrinciple.isShared = true
-						evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 					} else {
 						evaluatedPrinciple.isPrivate = true
 					}
+					evaluatedPrinciple.allowedPrincipalAccountIdsSet[account] = true
 				}
 
 				evaluatedPrinciple.allowedPrincipalsSet[principalItem] = true
