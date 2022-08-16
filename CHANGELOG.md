@@ -1,3 +1,14 @@
+## v0.73.0 [2022-08-16]
+
+_Enhancements_
+
+- Added column `subnet_id` to `aws_ec2_network_interface` table. ([#1216](https://github.com/turbot/steampipe-plugin-aws/pull/1216))
+
+_Bug fixes_
+
+- Fixed the `aws_eventbridge_rule` table to also list rules for non-default EventBridge buses. ([#1214](https://github.com/turbot/steampipe-plugin-aws/pull/1214))
+- Fixed the `aws_rds_db_cluster` table to also list MySQL and PostgreSQL engine type clusters. ([#1213](https://github.com/turbot/steampipe-plugin-aws/pull/1213))
+
 ## v0.72.0 [2022-08-15]
 
 _What's new?_
