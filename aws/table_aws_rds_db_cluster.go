@@ -2,8 +2,8 @@ package aws
 
 import (
 	"context"
-	"strings"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
@@ -385,8 +385,17 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 				// but we only want Aurora clusters here, even if the 'engine' qual
 				// isn't passed in.
 				// Current supported Aurora engine values as of 2022/08/15 are
-				// "aurora", "aurora-mysql", "aurora-postgresql".
-				if strings.Contains(*dbCluster.Engine, "aurora") {
+				// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", "postgres".
+				// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
+				if helpers.StringSliceContains(
+					[]string{
+						"aurora",
+						"aurora-mysql",
+						"aurora-postgresql",
+						"mysql",
+						"postgres",
+					},
+					*dbCluster.Engine) {
 					d.StreamListItem(ctx, dbCluster)
 				}
 
