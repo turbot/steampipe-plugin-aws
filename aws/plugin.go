@@ -114,6 +114,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dynamodb_metric_account_provisioned_read_capacity_util":   tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(ctx),
 			"aws_dynamodb_metric_account_provisioned_write_capacity_util":  tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(ctx),
 			"aws_dynamodb_table":                                           tableAwsDynamoDBTable(ctx),
+			"aws_dynamodb_table_export":                                    tableAwsDynamoDBTableExport(ctx),
 			"aws_ebs_snapshot":                                             tableAwsEBSSnapshot(ctx),
 			"aws_ebs_volume":                                               tableAwsEBSVolume(ctx),
 			"aws_ebs_volume_metric_read_ops":                               tableAwsEbsVolumeMetricReadOps(ctx),
