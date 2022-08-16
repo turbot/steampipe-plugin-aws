@@ -305,7 +305,7 @@ external_id = xxxxx
 [profile_account_b]
 role_arn = arn:aws:iam::222222222222:role/spc_role
 source_profile = cli-user
-external_id = xxxxx
+external_id = yyyyy
 ```
 
 #### aws.spc:
