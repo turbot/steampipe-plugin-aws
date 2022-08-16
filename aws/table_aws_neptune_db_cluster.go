@@ -282,7 +282,7 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *neptune.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				// The DescribeDBClusters API returns non-Neptune DB Clusters as well,
+				// The DescribeDBClusters API returns non-Neptune DB clusters as well,
 				// but we only want Neptune clusters here. The input has a Filter param
 				// which can help filter out non-Neptune clusters, but as of 2022/08/15,
 				// the SDK says the Filter param is not currently supported.

@@ -2,7 +2,7 @@
 
 An Amazon Neptune DB cluster manages access to your data through queries.
 
-**Note**: This table only returns Neptune DB clusters, not Aurora (RDS) or DocumentDB DB clusters.
+**Note**: This table only returns Neptune DB clusters, not RDS or DocumentDB DB clusters.
 
 ## Examples
 

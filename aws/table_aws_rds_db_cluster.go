@@ -381,11 +381,11 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		input,
 		func(page *rds.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				// The DescribeDBClusters API returns non-Aurora DB Clusters as well,
-				// but we only want Aurora clusters here, even if the 'engine' qual
+				// The DescribeDBClusters API returns non-RDS DB clusters as well,
+				// but we only want RDS clusters here, even if the 'engine' qual
 				// isn't passed in.
-				// Current supported Aurora engine values as of 2022/08/15 are
-				// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", "postgres".
+				// Current supported RDS engine values as of 2022/08/15 are
+				// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", and "postgres".
 				// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
 				if helpers.StringSliceContains(
 					[]string{
