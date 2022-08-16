@@ -257,6 +257,48 @@ connection "aws_account_z" {
 
 Using named profiles allows Steampipe to work with your existing CLI configurations, including SSO and using role assumption.
 
+### AWS Profile Credentials with IAM Roles
+You may have an IAM User in an AWS account used to hop-off to other accounts via assume role. In this case the AWS Credential files looks like this:
+
+#### aws credential file:
+
+```ini
+[profile_hop_off]
+aws_access_key_id = AKIA4YFAKEKEYXTDS252
+aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
+# this IAM User must have permissions to ReadOnlyAccess and sts:AssumeRole for 'arn:aws:iam::*:role/spc_role'
+
+[profile_hop_to_a]
+role_arn = arn:aws:iam::111111111111:role/spc_role
+source_profile = profile_hop_off
+
+[profile_hop_to_b]
+role_arn = arn:aws:iam::222222222222:role/spc_role
+source_profile = profile_hop_off
+```
+
+#### aws.spc:
+
+```hcl
+connection "aws_account_hop_off" {
+  plugin  = "aws"
+  profile = "profile_y"
+  regions = ["*"]
+}
+
+connection "aws_account_hop_to_a" {
+  plugin  = "aws"
+  profile = "profile_hop_to_a"
+  regions = ["*"]
+}
+
+connection "aws_account_hop_to_b" {
+  plugin  = "aws"
+  profile = "profile_hop_to_b"
+  regions = ["*"]
+}
+```
+
 ### AWS SSO Credentials
 
 Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-auto) via AWS profiles however:
