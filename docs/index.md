@@ -257,48 +257,6 @@ connection "aws_account_z" {
 
 Using named profiles allows Steampipe to work with your existing CLI configurations, including SSO and using role assumption.
 
-### AWS Profile Credentials with AssumeRole
-You may have credentials in a profile used to assume a role in the same or different AWS account.
-
-#### aws credential file:
-
-```ini
-[profile_hop_off]
-aws_access_key_id = AKIA4YFAKEKEYXTDS252
-aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
-# this IAM User must have permissions to ReadOnlyAccess and sts:AssumeRole for 'arn:aws:iam::*:role/spc_role'
-
-[profile_hop_to_a]
-role_arn = arn:aws:iam::111111111111:role/spc_role
-source_profile = profile_hop_off
-
-[profile_hop_to_b]
-role_arn = arn:aws:iam::222222222222:role/spc_role
-source_profile = profile_hop_off
-```
-
-#### aws.spc:
-
-```hcl
-connection "aws_account_hop_off" {
-  plugin  = "aws"
-  profile = "profile_hop_off"
-  regions = ["*"]
-}
-
-connection "aws_account_hop_to_a" {
-  plugin  = "aws"
-  profile = "profile_hop_to_a"
-  regions = ["*"]
-}
-
-connection "aws_account_hop_to_b" {
-  plugin  = "aws"
-  profile = "profile_hop_to_b"
-  regions = ["*"]
-}
-```
-
 ### AWS SSO Credentials
 
 Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-auto) via AWS profiles however:
@@ -337,9 +295,15 @@ If your aws credential file contains profiles that assume a role via the `source
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
 region = us-west-2
+# this Principal must have permissions to sts:AssumeRole for 'arn:aws:iam::*:role/spc_role'
 
-[role-without-mfa]
-role_arn = arn:aws:iam::123456789012:role/test_assume
+[profile_account_a]
+role_arn = arn:aws:iam::111111111111:role/spc_role
+source_profile = cli-user
+external_id = xxxxx
+
+[profile_account_b]
+role_arn = arn:aws:iam::222222222222:role/spc_role
 source_profile = cli-user
 external_id = xxxxx
 ```
@@ -347,10 +311,16 @@ external_id = xxxxx
 #### aws.spc:
 
 ```hcl
-connection "role_aws" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "role-without-mfa"
-  regions = ["us-east-1", "us-east-2"]
+  profile = "profile_account_a"
+  regions = ["*"]
+}
+
+connection "aws_account_b" {
+  plugin  = "aws"
+  profile = "profile_account_b"
+  regions = ["*"]
 }
 ```
 
