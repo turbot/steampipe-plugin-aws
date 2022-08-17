@@ -5660,12 +5660,14 @@ func TestGlobalConditionSourceArn(t *testing.T) {
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEquals", testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEquals", testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEquals", testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals)
+	t.Run("testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestSourceArnConditionUsingStringEqualsIfExists", testSourceArnConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
+	t.Run("testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionUsingStringEqualsIgnoreCaseIfExists", testSourceArnConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -5853,6 +5855,68 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals(t *testing.T
           "Condition": {
             "StringEquals": {
               "aws:SourceArn": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceArn": ["arn:*", "arn:?"]
             }
           }
         }
@@ -6101,6 +6165,68 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase(t 
           "Condition": {
             "StringEqualsIgnoreCase": {
               "aws:SourceArn": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceArn": ["arn:*", "arn:?"]
             }
           }
         }
@@ -8310,12 +8436,14 @@ func TestGlobalConditionPrincipalArn(t *testing.T) {
 	t.Run("TestPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals", testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestPrincipalArnConditionWhenValueIsACrossAccountUsingStringEquals", testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals)
+	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalArnConditionUsingStringEqualsIfExists", testPrincipalArnConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestPrincipalArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
+	t.Run("testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists", testPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -8503,6 +8631,68 @@ func testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals(t *testin
           "Condition": {
             "StringEquals": {
               "aws:PrincipalArn": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:*", "arn:?"]
             }
           }
         }
@@ -8751,6 +8941,68 @@ func testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase
           "Condition": {
             "StringEqualsIgnoreCase": {
               "aws:PrincipalArn": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:PrincipalArn": ["arn:*", "arn:?"]
             }
           }
         }
@@ -10960,12 +11212,14 @@ func TestGlobalConditionSourceAccount(t *testing.T) {
 	t.Run("TestSourceAccountConditionWhenValueIsAUserAccountUsingStringEquals", testSourceAccountConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceAccountConditionWhenValueIsACrossAccountUsingStringEquals", testSourceAccountConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals", testSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals)
+	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestSourceAccountConditionUsingStringEqualsIfExists", testSourceAccountConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestSourceAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
+	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists", testSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -11130,6 +11384,68 @@ func testSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals(t *testi
           "Condition": {
             "StringEquals": {
               "aws:SourceAccount": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceAccount": ["12345678*", "1234567890??"]
             }
           }
         }
@@ -11378,6 +11694,68 @@ func testSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCas
           "Condition": {
             "StringEqualsIgnoreCase": {
               "aws:SourceAccount": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceAccount": ["12345678*", "1234567890??"]
             }
           }
         }
@@ -12523,12 +12901,14 @@ func TestGlobalConditionPrincipalAccount(t *testing.T) {
 	t.Run("TestPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEquals", testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEquals", testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals)
+	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionUsingStringEqualsIfExists", testPrincipalAccountConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
+	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionUsingStringEqualsIgnoreCaseIfExists", testPrincipalAccountConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -12693,6 +13073,68 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals(t *te
           "Condition": {
             "StringEquals": {
               "aws:PrincipalAccount": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["12345678*", "1234567890??"]
             }
           }
         }
@@ -12941,6 +13383,68 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnore
           "Condition": {
             "StringEqualsIgnoreCase": {
               "aws:PrincipalAccount": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:PrincipalAccount": ["12345678*", "1234567890??"]
             }
           }
         }
@@ -14086,7 +14590,7 @@ func TestGlobalConditionPrincipalOrgID(t *testing.T) {
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals", TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionUsingStringEqualsIfExists", testPrincipalOrgIDConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
@@ -14301,7 +14805,7 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals(t *test
 	}
 }
 
-func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+func TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -14314,7 +14818,7 @@ func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *t
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-invalid*"]
+              "aws:PrincipalOrgID": ["o-invalid*", "o-invalid?"]
             }
           }
         }
@@ -14623,7 +15127,7 @@ func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEqualsIgnor
           "Resource": "*",
           "Condition": {
             "StringEqualsIgnoreCase": {
-              "aws:PrincipalOrgID": ["o-invalid*"]
+              "aws:PrincipalOrgID": ["o-invalid*", "o-invalid?"]
             }
           }
         }
