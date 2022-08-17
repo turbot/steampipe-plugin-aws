@@ -601,7 +601,7 @@ func evaluateOrganizationCondition(conditionValues []string, evaulatedOperator E
 			continue
 		}
 
-		if !strings.HasPrefix(organization, "o-") || strings.Contains(organization, "*") {
+		if !strings.HasPrefix(organization, "o-") || strings.Contains(organization, "*") || strings.Contains(organization, "?") {
 			continue
 		}
 
