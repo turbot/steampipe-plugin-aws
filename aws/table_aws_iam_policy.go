@@ -169,12 +169,6 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	})
 	params.MaxItems = aws.Int32(maxItems)
 
-	paginator := iam.NewListPoliciesPaginator(svc, &params, func(o *iam.ListPoliciesPaginatorOptions) {
-		o.Limit = maxItems
-		o.StopOnDuplicateToken = true
-	})
-	params.MaxItems = aws.Int32(maxItems)
-
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
