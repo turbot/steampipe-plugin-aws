@@ -52,3 +52,11 @@ Add `Shared` and `Private` access level
 ## Issue 11
 
 AllowedPrincipalAccountIds should change the wildcard from `*` to `0123456789??`, if this is the principal ID
+
+## Issue 12
+
+If there is no Principal we have 3 types of behaviour:
+
+- No Resource, no principal in table
+- Resource but no condition then the Principal is the User Account as this is an IDENTITY_POLICY
+- Resource with condition then the Principal is the Conditions value otherwise it is the Principal
