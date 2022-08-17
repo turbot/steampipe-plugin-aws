@@ -222,6 +222,7 @@ func getVpcARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc.getVpcARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -263,7 +264,7 @@ func getVpcTurbotTitle(_ context.Context, d *transform.TransformData) (interface
 
 //// UTILITY FUNCTION
 
-//Build vpc resources filter parameter
+// Build vpc resources filter parameter
 
 type VpcFilterKeyMap struct {
 	ColumnName string
@@ -322,4 +323,3 @@ func buildVpcResourcesFilterParameter(keyMap []VpcFilterKeyMap, quals plugin.Key
 
 	return filters
 }
-

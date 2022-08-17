@@ -105,7 +105,7 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -132,12 +132,12 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-		paginator := ec2.NewDescribeRouteTablesPaginator(svc, input, func(o *ec2.DescribeRouteTablesPaginatorOptions) {
+	paginator := ec2.NewDescribeRouteTablesPaginator(svc, input, func(o *ec2.DescribeRouteTablesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
-for paginator.HasMorePages() {
+	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_vpc_route_table.listVpcRouteTables", "api_error", err)
@@ -188,13 +188,13 @@ func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getVpcRouteTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcRouteTableTurbotAkas")
 	routeTable := h.Item.(types.RouteTable)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTableAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

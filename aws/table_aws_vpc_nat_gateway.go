@@ -126,7 +126,7 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create session
 	svc, err := Ec2Client(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "Connection_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "connection_error", err)
 		return nil, err
 	}
 
@@ -221,6 +221,7 @@ func getVpcNatGatewayARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGatewayARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

@@ -7,8 +7,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -358,7 +358,7 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 		LoadBalancerName: classicLoadBalancer.LoadBalancerName,
 	}
 
-	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(ctx,params)
+	loadBalancerData, err := svc.DescribeLoadBalancerAttributes(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerAttributes", "api_error", err)
 		return nil, err
@@ -396,13 +396,13 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getEc2ClassicLoadBalancerARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2ClassicLoadBalancerARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancerARN", "get_common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

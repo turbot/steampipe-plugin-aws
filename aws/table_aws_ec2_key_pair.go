@@ -149,6 +149,7 @@ func getAwsEc2KeyPairAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_key_pair.getAwsEc2KeyPairAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -176,7 +177,8 @@ func getEc2KeyPairTurbotTags(_ context.Context, d *transform.TransformData) (int
 	return &turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+//// UTILITY FUNCTIONS
+
 // Build ec2 key-pair list call input filter
 func buildEc2KeyPairFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

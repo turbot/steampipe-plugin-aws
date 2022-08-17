@@ -174,6 +174,7 @@ func getVpcCustomerGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

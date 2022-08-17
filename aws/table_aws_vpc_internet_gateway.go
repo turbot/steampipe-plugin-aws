@@ -169,12 +169,12 @@ func getVpcInternetGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getVpcInternetGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcInternetGatewayTurbotAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	internetGateway := h.Item.(types.InternetGateway)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_internet_gateway.getVpcInternetGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
