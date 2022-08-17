@@ -114,7 +114,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached with the IAM policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getIamPolicy,
-				Transform:   transform.FromField("Tags").Transform(iamPolicyTurbotTagsNullValue),
+				Transform:   transform.FromField("Tags").Transform(handleIAMPolicyEmptyTags),
 			},
 
 			// Standard columns for all tables
@@ -282,7 +282,7 @@ func handleIAMPolicyTurbotTags(_ context.Context, d *transform.TransformData) (i
 	return &turbotTagsMap, nil
 }
 
-func iamPolicyTurbotTagsNullValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleIAMPolicyEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags, ok := d.Value.([]types.Tag)
 	if ok || len(tags) == 0 {
 		return nil, nil

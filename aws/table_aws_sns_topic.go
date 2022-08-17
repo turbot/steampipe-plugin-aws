@@ -188,7 +188,7 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 				Description: "The list of tags associated with the topic.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForSnsTopic,
-				Transform:   transform.FromField("Tags").Transform(snsTopicSrcTags),
+				Transform:   transform.FromField("Tags").Transform(handleSNSTopicEmptyTags),
 			},
 			{
 				Name:        "policy",
@@ -356,7 +356,7 @@ func handleSNSTopicTurbotTags(_ context.Context, d *transform.TransformData) (in
 	return turbotTagsMap, nil
 }
 
-func snsTopicSrcTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleSNSTopicEmptyTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags, ok := d.Value.([]snsTypes.Tag)
 	if !ok || len(tags) == 0 {
 		return nil, nil
