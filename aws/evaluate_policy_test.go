@@ -5676,6 +5676,7 @@ func TestGlobalConditionSourceArn(t *testing.T) {
 	t.Run("TestSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardWithStringLike", testSourceArnConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("TestSourceArnConditionWhenValueIsPartialWildcardWithStringLike", testSourceArnConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestSourceArnConditionUsingStringLikeIfExists", testSourceArnConditionUsingStringLikeIfExists)
 	// StringNotLike
 	// String Other
@@ -5700,7 +5701,7 @@ func TestGlobalConditionSourceArn(t *testing.T) {
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardWithArnLike", testSourceArnConditionWhenValueIsFullWildcardWithArnLike)
 	t.Run("TestSourceArnConditionWhenValueIsInvalidValueWithArnLike", testSourceArnConditionWhenValueIsInvalidValueWithArnLike)
 	t.Run("TestSourceArnConditionUsingArnLikeIfExists", testSourceArnConditionUsingArnLikeIfExists)
-	t.Run("TestSourceArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike", testSourceArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike)
+	t.Run("testSourceArnConditionWhenValueIsPartialWildcardWithArnLike", testSourceArnConditionWhenValueIsPartialWildcardWithArnLike)
 	t.Run("TestSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike", testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike)
 	t.Run("TestSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike", testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike)
 
@@ -6610,6 +6611,68 @@ func testSourceArnConditionWhenValueIsFullWildcardWithStringLike(t *testing.T) {
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceArn": ["1234*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"1234*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7773,7 +7836,7 @@ func testSourceArnConditionUsingArnLikeIfExists(t *testing.T) {
 	}
 }
 
-func testSourceArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike(t *testing.T) {
+func testSourceArnConditionWhenValueIsPartialWildcardWithArnLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -7786,7 +7849,7 @@ func testSourceArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike(t 
           "Resource": "*",
           "Condition": {
             "ArnLike": {
-              "aws:SourceArn": ["arn:aws:iam::0123456789??:root"]
+              "aws:PrincipalArn": ["arn:aws:iam::0123456789??:root", "arn:aws:iam::2222333322*:root"]
             }
           }
         }
@@ -7795,10 +7858,16 @@ func testSourceArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike(t 
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "public",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::0123456789??:root"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AccessLevel:            "public",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::0123456789??:root",
+			"arn:aws:iam::2222333322*:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"0123456789??",
+			"2222333322*",
+		},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -8452,6 +8521,7 @@ func TestGlobalConditionPrincipalArn(t *testing.T) {
 	t.Run("TestPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardWithStringLike", testPrincipalArnConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("TestPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike", testPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestPrincipalArnConditionUsingStringLikeIfExists", testPrincipalArnConditionUsingStringLikeIfExists)
 	// StringNotLike
 	// String Other
@@ -8476,7 +8546,7 @@ func TestGlobalConditionPrincipalArn(t *testing.T) {
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardWithArnLike", testPrincipalArnConditionWhenValueIsFullWildcardWithArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueIsInvalidValueWithArnLike", testPrincipalArnConditionWhenValueIsInvalidValueWithArnLike)
 	t.Run("TestPrincipalArnConditionUsingArnLikeIfExists", testPrincipalArnConditionUsingArnLikeIfExists)
-	t.Run("TestPrincipalArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike", testPrincipalArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike)
+	t.Run("testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike", testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike", testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike", testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike)
 
@@ -9386,6 +9456,68 @@ func testPrincipalArnConditionWhenValueIsFullWildcardWithStringLike(t *testing.T
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["1234*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"1234*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -10549,7 +10681,7 @@ func testPrincipalArnConditionUsingArnLikeIfExists(t *testing.T) {
 	}
 }
 
-func testPrincipalArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike(t *testing.T) {
+func testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -10562,7 +10694,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike
           "Resource": "*",
           "Condition": {
             "ArnLike": {
-              "aws:PrincipalArn": ["arn:aws:iam::0123456789??:root"]
+              "aws:PrincipalArn": ["arn:aws:iam::0123456789??:root", "arn:aws:iam::2222333322*:root"]
             }
           }
         }
@@ -10571,10 +10703,16 @@ func testPrincipalArnConditionWhenValueWhenAccountIsSingleWildcardedUsingArnLike
 	`
 
 	expected := EvaluatedPolicy{
-		AccessLevel:                         "public",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::0123456789??:root"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AccessLevel:            "public",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::0123456789??:root",
+			"arn:aws:iam::2222333322*:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"0123456789??",
+			"2222333322*",
+		},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -11228,6 +11366,7 @@ func TestGlobalConditionSourceAccount(t *testing.T) {
 	t.Run("TestSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardWithStringLike", testSourceAccountConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike", testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestSourceAccountConditionUsingStringLikeIfExists", testSourceAccountConditionUsingStringLikeIfExists)
 	t.Run("TestSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
 	t.Run("TestSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
@@ -12176,6 +12315,68 @@ func testSourceAccountConditionWhenValueIsFullWildcardWithStringLike(t *testing.
 	}
 }
 
+func testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceAccount": ["1234*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"1234*"},
+		AllowedPrincipalAccountIds:          []string{"1234*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
 func testSourceAccountConditionUsingStringLikeIfExists(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -12263,7 +12464,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingString
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"0123456789??"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -12917,6 +13118,7 @@ func TestGlobalConditionPrincipalAccount(t *testing.T) {
 	t.Run("TestPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike", testPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike", testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestPrincipalAccountConditionUsingStringLikeIfExists", testPrincipalAccountConditionUsingStringLikeIfExists)
 	t.Run("TestPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
@@ -13865,6 +14067,68 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike(t *testi
 	}
 }
 
+func testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["1234*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"1234*"},
+		AllowedPrincipalAccountIds:          []string{"1234*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
 func testPrincipalAccountConditionUsingStringLikeIfExists(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -13952,7 +14216,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStr
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"0123456789??"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -15975,6 +16239,7 @@ func TestGlobalConditionSourceOwner(t *testing.T) {
 	t.Run("TestSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestSourceOwnerConditionWhenValueIsFullWildcardWithStringLike", testSourceOwnerConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueIsPartialWildcardWithStringLike", testSourceOwnerConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestSourceOwnerConditionUsingStringLikeIfExists", testSourceOwnerConditionUsingStringLikeIfExists)
 	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
 	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
@@ -16923,6 +17188,68 @@ func testSourceOwnerConditionWhenValueIsFullWildcardWithStringLike(t *testing.T)
 	}
 }
 
+func testSourceOwnerConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["1234*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"1234*"},
+		AllowedPrincipalAccountIds:          []string{"1234*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
 func testSourceOwnerConditionUsingStringLikeIfExists(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -17010,7 +17337,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLi
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"0123456789??"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
