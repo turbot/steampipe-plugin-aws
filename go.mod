@@ -18,7 +18,6 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.4.0
-	github.com/turbot/steampipe-plugin-sdk/v3 v3.3.2
 	github.com/turbot/steampipe-plugin-sdk/v4 v4.0.1
 	golang.org/x/text v0.3.7
 )
