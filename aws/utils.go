@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
+	go_kit_pack "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
@@ -33,12 +34,12 @@ func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
 }
 
 func arnToAkas(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	arn := types.SafeString(d.Value)
+	arn := go_kit_pack.SafeString(d.Value)
 	return []string{arn}, nil
 }
 
 func arnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	arn := types.SafeString(d.Value)
+	arn := go_kit_pack.SafeString(d.Value)
 
 	// get the resource title
 	title := arn[strings.LastIndex(arn, ":")+1:]
@@ -73,7 +74,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(fmt.Sprintf("%v", d.Value))
+	value := go_kit_pack.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}
@@ -111,7 +112,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 	if err != nil {
 		return nil, nil
 	} else if !utf8.Valid(data) {
-		return types.SafeString(d.Value), nil
+		return go_kit_pack.SafeString(d.Value), nil
 	}
 	return data, nil
 }
