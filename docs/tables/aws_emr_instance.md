@@ -10,7 +10,7 @@ The central component of Amazon EMR is the cluster. A cluster is a collection of
 select
   id,
   cluster_id,
-  ec2_ec2_instance_id,
+  ec2_instance_id,
   instance_type,
   private_dns_name,
   private_ip_address
