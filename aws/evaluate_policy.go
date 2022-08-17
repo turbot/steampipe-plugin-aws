@@ -62,6 +62,13 @@ type Permissions struct {
 	accessLevel map[string]string
 }
 
+type EvaluateStatements struct {
+	statements             EvaluatedStatements
+	publicAccessLevelsSet  map[string]bool
+	sharedAccessLevelsSet  map[string]bool
+	privateAccessLevelsSet map[string]bool
+}
+
 func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy, error) {
 	evaluatedPolicy := EvaluatedPolicy{
 		AccessLevel: "private",
@@ -106,25 +113,6 @@ func EvaluatePolicy(policyContent string, userAccountId string) (EvaluatedPolicy
 	evaluatedPolicy.IsPublic = evaluatedStatements.isPublic
 
 	return evaluatedPolicy, nil
-}
-
-func evaluateAccessLevel(statements EvaluatedStatements) string {
-	if statements.isPublic {
-		return "public"
-	}
-
-	if statements.isShared {
-		return "shared"
-	}
-
-	return "private"
-}
-
-type EvaluateStatements struct {
-	statements             EvaluatedStatements
-	publicAccessLevelsSet  map[string]bool
-	sharedAccessLevelsSet  map[string]bool
-	privateAccessLevelsSet map[string]bool
 }
 
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (EvaluatedStatements, error) {
@@ -259,6 +247,10 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 	return evaluatedStatement, nil
 }
 
+func reduceAccessLevels(allowedAccessLevelSet map[string]bool, deniedAccessLevelSet map[string]bool) map[string]bool {
+	return allowedAccessLevelSet
+}
+
 func evaluateOverallStatements(
 	allowedStatements EvaluateStatements,
 	deniedStatements EvaluateStatements,
@@ -266,6 +258,7 @@ func evaluateOverallStatements(
 ) EvaluatedStatements {
 	overallStatements := EvaluatedStatements{}
 
+	// NOTE: I think this will be worked on - This is when a policy denies all
 	if deniedStatements.statements.isPublic {
 		return overallStatements
 	}
@@ -277,13 +270,124 @@ func evaluateOverallStatements(
 	overallStatements.allowedOrganizationIds = allowedStatements.statements.allowedOrganizationIds
 	overallStatements.publicStatementIds = allowedStatements.statements.publicStatementIds
 	overallStatements.sharedStatementIds = allowedStatements.statements.sharedStatementIds
-	overallStatements.publicAccessLevels = evaluateActionSet(allowedStatements.publicAccessLevelsSet, permissions)
-	overallStatements.sharedAccessLevels = evaluateActionSet(allowedStatements.sharedAccessLevelsSet, permissions)
-	overallStatements.privateAccessLevels = evaluateActionSet(allowedStatements.privateAccessLevelsSet, permissions)
+
+	publicAccessLevelsSet := reduceAccessLevels(allowedStatements.publicAccessLevelsSet, deniedStatements.publicAccessLevelsSet)
+	sharedAccessLevelsSet := reduceAccessLevels(allowedStatements.sharedAccessLevelsSet, deniedStatements.sharedAccessLevelsSet)
+	privateAccessLevelsSet := reduceAccessLevels(allowedStatements.privateAccessLevelsSet, deniedStatements.privateAccessLevelsSet)
+
+	overallStatements.publicAccessLevels = evaluateActionSet(publicAccessLevelsSet, permissions)
+	overallStatements.sharedAccessLevels = evaluateActionSet(sharedAccessLevelsSet, permissions)
+	overallStatements.privateAccessLevels = evaluateActionSet(privateAccessLevelsSet, permissions)
 	overallStatements.isPublic = allowedStatements.statements.isPublic
 	overallStatements.isShared = allowedStatements.statements.isShared
 
 	return overallStatements
+}
+
+func evaluateCondition(conditions map[string]interface{}, userAccountId string) (CompletedEvaluation, error) {
+	var completedEvaluation CompletedEvaluation
+
+	for operator, conditionKey := range conditions {
+		evaulatedOperator, evaluated := evaulateOperator(operator)
+		if !evaluated {
+			continue
+		}
+
+		if evaulatedOperator.isNegated {
+			return completedEvaluation, fmt.Errorf("TODO: Implement")
+			// NOTE: Here we have an issue with the table.
+			// 		 The problem is that if we say some principal is NOT an account, this means everything but.
+			// 		 I do not know how to represent this in the current table design.
+		}
+
+		for conditionName, conditionValues := range conditionKey.(map[string]interface{}) {
+			switch conditionName {
+			case "aws:principalaccount":
+				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			case "aws:sourceaccount":
+				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			case "aws:sourceowner":
+				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			case "aws:principalarn":
+				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			case "aws:sourcearn":
+				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			case "aws:principalorgid":
+				completedEvaluation = evaluateOrganizationCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
+			}
+		}
+	}
+
+	return completedEvaluation, nil
+}
+
+func evaluatePrincipal(principal Principal, userAccountId string, hasResources bool, hasConditions bool) (CompletedEvaluation, error) {
+	completedPrinciple := CompletedEvaluation{
+		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
+		allowedPrincipalServicesSet:            map[string]bool{},
+		allowedPrincipalsSet:                   map[string]bool{},
+		allowedPrincipalAccountIdsSet:          map[string]bool{},
+	}
+
+	if len(principal) == 0 && hasResources && !hasConditions {
+		completedPrinciple.allowedPrincipalsSet[userAccountId] = true
+		completedPrinciple.allowedPrincipalAccountIdsSet[userAccountId] = true
+		completedPrinciple.isPrivate = true
+
+		return completedPrinciple, nil
+	}
+
+	for principalKey, rawPrincipalItem := range principal {
+		principalItems := rawPrincipalItem.([]string)
+
+		reIsAwsAccount := regexp.MustCompile(`^[0-9]{12}$`)
+		reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
+
+		for _, principalItem := range principalItems {
+			switch principalKey {
+			case "AWS":
+				var account string
+
+				if principalItem == "*" {
+					account = principalItem
+					completedPrinciple.isPublic = true
+					completedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+				} else {
+					if reIsAwsAccount.MatchString(principalItem) {
+						account = principalItem
+					} else if reIsAwsResource.MatchString(principalItem) {
+						arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
+						account = arnAccount[1]
+					} else {
+						return completedPrinciple, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
+					}
+
+					if userAccountId != account {
+						completedPrinciple.isShared = true
+					} else {
+						completedPrinciple.isPrivate = true
+					}
+					completedPrinciple.allowedPrincipalAccountIdsSet[account] = true
+				}
+
+				completedPrinciple.allowedPrincipalsSet[principalItem] = true
+			case "Service":
+				completedPrinciple.allowedPrincipalServicesSet[principalItem] = true
+				completedPrinciple.isPublic = true
+			case "Federated":
+				completedPrinciple.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
+				completedPrinciple.isPrivate = true
+			}
+		}
+	}
+
+	return completedPrinciple, nil
 }
 
 func evaluateAction(action string) EvaluatedAction {
@@ -319,6 +423,18 @@ func evaluateAction(action string) EvaluatedAction {
 	evaluated.matcher = matcher
 
 	return evaluated
+}
+
+func evaluateAccessLevel(statements EvaluatedStatements) string {
+	if statements.isPublic {
+		return "public"
+	}
+
+	if statements.isShared {
+		return "shared"
+	}
+
+	return "private"
 }
 
 func evaluateActionSet(allowedActionSet map[string]bool, permissions map[string]Permissions) []string {
@@ -380,10 +496,7 @@ func evaluateActionSet(allowedActionSet map[string]bool, permissions map[string]
 				continue
 			}
 			accessLevel := permission.accessLevel[currentPrivilege]
-
-			if _, exists := accessLevels[accessLevel]; !exists {
-				accessLevels[accessLevel] = true
-			}
+			accessLevels[accessLevel] = true
 		}
 	}
 
@@ -681,112 +794,6 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 	}
 
 	return completedEvaluation
-}
-
-func evaluateCondition(conditions map[string]interface{}, userAccountId string) (CompletedEvaluation, error) {
-	var completedEvaluation CompletedEvaluation
-
-	for operator, conditionKey := range conditions {
-		evaulatedOperator, evaluated := evaulateOperator(operator)
-		if !evaluated {
-			continue
-		}
-
-		if evaulatedOperator.isNegated {
-			return completedEvaluation, fmt.Errorf("TODO: Implement")
-			// NOTE: Here we have an issue with the table.
-			// 		 The problem is that if we say some principal is NOT an account, this means everything but.
-			// 		 I do not know how to represent this in the current table design.
-		}
-
-		for conditionName, conditionValues := range conditionKey.(map[string]interface{}) {
-			switch conditionName {
-			case "aws:principalaccount":
-				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			case "aws:sourceaccount":
-				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			case "aws:sourceowner":
-				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			case "aws:principalarn":
-				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			case "aws:sourcearn":
-				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			case "aws:principalorgid":
-				completedEvaluation = evaluateOrganizationCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
-				completedEvaluation.hasConditions = true
-			}
-		}
-	}
-
-	return completedEvaluation, nil
-}
-
-func evaluatePrincipal(principal Principal, userAccountId string, hasResources bool, hasConditions bool) (CompletedEvaluation, error) {
-	completedPrinciple := CompletedEvaluation{
-		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
-		allowedPrincipalServicesSet:            map[string]bool{},
-		allowedPrincipalsSet:                   map[string]bool{},
-		allowedPrincipalAccountIdsSet:          map[string]bool{},
-	}
-
-	if len(principal) == 0 && hasResources && !hasConditions {
-		completedPrinciple.allowedPrincipalsSet[userAccountId] = true
-		completedPrinciple.allowedPrincipalAccountIdsSet[userAccountId] = true
-		completedPrinciple.isPrivate = true
-
-		return completedPrinciple, nil
-	}
-
-	for principalKey, rawPrincipalItem := range principal {
-		principalItems := rawPrincipalItem.([]string)
-
-		reIsAwsAccount := regexp.MustCompile(`^[0-9]{12}$`)
-		reIsAwsResource := regexp.MustCompile(`^arn:[a-z]*:[a-z]*:[a-z]*:([0-9]{12}):.*$`)
-
-		for _, principalItem := range principalItems {
-			switch principalKey {
-			case "AWS":
-				var account string
-
-				if principalItem == "*" {
-					account = principalItem
-					completedPrinciple.isPublic = true
-					completedPrinciple.allowedPrincipalAccountIdsSet[account] = true
-				} else {
-					if reIsAwsAccount.MatchString(principalItem) {
-						account = principalItem
-					} else if reIsAwsResource.MatchString(principalItem) {
-						arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
-						account = arnAccount[1]
-					} else {
-						return completedPrinciple, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
-					}
-
-					if userAccountId != account {
-						completedPrinciple.isShared = true
-					} else {
-						completedPrinciple.isPrivate = true
-					}
-					completedPrinciple.allowedPrincipalAccountIdsSet[account] = true
-				}
-
-				completedPrinciple.allowedPrincipalsSet[principalItem] = true
-			case "Service":
-				completedPrinciple.allowedPrincipalServicesSet[principalItem] = true
-				completedPrinciple.isPublic = true
-			case "Federated":
-				completedPrinciple.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
-				completedPrinciple.isPrivate = true
-			}
-		}
-	}
-
-	return completedPrinciple, nil
 }
 
 func checkEffectValid(effect string) bool {

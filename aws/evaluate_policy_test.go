@@ -17964,72 +17964,64 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 	}
 }
 
-// func TestFirstDeny(t *testing.T) {
-// 	// Set up
-// 	userAccountId := "012345678901"
-// 	policyContent := `
-//     {
-//       "Version": "2012-10-17",
-//       "Statement": [
-//         {
-//           "Effect": "Allow",
-//           "Action": "ec2:DescribeVolumes",
-//           "Resource": "*"
-//         },
-//         {
-//           "Effect": "Deny",
-//           "Action": "ec2:DescribeVolumes",
-//           "Resource": "*"
-//         }
-//       ]
-//     }
-// 	`
+func TestFirstDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumeStatus",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
 
-// 	expected := EvaluatedPolicy{
-// 		AccessLevel:            "public",
-// 		AllowedOrganizationIds: []string{},
-// 		AllowedPrincipals: []string{
-// 			"*",
-// 			"012345678901",
-// 			"222233332222",
-// 		},
-// 		AllowedPrincipalAccountIds: []string{
-// 			"*",
-// 			"012345678901",
-// 			"222233332222",
-// 		},
-// 		AllowedPrincipalFederatedIdentities: []string{},
-// 		AllowedPrincipalServices:            []string{},
-// 		IsPublic:                            true,
-// 		PublicAccessLevels:                  []string{"List"},
-// 		SharedAccessLevels:                  []string{"List"},
-// 		PrivateAccessLevels:                 []string{"List"},
-// 		PublicStatementIds:                  []string{"Statement[2]"},
-// 		SharedStatementIds:                  []string{"Statement[3]"},
-// 	}
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
 
-// 	// Test
-// 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
-// 	// Evaluate
-// 	if err != nil {
-// 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
-// 	}
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
 
-// 	errors := evaluatePrincipalTest(t, evaluated, expected)
-// 	if len(errors) > 0 {
-// 		for _, error := range errors {
-// 			t.Log(error)
-// 		}
-// 		t.Fatal("Conditions Unit Test error detected")
-// 	}
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
 
-// 	errors = evaluateIntegration(t, evaluated, expected)
-// 	if len(errors) > 0 {
-// 		for _, error := range errors {
-// 			t.Log(error)
-// 		}
-// 		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
-// 		t.Fail()
-// 	}
-// }
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
