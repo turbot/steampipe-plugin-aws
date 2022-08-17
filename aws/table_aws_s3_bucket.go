@@ -89,7 +89,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "creation_date",
-				Description: "The date and tiem when bucket was created.",
+				Description: "The date and time when bucket was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
@@ -216,7 +216,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBucketTagging,
-				Transform:   transform.FromField("TagSet").Transform(s3TagsToTurbotTags),
+				Transform:   transform.FromField("TagSet").Transform(handleS3TagsToTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -749,7 +749,7 @@ func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// TRANSFORM FUNCTIONS
 
-func s3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleS3TagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags

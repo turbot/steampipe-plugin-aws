@@ -205,6 +205,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "subnet_id",
+				Description: "The ID of the subnet.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "vpc_id",
 				Description: "The ID of the VPC.",
 				Type:        proto.ColumnType_STRING,

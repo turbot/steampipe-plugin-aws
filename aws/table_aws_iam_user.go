@@ -86,7 +86,7 @@ func tableAwsIamUser(ctx context.Context) *plugin.Table {
 				Description: "The MFA status of the user.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsIamUserMfaDevices,
-				Transform:   transform.From(userMfaStatus),
+				Transform:   transform.From(handleEmptyUserMfaStatus),
 			},
 			{
 				Name:        "login_profile",
@@ -497,7 +497,7 @@ func getUserInlinePolicy(ctx context.Context, policyName *string, userName *stri
 
 //// TRANSFORM FUNCTION
 
-func userMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
+func handleEmptyUserMfaStatus(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*iam.ListMFADevicesOutput)
 	if data.MFADevices != nil && len(data.MFADevices) > 0 {
 		return true, nil
