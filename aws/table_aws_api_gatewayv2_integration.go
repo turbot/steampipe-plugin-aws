@@ -195,7 +195,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 	pagesLeft := true
 	params := &apigatewayv2.GetIntegrationsInput{
-		ApiId: api.ApiId,
+		ApiId:      api.ApiId,
 		MaxResults: aws.String(fmt.Sprint(maxLimit)),
 	}
 

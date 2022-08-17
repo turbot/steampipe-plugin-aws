@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -23,6 +24,7 @@ import (
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
@@ -105,6 +107,26 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	}
 
 	svc := apigatewayv2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CostExplorerClient returns the connection client for AWS Cost Explorer service
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	// have we already created and cached the service?
+	serviceCacheKey := "costexplorer-v2"
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*costexplorer.Client), nil
+	}
+
+	cfg, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		plugin.Logger(ctx).Error("APIGatewayV2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := costexplorer.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
@@ -283,6 +305,30 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 		svc = s3.NewFromConfig(*cfg)
 	}
 
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// S3ControlClient returns the service connection for AWS s3control service
+func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed S3ControlClient")
+	}
+
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("s3control-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*s3control.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := s3control.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
