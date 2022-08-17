@@ -157,6 +157,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 	if equalQuals["type"] != nil {
+		// StartRecordType has a constraint that it must be used with StartRecordName
 		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
 			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
 		}
