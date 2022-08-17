@@ -24,6 +24,7 @@ type CompletedEvaluation struct {
 	isPublic                               bool
 	isShared                               bool
 	isPrivate                              bool
+	hasConditions                          bool
 }
 
 type EvaluatedStatements struct {
@@ -164,13 +165,15 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			currentStatements = &allowedStatements
 		}
 
-		// Principal
-		evaluatedPrinciple, err := evaluatePrincipal(statement.Principal, userAccountId)
+		// Conditions
+		evaluatedCondition, err := evaluateCondition(statement.Condition, userAccountId)
 		if err != nil {
 			return evaluatedStatement, err
 		}
 
-		evaluatedCondition, err := evaluateCondition(statement.Condition, userAccountId)
+		// Principals
+		hasResources := len(statement.Resource) > 0
+		evaluatedPrinciple, err := evaluatePrincipal(statement.Principal, userAccountId, hasResources, evaluatedCondition.hasConditions)
 		if err != nil {
 			return evaluatedStatement, err
 		}
@@ -700,16 +703,22 @@ func evaluateCondition(conditions map[string]interface{}, userAccountId string) 
 			switch conditionName {
 			case "aws:principalaccount":
 				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			case "aws:sourceaccount":
 				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			case "aws:sourceowner":
 				completedEvaluation = evaluateAccountTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			case "aws:principalarn":
 				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			case "aws:sourcearn":
 				completedEvaluation = evaluateArnTypeCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			case "aws:principalorgid":
 				completedEvaluation = evaluateOrganizationCondition(conditionValues.([]string), evaulatedOperator, userAccountId)
+				completedEvaluation.hasConditions = true
 			}
 		}
 	}
@@ -717,12 +726,20 @@ func evaluateCondition(conditions map[string]interface{}, userAccountId string) 
 	return completedEvaluation, nil
 }
 
-func evaluatePrincipal(principal Principal, userAccountId string) (CompletedEvaluation, error) {
+func evaluatePrincipal(principal Principal, userAccountId string, hasResources bool, hasConditions bool) (CompletedEvaluation, error) {
 	completedPrinciple := CompletedEvaluation{
 		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
 		allowedPrincipalServicesSet:            map[string]bool{},
 		allowedPrincipalsSet:                   map[string]bool{},
 		allowedPrincipalAccountIdsSet:          map[string]bool{},
+	}
+
+	if len(principal) == 0 && hasResources && !hasConditions {
+		completedPrinciple.allowedPrincipalsSet[userAccountId] = true
+		completedPrinciple.allowedPrincipalAccountIdsSet[userAccountId] = true
+		completedPrinciple.isPrivate = true
+
+		return completedPrinciple, nil
 	}
 
 	for principalKey, rawPrincipalItem := range principal {

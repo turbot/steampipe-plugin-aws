@@ -333,7 +333,6 @@ func testStatementPrincipalElementSingleValue(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValue := "*"
 	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValue {
 		t.Logf("Unexpected Statement Principal: `%s` Statement Principal expected: `*`", policy.Statements[0].Principal["AWS"].([]string)[0])
@@ -418,7 +417,6 @@ func testStatementPrincipalElementMultipleValue(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
@@ -514,7 +512,6 @@ func testStatementPrincipalElementSortValues(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
@@ -610,7 +607,6 @@ func testStatementPrincipalElementRemoveDuplicateValues(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].Principal["AWS"].([]string)[0] != expectedValueIndex0 {
@@ -764,7 +760,6 @@ func testStatementNotPrincipalElementSingleValue(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValue := "*"
 	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValue {
 		t.Logf("Unexpected Statement NotPrincipal: `%s` Statement NotPrincipal expected: `*`", policy.Statements[0].NotPrincipal["AWS"].([]string)[0])
@@ -849,7 +844,6 @@ func testStatementNotPrincipalElementMultipleValue(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {
@@ -945,7 +939,6 @@ func testStatementNotPrincipalElementSortValues(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {
@@ -1041,7 +1034,6 @@ func testStatementNotPrincipalElementRemoveDuplicateValues(t *testing.T) {
 
 	policy := policyInterface.(Policy)
 
-	// NOTE: Why we casting
 	expectedValueIndex0 := "111199991111"
 	expectedValueIndex1 := "999911119999"
 	if policy.Statements[0].NotPrincipal["AWS"].([]string)[0] != expectedValueIndex0 {

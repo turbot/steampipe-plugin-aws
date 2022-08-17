@@ -778,8 +778,8 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", testWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
 
-	t.Run("TestWhenAwsPrincipalIsWildcardedAndEffectDenied", testWhenAwsPrincipalIsWildcardedAndEffectDenied)
-	t.Run("TestWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed", testWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed)
+	t.Run("testWhenPricipalAndResourceIsPresent", testWhenPricipalAndResourceIsPresent)
+	t.Run("testWhenPricipalAndResourceIsMissing", testWhenPricipalAndResourceIsMissing)
 }
 
 func testWhenPricipalIsAMisformedAccountWithOneDigitShortFails(t *testing.T) {
@@ -793,7 +793,7 @@ func testWhenPricipalIsAMisformedAccountWithOneDigitShortFails(t *testing.T) {
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-			"AWS": "12345678901"
+            "AWS": "12345678901"
           }
         }
       ]
@@ -3594,33 +3594,33 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
 	}
 }
 
-func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
+func testWhenPricipalAndResourceIsPresent(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Deny",
-			  "Action": "sts:AssumeRole",
-			  "Principal": "*"
-			}
-		  ]
-		}
-		`
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
 
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -3651,7 +3651,7 @@ func testWhenAwsPrincipalIsWildcardedAndEffectDenied(t *testing.T) {
 	}
 }
 
-func testWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed(t *testing.T) {
+func testWhenPricipalAndResourceIsMissing(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -3659,14 +3659,8 @@ func testWhenAwsPrincipalIsWildcardedDeniedButAnotherAccountIsAllowed(t *testing
       "Version": "2012-10-17",
       "Statement": [
         {
-          "Effect": "Deny",
-          "Action": "sts:AssumeRole",
-          "Principal": "*"
-        },
-        {
           "Effect": "Allow",
-          "Action": "sts:AssumeRole",
-          "Principal": "012345678901"
+          "Action": "sts:AssumeRole"
         }
       ]
     }
@@ -5701,7 +5695,7 @@ func TestGlobalConditionSourceArn(t *testing.T) {
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardWithArnLike", testSourceArnConditionWhenValueIsFullWildcardWithArnLike)
 	t.Run("TestSourceArnConditionWhenValueIsInvalidValueWithArnLike", testSourceArnConditionWhenValueIsInvalidValueWithArnLike)
 	t.Run("TestSourceArnConditionUsingArnLikeIfExists", testSourceArnConditionUsingArnLikeIfExists)
-	t.Run("testSourceArnConditionWhenValueIsPartialWildcardWithArnLike", testSourceArnConditionWhenValueIsPartialWildcardWithArnLike)
+	t.Run("TestSourceArnConditionWhenValueIsPartialWildcardWithArnLike", testSourceArnConditionWhenValueIsPartialWildcardWithArnLike)
 	t.Run("TestSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike", testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike)
 	t.Run("TestSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike", testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike)
 
@@ -8310,14 +8304,14 @@ func testSourceArnConditionIsNotAnArnOrStringType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -8372,14 +8366,14 @@ func testSourceArnConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -8546,7 +8540,7 @@ func TestGlobalConditionPrincipalArn(t *testing.T) {
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardWithArnLike", testPrincipalArnConditionWhenValueIsFullWildcardWithArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueIsInvalidValueWithArnLike", testPrincipalArnConditionWhenValueIsInvalidValueWithArnLike)
 	t.Run("TestPrincipalArnConditionUsingArnLikeIfExists", testPrincipalArnConditionUsingArnLikeIfExists)
-	t.Run("testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike", testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike)
+	t.Run("TestPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike", testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike", testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike)
 	t.Run("TestPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike", testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLike)
 
@@ -11155,14 +11149,14 @@ func testPrincipalArnConditionIsNotAnArnOrStringType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -11217,14 +11211,14 @@ func testPrincipalArnConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -11366,7 +11360,7 @@ func TestGlobalConditionSourceAccount(t *testing.T) {
 	t.Run("TestSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardWithStringLike", testSourceAccountConditionWhenValueIsFullWildcardWithStringLike)
-	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike", testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike)
+	t.Run("TestSourceAccountConditionWhenValueIsPartialWildcardWithStringLike", testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestSourceAccountConditionUsingStringLikeIfExists", testSourceAccountConditionUsingStringLikeIfExists)
 	t.Run("TestSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
 	t.Run("TestSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
@@ -12969,14 +12963,14 @@ func testSourceAccountConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -13118,7 +13112,7 @@ func TestGlobalConditionPrincipalAccount(t *testing.T) {
 	t.Run("TestPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike", testPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike)
-	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike", testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike)
+	t.Run("TestPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike", testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike)
 	t.Run("TestPrincipalAccountConditionUsingStringLikeIfExists", testPrincipalAccountConditionUsingStringLikeIfExists)
 	t.Run("TestPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
 	t.Run("TestPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
@@ -14721,14 +14715,14 @@ func testPrincipalAccountConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -16091,14 +16085,14 @@ func testPrincipalOrgIDConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -17842,14 +17836,14 @@ func testSourceOwnerConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := EvaluatedPolicy{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -17969,3 +17963,73 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 		t.Fail()
 	}
 }
+
+// func TestFirstDeny(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "ec2:DescribeVolumes",
+//           "Resource": "*"
+//         },
+//         {
+//           "Effect": "Deny",
+//           "Action": "ec2:DescribeVolumes",
+//           "Resource": "*"
+//         }
+//       ]
+//     }
+// 	`
+
+// 	expected := EvaluatedPolicy{
+// 		AccessLevel:            "public",
+// 		AllowedOrganizationIds: []string{},
+// 		AllowedPrincipals: []string{
+// 			"*",
+// 			"012345678901",
+// 			"222233332222",
+// 		},
+// 		AllowedPrincipalAccountIds: []string{
+// 			"*",
+// 			"012345678901",
+// 			"222233332222",
+// 		},
+// 		AllowedPrincipalFederatedIdentities: []string{},
+// 		AllowedPrincipalServices:            []string{},
+// 		IsPublic:                            true,
+// 		PublicAccessLevels:                  []string{"List"},
+// 		SharedAccessLevels:                  []string{"List"},
+// 		PrivateAccessLevels:                 []string{"List"},
+// 		PublicStatementIds:                  []string{"Statement[2]"},
+// 		SharedStatementIds:                  []string{"Statement[3]"},
+// 	}
+
+// 	// Test
+// 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+// 	// Evaluate
+// 	if err != nil {
+// 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+// 	}
+
+// 	errors := evaluatePrincipalTest(t, evaluated, expected)
+// 	if len(errors) > 0 {
+// 		for _, error := range errors {
+// 			t.Log(error)
+// 		}
+// 		t.Fatal("Conditions Unit Test error detected")
+// 	}
+
+// 	errors = evaluateIntegration(t, evaluated, expected)
+// 	if len(errors) > 0 {
+// 		for _, error := range errors {
+// 			t.Log(error)
+// 		}
+// 		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+// 		t.Fail()
+// 	}
+// }
