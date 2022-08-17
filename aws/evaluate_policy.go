@@ -645,8 +645,8 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 				continue
 			}
 
-			re := regexp.MustCompile(`^[0-9]{12}$`)
-			if !re.MatchString(account) {
+			reAccountFormat := regexp.MustCompile(`^[0-9]{12}$`)
+			if !reAccountFormat.MatchString(account) {
 				continue
 			}
 
@@ -662,8 +662,8 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 		}
 
 		// Check if principal doesn't match an account ID, ignore
-		re := regexp.MustCompile(`^[0-9]{12}$`)
-		if !re.MatchString(principal) {
+		reAccountFormat := regexp.MustCompile(`^[0-9]{12}$`)
+		if !reAccountFormat.MatchString(principal) {
 			continue
 		}
 
