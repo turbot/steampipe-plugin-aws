@@ -483,8 +483,8 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 				completedEvaluation.allowedPrincipalsSet[principal] = true
 				// We need to pull the account out of a wildcard type
 				// Assume that account is before any other numeric
-				// There should never be any more that 13 digits
-				reAccountExtractor := regexp.MustCompile(`^.*[^0-9]+([0-9]{12})[^0-9]+.*$`)
+				// There should always be 12 digits
+				reAccountExtractor := regexp.MustCompile(`^.*[:\*\?]([0-9]{12})[:\*\?].*$`)
 				arnAccount := reAccountExtractor.FindStringSubmatch(principal)
 				if len(arnAccount) > 0 {
 					account := arnAccount[1]
@@ -510,7 +510,7 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 
 				if strings.Contains(account, "*") && accountLength <= 12 {
 					completedEvaluation.allowedPrincipalsSet[principal] = true
-					completedEvaluation.allowedPrincipalAccountIdsSet["*"] = true
+					completedEvaluation.allowedPrincipalAccountIdsSet[account] = true
 					completedEvaluation.isPublic = true
 					continue
 				}
@@ -521,7 +521,7 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 
 				if strings.Contains(account, "?") {
 					completedEvaluation.allowedPrincipalsSet[principal] = true
-					completedEvaluation.allowedPrincipalAccountIdsSet["*"] = true
+					completedEvaluation.allowedPrincipalAccountIdsSet[account] = true
 					completedEvaluation.isPublic = true
 					continue
 				}
@@ -629,7 +629,7 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 
 			if strings.Contains(account, "*") && accountLength <= 12 {
 				completedEvaluation.allowedPrincipalsSet[principal] = true
-				completedEvaluation.allowedPrincipalAccountIdsSet["*"] = true
+				completedEvaluation.allowedPrincipalAccountIdsSet[account] = true
 				completedEvaluation.isPublic = true
 				continue
 			}
@@ -640,7 +640,7 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 
 			if strings.Contains(account, "?") {
 				completedEvaluation.allowedPrincipalsSet[principal] = true
-				completedEvaluation.allowedPrincipalAccountIdsSet["*"] = true
+				completedEvaluation.allowedPrincipalAccountIdsSet[account] = true
 				completedEvaluation.isPublic = true
 				continue
 			}
