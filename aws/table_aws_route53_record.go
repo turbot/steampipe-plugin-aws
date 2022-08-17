@@ -145,7 +145,6 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-	// Optional parameters not included due to incorrect API response for `name` and `type`
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &hostedZoneID,
 		MaxItems:     aws.String("1000"),
@@ -158,7 +157,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 	if equalQuals["type"] != nil {
-		if equalQuals["type"].GetStringValue() != "" {
+		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
 			input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
 		}
 	}
