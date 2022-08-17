@@ -314,7 +314,7 @@ external_id = yyyyy
 connection "aws_account_a" {
   plugin  = "aws"
   profile = "profile_account_a"
-  regions = ["*"]
+  regions = ["us-east-1", "us-east-2"]
 }
 
 connection "aws_account_b" {
