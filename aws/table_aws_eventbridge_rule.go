@@ -22,8 +22,10 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 			Hydrate: getAwsEventBridgeRule,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEventBridgeRules,
+			ParentHydrate: listAwsEventBridgeBuses,
+			Hydrate:       listAwsEventBridgeRules,
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "event_bus_name", Require: plugin.Optional},
 				{Name: "name_prefix", Require: plugin.Optional},
 			},
 		},
@@ -118,7 +120,12 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var eventBusName string
+	if h.Item != nil {
+		eventBusName = *h.Item.(*eventbridge.DescribeEventBusOutput).Name
+	}
+
 	// Create session
 	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
@@ -129,6 +136,9 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	input := &eventbridge.ListRulesInput{
 		// Default to the maximum allowed
 		Limit: aws.Int64(100),
+	}
+	if eventBusName != "" {
+		input.EventBusName = &eventBusName
 	}
 
 	equalQuals := d.KeyColumnQuals

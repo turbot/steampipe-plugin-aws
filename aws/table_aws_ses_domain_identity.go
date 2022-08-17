@@ -11,18 +11,18 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
+func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ses_email_identity",
-		Description: "AWS SES Email Identity",
+		Name:        "aws_ses_domain_identity",
+		Description: "AWS SES Domain Identity",
 		List: &plugin.ListConfig{
-			Hydrate: listSESEmailIdentities,
+			Hydrate: listSESDomainIdentities,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
-				Description: "The email identity.",
+				Description: "The domain identity.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromValue(),
 			},
@@ -38,12 +38,14 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 				Description: "The verification status of the identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSESIdentityVerificationAttributes,
+				Transform:   transform.FromField("VerificationStatus"),
 			},
 			{
 				Name:        "verification_token",
 				Description: "The verification token for a domain identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSESIdentityVerificationAttributes,
+				Transform:   transform.FromField("VerificationToken"),
 			},
 			{
 				Name:        "notification_attributes",
@@ -73,9 +75,9 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listSESEmailIdentities")
+	logger.Trace("listSESDomainIdentities")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
@@ -84,10 +86,9 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-	// execute list call
 	input := &ses.ListIdentitiesInput{
 		MaxItems:     aws.Int64(1000),
-		IdentityType: aws.String(ses.IdentityTypeEmailAddress),
+		IdentityType: aws.String(ses.IdentityTypeDomain),
 	}
 
 	// Limiting the results
@@ -118,70 +119,4 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		},
 	)
 	return nil, err
-}
-
-//// HYDRATE FUNCTIONS
-
-func getSESIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentityVerificationAttributes")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&identity}
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &ses.GetIdentityVerificationAttributesInput{
-		Identities: identities,
-	}
-	result, err := svc.GetIdentityVerificationAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.VerificationAttributes[identity], err
-}
-
-func getSESIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSESIdentityNotificationAttributes")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	identities := []*string{&identity}
-
-	// Create Session
-	svc, err := SESService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &ses.GetIdentityNotificationAttributesInput{
-		Identities: identities,
-	}
-	result, err := svc.GetIdentityNotificationAttributes(input)
-	if err != nil {
-		return nil, err
-	}
-	return result.NotificationAttributes[identity], err
-}
-
-func getSESIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSESIdentityARN")
-
-	identity := h.Item.(string)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	c, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":identity/" + identity
-	return arn, nil
 }

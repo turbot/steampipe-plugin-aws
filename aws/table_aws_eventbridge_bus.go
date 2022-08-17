@@ -106,6 +106,11 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		input.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
 	}
 
+	// For case when listAwsEventBridgeBuses is used as parent hydrate in aws_eventbridge_rule table
+	if equalQuals["name"] == nil && equalQuals["event_bus_name"] != nil {
+		input.NamePrefix = aws.String(equalQuals["event_bus_name"].GetStringValue())
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {

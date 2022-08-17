@@ -23,7 +23,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 			Hydrate:    getInspectorFinding,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listInspectorFindings,
+			Hydrate: listInspectorFindings,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntity", "InvalidParameter"}),
 			},
