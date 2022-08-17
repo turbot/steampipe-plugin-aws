@@ -297,7 +297,7 @@ aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
 region = us-west-2
 # this Principal must have permissions to sts:AssumeRole for 'arn:aws:iam::*:role/spc_role'
 
-[profile_account_a]
+[role_without_mfa_a]
 role_arn = arn:aws:iam::111111111111:role/spc_role
 source_profile = cli-user
 external_id = xxxxx
