@@ -330,7 +330,7 @@ func evaluateIntegration(t *testing.T, source EvaluatedPolicy, expected Evaluate
 func TestPolicyStatementElement(t *testing.T) {
 	t.Run("TestPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates", testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates)
 
-	t.Run("TestPolicyCreatedByStructEvaluates", testPolicyCreatedByStringEvaluates)
+	t.Run("TestPolicyCreatedByStringEvaluates", testPolicyCreatedByStringEvaluates)
 	t.Run("TestPolicyCreatedByEmptyJsonStringEvaluates", testPolicyCreatedByEmptyJsonStringEvaluates)
 }
 
@@ -5660,14 +5660,14 @@ func TestGlobalConditionSourceArn(t *testing.T) {
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEquals", testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEquals", testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEquals", testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestSourceArnConditionUsingStringEqualsIfExists", testSourceArnConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
-	t.Run("testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceArnConditionUsingStringEqualsIgnoreCaseIfExists", testSourceArnConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -8436,14 +8436,14 @@ func TestGlobalConditionPrincipalArn(t *testing.T) {
 	t.Run("TestPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals", testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestPrincipalArnConditionWhenValueIsACrossAccountUsingStringEquals", testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalArnConditionUsingStringEqualsIfExists", testPrincipalArnConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestPrincipalArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
-	t.Run("testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists", testPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -11212,14 +11212,14 @@ func TestGlobalConditionSourceAccount(t *testing.T) {
 	t.Run("TestSourceAccountConditionWhenValueIsAUserAccountUsingStringEquals", testSourceAccountConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceAccountConditionWhenValueIsACrossAccountUsingStringEquals", testSourceAccountConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals", testSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestSourceAccountConditionUsingStringEqualsIfExists", testSourceAccountConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestSourceAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
-	t.Run("testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists", testSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -12901,14 +12901,14 @@ func TestGlobalConditionPrincipalAccount(t *testing.T) {
 	t.Run("TestPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEquals", testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEquals", testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalAccountConditionUsingStringEqualsIfExists", testPrincipalAccountConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
-	t.Run("testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
 	t.Run("TestPrincipalAccountConditionUsingStringEqualsIgnoreCaseIfExists", testPrincipalAccountConditionUsingStringEqualsIgnoreCaseIfExists)
 	// StringNotEqualsIgnoreCase
 	// StringLike
@@ -14590,7 +14590,7 @@ func TestGlobalConditionPrincipalOrgID(t *testing.T) {
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals)
-	t.Run("TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals", TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals", testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestPrincipalOrgIDConditionUsingStringEqualsIfExists", testPrincipalOrgIDConditionUsingStringEqualsIfExists)
 	// StringNotEquals
 	// StringEqualsIgnoreCase
@@ -14805,7 +14805,7 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals(t *test
 	}
 }
 
-func TestPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -15926,6 +15926,1695 @@ func testPrincipalOrgIDConditionWhenAcrossMultipleStatements(t *testing.T) {
 			"Statement[1]",
 			"Statement[3]",
 		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestGlobalConditionSourceOwner(t *testing.T) {
+	// StringEquals
+	t.Run("TestSourceOwnerConditionWhenValueIsAUserAccountUsingStringEquals", testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEquals)
+	t.Run("TestSourceOwnerConditionWhenValueIsACrossAccountUsingStringEquals", testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEquals)
+	t.Run("TestSourceOwnerConditionWhenValueIsFullWildcardUsingStringEquals", testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEquals)
+	t.Run("TestSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEquals)
+	t.Run("TestSourceOwnerConditionUsingStringEqualsIfExists", testSourceOwnerConditionUsingStringEqualsIfExists)
+	// StringNotEquals
+	// StringEqualsIgnoreCase
+	t.Run("TestSourceOwnerConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceOwnerConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase", testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceOwnerConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase", testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase", testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase)
+	t.Run("TestSourceOwnerConditionUsingStringEqualsIgnoreCaseIfExists", testSourceOwnerConditionUsingStringEqualsIgnoreCaseIfExists)
+	// StringNotEqualsIgnoreCase
+	// StringLike
+	t.Run("TestSourceOwnerConditionWhenValueIsAUserAccountWithStringLike", testSourceOwnerConditionWhenValueIsAUserAccountWithStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueIsACrossAccountWithStringLike", testSourceOwnerConditionWhenValueIsACrossAccountWithStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike", testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike", testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueIsFullWildcardWithStringLike", testSourceOwnerConditionWhenValueIsFullWildcardWithStringLike)
+	t.Run("TestSourceOwnerConditionUsingStringLikeIfExists", testSourceOwnerConditionUsingStringLikeIfExists)
+	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike", testSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike", testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike)
+	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStringLike", testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStringLike)
+
+	// StringNotLike
+	// String Other
+	t.Run("TestSourceOwnerConditionWhenValueWhenArnIsMalformedUsingStringOperators", testSourceOwnerConditionWhenValueWhenArnIsMalformedUsingStringOperators)
+	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOperators", testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOperators)
+	t.Run("TestSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOperators", testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOperators)
+	t.Run("TestSourceOwnerConditionWithMulipleValuesUsingStringOperators", testSourceOwnerConditionWithMulipleValuesUsingStringOperators)
+
+	// Others
+	t.Run("TestSourceOwnerConditionIsNotAnArnOrStringType", testSourceOwnerConditionIsNotAStringType)
+	t.Run("TestSourceOwnerConditionWhenUnknownOperatoryType", testSourceOwnerConditionWhenUnknownOperatoryType)
+	t.Run("TestSourceOwnerConditionWhenAcrossMultipleStatements", testSourceOwnerConditionWhenAcrossMultipleStatements)
+}
+
+func testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"222233332222"},
+		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEquals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["12345678*", "1234567890??"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionUsingStringEqualsIfExists(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIfExists": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"222233332222"},
+		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceOwner": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCase(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCase": {
+              "aws:SourceOwner": ["12345678*", "1234567890??"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEqualsIgnoreCaseIfExists": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsAUserAccountWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsACrossAccountWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"222233332222"},
+		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["22223333222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["2222333322222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueIsFullWildcardWithStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionUsingStringLikeIfExists(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLikeIfExists": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"222233332222"},
+		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["0123456789??"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"0123456789??"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["0123456789?"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStringLike(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "ArnLike": {
+              "aws:SourceOwner": ["0123456789???"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenArnIsMalformedUsingStringOperators(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["01234567890A"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOperators(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["01234567890"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOperators(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["0123456789012"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWithMulipleValuesUsingStringOperators(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": [
+                "012345678901",
+                "*",
+                "222233332222"
+              ]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"222233332222",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"012345678901",
+			"222233332222",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionIsNotAStringType(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "ArnEquals": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenUnknownOperatoryType(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringUnknown": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["012345678901"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:SourceOwner": ["*"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceOwner": ["222233332222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := EvaluatedPolicy{
+		AccessLevel:            "public",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"*",
+			"012345678901",
+			"222233332222",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"*",
+			"012345678901",
+			"222233332222",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{"Statement[2]"},
+		SharedStatementIds:                  []string{"Statement[3]"},
 	}
 
 	// Test
