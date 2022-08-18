@@ -50,9 +50,9 @@ type Permissions struct {
 	accessLevel map[string]string
 }
 
-type EvaluatedAction struct {
+type PermissionSummary struct {
 	process    bool
-	prefix     string
+	service    string
 	priviledge string
 	matcher    string
 }
@@ -81,10 +81,10 @@ type EvaluatedPrincipal struct {
 }
 
 type EvaluatedStatement struct {
-	principal EvaluatedPrincipal
-	condition EvaluatedCondition
-	sid       string
-	actionSet map[string]bool
+	principal            EvaluatedPrincipal
+	condition            EvaluatedCondition
+	sid                  string
+	availablePermissions AvailablePermissions
 }
 
 func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, error) {
@@ -108,32 +108,34 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 		return policySummary, err
 	}
 
-	permissions := getSortedPermissions()
+	allAvailablePermissions := loadAllAvailablePermissions()
 
 	policy := policyInterface.(Policy)
 
-	statementSummary, err := evaluateStatements(policy.Statements, userAccountId, permissions)
+	allowedEvaluatedStatements, deniedEvaluatedStatements, err := evaluateStatements(policy.Statements, userAccountId, allAvailablePermissions)
 	if err != nil {
 		return policySummary, err
 	}
 
-	policySummary.AccessLevel = evaluateAccessLevel(statementSummary)
-	policySummary.AllowedPrincipalFederatedIdentities = setToSortedSlice(statementSummary.allowedPrincipalFederatedIdentitiesSet)
-	policySummary.AllowedPrincipalServices = setToSortedSlice(statementSummary.allowedPrincipalServicesSet)
-	policySummary.AllowedPrincipals = setToSortedSlice(statementSummary.allowedPrincipalsSet)
-	policySummary.AllowedPrincipalAccountIds = setToSortedSlice(statementSummary.allowedPrincipalAccountIdsSet)
-	policySummary.AllowedOrganizationIds = setToSortedSlice(statementSummary.allowedOrganizationIds)
-	policySummary.PublicStatementIds = setToSortedSlice(statementSummary.publicStatementIds)
-	policySummary.SharedStatementIds = setToSortedSlice(statementSummary.sharedStatementIds)
-	policySummary.PublicAccessLevels = statementSummary.publicAccessLevels
-	policySummary.SharedAccessLevels = statementSummary.sharedAccessLevels
-	policySummary.PrivateAccessLevels = statementSummary.privateAccessLevels
-	policySummary.IsPublic = statementSummary.isPublic
+	statementsSummary := generateStatementsSummary(allowedEvaluatedStatements, deniedEvaluatedStatements, allAvailablePermissions)
+
+	policySummary.AccessLevel = evaluateAccessLevel(statementsSummary)
+	policySummary.AllowedPrincipalFederatedIdentities = setToSortedSlice(statementsSummary.allowedPrincipalFederatedIdentitiesSet)
+	policySummary.AllowedPrincipalServices = setToSortedSlice(statementsSummary.allowedPrincipalServicesSet)
+	policySummary.AllowedPrincipals = setToSortedSlice(statementsSummary.allowedPrincipalsSet)
+	policySummary.AllowedPrincipalAccountIds = setToSortedSlice(statementsSummary.allowedPrincipalAccountIdsSet)
+	policySummary.AllowedOrganizationIds = setToSortedSlice(statementsSummary.allowedOrganizationIds)
+	policySummary.PublicStatementIds = setToSortedSlice(statementsSummary.publicStatementIds)
+	policySummary.SharedStatementIds = setToSortedSlice(statementsSummary.sharedStatementIds)
+	policySummary.PublicAccessLevels = statementsSummary.publicAccessLevels
+	policySummary.SharedAccessLevels = statementsSummary.sharedAccessLevels
+	policySummary.PrivateAccessLevels = statementsSummary.privateAccessLevels
+	policySummary.IsPublic = statementsSummary.isPublic
 
 	return policySummary, nil
 }
 
-func sortStatements(statements []Statement, userAccountId string) ([]EvaluatedStatement, []EvaluatedStatement, error) {
+func evaluateStatements(statements []Statement, userAccountId string, allAvailablePermissions AllAvailablePermissions) ([]EvaluatedStatement, []EvaluatedStatement, error) {
 	var currentEvaluatedStatements *[]EvaluatedStatement
 	allowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
 	deniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
@@ -175,12 +177,13 @@ func sortStatements(statements []Statement, userAccountId string) ([]EvaluatedSt
 			principal: evaluatedPrincipal,
 			condition: evaluatedCondition,
 			sid:       sid,
-			actionSet: map[string]bool{},
 		}
 
+		actionSet := map[string]bool{}
 		for _, action := range statement.Action {
-			evaluatedStatement.actionSet[action] = true
+			actionSet[action] = true
 		}
+		evaluatedStatement.availablePermissions = findAvailablePermissions(actionSet, allAvailablePermissions)
 
 		(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, evaluatedStatement)
 	}
@@ -188,49 +191,26 @@ func sortStatements(statements []Statement, userAccountId string) ([]EvaluatedSt
 	return allowedEvaluatedStatements, deniedEvaluatedStatements, nil
 }
 
-func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (StatementsSummary, error) {
-	var statementsSummary StatementsSummary
-
-	allowedEvaluatedStatements, deniedEvaluatedStatements, err := sortStatements(statements, userAccountId)
-	if err != nil {
-		return statementsSummary, err
-	}
-
-	statementsSummary = evaluateOverallStatements(allowedEvaluatedStatements, deniedEvaluatedStatements, permissions)
-
-	return statementsSummary, nil
-}
-
-// NOTE: Start from here
-func reduceAccessLevels(allowedAccessLevelSet map[string]bool, deniedAccessLevelSet map[string]bool) map[string]bool {
-	// Remove from allowed set
-	for deniedAccessLevel := range deniedAccessLevelSet {
-		delete(allowedAccessLevelSet, deniedAccessLevel)
-	}
-
-	return allowedAccessLevelSet
-}
-
-func createStatementsSummary(statements []EvaluatedStatement, permissions map[string]Permissions) StatementsSummary {
+func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
 	statementsSummary := StatementsSummary{
 		publicStatementIds: map[string]bool{},
 		sharedStatementIds: map[string]bool{},
 	}
 
-	publicActionLevelSet := map[string]bool{}
-	sharedActionLevelSet := map[string]bool{}
-	privateActionLevelSet := map[string]bool{}
+	publicAccessLevelSet := map[string]bool{}
+	sharedAccessLevelSet := map[string]bool{}
+	privateAccessLevelSet := map[string]bool{}
 
 	for _, reducedStatement := range statements {
 		// Does this statement have any actions and are the actions valid?
 		// TODO: Actions valid?
-		if len(reducedStatement.actionSet) == 0 {
+		if !reducedStatement.availablePermissions.isAllPermissions && len(reducedStatement.availablePermissions.permissions) == 0 {
 			continue
 		}
 
-		evaluatedActionLevels := evaluateActionLevels(reducedStatement.actionSet, permissions)
+		evaluatedAccessLevels := getAccessLevels(reducedStatement, allAvailablePermissions)
 
-		if len(evaluatedActionLevels) == 0 {
+		if len(evaluatedAccessLevels) == 0 {
 			continue
 		}
 
@@ -266,120 +246,42 @@ func createStatementsSummary(statements []EvaluatedStatement, permissions map[st
 		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.principal.isShared || reducedStatement.condition.isShared
 
 		if isPublic {
-			publicActionLevelSet = mergeSet(publicActionLevelSet, evaluatedActionLevels)
+			publicAccessLevelSet = mergeSet(publicAccessLevelSet, evaluatedAccessLevels)
 			statementsSummary.publicStatementIds[reducedStatement.sid] = true
 		}
 
 		if isShared {
-			sharedActionLevelSet = mergeSet(sharedActionLevelSet, evaluatedActionLevels)
+			sharedAccessLevelSet = mergeSet(sharedAccessLevelSet, evaluatedAccessLevels)
 			//if len(sharedActionSet) > 0 {
 			statementsSummary.sharedStatementIds[reducedStatement.sid] = true
 			//}
 		}
 
 		if isPrivate {
-			privateActionLevelSet = mergeSet(privateActionLevelSet, evaluatedActionLevels)
+			privateAccessLevelSet = mergeSet(privateAccessLevelSet, evaluatedAccessLevels)
 		}
 	}
 
-	statementsSummary.publicAccessLevels = setToSortedSlice(publicActionLevelSet)
-	statementsSummary.sharedAccessLevels = setToSortedSlice(sharedActionLevelSet)
-	statementsSummary.privateAccessLevels = setToSortedSlice(privateActionLevelSet)
+	statementsSummary.publicAccessLevels = setToSortedSlice(publicAccessLevelSet)
+	statementsSummary.sharedAccessLevels = setToSortedSlice(sharedAccessLevelSet)
+	statementsSummary.privateAccessLevels = setToSortedSlice(privateAccessLevelSet)
 
 	return statementsSummary
 }
 
-func evaluateOverallStatements(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement, permissions map[string]Permissions) StatementsSummary {
+func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
 	reducedStatements := allowedStatements
 
 	for _, deniedStatement := range deniedStatements {
 		for reducedStatementIndex := range reducedStatements {
-			for deniedAction := range deniedStatement.actionSet {
-				delete(reducedStatements[reducedStatementIndex].actionSet, deniedAction)
+
+			for deniedPermission := range deniedStatement.availablePermissions.permissions {
+				delete(reducedStatements[reducedStatementIndex].availablePermissions.permissions, deniedPermission)
 			}
 		}
 	}
 
-	return createStatementsSummary(reducedStatements, permissions)
-
-	// statementsSummary := StatementsSummary{
-	// 	publicStatementIds: map[string]bool{},
-	// 	sharedStatementIds: map[string]bool{},
-	// }
-	// reducedStatements := allowedStatements
-
-	// publicActionLevelSet := map[string]bool{}
-	// sharedActionLevelSet := map[string]bool{}
-	// privateActionLevelSet := map[string]bool{}
-
-	// createStatementsSummary(reducedStatements, permissions)
-
-	// for _, reducedStatement := range reducedStatements {
-	// 	// Does this statement have any actions and are the actions valid?
-	// 	// TODO: Actions valid?
-	// 	if len(reducedStatement.actionSet) == 0 {
-	// 		continue
-	// 	}
-
-	// 	evaluatedActionLevels := evaluateActionLevels(reducedStatement.actionSet, permissions)
-
-	// 	if len(evaluatedActionLevels) == 0 {
-	// 		continue
-	// 	}
-
-	// 	statementsSummary.allowedOrganizationIds = mergeSets(
-	// 		statementsSummary.allowedOrganizationIds,
-	// 		reducedStatement.principal.allowedOrganizationIds,
-	// 		reducedStatement.condition.allowedOrganizationIds,
-	// 	)
-	// 	statementsSummary.allowedPrincipalAccountIdsSet = mergeSets(
-	// 		statementsSummary.allowedPrincipalAccountIdsSet,
-	// 		reducedStatement.principal.allowedPrincipalAccountIdsSet,
-	// 		reducedStatement.condition.allowedPrincipalAccountIdsSet,
-	// 	)
-	// 	statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSets(
-	// 		statementsSummary.allowedPrincipalFederatedIdentitiesSet,
-	// 		reducedStatement.principal.allowedPrincipalFederatedIdentitiesSet,
-	// 		reducedStatement.condition.allowedPrincipalFederatedIdentitiesSet,
-	// 	)
-	// 	statementsSummary.allowedPrincipalServicesSet = mergeSets(
-	// 		statementsSummary.allowedPrincipalServicesSet,
-	// 		reducedStatement.principal.allowedPrincipalServicesSet,
-	// 		reducedStatement.condition.allowedPrincipalServicesSet,
-	// 	)
-	// 	statementsSummary.allowedPrincipalsSet = mergeSets(
-	// 		statementsSummary.allowedPrincipalsSet,
-	// 		reducedStatement.principal.allowedPrincipalsSet,
-	// 		reducedStatement.condition.allowedPrincipalsSet,
-	// 	)
-	// 	isPublic := reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
-	// 	isShared := reducedStatement.principal.isShared || reducedStatement.condition.isShared
-	// 	isPrivate := reducedStatement.principal.isPrivate || reducedStatement.condition.isPrivate
-	// 	statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
-	// 	statementsSummary.isShared = statementsSummary.isShared || reducedStatement.principal.isShared || reducedStatement.condition.isShared
-
-	// 	if isPublic {
-	// 		publicActionLevelSet = mergeSet(publicActionLevelSet, evaluatedActionLevels)
-	// 		statementsSummary.publicStatementIds[reducedStatement.sid] = true
-	// 	}
-
-	// 	if isShared {
-	// 		sharedActionLevelSet = mergeSet(sharedActionLevelSet, evaluatedActionLevels)
-	// 		//if len(sharedActionSet) > 0 {
-	// 		statementsSummary.sharedStatementIds[reducedStatement.sid] = true
-	// 		//}
-	// 	}
-
-	// 	if isPrivate {
-	// 		privateActionLevelSet = mergeSet(privateActionLevelSet, evaluatedActionLevels)
-	// 	}
-	// }
-
-	// statementsSummary.publicAccessLevels = setToSortedSlice(publicActionLevelSet)
-	// statementsSummary.sharedAccessLevels = setToSortedSlice(sharedActionLevelSet)
-	// statementsSummary.privateAccessLevels = setToSortedSlice(privateActionLevelSet)
-
-	// return statementsSummary
+	return createStatementsSummary(reducedStatements, allAvailablePermissions)
 }
 
 func evaluateCondition(conditions map[string]interface{}, userAccountId string) (EvaluatedCondition, error) {
@@ -488,12 +390,12 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 	return evaluatedPrincipal, nil
 }
 
-func evaluateAction(action string) EvaluatedAction {
-	evaluated := EvaluatedAction{}
+func createPermissionSummary(action string) PermissionSummary {
+	evaluated := PermissionSummary{}
 
 	lowerAction := strings.ToLower(action)
 	actionParts := strings.Split(lowerAction, ":")
-	evaluated.prefix = actionParts[0]
+	evaluated.service = actionParts[0]
 
 	if len(actionParts) < 2 || actionParts[1] == "" {
 		return evaluated
@@ -535,8 +437,73 @@ func evaluateAccessLevel(statements StatementsSummary) string {
 	return "private"
 }
 
-func evaluateActionLevels(actionSet map[string]bool, permissions map[string]Permissions) map[string]bool {
+type AvailablePermissions struct {
+	isAllPermissions bool
+	permissions      map[string]bool
+}
+
+func findAvailablePermissions(actionSet map[string]bool, allAvailablePermissions AllAvailablePermissions) AvailablePermissions {
 	if _, exists := actionSet["*"]; exists {
+		return AvailablePermissions{isAllPermissions: true}
+	}
+
+	permissions := map[string]bool{}
+
+	for action := range actionSet {
+		permissionSummary := createPermissionSummary(action)
+
+		if !permissionSummary.process {
+			continue
+		}
+
+		// Find service
+		if _, exists := allAvailablePermissions.servicePermissions[permissionSummary.service]; !exists {
+			continue
+		}
+
+		servicePermissions := allAvailablePermissions.servicePermissions[permissionSummary.service]
+
+		// Find API Call
+		privilegesLen := len(servicePermissions.privileges)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, permissionSummary.priviledge)
+		if checkIndex >= privilegesLen {
+			continue
+		}
+
+		if permissionSummary.matcher == "" {
+			if _, exists := servicePermissions.accessLevel[permissionSummary.priviledge]; exists {
+				permission := fmt.Sprintf("%s:%s", permissionSummary.service, permissionSummary.priviledge)
+				permissions[permission] = true
+			}
+			continue
+		}
+
+		evaluatedPriviledgeLen := len(permissionSummary.priviledge)
+		matcher := regexp.MustCompile(permissionSummary.matcher)
+		for ; checkIndex < privilegesLen; checkIndex++ {
+			currentPrivilege := servicePermissions.privileges[checkIndex]
+			currentPrivilegeLen := len(currentPrivilege)
+
+			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
+			partialPriviledge := currentPrivilege[0:splitIndex]
+
+			if partialPriviledge != permissionSummary.priviledge {
+				break
+			}
+			if !matcher.MatchString(currentPrivilege) {
+				continue
+			}
+
+			permission := fmt.Sprintf("%s:%s", permissionSummary.service, currentPrivilege)
+			permissions[permission] = true
+		}
+	}
+
+	return AvailablePermissions{permissions: permissions}
+}
+
+func getAccessLevels(evaluatedStatement EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) map[string]bool {
+	if evaluatedStatement.availablePermissions.isAllPermissions {
 		return map[string]bool{
 			"List":                   true,
 			"Permissions management": true,
@@ -548,56 +515,121 @@ func evaluateActionLevels(actionSet map[string]bool, permissions map[string]Perm
 
 	accessLevels := map[string]bool{}
 
-	for action := range actionSet {
-		evaluatedAction := evaluateAction(action)
+	for permission := range evaluatedStatement.availablePermissions.permissions {
+		actionSummary := createPermissionSummary(permission)
 
-		if !evaluatedAction.process {
+		if !actionSummary.process {
 			continue
 		}
 
 		// Find service
-		if _, exists := permissions[evaluatedAction.prefix]; !exists {
+		if _, exists := allAvailablePermissions.servicePermissions[actionSummary.service]; !exists {
 			continue
 		}
 
-		permission := permissions[evaluatedAction.prefix]
+		servicePermissions := allAvailablePermissions.servicePermissions[actionSummary.service]
 
 		// Find API Call
-		privilegesLen := len(permission.privileges)
-		checkIndex := sort.SearchStrings(permission.privileges, evaluatedAction.priviledge)
+		privilegesLen := len(servicePermissions.privileges)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, actionSummary.priviledge)
 		if checkIndex >= privilegesLen {
 			continue
 		}
 
-		if evaluatedAction.matcher == "" {
-			if accessLevel, exists := permission.accessLevel[evaluatedAction.priviledge]; exists {
+		if actionSummary.matcher == "" {
+			if accessLevel, exists := servicePermissions.accessLevel[actionSummary.priviledge]; exists {
 				accessLevels[accessLevel] = true
 			}
 			continue
 		}
 
-		evaluatedPriviledgeLen := len(evaluatedAction.priviledge)
-		matcher := regexp.MustCompile(evaluatedAction.matcher)
+		evaluatedPriviledgeLen := len(actionSummary.priviledge)
+		matcher := regexp.MustCompile(actionSummary.matcher)
 		for ; checkIndex < privilegesLen; checkIndex++ {
-			currentPrivilege := permission.privileges[checkIndex]
+			currentPrivilege := servicePermissions.privileges[checkIndex]
 			currentPrivilegeLen := len(currentPrivilege)
 
 			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
 			partialPriviledge := currentPrivilege[0:splitIndex]
 
-			if partialPriviledge != evaluatedAction.priviledge {
+			if partialPriviledge != actionSummary.priviledge {
 				break
 			}
 			if !matcher.MatchString(currentPrivilege) {
 				continue
 			}
-			accessLevel := permission.accessLevel[currentPrivilege]
+			accessLevel := servicePermissions.accessLevel[currentPrivilege]
 			accessLevels[accessLevel] = true
 		}
 	}
 
 	return accessLevels
 }
+
+// TODO: Remove
+// func evaluateActionLevels(actionSet map[string]bool, availablePermissions AvailablePermissions) map[string]bool {
+// 	if _, exists := actionSet["*"]; exists {
+// 		return map[string]bool{
+// 			"List":                   true,
+// 			"Permissions management": true,
+// 			"Read":                   true,
+// 			"Tagging":                true,
+// 			"Write":                  true,
+// 		}
+// 	}
+
+// 	accessLevels := map[string]bool{}
+
+// 	for action := range actionSet {
+// 		actionSummary := createActionSummary(action)
+
+// 		if !actionSummary.process {
+// 			continue
+// 		}
+
+// 		// Find service
+// 		if _, exists := availablePermissions.servicePermissions[actionSummary.prefix]; !exists {
+// 			continue
+// 		}
+
+// 		permission := availablePermissions.servicePermissions[actionSummary.prefix]
+
+// 		// Find API Call
+// 		privilegesLen := len(permission.privileges)
+// 		checkIndex := sort.SearchStrings(permission.privileges, actionSummary.priviledge)
+// 		if checkIndex >= privilegesLen {
+// 			continue
+// 		}
+
+// 		if actionSummary.matcher == "" {
+// 			if accessLevel, exists := permission.accessLevel[actionSummary.priviledge]; exists {
+// 				accessLevels[accessLevel] = true
+// 			}
+// 			continue
+// 		}
+
+// 		evaluatedPriviledgeLen := len(actionSummary.priviledge)
+// 		matcher := regexp.MustCompile(actionSummary.matcher)
+// 		for ; checkIndex < privilegesLen; checkIndex++ {
+// 			currentPrivilege := permission.privileges[checkIndex]
+// 			currentPrivilegeLen := len(currentPrivilege)
+
+// 			splitIndex := int(math.Min(float64(currentPrivilegeLen), float64(evaluatedPriviledgeLen)))
+// 			partialPriviledge := currentPrivilege[0:splitIndex]
+
+// 			if partialPriviledge != actionSummary.priviledge {
+// 				break
+// 			}
+// 			if !matcher.MatchString(currentPrivilege) {
+// 				continue
+// 			}
+// 			accessLevel := permission.accessLevel[currentPrivilege]
+// 			accessLevels[accessLevel] = true
+// 		}
+// 	}
+
+// 	return accessLevels
+// }
 
 func evaluatedSid(statement Statement, statementIndex int) string {
 	if statement.Sid == "" {
@@ -926,30 +958,41 @@ func setToSortedSlice(set map[string]bool) []string {
 	return slice
 }
 
-//func getSortedPermissions() map[string][]ParliamentPrivilege {
-func getSortedPermissions() map[string]Permissions {
-	sorted := map[string]Permissions{}
-	unsorted := getParliamentIamPermissions()
+type AllAvailablePermissions struct {
+	allPermissions     map[string]bool
+	servicePermissions map[string]Permissions
+}
 
-	for _, parliamentService := range unsorted {
-		if _, exist := sorted[parliamentService.Prefix]; !exist {
+func loadAllAvailablePermissions() AllAvailablePermissions {
+	allAvailablePermissions := AllAvailablePermissions{}
+
+	allPermissions := map[string]bool{}
+	servicePermissions := map[string]Permissions{}
+	parliamentPermissions := getParliamentIamPermissions()
+
+	for _, parliamentPermission := range parliamentPermissions {
+		if _, exist := servicePermissions[parliamentPermission.Prefix]; !exist {
 			privileges := []string{}
 			accessLevel := map[string]string{}
 
-			for _, priviledge := range parliamentService.Privileges {
+			for _, priviledge := range parliamentPermission.Privileges {
 				lowerPriviledge := strings.ToLower(priviledge.Privilege)
 				privileges = append(privileges, lowerPriviledge)
 				accessLevel[lowerPriviledge] = priviledge.AccessLevel
+				allPermissions[lowerPriviledge] = true
 			}
 
 			sort.Strings(privileges)
 
-			sorted[parliamentService.Prefix] = Permissions{
+			servicePermissions[parliamentPermission.Prefix] = Permissions{
 				privileges:  privileges,
 				accessLevel: accessLevel,
 			}
 		}
 	}
 
-	return sorted
+	allAvailablePermissions.allPermissions = allPermissions
+	allAvailablePermissions.servicePermissions = servicePermissions
+
+	return allAvailablePermissions
 }
