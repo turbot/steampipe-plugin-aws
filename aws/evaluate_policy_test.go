@@ -3729,7 +3729,8 @@ func testKnownSidInASingleStatementThatAllowsSharedAccess(t *testing.T) {
         {
           "Sid": "Sid_Statement_1",
           "Effect": "Allow",
-          "Principal": { "AWS": "444455554444" }
+          "Principal": { "AWS": "444455554444" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -3744,7 +3745,7 @@ func testKnownSidInASingleStatementThatAllowsSharedAccess(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{"Sid_Statement_1"},
@@ -3786,7 +3787,8 @@ func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
         {
           "Sid": "Sid_Statement_1",
           "Effect": "Allow",
-          "Principal": { "AWS": "012345678901" }
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -3802,7 +3804,7 @@ func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -3843,7 +3845,8 @@ func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
         {
           "Sid": "Sid_Statement_1",
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -3857,7 +3860,7 @@ func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{"Sid_Statement_1"},
@@ -3900,12 +3903,14 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t 
         {
           "Sid": "Sid_Statement_1",
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Sid": "Sid_Statement_2",
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -3919,7 +3924,7 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t 
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds: []string{
@@ -3965,12 +3970,14 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t 
         {
           "Sid": "Sid_Statement_2",
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Sid": "Sid_Statement_1",
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -3984,7 +3991,7 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t 
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds: []string{
@@ -4065,7 +4072,8 @@ func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4079,7 +4087,7 @@ func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
@@ -4121,11 +4129,13 @@ func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4139,7 +4149,7 @@ func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds: []string{
@@ -4194,7 +4204,8 @@ func testPublicPrincipalIsPublicAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4208,7 +4219,7 @@ func testPublicPrincipalIsPublicAccess(t *testing.T) {
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
@@ -4250,7 +4261,8 @@ func testServicePrincipalIsPublicAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "Service": ["ecs.amazonaws.com"] }
+          "Principal": { "Service": ["ecs.amazonaws.com"] },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4264,7 +4276,7 @@ func testServicePrincipalIsPublicAccess(t *testing.T) {
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
@@ -4306,7 +4318,8 @@ func testCrossAccountPrincipalIsSharedAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "111122221111" }
+          "Principal": { "AWS": "111122221111" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4321,7 +4334,7 @@ func testCrossAccountPrincipalIsSharedAccess(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{"Statement[1]"},
@@ -4362,7 +4375,8 @@ func testUserAccountPrincipalIsPrivateAccess(t *testing.T) {
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "012345678901" }
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4378,7 +4392,7 @@ func testUserAccountPrincipalIsPrivateAccess(t *testing.T) {
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -4418,11 +4432,13 @@ func testAccessLevelSharedHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "111122221111" }
+          "Principal": { "AWS": "111122221111" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "012345678901" }
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4443,8 +4459,8 @@ func testAccessLevelSharedHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{"Statement[1]"},
 	}
@@ -4484,11 +4500,13 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "012345678901" }
+          "Principal": { "AWS": "012345678901" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4508,9 +4526,9 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{"Statement[1]"},
 		SharedStatementIds:                  []string{},
 	}
@@ -4550,11 +4568,13 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
       "Statement": [
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "*" }
+          "Principal": { "AWS": "*" },
+          "Action": "ec2:DescribeVolumes"
         },
         {
           "Effect": "Allow",
-          "Principal": { "AWS": "111122221111" }
+          "Principal": { "AWS": "111122221111" },
+          "Action": "ec2:DescribeVolumes"
         }
       ]
     }
@@ -4574,8 +4594,8 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
-		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{},
+		PublicAccessLevels:                  []string{"List"},
+		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{"Statement[1]"},
 		SharedStatementIds:                  []string{"Statement[2]"},
@@ -4608,32 +4628,34 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
 }
 
 func TestPolicyActionElement(t *testing.T) {
-	t.Run("TestUnknownApiService", testUnknownApiService)
-	t.Run("TestUnknownApiFunction", testUnknownApiFunction)
-	t.Run("TestKnownApiFunction", testKnownApiFunction)
+	t.Run("testPolicyActionUnknownApiService", testPolicyActionUnknownApiService)
+	t.Run("testPolicyActionUnknownApiFunction", testPolicyActionUnknownApiFunction)
+	t.Run("testPolicyActionKnownApiFunction", testPolicyActionKnownApiFunction)
 
-	t.Run("TestMultipleStatementsWithKnownApiFunctions", testMultipleStatementsWithKnownApiFunctions)
+	t.Run("testPolicyActionMultipleStatementsWithKnownApiFunctions", testPolicyActionMultipleStatementsWithKnownApiFunctions)
 
-	t.Run("TestFullWildcard", testFullWildcard)
+	t.Run("testPolicyActionFullWildcard", testPolicyActionFullWildcard)
 
-	t.Run("TestSingleFullWildcardWithNoActionName", testSingleFullWildcardWithNoActionName)
-	t.Run("TestSingleFullWildcardAtEndOfAction", testSingleFullWildcardAtFrontOfAction)
-	t.Run("TestSingleFullWildcardAtEndOfAction", testSingleFullWildcardInMiddleOfAction)
-	t.Run("TestSingleFullWildcardAtEndOfAction", testSingleFullWildcardAtEndOfAction)
+	t.Run("testPolicyActionSingleFullWildcardWithNoActionName", testPolicyActionSingleFullWildcardWithNoActionName)
+	t.Run("testPolicyActionSingleFullWildcardAtFrontOfAction", testPolicyActionSingleFullWildcardAtFrontOfAction)
+	t.Run("testPolicyActionSingleFullWildcardInMiddleOfAction", testPolicyActionSingleFullWildcardInMiddleOfAction)
+	t.Run("testPolicyActionSingleFullWildcardAtEndOfAction", testPolicyActionSingleFullWildcardAtEndOfAction)
 
-	t.Run("TestSinglePartialWildcardAtFrontOfAction", testSinglePartialWildcardAtFrontOfAction)
-	t.Run("TestSinglePartialWildcardInMiddleOfAction", testSinglePartialWildcardInMiddleOfAction)
-	t.Run("TestSinglePartialWildcardAtEndOfAction", testSinglePartialWildcardAtEndOfAction)
-	t.Run("TestMultipleWildcardsInAction", testMultipleWildcardsInAction)
+	t.Run("testPolicyActionSinglePartialWildcardAtFrontOfAction", testPolicyActionSinglePartialWildcardAtFrontOfAction)
+	t.Run("testPolicyActionSinglePartialWildcardInMiddleOfAction", testPolicyActionSinglePartialWildcardInMiddleOfAction)
+	t.Run("testPolicyActionSinglePartialWildcardAtEndOfAction", testPolicyActionSinglePartialWildcardAtEndOfAction)
+	t.Run("testPolicyActionMultipleWildcardsInAction", testPolicyActionMultipleWildcardsInAction)
 
-	t.Run("TestSinglePartialWildcardAtEndOfKnownApiFunctionAction", testSinglePartialWildcardAtEndOfKnownApiFunctionAction)
-	t.Run("TestSingleFullWildcardAtEndOfKnownApiFunctionAction", testSingleFullWildcardAtEndOfKnownApiFunctionAction)
+	t.Run("testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction)
+	t.Run("testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction)
 
-	t.Run("TestIncompleteActionMissingFunctionPattern", testIncompleteActionMissingFunctionPattern)
-	t.Run("TestActionWhenServiceNameIsGivenOnly", testActionWhenServiceNameIsGivenOnly)
+	t.Run("testPolicyActionIncompleteActionMissingFunctionPattern", testPolicyActionIncompleteActionMissingFunctionPattern)
+	t.Run("testPolicyActionWhenServiceNameIsGivenOnly", testPolicyActionWhenServiceNameIsGivenOnly)
+
+	t.Run("testPolicyActionWhenServiceNameIsMissing", testPolicyActionWhenServiceNameIsMissing)
 }
 
-func testUnknownApiService(t *testing.T) {
+func testPolicyActionUnknownApiService(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4653,8 +4675,8 @@ func testUnknownApiService(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -4691,7 +4713,7 @@ func testUnknownApiService(t *testing.T) {
 	}
 }
 
-func testUnknownApiFunction(t *testing.T) {
+func testPolicyActionUnknownApiFunction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4701,7 +4723,7 @@ func testUnknownApiFunction(t *testing.T) {
         {
           "Effect": "Allow",
           "Principal": { "AWS": "012345678901" },
-          "Action": "ec2:ZtartInztancez",
+          "Action": "ec2:PescribeVolumes",
           "Resource": "*"
         }
       ]
@@ -4711,8 +4733,8 @@ func testUnknownApiFunction(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -4749,7 +4771,7 @@ func testUnknownApiFunction(t *testing.T) {
 	}
 }
 
-func testKnownApiFunction(t *testing.T) {
+func testPolicyActionKnownApiFunction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4807,7 +4829,7 @@ func testKnownApiFunction(t *testing.T) {
 	}
 }
 
-func testMultipleStatementsWithKnownApiFunctions(t *testing.T) {
+func testPolicyActionMultipleStatementsWithKnownApiFunctions(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4874,7 +4896,7 @@ func testMultipleStatementsWithKnownApiFunctions(t *testing.T) {
 	}
 }
 
-func testFullWildcard(t *testing.T) {
+func testPolicyActionFullWildcard(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -4938,7 +4960,7 @@ func testFullWildcard(t *testing.T) {
 	}
 }
 
-func testSingleFullWildcardWithNoActionName(t *testing.T) {
+func testPolicyActionSingleFullWildcardWithNoActionName(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5002,7 +5024,7 @@ func testSingleFullWildcardWithNoActionName(t *testing.T) {
 	}
 }
 
-func testSingleFullWildcardAtFrontOfAction(t *testing.T) {
+func testPolicyActionSingleFullWildcardAtFrontOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5063,7 +5085,7 @@ func testSingleFullWildcardAtFrontOfAction(t *testing.T) {
 	}
 }
 
-func testSingleFullWildcardInMiddleOfAction(t *testing.T) {
+func testPolicyActionSingleFullWildcardInMiddleOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5121,7 +5143,7 @@ func testSingleFullWildcardInMiddleOfAction(t *testing.T) {
 	}
 }
 
-func testSingleFullWildcardAtEndOfAction(t *testing.T) {
+func testPolicyActionSingleFullWildcardAtEndOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5182,7 +5204,7 @@ func testSingleFullWildcardAtEndOfAction(t *testing.T) {
 	}
 }
 
-func testSinglePartialWildcardAtFrontOfAction(t *testing.T) {
+func testPolicyActionSinglePartialWildcardAtFrontOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5240,7 +5262,7 @@ func testSinglePartialWildcardAtFrontOfAction(t *testing.T) {
 	}
 }
 
-func testSinglePartialWildcardInMiddleOfAction(t *testing.T) {
+func testPolicyActionSinglePartialWildcardInMiddleOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5298,7 +5320,7 @@ func testSinglePartialWildcardInMiddleOfAction(t *testing.T) {
 	}
 }
 
-func testSinglePartialWildcardAtEndOfAction(t *testing.T) {
+func testPolicyActionSinglePartialWildcardAtEndOfAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5356,7 +5378,7 @@ func testSinglePartialWildcardAtEndOfAction(t *testing.T) {
 	}
 }
 
-func testMultipleWildcardsInAction(t *testing.T) {
+func testPolicyActionMultipleWildcardsInAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5417,7 +5439,7 @@ func testMultipleWildcardsInAction(t *testing.T) {
 	}
 }
 
-func testSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
+func testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5437,8 +5459,8 @@ func testSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -5475,7 +5497,7 @@ func testSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
 	}
 }
 
-func testSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
+func testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5533,7 +5555,7 @@ func testSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
 	}
 }
 
-func testIncompleteActionMissingFunctionPattern(t *testing.T) {
+func testPolicyActionIncompleteActionMissingFunctionPattern(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5553,8 +5575,8 @@ func testIncompleteActionMissingFunctionPattern(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -5591,7 +5613,7 @@ func testIncompleteActionMissingFunctionPattern(t *testing.T) {
 	}
 }
 
-func testActionWhenServiceNameIsGivenOnly(t *testing.T) {
+func testPolicyActionWhenServiceNameIsGivenOnly(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -5611,8 +5633,75 @@ func testActionWhenServiceNameIsGivenOnly(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePublicAccessLevelsTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("PublicAccessLevels Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testPolicyActionWhenServiceNameIsMissing(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "012345678901" },
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "222233332222" },
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Principal": { "AWS": "*" },
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -17966,7 +18055,7 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 
 func TestDenyPermissions(t *testing.T) {
 	t.Run("testDenyWithDifferentPermissionsAtGlobalResource", testDenyWithDifferentPermissionsAtGlobalResource)
-	//t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyWithSamePermissionsAtGlobalResource)
+	t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyWithSamePermissionsAtGlobalResource)
 }
 
 func testDenyWithDifferentPermissionsAtGlobalResource(t *testing.T) {
@@ -18046,6 +18135,68 @@ func testDenyWithSamePermissionsAtGlobalResource(t *testing.T) {
         {
           "Effect": "Deny",
           "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestCurrent(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:PescribeVolumes",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:PescribeVolumes",
           "Resource": "*"
         }
       ]
