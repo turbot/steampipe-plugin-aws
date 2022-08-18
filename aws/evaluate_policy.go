@@ -217,15 +217,8 @@ func evaluateOverallStatements(
 	permissions map[string]Permissions,
 ) StatementsSummary {
 	statementsSummary := StatementsSummary{
-		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
-		allowedPrincipalServicesSet:            map[string]bool{},
-		allowedPrincipalsSet:                   map[string]bool{},
-		allowedPrincipalAccountIdsSet:          map[string]bool{},
-		publicStatementIds:                     map[string]bool{},
-		sharedStatementIds:                     map[string]bool{},
-		publicAccessLevels:                     []string{},
-		sharedAccessLevels:                     []string{},
-		privateAccessLevels:                    []string{},
+		publicStatementIds: map[string]bool{},
+		sharedStatementIds: map[string]bool{},
 	}
 	reducedStatements := allowedStatements
 
