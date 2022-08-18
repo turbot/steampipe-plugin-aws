@@ -133,9 +133,7 @@ type EvaluatedStatement struct {
 	actionSet map[string]bool
 }
 
-func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (StatementsSummary, error) {
-	var statementsSummary StatementsSummary
-
+func sortStatements(statements []Statement, userAccountId string) ([]EvaluatedStatement, []EvaluatedStatement, error) {
 	var currentEvaluatedStatements *[]EvaluatedStatement
 	allowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
 	deniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
@@ -144,7 +142,7 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 
 	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
-			return statementsSummary, fmt.Errorf("element Effect is invalid - valid choices are 'Allow' or 'Deny'")
+			return allowedEvaluatedStatements, deniedEvaluatedStatements, fmt.Errorf("element Effect is invalid - valid choices are 'Allow' or 'Deny'")
 		}
 
 		if statement.Effect == "Deny" {
@@ -156,20 +154,20 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		// Conditions
 		evaluatedCondition, err := evaluateCondition(statement.Condition, userAccountId)
 		if err != nil {
-			return statementsSummary, err
+			return allowedEvaluatedStatements, deniedEvaluatedStatements, err
 		}
 
 		// Principals
 		hasResources := len(statement.Resource) > 0
 		evaluatedPrincipal, err := evaluatePrincipal(statement.Principal, userAccountId, hasResources, evaluatedCondition.hasConditions)
 		if err != nil {
-			return statementsSummary, err
+			return allowedEvaluatedStatements, deniedEvaluatedStatements, err
 		}
 
 		// Before using Sid, let's check to see if it is unique
 		sid := evaluatedSid(statement, statementIndex)
 		if _, exists := uniqueStatementIds[sid]; exists {
-			return statementsSummary, fmt.Errorf("duplicate Sid found: %s", sid)
+			return allowedEvaluatedStatements, deniedEvaluatedStatements, fmt.Errorf("duplicate Sid found: %s", sid)
 		}
 		uniqueStatementIds[sid] = true
 
@@ -187,7 +185,18 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, evaluatedStatement)
 	}
 
-	statementsSummary = newEvaluateOverallStatements(allowedEvaluatedStatements, deniedEvaluatedStatements, permissions)
+	return allowedEvaluatedStatements, deniedEvaluatedStatements, nil
+}
+
+func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (StatementsSummary, error) {
+	var statementsSummary StatementsSummary
+
+	allowedEvaluatedStatements, deniedEvaluatedStatements, err := sortStatements(statements, userAccountId)
+	if err != nil {
+		return statementsSummary, err
+	}
+
+	statementsSummary = evaluateOverallStatements(allowedEvaluatedStatements, deniedEvaluatedStatements, permissions)
 
 	return statementsSummary, nil
 }
@@ -202,7 +211,7 @@ func reduceAccessLevels(allowedAccessLevelSet map[string]bool, deniedAccessLevel
 	return allowedAccessLevelSet
 }
 
-func newEvaluateOverallStatements(
+func evaluateOverallStatements(
 	allowedStatements []EvaluatedStatement,
 	deniedStatements []EvaluatedStatement,
 	permissions map[string]Permissions,
