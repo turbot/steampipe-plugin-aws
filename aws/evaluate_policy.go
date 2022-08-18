@@ -72,17 +72,16 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 }
 
 type EvaluatedStatement struct {
-	sid                  string
-	availablePermissions AvailablePermissions
-
+	allowedOrganizationIds                 map[string]bool
+	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
-	allowedOrganizationIds                 map[string]bool
+	availablePermissions                   AvailablePermissions
+	isPrivate                              bool
 	isPublic                               bool
 	isShared                               bool
-	isPrivate                              bool
+	sid                                    string
 }
 
 func (evaluatedStatement EvaluatedStatement) SplitAllowedPrincipalsSet(statement EvaluatedStatement) (map[string]bool, map[string]bool) {
@@ -371,10 +370,10 @@ func (allAvailablePermissions AllAvailablePermissions) getAccessLevels(available
 }
 
 type PermissionSummary struct {
+	matcher    string
+	priviledge string
 	process    bool
 	service    string
-	priviledge string
-	matcher    string
 }
 
 func createPermissionSummary(action string) PermissionSummary {
@@ -413,18 +412,18 @@ func createPermissionSummary(action string) PermissionSummary {
 }
 
 type StatementsSummary struct {
+	allowedOrganizationIds                 map[string]bool
+	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
-	allowedOrganizationIds                 map[string]bool
-	publicStatementIds                     map[string]bool
-	sharedStatementIds                     map[string]bool
-	publicAccessLevels                     []string
-	sharedAccessLevels                     []string
-	privateAccessLevels                    []string
 	isPublic                               bool
 	isShared                               bool
+	privateAccessLevels                    []string
+	publicAccessLevels                     []string
+	publicStatementIds                     map[string]bool
+	sharedAccessLevels                     []string
+	sharedStatementIds                     map[string]bool
 }
 
 func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
@@ -501,9 +500,9 @@ func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedSta
 
 type EvaluatedOperator struct {
 	category   string
-	isNegated  bool
-	isLike     bool
 	isCaseless bool
+	isLike     bool
+	isNegated  bool
 }
 
 func evaulateOperator(operator string) (EvaluatedOperator, bool) {
@@ -572,20 +571,20 @@ func evaulateOperator(operator string) (EvaluatedOperator, bool) {
 }
 
 type Permissions struct {
-	privileges  []string
 	accessLevel map[string]string
+	privileges  []string
 }
 
 type EvaluatedCondition struct {
+	allowedOrganizationIds                 map[string]bool
+	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
-	allowedOrganizationIds                 map[string]bool
+	hasConditions                          bool
+	isPrivate                              bool
 	isPublic                               bool
 	isShared                               bool
-	isPrivate                              bool
-	hasConditions                          bool
 }
 
 func evaluateCondition(conditions map[string]interface{}, userAccountId string) (EvaluatedCondition, error) {
@@ -845,14 +844,14 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 }
 
 type EvaluatedPrincipal struct {
+	allowedOrganizationIds                 map[string]bool
+	allowedPrincipalAccountIdsSet          map[string]bool
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
-	allowedOrganizationIds                 map[string]bool
+	isPrivate                              bool
 	isPublic                               bool
 	isShared                               bool
-	isPrivate                              bool
 }
 
 func evaluatePrincipal(principal Principal, userAccountId string, hasResources bool, hasConditions bool) (EvaluatedPrincipal, error) {
@@ -916,13 +915,6 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 	}
 
 	return evaluatedPrincipal, nil
-}
-
-func mergeSets(dest map[string]bool, source1 map[string]bool, source2 map[string]bool) map[string]bool {
-	dest = mergeSet(dest, source1)
-	dest = mergeSet(dest, source2)
-
-	return dest
 }
 
 func mergeSet(set1 map[string]bool, set2 map[string]bool) map[string]bool {
