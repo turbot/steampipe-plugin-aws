@@ -38,6 +38,13 @@ type PolicySummary struct {
 	SharedStatementIds                  []string `json:"shared_statement_ids"`
 }
 
+type EvaluatedOperator struct {
+	category   string
+	isNegated  bool
+	isLike     bool
+	isCaseless bool
+}
+
 type Permissions struct {
 	privileges  []string
 	accessLevel map[string]string
@@ -78,6 +85,13 @@ type EvaluatedPrincipal struct {
 	isPublic                               bool
 	isShared                               bool
 	isPrivate                              bool
+}
+
+type EvaluatedStatement struct {
+	principal EvaluatedPrincipal
+	condition EvaluatedCondition
+	sid       string
+	actionSet map[string]bool
 }
 
 func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, error) {
@@ -124,13 +138,6 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 	policySummary.IsPublic = statementSummary.isPublic
 
 	return policySummary, nil
-}
-
-type EvaluatedStatement struct {
-	principal EvaluatedPrincipal
-	condition EvaluatedCondition
-	sid       string
-	actionSet map[string]bool
 }
 
 func sortStatements(statements []Statement, userAccountId string) ([]EvaluatedStatement, []EvaluatedStatement, error) {
@@ -516,13 +523,6 @@ func evaluatedSid(statement Statement, statementIndex int) string {
 	}
 
 	return statement.Sid
-}
-
-type EvaluatedOperator struct {
-	category   string
-	isNegated  bool
-	isLike     bool
-	isCaseless bool
 }
 
 func evaulateOperator(operator string) (EvaluatedOperator, bool) {
