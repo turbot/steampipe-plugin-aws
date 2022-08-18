@@ -463,18 +463,18 @@ func findAvailablePermissions(actionSet map[string]bool, allAvailablePermissions
 
 		servicePermissions := allAvailablePermissions.servicePermissions[permissionSummary.service]
 
-		// Find API Call
-		privilegesLen := len(servicePermissions.privileges)
-		checkIndex := sort.SearchStrings(servicePermissions.privileges, permissionSummary.priviledge)
-		if checkIndex >= privilegesLen {
-			continue
-		}
-
 		if permissionSummary.matcher == "" {
 			if _, exists := servicePermissions.accessLevel[permissionSummary.priviledge]; exists {
 				permission := fmt.Sprintf("%s:%s", permissionSummary.service, permissionSummary.priviledge)
 				permissions[permission] = true
 			}
+			continue
+		}
+
+		// Find API Call
+		privilegesLen := len(servicePermissions.privileges)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, permissionSummary.priviledge)
+		if checkIndex >= privilegesLen {
 			continue
 		}
 
@@ -529,17 +529,16 @@ func getAccessLevels(evaluatedStatement EvaluatedStatement, allAvailablePermissi
 
 		servicePermissions := allAvailablePermissions.servicePermissions[actionSummary.service]
 
-		// Find API Call
-		privilegesLen := len(servicePermissions.privileges)
-		checkIndex := sort.SearchStrings(servicePermissions.privileges, actionSummary.priviledge)
-		if checkIndex >= privilegesLen {
-			continue
-		}
-
 		if actionSummary.matcher == "" {
 			if accessLevel, exists := servicePermissions.accessLevel[actionSummary.priviledge]; exists {
 				accessLevels[accessLevel] = true
 			}
+			continue
+		}
+		// Find API Call
+		privilegesLen := len(servicePermissions.privileges)
+		checkIndex := sort.SearchStrings(servicePermissions.privileges, actionSummary.priviledge)
+		if checkIndex >= privilegesLen {
 			continue
 		}
 
