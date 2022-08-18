@@ -60,3 +60,7 @@ If there is no Principal we have 3 types of behaviour:
 - No Resource, no principal in table
 - Resource but no condition then the Principal is the User Account as this is an IDENTITY_POLICY
 - Resource with condition then the Principal is the Conditions value otherwise it is the Principal
+
+## Issue 13
+
+If there is no Action that is valid, in other words, there is no permission, then there is no access, don't report

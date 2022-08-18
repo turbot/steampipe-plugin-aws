@@ -134,34 +134,13 @@ type EvaluatedStatement struct {
 }
 
 func evaluateStatements(statements []Statement, userAccountId string, permissions map[string]Permissions) (StatementsSummary, error) {
-	newAllowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
-	newDeniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
-
 	var statementsSummary StatementsSummary
 
-	allowedEvaluatedStatements := EvaluatedStatements{
-		statesmentSummary: StatementsSummary{
-			publicStatementIds: map[string]bool{},
-			sharedStatementIds: map[string]bool{},
-		},
-		publicAccessLevelsSet:  map[string]bool{},
-		sharedAccessLevelsSet:  map[string]bool{},
-		privateAccessLevelsSet: map[string]bool{},
-	}
-	deniedEvaulatedStatements := EvaluatedStatements{
-		statesmentSummary: StatementsSummary{
-			publicStatementIds: map[string]bool{},
-			sharedStatementIds: map[string]bool{},
-		},
-		publicAccessLevelsSet:  map[string]bool{},
-		sharedAccessLevelsSet:  map[string]bool{},
-		privateAccessLevelsSet: map[string]bool{},
-	}
+	var currentEvaluatedStatements *[]EvaluatedStatement
+	allowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
+	deniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
 
 	uniqueStatementIds := map[string]bool{}
-
-	var currentEvaluatedStatements *EvaluatedStatements
-	var newCurrentEvaluatedStatements *[]EvaluatedStatement
 
 	for statementIndex, statement := range statements {
 		if !checkEffectValid(statement.Effect) {
@@ -169,10 +148,8 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		}
 
 		if statement.Effect == "Deny" {
-			newCurrentEvaluatedStatements = &newDeniedEvaluatedStatements
-			currentEvaluatedStatements = &deniedEvaulatedStatements
+			currentEvaluatedStatements = &deniedEvaluatedStatements
 		} else {
-			newCurrentEvaluatedStatements = &newAllowedEvaluatedStatements
 			currentEvaluatedStatements = &allowedEvaluatedStatements
 		}
 
@@ -189,41 +166,6 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 			return statementsSummary, err
 		}
 
-		currentEvaluatedStatements.statesmentSummary.allowedPrincipalFederatedIdentitiesSet = mergeSets(
-			currentEvaluatedStatements.statesmentSummary.allowedPrincipalFederatedIdentitiesSet,
-			evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet,
-			evaluatedCondition.allowedPrincipalFederatedIdentitiesSet,
-		)
-
-		currentEvaluatedStatements.statesmentSummary.allowedPrincipalServicesSet = mergeSets(
-			currentEvaluatedStatements.statesmentSummary.allowedPrincipalServicesSet,
-			evaluatedPrincipal.allowedPrincipalServicesSet,
-			evaluatedCondition.allowedPrincipalServicesSet,
-		)
-
-		currentEvaluatedStatements.statesmentSummary.allowedPrincipalsSet = mergeSets(
-			currentEvaluatedStatements.statesmentSummary.allowedPrincipalsSet,
-			evaluatedPrincipal.allowedPrincipalsSet,
-			evaluatedCondition.allowedPrincipalsSet,
-		)
-
-		currentEvaluatedStatements.statesmentSummary.allowedPrincipalAccountIdsSet = mergeSets(
-			currentEvaluatedStatements.statesmentSummary.allowedPrincipalAccountIdsSet,
-			evaluatedPrincipal.allowedPrincipalAccountIdsSet,
-			evaluatedCondition.allowedPrincipalAccountIdsSet,
-		)
-
-		currentEvaluatedStatements.statesmentSummary.allowedOrganizationIds = mergeSets(
-			currentEvaluatedStatements.statesmentSummary.allowedOrganizationIds,
-			evaluatedPrincipal.allowedOrganizationIds,
-			evaluatedCondition.allowedOrganizationIds,
-		)
-
-		// Visibility
-		isStatementPublic := evaluatedPrincipal.isPublic || evaluatedCondition.isPublic
-		isStatementShared := evaluatedPrincipal.isShared || evaluatedCondition.isShared
-		isStatementPrivate := evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate
-
 		// Before using Sid, let's check to see if it is unique
 		sid := evaluatedSid(statement, statementIndex)
 		if _, exists := uniqueStatementIds[sid]; exists {
@@ -231,7 +173,7 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		}
 		uniqueStatementIds[sid] = true
 
-		newEvaluatedStatement := EvaluatedStatement{
+		evaluatedStatement := EvaluatedStatement{
 			principal: evaluatedPrincipal,
 			condition: evaluatedCondition,
 			sid:       sid,
@@ -239,52 +181,13 @@ func evaluateStatements(statements []Statement, userAccountId string, permission
 		}
 
 		for _, action := range statement.Action {
-			newEvaluatedStatement.actionSet[action] = true
+			evaluatedStatement.actionSet[action] = true
 		}
 
-		if isStatementPublic {
-			currentEvaluatedStatements.statesmentSummary.isPublic = true
-			currentEvaluatedStatements.statesmentSummary.publicStatementIds[sid] = true
-
-			for _, action := range statement.Action {
-				if _, exists := currentEvaluatedStatements.publicAccessLevelsSet[action]; !exists {
-					currentEvaluatedStatements.publicAccessLevelsSet[action] = true
-				}
-			}
-		}
-
-		if isStatementShared {
-			currentEvaluatedStatements.statesmentSummary.isShared = true
-			currentEvaluatedStatements.statesmentSummary.sharedStatementIds[sid] = true
-
-			for _, action := range statement.Action {
-				if _, exists := currentEvaluatedStatements.sharedAccessLevelsSet[action]; !exists {
-					currentEvaluatedStatements.sharedAccessLevelsSet[action] = true
-				}
-			}
-		}
-
-		if isStatementPrivate {
-			// Actions
-			for _, action := range statement.Action {
-				if _, exists := currentEvaluatedStatements.privateAccessLevelsSet[action]; !exists {
-					currentEvaluatedStatements.privateAccessLevelsSet[action] = true
-				}
-			}
-		}
-
-		(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, newEvaluatedStatement)
+		(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, evaluatedStatement)
 	}
 
-	newStatementsSummary := newEvaluateOverallStatements(newAllowedEvaluatedStatements, newDeniedEvaluatedStatements, permissions)
-
-	// statementsSummary = evaluateOverallStatements(
-	// 	allowedEvaluatedStatements,
-	// 	deniedEvaulatedStatements,
-	// 	permissions,
-	// )
-
-	statementsSummary = newStatementsSummary
+	statementsSummary = newEvaluateOverallStatements(allowedEvaluatedStatements, deniedEvaluatedStatements, permissions)
 
 	return statementsSummary, nil
 }
@@ -377,39 +280,6 @@ func newEvaluateOverallStatements(
 	statementsSummary.privateAccessLevels = evaluateActionSet(privateActionSet, permissions)
 
 	return statementsSummary
-}
-
-func evaluateOverallStatements(
-	allowedStatements EvaluatedStatements,
-	deniedStatements EvaluatedStatements,
-	permissions map[string]Permissions,
-) StatementsSummary {
-	overallStatements := StatementsSummary{}
-
-	// NOTE: I think this will be worked on - This is when a policy denies all
-	if deniedStatements.statesmentSummary.isPublic {
-		return overallStatements
-	}
-
-	overallStatements.allowedPrincipalFederatedIdentitiesSet = allowedStatements.statesmentSummary.allowedPrincipalFederatedIdentitiesSet
-	overallStatements.allowedPrincipalServicesSet = allowedStatements.statesmentSummary.allowedPrincipalServicesSet
-	overallStatements.allowedPrincipalsSet = allowedStatements.statesmentSummary.allowedPrincipalsSet
-	overallStatements.allowedPrincipalAccountIdsSet = allowedStatements.statesmentSummary.allowedPrincipalAccountIdsSet
-	overallStatements.allowedOrganizationIds = allowedStatements.statesmentSummary.allowedOrganizationIds
-	overallStatements.publicStatementIds = allowedStatements.statesmentSummary.publicStatementIds
-	overallStatements.sharedStatementIds = allowedStatements.statesmentSummary.sharedStatementIds
-
-	publicAccessLevelsSet := reduceAccessLevels(allowedStatements.publicAccessLevelsSet, deniedStatements.publicAccessLevelsSet)
-	sharedAccessLevelsSet := reduceAccessLevels(allowedStatements.sharedAccessLevelsSet, deniedStatements.sharedAccessLevelsSet)
-	privateAccessLevelsSet := reduceAccessLevels(allowedStatements.privateAccessLevelsSet, deniedStatements.privateAccessLevelsSet)
-
-	overallStatements.publicAccessLevels = evaluateActionSet(publicAccessLevelsSet, permissions)
-	overallStatements.sharedAccessLevels = evaluateActionSet(sharedAccessLevelsSet, permissions)
-	overallStatements.privateAccessLevels = evaluateActionSet(privateAccessLevelsSet, permissions)
-	overallStatements.isPublic = allowedStatements.statesmentSummary.isPublic
-	overallStatements.isShared = allowedStatements.statesmentSummary.isShared
-
-	return overallStatements
 }
 
 func evaluateCondition(conditions map[string]interface{}, userAccountId string) (EvaluatedCondition, error) {
