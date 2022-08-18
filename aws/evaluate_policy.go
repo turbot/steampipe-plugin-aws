@@ -72,26 +72,32 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 }
 
 type EvaluatedStatement struct {
-	principal            EvaluatedPrincipal
-	condition            EvaluatedCondition
 	sid                  string
 	availablePermissions AvailablePermissions
+
+	allowedPrincipalFederatedIdentitiesSet map[string]bool
+	allowedPrincipalServicesSet            map[string]bool
+	allowedPrincipalsSet                   map[string]bool
+	allowedPrincipalAccountIdsSet          map[string]bool
+	allowedOrganizationIds                 map[string]bool
+	isPublic                               bool
+	isShared                               bool
+	isPrivate                              bool
 }
 
-func (evaluatedStatement EvaluatedStatement) FindAllowedPrincipalsIntercept(statement EvaluatedStatement) map[string]bool {
-	foundPrincipalSet := map[string]bool{}
+func (evaluatedStatement EvaluatedStatement) SplitAllowedPrincipalsSet(statement EvaluatedStatement) (map[string]bool, map[string]bool) {
+	usedSet := map[string]bool{}
+	unusedSet := map[string]bool{}
 
-	// TODO: Should be a better way
-	findAllowedPrincipalsSet := mergeSet(statement.principal.allowedPrincipalsSet, statement.condition.allowedPrincipalsSet)
-	currentAllowedPrincipals := mergeSet(evaluatedStatement.principal.allowedPrincipalsSet, evaluatedStatement.condition.allowedPrincipalsSet)
-
-	for findAllowedPrincipal := range findAllowedPrincipalsSet {
-		if _, exists := currentAllowedPrincipals[findAllowedPrincipal]; exists {
-			foundPrincipalSet[findAllowedPrincipal] = true
+	for allowedPrincipal := range statement.allowedPrincipalsSet {
+		if _, exists := evaluatedStatement.allowedPrincipalsSet[allowedPrincipal]; exists {
+			usedSet[allowedPrincipal] = true
+		} else {
+			unusedSet[allowedPrincipal] = true
 		}
 	}
 
-	return foundPrincipalSet
+	return usedSet, unusedSet
 }
 
 func evaluateStatements(statements []Statement, userAccountId string, allAvailablePermissions AllAvailablePermissions) ([]EvaluatedStatement, []EvaluatedStatement, error) {
@@ -132,10 +138,22 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		}
 		uniqueStatementIds[sid] = true
 
+		allowedOrganizationIds := mergeSet(evaluatedPrincipal.allowedOrganizationIds, evaluatedCondition.allowedOrganizationIds)
+		allowedPrincipalAccountIdsSet := mergeSet(evaluatedPrincipal.allowedPrincipalAccountIdsSet, evaluatedCondition.allowedPrincipalAccountIdsSet)
+		allowedPrincipalFederatedIdentitiesSet := mergeSet(evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet, evaluatedCondition.allowedPrincipalFederatedIdentitiesSet)
+		allowedPrincipalServicesSet := mergeSet(evaluatedPrincipal.allowedPrincipalServicesSet, evaluatedCondition.allowedPrincipalServicesSet)
+		allowedPrincipalsSet := mergeSet(evaluatedPrincipal.allowedPrincipalsSet, evaluatedCondition.allowedPrincipalsSet)
+
 		evaluatedStatement := EvaluatedStatement{
-			principal: evaluatedPrincipal,
-			condition: evaluatedCondition,
-			sid:       sid,
+			sid:                                    sid,
+			allowedOrganizationIds:                 allowedOrganizationIds,
+			allowedPrincipalAccountIdsSet:          allowedPrincipalAccountIdsSet,
+			allowedPrincipalFederatedIdentitiesSet: allowedPrincipalFederatedIdentitiesSet,
+			allowedPrincipalServicesSet:            allowedPrincipalServicesSet,
+			allowedPrincipalsSet:                   allowedPrincipalsSet,
+			isPublic:                               evaluatedPrincipal.isPublic || evaluatedCondition.isPublic,
+			isShared:                               evaluatedPrincipal.isShared || evaluatedCondition.isShared,
+			isPrivate:                              evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate,
 		}
 
 		actionSet := map[string]bool{}
@@ -431,50 +449,27 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 			continue
 		}
 
-		statementsSummary.allowedOrganizationIds = mergeSets(
-			statementsSummary.allowedOrganizationIds,
-			reducedStatement.principal.allowedOrganizationIds,
-			reducedStatement.condition.allowedOrganizationIds,
-		)
-		statementsSummary.allowedPrincipalAccountIdsSet = mergeSets(
-			statementsSummary.allowedPrincipalAccountIdsSet,
-			reducedStatement.principal.allowedPrincipalAccountIdsSet,
-			reducedStatement.condition.allowedPrincipalAccountIdsSet,
-		)
-		statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSets(
-			statementsSummary.allowedPrincipalFederatedIdentitiesSet,
-			reducedStatement.principal.allowedPrincipalFederatedIdentitiesSet,
-			reducedStatement.condition.allowedPrincipalFederatedIdentitiesSet,
-		)
-		statementsSummary.allowedPrincipalServicesSet = mergeSets(
-			statementsSummary.allowedPrincipalServicesSet,
-			reducedStatement.principal.allowedPrincipalServicesSet,
-			reducedStatement.condition.allowedPrincipalServicesSet,
-		)
-		statementsSummary.allowedPrincipalsSet = mergeSets(
-			statementsSummary.allowedPrincipalsSet,
-			reducedStatement.principal.allowedPrincipalsSet,
-			reducedStatement.condition.allowedPrincipalsSet,
-		)
-		isPublic := reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
-		isShared := reducedStatement.principal.isShared || reducedStatement.condition.isShared
-		isPrivate := reducedStatement.principal.isPrivate || reducedStatement.condition.isPrivate
-		statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
-		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.principal.isShared || reducedStatement.condition.isShared
+		statementsSummary.allowedOrganizationIds = mergeSet(statementsSummary.allowedOrganizationIds, reducedStatement.allowedOrganizationIds)
+		statementsSummary.allowedPrincipalAccountIdsSet = mergeSet(statementsSummary.allowedPrincipalAccountIdsSet, reducedStatement.allowedPrincipalAccountIdsSet)
+		statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSet(statementsSummary.allowedPrincipalFederatedIdentitiesSet, reducedStatement.allowedPrincipalFederatedIdentitiesSet)
+		statementsSummary.allowedPrincipalServicesSet = mergeSet(statementsSummary.allowedPrincipalServicesSet, reducedStatement.allowedPrincipalServicesSet)
+		statementsSummary.allowedPrincipalsSet = mergeSet(statementsSummary.allowedPrincipalsSet, reducedStatement.allowedPrincipalsSet)
+		statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.isPublic
+		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.isShared
 
-		if isPublic {
+		if reducedStatement.isPublic {
 			publicAccessLevelSet = mergeSet(publicAccessLevelSet, evaluatedAccessLevels)
 			statementsSummary.publicStatementIds[reducedStatement.sid] = true
 		}
 
-		if isShared {
+		if reducedStatement.isShared {
 			sharedAccessLevelSet = mergeSet(sharedAccessLevelSet, evaluatedAccessLevels)
 			//if len(sharedActionSet) > 0 {
 			statementsSummary.sharedStatementIds[reducedStatement.sid] = true
 			//}
 		}
 
-		if isPrivate {
+		if reducedStatement.isPrivate {
 			privateAccessLevelSet = mergeSet(privateAccessLevelSet, evaluatedAccessLevels)
 		}
 	}
@@ -492,8 +487,10 @@ func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedSta
 	for _, deniedStatement := range deniedStatements {
 
 		for _, reducedStatement := range reducedStatements {
-			allowedPrincipalsIntercept := reducedStatement.FindAllowedPrincipalsIntercept(deniedStatement)
-			if len(allowedPrincipalsIntercept) > 0 {
+			// usedSet, unusedSet := reducedStatement.SplitAllowedPrincipalsSet(deniedStatement)
+			usedSet, _ := reducedStatement.SplitAllowedPrincipalsSet(deniedStatement)
+
+			if len(usedSet) > 0 {
 				reducedStatement.availablePermissions.RemovePermissions(deniedStatement.availablePermissions)
 			}
 		}
