@@ -50,13 +50,6 @@ type Permissions struct {
 	accessLevel map[string]string
 }
 
-type EvaluatedStatements struct {
-	statesmentSummary      StatementsSummary
-	publicAccessLevelsSet  map[string]bool
-	sharedAccessLevelsSet  map[string]bool
-	privateAccessLevelsSet map[string]bool
-}
-
 type EvaluatedAction struct {
 	process    bool
 	prefix     string
@@ -236,11 +229,23 @@ func evaluateOverallStatements(
 	}
 	reducedStatements := allowedStatements
 
-	publicActionSet := map[string]bool{}
-	sharedActionSet := map[string]bool{}
-	privateActionSet := map[string]bool{}
+	publicActionLevelSet := map[string]bool{}
+	sharedActionLevelSet := map[string]bool{}
+	privateActionLevelSet := map[string]bool{}
 
 	for _, reducedStatement := range reducedStatements {
+		// Does this statement have any actions and are the actions valid?
+		// TODO: Actions valid?
+		if len(reducedStatement.actionSet) == 0 {
+			continue
+		}
+
+		evaluatedActionLevels := evaluateActionLevels(reducedStatement.actionSet, permissions)
+
+		if len(evaluatedActionLevels) == 0 {
+			continue
+		}
+
 		statementsSummary.allowedOrganizationIds = mergeSets(
 			statementsSummary.allowedOrganizationIds,
 			reducedStatement.principal.allowedOrganizationIds,
@@ -273,27 +278,25 @@ func evaluateOverallStatements(
 		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.principal.isShared || reducedStatement.condition.isShared
 
 		if isPublic {
-			publicActionSet = mergeSet(publicActionSet, reducedStatement.actionSet)
-			//if len(publicActionSet) > 0 {
+			publicActionLevelSet = mergeSet(publicActionLevelSet, evaluatedActionLevels)
 			statementsSummary.publicStatementIds[reducedStatement.sid] = true
-			//}
 		}
 
 		if isShared {
-			sharedActionSet = mergeSet(sharedActionSet, reducedStatement.actionSet)
+			sharedActionLevelSet = mergeSet(sharedActionLevelSet, evaluatedActionLevels)
 			//if len(sharedActionSet) > 0 {
 			statementsSummary.sharedStatementIds[reducedStatement.sid] = true
 			//}
 		}
 
 		if isPrivate {
-			privateActionSet = mergeSet(privateActionSet, reducedStatement.actionSet)
+			privateActionLevelSet = mergeSet(privateActionLevelSet, evaluatedActionLevels)
 		}
 	}
 
-	statementsSummary.publicAccessLevels = evaluateActionSet(publicActionSet, permissions)
-	statementsSummary.sharedAccessLevels = evaluateActionSet(sharedActionSet, permissions)
-	statementsSummary.privateAccessLevels = evaluateActionSet(privateActionSet, permissions)
+	statementsSummary.publicAccessLevels = setToSortedSlice(publicActionLevelSet)
+	statementsSummary.sharedAccessLevels = setToSortedSlice(sharedActionLevelSet)
+	statementsSummary.privateAccessLevels = setToSortedSlice(privateActionLevelSet)
 
 	return statementsSummary
 }
@@ -451,14 +454,14 @@ func evaluateAccessLevel(statements StatementsSummary) string {
 	return "private"
 }
 
-func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permissions) []string {
+func evaluateActionLevels(actionSet map[string]bool, permissions map[string]Permissions) map[string]bool {
 	if _, exists := actionSet["*"]; exists {
-		return []string{
-			"List",
-			"Permissions management",
-			"Read",
-			"Tagging",
-			"Write",
+		return map[string]bool{
+			"List":                   true,
+			"Permissions management": true,
+			"Read":                   true,
+			"Tagging":                true,
+			"Write":                  true,
 		}
 	}
 
@@ -486,9 +489,7 @@ func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permiss
 		}
 
 		if evaluatedAction.matcher == "" {
-			accessLevel := permission.accessLevel[evaluatedAction.priviledge]
-
-			if _, exists := accessLevels[accessLevel]; !exists {
+			if accessLevel, exists := permission.accessLevel[evaluatedAction.priviledge]; exists {
 				accessLevels[accessLevel] = true
 			}
 			continue
@@ -514,7 +515,7 @@ func evaluateActionSet(actionSet map[string]bool, permissions map[string]Permiss
 		}
 	}
 
-	return setToSortedSlice(accessLevels)
+	return accessLevels
 }
 
 func evaluatedSid(statement Statement, statementIndex int) string {

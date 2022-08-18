@@ -64,3 +64,4 @@ If there is no Principal we have 3 types of behaviour:
 ## Issue 13
 
 If there is no Action that is valid, in other words, there is no permission, then there is no access, don't report
+Action missing will no longer evaluate the statement
