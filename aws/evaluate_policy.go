@@ -211,22 +211,17 @@ func reduceAccessLevels(allowedAccessLevelSet map[string]bool, deniedAccessLevel
 	return allowedAccessLevelSet
 }
 
-func evaluateOverallStatements(
-	allowedStatements []EvaluatedStatement,
-	deniedStatements []EvaluatedStatement,
-	permissions map[string]Permissions,
-) StatementsSummary {
+func createStatementsSummary(statements []EvaluatedStatement, permissions map[string]Permissions) StatementsSummary {
 	statementsSummary := StatementsSummary{
 		publicStatementIds: map[string]bool{},
 		sharedStatementIds: map[string]bool{},
 	}
-	reducedStatements := allowedStatements
 
 	publicActionLevelSet := map[string]bool{}
 	sharedActionLevelSet := map[string]bool{}
 	privateActionLevelSet := map[string]bool{}
 
-	for _, reducedStatement := range reducedStatements {
+	for _, reducedStatement := range statements {
 		// Does this statement have any actions and are the actions valid?
 		// TODO: Actions valid?
 		if len(reducedStatement.actionSet) == 0 {
@@ -292,6 +287,99 @@ func evaluateOverallStatements(
 	statementsSummary.privateAccessLevels = setToSortedSlice(privateActionLevelSet)
 
 	return statementsSummary
+}
+
+func evaluateOverallStatements(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement, permissions map[string]Permissions) StatementsSummary {
+	reducedStatements := allowedStatements
+
+	for _, deniedStatement := range deniedStatements {
+		for reducedStatementIndex := range reducedStatements {
+			for deniedAction := range deniedStatement.actionSet {
+				delete(reducedStatements[reducedStatementIndex].actionSet, deniedAction)
+			}
+		}
+	}
+
+	return createStatementsSummary(reducedStatements, permissions)
+
+	// statementsSummary := StatementsSummary{
+	// 	publicStatementIds: map[string]bool{},
+	// 	sharedStatementIds: map[string]bool{},
+	// }
+	// reducedStatements := allowedStatements
+
+	// publicActionLevelSet := map[string]bool{}
+	// sharedActionLevelSet := map[string]bool{}
+	// privateActionLevelSet := map[string]bool{}
+
+	// createStatementsSummary(reducedStatements, permissions)
+
+	// for _, reducedStatement := range reducedStatements {
+	// 	// Does this statement have any actions and are the actions valid?
+	// 	// TODO: Actions valid?
+	// 	if len(reducedStatement.actionSet) == 0 {
+	// 		continue
+	// 	}
+
+	// 	evaluatedActionLevels := evaluateActionLevels(reducedStatement.actionSet, permissions)
+
+	// 	if len(evaluatedActionLevels) == 0 {
+	// 		continue
+	// 	}
+
+	// 	statementsSummary.allowedOrganizationIds = mergeSets(
+	// 		statementsSummary.allowedOrganizationIds,
+	// 		reducedStatement.principal.allowedOrganizationIds,
+	// 		reducedStatement.condition.allowedOrganizationIds,
+	// 	)
+	// 	statementsSummary.allowedPrincipalAccountIdsSet = mergeSets(
+	// 		statementsSummary.allowedPrincipalAccountIdsSet,
+	// 		reducedStatement.principal.allowedPrincipalAccountIdsSet,
+	// 		reducedStatement.condition.allowedPrincipalAccountIdsSet,
+	// 	)
+	// 	statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSets(
+	// 		statementsSummary.allowedPrincipalFederatedIdentitiesSet,
+	// 		reducedStatement.principal.allowedPrincipalFederatedIdentitiesSet,
+	// 		reducedStatement.condition.allowedPrincipalFederatedIdentitiesSet,
+	// 	)
+	// 	statementsSummary.allowedPrincipalServicesSet = mergeSets(
+	// 		statementsSummary.allowedPrincipalServicesSet,
+	// 		reducedStatement.principal.allowedPrincipalServicesSet,
+	// 		reducedStatement.condition.allowedPrincipalServicesSet,
+	// 	)
+	// 	statementsSummary.allowedPrincipalsSet = mergeSets(
+	// 		statementsSummary.allowedPrincipalsSet,
+	// 		reducedStatement.principal.allowedPrincipalsSet,
+	// 		reducedStatement.condition.allowedPrincipalsSet,
+	// 	)
+	// 	isPublic := reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
+	// 	isShared := reducedStatement.principal.isShared || reducedStatement.condition.isShared
+	// 	isPrivate := reducedStatement.principal.isPrivate || reducedStatement.condition.isPrivate
+	// 	statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.principal.isPublic || reducedStatement.condition.isPublic
+	// 	statementsSummary.isShared = statementsSummary.isShared || reducedStatement.principal.isShared || reducedStatement.condition.isShared
+
+	// 	if isPublic {
+	// 		publicActionLevelSet = mergeSet(publicActionLevelSet, evaluatedActionLevels)
+	// 		statementsSummary.publicStatementIds[reducedStatement.sid] = true
+	// 	}
+
+	// 	if isShared {
+	// 		sharedActionLevelSet = mergeSet(sharedActionLevelSet, evaluatedActionLevels)
+	// 		//if len(sharedActionSet) > 0 {
+	// 		statementsSummary.sharedStatementIds[reducedStatement.sid] = true
+	// 		//}
+	// 	}
+
+	// 	if isPrivate {
+	// 		privateActionLevelSet = mergeSet(privateActionLevelSet, evaluatedActionLevels)
+	// 	}
+	// }
+
+	// statementsSummary.publicAccessLevels = setToSortedSlice(publicActionLevelSet)
+	// statementsSummary.sharedAccessLevels = setToSortedSlice(sharedActionLevelSet)
+	// statementsSummary.privateAccessLevels = setToSortedSlice(privateActionLevelSet)
+
+	// return statementsSummary
 }
 
 func evaluateCondition(conditions map[string]interface{}, userAccountId string) (EvaluatedCondition, error) {
