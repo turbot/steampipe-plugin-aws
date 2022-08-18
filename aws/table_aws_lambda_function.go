@@ -189,6 +189,13 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
 			},
 			{
+				Name:        "file_system_configs",
+				Description: "Connection settings for an Amazon EFS file system.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Configuration.FileSystemConfigs"),
+			},
+			{
 				Name:        "policy",
 				Description: "The resource-based iam policy of Lambda function.",
 				Type:        proto.ColumnType_JSON,

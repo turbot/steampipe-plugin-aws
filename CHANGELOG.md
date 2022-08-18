@@ -1,3 +1,59 @@
+## v0.73.0 [2022-08-16]
+
+_Enhancements_
+
+- Added column `subnet_id` to `aws_ec2_network_interface` table. ([#1216](https://github.com/turbot/steampipe-plugin-aws/pull/1216))
+
+_Bug fixes_
+
+- Fixed the `aws_eventbridge_rule` table to also list rules for non-default EventBridge buses. ([#1214](https://github.com/turbot/steampipe-plugin-aws/pull/1214))
+- Fixed the `aws_rds_db_cluster` table to also list MySQL and PostgreSQL engine type clusters. ([#1213](https://github.com/turbot/steampipe-plugin-aws/pull/1213))
+
+## v0.72.0 [2022-08-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_ses_domain_identity](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ses_domain_identity) ([#1206](https://github.com/turbot/steampipe-plugin-aws/pull/1206)) (Thanks to [@janritter](https://github.com/janritter) for the contribution!)
+
+_Enhancements_
+
+- Re-enabled `name` and `type` optional list key columns in `aws_route53_record` table. ([#1190](https://github.com/turbot/steampipe-plugin-aws/pull/1190))
+- Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2): ([#1186](https://github.com/turbot/steampipe-plugin-aws/pull/1186))
+  - `aws_acm_certificate`
+  - `aws_api_gateway_api_authorizer`
+  - `aws_api_gateway_api_key`
+  - `aws_api_gateway_rest_api`
+  - `aws_api_gateway_stage`
+  - `aws_api_gateway_usage_plan`
+  - `aws_api_gatewayv2_api`
+  - `aws_api_gatewayv2_domain_name`
+  - `aws_api_gatewayv2_integration`
+  - `aws_api_gatewayv2_stage`
+  - `aws_dynamodb_backup`
+  - `aws_iam_access_advisor`
+  - `aws_iam_access_key`
+  - `aws_iam_account_password_policy`
+  - `aws_iam_account_summary`
+  - `aws_iam_credential_report`
+  - `aws_iam_group`
+  - `aws_iam_policy`
+  - `aws_iam_policy_attachment`
+  - `aws_iam_policy_simulator`
+  - `aws_iam_role`
+  - `aws_iam_saml_provider`
+  - `aws_iam_server_certificate`
+  - `aws_iam_user`
+  - `aws_iam_virtual_mfa_device`
+  - `aws_s3_bucket`
+  - `aws_sns_topic`
+
+_Bug fixes_
+
+- `aws_backup_vault` table now returns no rows instead of an error when querying a vault that does not exist. ([#1163](https://github.com/turbot/steampipe-plugin-aws/pull/1163))
+- `aws_neptune_db_cluster` table now only lists Neptune DB clusters. ([#1204](https://github.com/turbot/steampipe-plugin-aws/pull/1204))
+- `aws_rds_db_cluster` table now only lists RDS Aurora DB clusters. ([#1204](https://github.com/turbot/steampipe-plugin-aws/pull/1204))
+
 ## v0.71.0 [2022-07-20]
 
 _What's new?_

@@ -342,6 +342,11 @@ const _runTerraformApplyForTestPhase = async function (test, phase) {
     .readdirSync(test.dir)
     .sort()
     .filter(i => {
+      // To allow other useful files required for deployment(.i.e .yml and .yaml required for deployment of k8s resources)
+      if ([".xml"].includes(path.extname(i))) {
+        return true;
+      }
+
       if (![".tf", ".tfvars"].includes(path.extname(i))) {
         return false;
       }

@@ -2,9 +2,11 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"path"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/smithy-go"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -25,6 +27,16 @@ func isNotFoundError(notFoundErrors []string) plugin.ErrorPredicateWithContext {
 				}
 			}
 		}
+
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// Added to support regex in not found errors
+			for _, pattern := range allErrors {
+				if ok, _ := path.Match(pattern, ae.ErrorCode()); ok {
+					return true
+				}
+			}
+		}
 		return false
 	}
 }
@@ -41,6 +53,16 @@ func shouldIgnoreErrorPluginDefault() plugin.ErrorPredicateWithContext {
 			// Added to support regex in ignoring errors
 			for _, pattern := range awsConfig.IgnoreErrorCodes {
 				if ok, _ := path.Match(pattern, awsErr.Code()); ok {
+					return true
+				}
+			}
+		}
+
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// Added to support regex in not found errors
+			for _, pattern := range awsConfig.IgnoreErrorCodes {
+				if ok, _ := path.Match(pattern, ae.ErrorCode()); ok {
 					return true
 				}
 			}
