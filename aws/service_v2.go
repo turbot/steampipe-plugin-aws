@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -107,6 +108,53 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	}
 
 	svc := apigatewayv2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// AutoScaling returns the service client for AWS Application Auto Scaling service
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed APIGatewayV2 Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("autoscaling-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*autoscaling.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("APIGatewayV2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := autoscaling.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// CloudWatchClient returns the service connection for AWS Cloud Watch service
+func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CloudWatchService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("cloudwatch-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudwatch.Client), nil
+	}
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudwatch.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
