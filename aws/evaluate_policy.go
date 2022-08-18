@@ -78,6 +78,22 @@ type EvaluatedStatement struct {
 	availablePermissions AvailablePermissions
 }
 
+func (evaluatedStatement EvaluatedStatement) FindAllowedPrincipalsIntercept(statement EvaluatedStatement) map[string]bool {
+	foundPrincipalSet := map[string]bool{}
+
+	// TODO: Should be a better way
+	findAllowedPrincipalsSet := mergeSet(statement.principal.allowedPrincipalsSet, statement.condition.allowedPrincipalsSet)
+	currentAllowedPrincipals := mergeSet(evaluatedStatement.principal.allowedPrincipalsSet, evaluatedStatement.condition.allowedPrincipalsSet)
+
+	for findAllowedPrincipal := range findAllowedPrincipalsSet {
+		if _, exists := currentAllowedPrincipals[findAllowedPrincipal]; exists {
+			foundPrincipalSet[findAllowedPrincipal] = true
+		}
+	}
+
+	return foundPrincipalSet
+}
+
 func evaluateStatements(statements []Statement, userAccountId string, allAvailablePermissions AllAvailablePermissions) ([]EvaluatedStatement, []EvaluatedStatement, error) {
 	var currentEvaluatedStatements *[]EvaluatedStatement
 	allowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
@@ -201,6 +217,16 @@ func loadAllAvailablePermissions() AllAvailablePermissions {
 type AvailablePermissions struct {
 	isAllPermissions bool
 	permissions      map[string]bool
+}
+
+func (availablePermissions AvailablePermissions) IsAllPermissions() bool {
+	return availablePermissions.isAllPermissions
+}
+
+func (availablePermissions AvailablePermissions) RemovePermissions(permissionsToRemove AvailablePermissions) {
+	for permission := range permissionsToRemove.permissions {
+		delete(availablePermissions.permissions, permission)
+	}
 }
 
 func (allAvailablePermissions AllAvailablePermissions) findAvailablePermissions(actionSet map[string]bool) AvailablePermissions {
@@ -395,8 +421,7 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 
 	for _, reducedStatement := range statements {
 		// Does this statement have any actions and are the actions valid?
-		// TODO: Actions valid?
-		if !reducedStatement.availablePermissions.isAllPermissions && len(reducedStatement.availablePermissions.permissions) == 0 {
+		if !reducedStatement.availablePermissions.IsAllPermissions() && len(reducedStatement.availablePermissions.permissions) == 0 {
 			continue
 		}
 
@@ -465,10 +490,11 @@ func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedSta
 	reducedStatements := allowedStatements
 
 	for _, deniedStatement := range deniedStatements {
-		for reducedStatementIndex := range reducedStatements {
 
-			for deniedPermission := range deniedStatement.availablePermissions.permissions {
-				delete(reducedStatements[reducedStatementIndex].availablePermissions.permissions, deniedPermission)
+		for _, reducedStatement := range reducedStatements {
+			allowedPrincipalsIntercept := reducedStatement.FindAllowedPrincipalsIntercept(deniedStatement)
+			if len(allowedPrincipalsIntercept) > 0 {
+				reducedStatement.availablePermissions.RemovePermissions(deniedStatement.availablePermissions)
 			}
 		}
 	}
@@ -904,6 +930,10 @@ func mergeSets(dest map[string]bool, source1 map[string]bool, source2 map[string
 
 func mergeSet(set1 map[string]bool, set2 map[string]bool) map[string]bool {
 	if set1 == nil {
+		if set2 == nil {
+			return map[string]bool{}
+		}
+
 		return set2
 	}
 	if set2 == nil {
