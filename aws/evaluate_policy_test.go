@@ -18054,11 +18054,14 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 }
 
 func TestDenyPermissions(t *testing.T) {
-	t.Run("testDenyWithDifferentPermissionsAtGlobalResource", testDenyWithDifferentPermissionsAtGlobalResource)
-	t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyWithSamePermissionsAtGlobalResource)
+	t.Run("testDenyWithDifferentPermissionsAtGlobalResource", testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel)
+	t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyPermissionsDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
+	t.Run("testDenyWithTwoPermissionsWithOneDeniedAtGlobalResource", testDenyPermissionsAllowedAndDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
+	t.Run("TestDenyWithOneDeniedPermissionsWithAndTwoDenyStatementsAtGlobalResource", testDenyPermissionsDeniedPermissionWithTwoDenyAtGlobalResourceLevel)
+	t.Run("testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel", testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel)
 }
 
-func testDenyWithDifferentPermissionsAtGlobalResource(t *testing.T) {
+func testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -18120,7 +18123,7 @@ func testDenyWithDifferentPermissionsAtGlobalResource(t *testing.T) {
 	}
 }
 
-func testDenyWithSamePermissionsAtGlobalResource(t *testing.T) {
+func testDenyPermissionsDeniedPermissionsWithOneDenyAtGlobalResourceLevel(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -18135,6 +18138,202 @@ func testDenyWithSamePermissionsAtGlobalResource(t *testing.T) {
         {
           "Effect": "Deny",
           "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsAllowedAndDeniedPermissionsWithOneDenyAtGlobalResourceLevel(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"Read"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsDeniedPermissionWithTwoDenyAtGlobalResourceLevel(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:Describe*",
           "Resource": "*"
         }
       ]
