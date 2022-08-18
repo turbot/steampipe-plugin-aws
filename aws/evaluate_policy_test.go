@@ -6,7 +6,7 @@ import (
 )
 
 /// Evaluation Functions
-func evaluatePublicAccessLevelsTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+func evaluatePublicAccessLevelsTest(t *testing.T, source PolicySummary, expected PolicySummary) []string {
 	errors := []string{}
 
 	countPublicAccessLevels := len(source.PublicAccessLevels)
@@ -54,7 +54,7 @@ func evaluatePublicAccessLevelsTest(t *testing.T, source EvaluatedPolicy, expect
 	return errors
 }
 
-func evaluateAccessLevelTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+func evaluateAccessLevelTest(t *testing.T, source PolicySummary, expected PolicySummary) []string {
 	errors := []string{}
 
 	currentAccessLevel := source.AccessLevel
@@ -66,7 +66,7 @@ func evaluateAccessLevelTest(t *testing.T, source EvaluatedPolicy, expected Eval
 	return errors
 }
 
-func evaluateSidTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+func evaluateSidTest(t *testing.T, source PolicySummary, expected PolicySummary) []string {
 	errors := []string{}
 
 	countPublicStatementIds := len(source.PublicStatementIds)
@@ -100,7 +100,7 @@ func evaluateSidTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPol
 	return errors
 }
 
-func evaluatePrincipalTest(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+func evaluatePrincipalTest(t *testing.T, source PolicySummary, expected PolicySummary) []string {
 	errors := []string{}
 
 	currentIsPublic := source.IsPublic
@@ -168,7 +168,7 @@ func evaluatePrincipalTest(t *testing.T, source EvaluatedPolicy, expected Evalua
 	return errors
 }
 
-func evaluateIntegration(t *testing.T, source EvaluatedPolicy, expected EvaluatedPolicy) []string {
+func evaluateIntegration(t *testing.T, source PolicySummary, expected PolicySummary) []string {
 	errors := []string{}
 	currentAccessLevel := source.AccessLevel
 	expectedAccessLevel := expected.AccessLevel
@@ -343,7 +343,7 @@ func testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates(t *testing
 	}
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -378,7 +378,7 @@ func testPolicyCreatedWithCanonicaliseWithNoStatementsPolicyEvaluates(t *testing
 func testPolicyCreatedByStringEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -413,7 +413,7 @@ func testPolicyCreatedByStringEvaluates(t *testing.T) {
 func testPolicyCreatedByEmptyJsonStringEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -468,7 +468,7 @@ func testEffectElementWithValidValues(t *testing.T) {
       ]
     }
 	`
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -656,7 +656,7 @@ func testIfSourceAccountIdContainsTooManyNumericalValuesItFails(t *testing.T) {
 func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesItEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -692,7 +692,7 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesItEvaluates(t *t
 func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZeroItEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -899,7 +899,7 @@ func testWhenPrincipalIsWildcarded(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -956,7 +956,7 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -1018,7 +1018,7 @@ func testWhenStatementHasBothPublicAndSharedAccountThenTheEvaluationIsPublic(t *
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1086,7 +1086,7 @@ func testWhenStatementHasBothPublicAndPrivateAccountThenTheEvaluationIsPublic(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1151,7 +1151,7 @@ func testWhenPrincipalIsAUserAccountId(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -1210,7 +1210,7 @@ func testWhenPrincipalIsAUserAccountArn(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -1269,7 +1269,7 @@ func testWhenPrincipalIsACrossAccountArn(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
@@ -1328,7 +1328,7 @@ func testWhenPrincipalIsACrossAccountId(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"444455554444"},
@@ -1387,7 +1387,7 @@ func testWhenPrincipalIsMultipleUserAccounts(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "private",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1462,7 +1462,7 @@ func testWhenPrincipalIsMultipleAccountsPrincipalsAcrossMultipleStatements(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1530,7 +1530,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInAscendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1587,7 +1587,7 @@ func testWhenPrincipalIsMultipleCrossAccountsInDescendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1652,7 +1652,7 @@ func testWhenPrincipalIsMultipleMixedAccounts(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1719,7 +1719,7 @@ func testWhenPrincipalIsMultipleMixedAccountsWithWildcard(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1788,7 +1788,7 @@ func testWhenPricipalIsAUserAccountRole(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:role/role-name"},
@@ -1847,7 +1847,7 @@ func testWhenPricipalIsACrossAccountRole(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:role/role-name"},
@@ -1906,7 +1906,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInAscendingOrder(t *testing.T) 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -1971,7 +1971,7 @@ func testWhenPrincipalIsMultipleCrossAccountRolesInDescendingOrder(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2057,7 +2057,7 @@ func testWhenPrincipalIsMultipleAccountRolePrincipalsAcrossMultipleStatements(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2128,7 +2128,7 @@ func testWhenPrincipalIsMultipleUserAccountRoles(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "private",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2195,7 +2195,7 @@ func testWhenPrincipalIsMultipleMixedAccountRoles(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2262,7 +2262,7 @@ func testWhenPricipalIsAUserAccountAssumedRole(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:sts::012345678901:assumed-role/role-name/role-session-name"},
@@ -2321,7 +2321,7 @@ func testWhenPricipalIsACrossAccountAssumedRole(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:sts::444455554444:assumed-role/role-name/role-session-name"},
@@ -2383,7 +2383,7 @@ func testWhenPrincipalIsMultipleUserAccountAssumedRoles(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "private",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2448,7 +2448,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInAscendingOrder(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2513,7 +2513,7 @@ func testWhenPrincipalIsMultipleCrossAccountAssumedRolesInDescendingOrder(t *tes
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2599,7 +2599,7 @@ func testWhenPrincipalIsMultipleAccountAssumedRolePrincipalsAcrossMultipleStatem
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2672,7 +2672,7 @@ func testWhenPrincipalIsMultipleMixedAccountAssumedRoles(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -2739,7 +2739,7 @@ func testWhenPricipalIsAFederatedUser(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -2798,7 +2798,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                "private",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
@@ -2860,7 +2860,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                "private",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
@@ -2943,7 +2943,7 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                "private",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
@@ -3005,7 +3005,7 @@ func testWhenPricipalIsAService(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -3064,7 +3064,7 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -3126,7 +3126,7 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -3209,7 +3209,7 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -3278,7 +3278,7 @@ func testWhenPrincipalIsMultipleTypes(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::444455554444:root"},
@@ -3339,7 +3339,7 @@ func testWhenPrincipalIsMultipleTypesWithWildcard(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -3424,7 +3424,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -3527,7 +3527,7 @@ func testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard(t *tes
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -3610,7 +3610,7 @@ func testWhenPricipalAndResourceIsPresent(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -3666,7 +3666,7 @@ func testWhenPricipalAndResourceIsMissing(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -3735,7 +3735,7 @@ func testKnownSidInASingleStatementThatAllowsSharedAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"444455554444"},
@@ -3792,7 +3792,7 @@ func testKnownSidInASingleStatementThatAllowsPrivateAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -3849,7 +3849,7 @@ func testKnownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -3911,7 +3911,7 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInIncreasingOrder(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -3976,7 +3976,7 @@ func testKnownSidsInMultipleStatementsThatAllowsPublicAccessInDecreasingOrder(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -4071,7 +4071,7 @@ func testUnknownSidInASingleStatementThatAllowsPublicAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -4131,7 +4131,7 @@ func testUnknownSidsInMultipleStatementsThatAllowsPublicAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -4200,7 +4200,7 @@ func testPublicPrincipalIsPublicAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -4256,7 +4256,7 @@ func testServicePrincipalIsPublicAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -4312,7 +4312,7 @@ func testCrossAccountPrincipalIsSharedAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"111122221111"},
@@ -4368,7 +4368,7 @@ func testUserAccountPrincipalIsPrivateAccess(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4428,7 +4428,7 @@ func testAccessLevelSharedHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -4494,7 +4494,7 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelPrivate(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -4560,7 +4560,7 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -4650,7 +4650,7 @@ func testUnknownApiService(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4708,7 +4708,7 @@ func testUnknownApiFunction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4766,7 +4766,7 @@ func testKnownApiFunction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4830,7 +4830,7 @@ func testMultipleStatementsWithKnownApiFunctions(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4891,7 +4891,7 @@ func testFullWildcard(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -4955,7 +4955,7 @@ func testSingleFullWildcardWithNoActionName(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5019,7 +5019,7 @@ func testSingleFullWildcardAtFrontOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5080,7 +5080,7 @@ func testSingleFullWildcardInMiddleOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5138,7 +5138,7 @@ func testSingleFullWildcardAtEndOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5199,7 +5199,7 @@ func testSinglePartialWildcardAtFrontOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5257,7 +5257,7 @@ func testSinglePartialWildcardInMiddleOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5315,7 +5315,7 @@ func testSinglePartialWildcardAtEndOfAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5373,7 +5373,7 @@ func testMultipleWildcardsInAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5434,7 +5434,7 @@ func testSinglePartialWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5492,7 +5492,7 @@ func testSingleFullWildcardAtEndOfKnownApiFunctionAction(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5550,7 +5550,7 @@ func testIncompleteActionMissingFunctionPattern(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5608,7 +5608,7 @@ func testActionWhenServiceNameIsGivenOnly(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -5733,7 +5733,7 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -5795,7 +5795,7 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -5857,7 +5857,7 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -5919,7 +5919,7 @@ func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -5981,7 +5981,7 @@ func testSourceArnConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -6043,7 +6043,7 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -6105,7 +6105,7 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase(t
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -6167,7 +6167,7 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -6229,7 +6229,7 @@ func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsI
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -6291,7 +6291,7 @@ func testSourceArnConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -6353,7 +6353,7 @@ func testSourceArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*012345678901*"},
@@ -6415,7 +6415,7 @@ func testSourceArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.T) 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*222233332222*"},
@@ -6477,7 +6477,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*22223333222*"},
@@ -6539,7 +6539,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*2222333322222*"},
@@ -6601,7 +6601,7 @@ func testSourceArnConditionWhenValueIsFullWildcardWithStringLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -6663,7 +6663,7 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"1234*"},
@@ -6725,7 +6725,7 @@ func testSourceArnConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -6787,7 +6787,7 @@ func testSourceArnConditionWhenValueWhenArnIsMalformedUsingStringOperators(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -6849,7 +6849,7 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOperat
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -6911,7 +6911,7 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOpera
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -6977,7 +6977,7 @@ func testSourceArnConditionWithMulipleValuesUsingStringOperators(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -7045,7 +7045,7 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingArnEquals(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -7107,7 +7107,7 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingArnEquals(t *testing.T) 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -7169,7 +7169,7 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingArnEquals(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7231,7 +7231,7 @@ func testSourceArnConditionUsingArnEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -7293,7 +7293,7 @@ func testSourceArnConditionWhenValueIsAUserAccountWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:*"},
@@ -7355,7 +7355,7 @@ func testSourceArnConditionWhenValueIsACrossAccountWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -7417,7 +7417,7 @@ func testSourceArnConditionWhenValueIsMissingAccountSection(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7479,7 +7479,7 @@ func testSourceArnConditionWhenValueIsMissingValueInAccountSection(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7541,7 +7541,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithArnLike(t *
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7603,7 +7603,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithArnLike(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7665,7 +7665,7 @@ func testSourceArnConditionWhenValueIsFullWildcardWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::*"},
@@ -7727,7 +7727,7 @@ func testSourceArnConditionWhenValueIsInvalidValueWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7789,7 +7789,7 @@ func testSourceArnConditionUsingArnLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -7851,7 +7851,7 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -7919,7 +7919,7 @@ func testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -7981,7 +7981,7 @@ func testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLik
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8043,7 +8043,7 @@ func testSourceArnConditionWhenValueWhenArnIsMalformedUsingArnOperators(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8105,7 +8105,7 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingArnOperators
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8167,7 +8167,7 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingArnOperator
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8233,7 +8233,7 @@ func testSourceArnConditionWithMulipleValuesUsingArnOperators(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -8301,7 +8301,7 @@ func testSourceArnConditionIsNotAnArnOrStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -8363,7 +8363,7 @@ func testSourceArnConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -8445,7 +8445,7 @@ func testSourceArnConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -8578,7 +8578,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals(t *testin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -8640,7 +8640,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEquals(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -8702,7 +8702,7 @@ func testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEquals(t *testin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8764,7 +8764,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEquals(t *tes
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -8826,7 +8826,7 @@ func testPrincipalArnConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -8888,7 +8888,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -8950,7 +8950,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCas
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -9012,7 +9012,7 @@ func testPrincipalArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -9074,7 +9074,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreC
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -9136,7 +9136,7 @@ func testPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -9198,7 +9198,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*012345678901*"},
@@ -9260,7 +9260,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*222233332222*"},
@@ -9322,7 +9322,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*22223333222*"},
@@ -9384,7 +9384,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringL
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:*2222333322222*"},
@@ -9446,7 +9446,7 @@ func testPrincipalArnConditionWhenValueIsFullWildcardWithStringLike(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -9508,7 +9508,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike(t *testin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"1234*"},
@@ -9570,7 +9570,7 @@ func testPrincipalArnConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -9632,7 +9632,7 @@ func testPrincipalArnConditionWhenValueWhenArnIsMalformedUsingStringOperators(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -9694,7 +9694,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOpe
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -9756,7 +9756,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOp
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -9822,7 +9822,7 @@ func testPrincipalArnConditionWithMulipleValuesUsingStringOperators(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -9890,7 +9890,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountUsingArnEquals(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -9952,7 +9952,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountUsingArnEquals(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:root"},
@@ -10014,7 +10014,7 @@ func testPrincipalArnConditionWhenValueIsFullWildcardUsingArnEquals(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10076,7 +10076,7 @@ func testPrincipalArnConditionUsingArnEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
@@ -10138,7 +10138,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:*"},
@@ -10200,7 +10200,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountWithArnLike(t *testing.T) 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -10262,7 +10262,7 @@ func testPrincipalArnConditionWhenValueIsMissingAccountSection(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10324,7 +10324,7 @@ func testPrincipalArnConditionWhenValueIsMissingValueInAccountSection(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10386,7 +10386,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithArnLike(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10448,7 +10448,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithArnLike
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10510,7 +10510,7 @@ func testPrincipalArnConditionWhenValueIsFullWildcardWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::*"},
@@ -10572,7 +10572,7 @@ func testPrincipalArnConditionWhenValueIsInvalidValueWithArnLike(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10634,7 +10634,7 @@ func testPrincipalArnConditionUsingArnLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
@@ -10696,7 +10696,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardWithArnLike(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -10764,7 +10764,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnL
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10826,7 +10826,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArn
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10888,7 +10888,7 @@ func testPrincipalArnConditionWhenValueWhenArnIsMalformedUsingArnOperators(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -10950,7 +10950,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingArnOperat
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11012,7 +11012,7 @@ func testPrincipalArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingArnOpera
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11078,7 +11078,7 @@ func testPrincipalArnConditionWithMulipleValuesUsingArnOperators(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -11146,7 +11146,7 @@ func testPrincipalArnConditionIsNotAnArnOrStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -11208,7 +11208,7 @@ func testPrincipalArnConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -11290,7 +11290,7 @@ func testPrincipalArnConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -11400,7 +11400,7 @@ func testSourceAccountConditionWhenValueIsAUserAccountUsingStringEquals(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -11462,7 +11462,7 @@ func testSourceAccountConditionWhenValueIsACrossAccountUsingStringEquals(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -11524,7 +11524,7 @@ func testSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11586,7 +11586,7 @@ func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11648,7 +11648,7 @@ func testSourceAccountConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -11710,7 +11710,7 @@ func testSourceAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCas
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -11772,7 +11772,7 @@ func testSourceAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCa
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -11834,7 +11834,7 @@ func testSourceAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCas
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11896,7 +11896,7 @@ func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnore
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -11958,7 +11958,7 @@ func testSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -12020,7 +12020,7 @@ func testSourceAccountConditionWhenValueIsAUserAccountWithStringLike(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -12082,7 +12082,7 @@ func testSourceAccountConditionWhenValueIsACrossAccountWithStringLike(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -12144,7 +12144,7 @@ func testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringL
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12206,7 +12206,7 @@ func testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithString
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12268,7 +12268,7 @@ func testSourceAccountConditionWhenValueIsFullWildcardWithStringLike(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -12330,7 +12330,7 @@ func testSourceAccountConditionWhenValueIsPartialWildcardWithStringLike(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"1234*"},
@@ -12392,7 +12392,7 @@ func testSourceAccountConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -12454,7 +12454,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingString
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
@@ -12516,7 +12516,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStr
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12578,7 +12578,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingSt
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12640,7 +12640,7 @@ func testSourceAccountConditionWhenValueWhenArnIsMalformedUsingStringOperators(t
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12702,7 +12702,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOp
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12764,7 +12764,7 @@ func testSourceAccountConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringO
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12830,7 +12830,7 @@ func testSourceAccountConditionWithMulipleValuesUsingStringOperators(t *testing.
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -12898,7 +12898,7 @@ func testSourceAccountConditionIsNotAStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -12960,7 +12960,7 @@ func testSourceAccountConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13042,7 +13042,7 @@ func testSourceAccountConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -13152,7 +13152,7 @@ func testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEquals(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13214,7 +13214,7 @@ func testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEquals(t *t
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -13276,7 +13276,7 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEquals(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -13338,7 +13338,7 @@ func testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEquals(t 
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -13400,7 +13400,7 @@ func testPrincipalAccountConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13462,7 +13462,7 @@ func testPrincipalAccountConditionWhenValueIsAUserAccountUsingStringEqualsIgnore
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13524,7 +13524,7 @@ func testPrincipalAccountConditionWhenValueIsACrossAccountUsingStringEqualsIgnor
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -13586,7 +13586,7 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardUsingStringEqualsIgnore
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -13648,7 +13648,7 @@ func testPrincipalAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgn
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -13710,7 +13710,7 @@ func testPrincipalAccountConditionUsingStringEqualsIgnoreCaseIfExists(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13772,7 +13772,7 @@ func testPrincipalAccountConditionWhenValueIsAUserAccountWithStringLike(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -13834,7 +13834,7 @@ func testPrincipalAccountConditionWhenValueIsACrossAccountWithStringLike(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -13896,7 +13896,7 @@ func testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStri
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -13958,7 +13958,7 @@ func testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStr
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14020,7 +14020,7 @@ func testPrincipalAccountConditionWhenValueIsFullWildcardWithStringLike(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -14082,7 +14082,7 @@ func testPrincipalAccountConditionWhenValueIsPartialWildcardWithStringLike(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"1234*"},
@@ -14144,7 +14144,7 @@ func testPrincipalAccountConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -14206,7 +14206,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStr
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
@@ -14268,7 +14268,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14330,7 +14330,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooManyUsin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14392,7 +14392,7 @@ func testPrincipalAccountConditionWhenValueWhenArnIsMalformedUsingStringOperator
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14454,7 +14454,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsOneDigitTooFewUsingStrin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14516,7 +14516,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsOneDigitTooManyUsingStri
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14582,7 +14582,7 @@ func testPrincipalAccountConditionWithMulipleValuesUsingStringOperators(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -14650,7 +14650,7 @@ func testPrincipalAccountConditionIsNotAStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -14712,7 +14712,7 @@ func testPrincipalAccountConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -14794,7 +14794,7 @@ func testPrincipalAccountConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -14898,7 +14898,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals(t *testi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -14960,7 +14960,7 @@ func testPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEquals(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15022,7 +15022,7 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEquals(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15084,7 +15084,7 @@ func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEquals(t *t
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15145,7 +15145,7 @@ func testPrincipalOrgIDConditionUsingStringEqualsIfExists(t *testing.T) {
       ]
     }
 	`
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -15207,7 +15207,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEqualsIgnoreCas
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -15269,7 +15269,7 @@ func testPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringEqualsIgnore
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15331,7 +15331,7 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCa
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15393,7 +15393,7 @@ func testPrincipalOrgIDConditionWhenValueIsPartialWildcardUsingStringEqualsIgnor
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15455,7 +15455,7 @@ func testPrincipalOrgIDConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -15517,7 +15517,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringLike(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -15579,7 +15579,7 @@ func testPrincipalOrgIDConditionWhenValueIsAnInvalidOrgIDUsingStringLike(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15641,7 +15641,7 @@ func testPrincipalOrgIDConditionWhenValueIsAllOrganizationsUsingStringLike(t *te
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{"o-*"},
 		AllowedPrincipals:                   []string{},
@@ -15703,7 +15703,7 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringLike(t *testin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{"o-*"},
 		AllowedPrincipals:                   []string{},
@@ -15765,7 +15765,7 @@ func testPrincipalOrgIDConditionWhenValueIsWildcardOrganizationUsingStringLike(t
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid*"},
 		AllowedPrincipals:                   []string{},
@@ -15827,7 +15827,7 @@ func testPrincipalOrgIDConditionWhenValueIsInvalidWildcardOrganizationUsingStrin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -15889,7 +15889,7 @@ func testPrincipalOrgIDConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{"o-valid"},
 		AllowedPrincipals:                   []string{},
@@ -15955,7 +15955,7 @@ func testPrincipalOrgIDConditionWithMulipleValuesUsingStringOperators(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel: "shared",
 		AllowedOrganizationIds: []string{
 			"o-valid1",
@@ -16020,7 +16020,7 @@ func testPrincipalOrgIDConditionIsNotAStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -16082,7 +16082,7 @@ func testPrincipalOrgIDConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16164,7 +16164,7 @@ func testPrincipalOrgIDConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel: "public",
 		AllowedOrganizationIds: []string{
 			"o-*",
@@ -16273,7 +16273,7 @@ func testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEquals(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16335,7 +16335,7 @@ func testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEquals(t *testin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -16397,7 +16397,7 @@ func testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEquals(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -16459,7 +16459,7 @@ func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEquals(t *test
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -16521,7 +16521,7 @@ func testSourceOwnerConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16583,7 +16583,7 @@ func testSourceOwnerConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16645,7 +16645,7 @@ func testSourceOwnerConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -16707,7 +16707,7 @@ func testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase(
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -16769,7 +16769,7 @@ func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCa
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -16831,7 +16831,7 @@ func testSourceOwnerConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16893,7 +16893,7 @@ func testSourceOwnerConditionWhenValueIsAUserAccountWithStringLike(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -16955,7 +16955,7 @@ func testSourceOwnerConditionWhenValueIsACrossAccountWithStringLike(t *testing.T
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -17017,7 +17017,7 @@ func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLik
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17079,7 +17079,7 @@ func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17141,7 +17141,7 @@ func testSourceOwnerConditionWhenValueIsFullWildcardWithStringLike(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"*"},
@@ -17203,7 +17203,7 @@ func testSourceOwnerConditionWhenValueIsPartialWildcardWithStringLike(t *testing
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"1234*"},
@@ -17265,7 +17265,7 @@ func testSourceOwnerConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222233332222"},
@@ -17327,7 +17327,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsSingleWildcardedUsingStringLi
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"0123456789??"},
@@ -17389,7 +17389,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStrin
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17451,7 +17451,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStri
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17513,7 +17513,7 @@ func testSourceOwnerConditionWhenValueWhenArnIsMalformedUsingStringOperators(t *
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17575,7 +17575,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOper
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17637,7 +17637,7 @@ func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOpe
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17703,7 +17703,7 @@ func testSourceOwnerConditionWithMulipleValuesUsingStringOperators(t *testing.T)
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -17771,7 +17771,7 @@ func testSourceOwnerConditionIsNotAStringType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
@@ -17833,7 +17833,7 @@ func testSourceOwnerConditionWhenUnknownOperatoryType(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -17915,7 +17915,7 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:            "public",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
@@ -17964,7 +17964,12 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 	}
 }
 
-func TestFirstDeny(t *testing.T) {
+func TestDenyPermissions(t *testing.T) {
+	t.Run("testDenyWithDifferentPermissionsAtGlobalResource", testDenyWithDifferentPermissionsAtGlobalResource)
+	//t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyWithSamePermissionsAtGlobalResource)
+}
+
+func testDenyWithDifferentPermissionsAtGlobalResource(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -17985,7 +17990,7 @@ func TestFirstDeny(t *testing.T) {
     }
 	`
 
-	expected := EvaluatedPolicy{
+	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"012345678901"},
@@ -17996,7 +18001,69 @@ func TestFirstDeny(t *testing.T) {
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{"List"},
-		PublicStatementIds:                  []string{"Statement[1]"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyWithSamePermissionsAtGlobalResource(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
 
