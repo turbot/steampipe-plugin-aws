@@ -208,7 +208,7 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 			continue
 		}
 
-		evaluatedAccessLevels := getAccessLevels(reducedStatement, allAvailablePermissions)
+		evaluatedAccessLevels := getAccessLevels(reducedStatement.availablePermissions, allAvailablePermissions)
 
 		if len(evaluatedAccessLevels) == 0 {
 			continue
@@ -502,8 +502,8 @@ func findAvailablePermissions(actionSet map[string]bool, allAvailablePermissions
 	return AvailablePermissions{permissions: permissions}
 }
 
-func getAccessLevels(evaluatedStatement EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) map[string]bool {
-	if evaluatedStatement.availablePermissions.isAllPermissions {
+func getAccessLevels(availablePermissions AvailablePermissions, allAvailablePermissions AllAvailablePermissions) map[string]bool {
+	if availablePermissions.isAllPermissions {
 		return map[string]bool{
 			"List":                   true,
 			"Permissions management": true,
@@ -515,7 +515,7 @@ func getAccessLevels(evaluatedStatement EvaluatedStatement, allAvailablePermissi
 
 	accessLevels := map[string]bool{}
 
-	for permission := range evaluatedStatement.availablePermissions.permissions {
+	for permission := range availablePermissions.permissions {
 		actionSummary := createPermissionSummary(permission)
 
 		if !actionSummary.process {
@@ -958,14 +958,12 @@ func setToSortedSlice(set map[string]bool) []string {
 }
 
 type AllAvailablePermissions struct {
-	allPermissions     map[string]bool
 	servicePermissions map[string]Permissions
 }
 
 func loadAllAvailablePermissions() AllAvailablePermissions {
 	allAvailablePermissions := AllAvailablePermissions{}
 
-	allPermissions := map[string]bool{}
 	servicePermissions := map[string]Permissions{}
 	parliamentPermissions := getParliamentIamPermissions()
 
@@ -978,7 +976,6 @@ func loadAllAvailablePermissions() AllAvailablePermissions {
 				lowerPriviledge := strings.ToLower(priviledge.Privilege)
 				privileges = append(privileges, lowerPriviledge)
 				accessLevel[lowerPriviledge] = priviledge.AccessLevel
-				allPermissions[lowerPriviledge] = true
 			}
 
 			sort.Strings(privileges)
@@ -990,7 +987,6 @@ func loadAllAvailablePermissions() AllAvailablePermissions {
 		}
 	}
 
-	allAvailablePermissions.allPermissions = allPermissions
 	allAvailablePermissions.servicePermissions = servicePermissions
 
 	return allAvailablePermissions
