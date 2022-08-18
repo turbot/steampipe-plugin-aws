@@ -82,7 +82,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Instance.PrivateIpAddress"),
 			},
 			{
-				Name:        "PublicDnsName",
+				Name:        "public_dns_name",
 				Description: "The public DNS name of the instance.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Instance.PublicDnsName"),
