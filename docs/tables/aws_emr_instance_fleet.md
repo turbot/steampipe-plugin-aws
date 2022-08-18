@@ -31,7 +31,7 @@ where
   f.cluster_id = c.id;
 ```
 
-### Get the provisioned & target on demand capacity details per cluster
+### Get the provisioned & target on demand capacity of the instance fleets
 
 ```sql
 select
