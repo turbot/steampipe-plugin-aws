@@ -19330,69 +19330,90 @@ func testDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermission
 	}
 }
 
-// TODO: We are going to fix up Principals
-// func testDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll(t *testing.T) {
-// 	// Set up
-// 	userAccountId := "012345678901"
-// 	policyContent := `
-//     {
-//       "Version": "2012-10-17",
-//       "Statement": [
-//         {
-//           "Effect": "Allow",
-//           "Action": "ec2:DescribeVolumes",
-//           "Resource": "*",
-//           "Principal": {
-//             "AWS": "222244446666"
-//           }
-//         },
-//         {
-//           "Effect": "Deny",
-//           "Action": "ec2:DescribeVolumes",
-//           "Resource": "*",
-//           "Principal": "2222*"
-//         }
-//       ]
-//     }
-// 	`
+func testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "AWS": "arn:aws:iam::012345678901:root"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "AWS": "arn:aws:iam::012345678901:ro??"
+          }
+        },
+		{
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": "2222*"
+        }
+      ]
+    }
+	`
 
-// 	expected := PolicySummary{
-// 		AccessLevel:                         "private",
-// 		AllowedOrganizationIds:              []string{},
-// 		AllowedPrincipals:                   []string{},
-// 		AllowedPrincipalAccountIds:          []string{},
-// 		AllowedPrincipalFederatedIdentities: []string{},
-// 		AllowedPrincipalServices:            []string{},
-// 		IsPublic:                            false,
-// 		PublicAccessLevels:                  []string{},
-// 		SharedAccessLevels:                  []string{},
-// 		PrivateAccessLevels:                 []string{},
-// 		PublicStatementIds:                  []string{},
-// 		SharedStatementIds:                  []string{},
-// 	}
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"222244446666",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"012345678901",
+			"222244446666",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
 
-// 	// Test
-// 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
 
-// 	// Evaluate
-// 	if err != nil {
-// 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
-// 	}
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
 
-// 	errors := evaluatePrincipalTest(t, evaluated, expected)
-// 	if len(errors) > 0 {
-// 		for _, error := range errors {
-// 			t.Log(error)
-// 		}
-// 		t.Fatal("Conditions Unit Test error detected")
-// 	}
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
 
-// 	errors = evaluateIntegration(t, evaluated, expected)
-// 	if len(errors) > 0 {
-// 		for _, error := range errors {
-// 			t.Log(error)
-// 		}
-// 		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
-// 		t.Fail()
-// 	}
-// }
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
