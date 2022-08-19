@@ -188,6 +188,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticsearch_domain":                                     tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster":                                              tableAwsEmrCluster(ctx),
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
+			"aws_emr_instance":                                             tableAwsEmrInstance(ctx),
 			"aws_emr_instance_fleet":                                       tableAwsEmrInstanceFleet(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),
 			"aws_eventbridge_bus":                                          tableAwsEventBridgeBus(ctx),
