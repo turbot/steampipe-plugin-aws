@@ -26,9 +26,10 @@ func tableAwsGlobalacceleratorListener(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "accelerator_arn", Require: plugin.Required},
+				{Name: "accelerator_arn", Require: plugin.Optional},
 			},
-			Hydrate: listGlobalAcceleratorListeners,
+			ParentHydrate: listGlobalAcceleratorAccelerators,
+			Hydrate:       listGlobalAcceleratorListeners,
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -86,10 +87,11 @@ type turbotListener struct {
 
 //// LIST FUNCTION
 
-func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listGlobalAcceleratorListeners")
 
-	acceleratorArn := d.KeyColumnQuals["accelerator_arn"].GetStringValue()
+	accelerator := h.Item.(*globalaccelerator.Accelerator)
+	acceleratorArn := aws.String(*accelerator.AcceleratorArn)
 
 	// Create session
 	svc, err := GlobalAcceleratorService(ctx, d)
@@ -100,7 +102,7 @@ func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, _ 
 
 	input := &globalaccelerator.ListListenersInput{
 		MaxResults:     aws.Int64(100),
-		AcceleratorArn: aws.String(acceleratorArn),
+		AcceleratorArn: acceleratorArn,
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -120,7 +122,7 @@ func listGlobalAcceleratorListeners(ctx context.Context, d *plugin.QueryData, _ 
 		input,
 		func(page *globalaccelerator.ListListenersOutput, isLast bool) bool {
 			for _, listener := range page.Listeners {
-				d.StreamListItem(ctx, &turbotListener{&acceleratorArn, listener})
+				d.StreamListItem(ctx, &turbotListener{acceleratorArn, listener})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
