@@ -172,7 +172,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "streaming_destination",
-				Description: "The list of replica structures for the table being described.",
+				Description: "Provides information about the status of Kinesis streaming.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTableStreamingDestination,
 				Transform:   transform.FromValue(),
