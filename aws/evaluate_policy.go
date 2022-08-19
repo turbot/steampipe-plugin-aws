@@ -981,29 +981,42 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 					account = principalItem
 					evaluatedPrincipal.isPublic = true
 					evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
-				} else {
-					if reIsAwsAccount.MatchString(principalItem) {
-						account = principalItem
-					} else if reIsAwsResource.MatchString(principalItem) {
-						arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
-						account = arnAccount[1]
-					} else {
-						return evaluatedPrincipal, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
-					}
-
-					if userAccountId != account {
-						evaluatedPrincipal.isShared = true
-					} else {
-						evaluatedPrincipal.isPrivate = true
-					}
-					evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
+					evaluatedPrincipal.allowedPrincipalsSet[principalItem] = true
+					continue
 				}
 
+				if strings.Contains(principalItem, "*") || strings.Contains(principalItem, "?") {
+					continue
+				}
+
+				if reIsAwsAccount.MatchString(principalItem) {
+					account = principalItem
+				} else if reIsAwsResource.MatchString(principalItem) {
+					arnAccount := reIsAwsResource.FindStringSubmatch(principalItem)
+					account = arnAccount[1]
+				} else {
+					return evaluatedPrincipal, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
+				}
+
+				if userAccountId != account {
+					evaluatedPrincipal.isShared = true
+				} else {
+					evaluatedPrincipal.isPrivate = true
+				}
+				evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
 				evaluatedPrincipal.allowedPrincipalsSet[principalItem] = true
 			case "Service":
+				if strings.Contains(principalItem, "*") || strings.Contains(principalItem, "?") {
+					continue
+				}
+
 				evaluatedPrincipal.allowedPrincipalServicesSet[principalItem] = true
 				evaluatedPrincipal.isPublic = true
 			case "Federated":
+				if strings.Contains(principalItem, "*") || strings.Contains(principalItem, "?") {
+					continue
+				}
+
 				evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
 				evaluatedPrincipal.isPrivate = true
 			}
