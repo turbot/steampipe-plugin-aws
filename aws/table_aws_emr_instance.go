@@ -46,6 +46,12 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Instance.Ec2InstanceId"),
 			},
 			{
+				Name:        "state",
+				Description: "The current state of the instance.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Instance.Status.State"),
+			},
+			{
 				Name:        "instance_fleet_id",
 				Description: "The unique identifier of the instance fleet to which an EC2 instance belongs.",
 				Type:        proto.ColumnType_STRING,
@@ -100,10 +106,16 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Instance.EbsVolumes"),
 			},
 			{
-				Name:        "status",
-				Description: "The current status of the instance.",
+				Name:        "state_change_reason",
+				Description: "The status change reason details for the instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Instance.Status"),
+				Transform:   transform.FromField("Instance.Status.StateChangeReason"),
+			},
+			{
+				Name:        "status_timeline",
+				Description: "The timeline of the instance status over time.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Instance.Status.Timeline"),
 			},
 
 			// Steampipe standard columns
@@ -111,13 +123,20 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id"),
+				Transform:   transform.FromField("Instance.Id"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEmrInstanceAkas,
+				Transform:   transform.FromValue(),
 			},
 		}),
 	}
 }
 
-type EmrInstanceInfo struct {
+type emrInstanceInfo struct {
 	*emr.Instance
 	ClusterId *string
 }
@@ -159,7 +178,7 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		input,
 		func(page *emr.ListInstancesOutput, isLast bool) bool {
 			for _, instance := range page.Instances {
-				d.StreamListItem(ctx, &EmrInstanceInfo{
+				d.StreamListItem(ctx, &emrInstanceInfo{
 					Instance:  instance,
 					ClusterId: clusterID,
 				})
@@ -174,4 +193,22 @@ func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	)
 
 	return nil, err
+}
+
+func getEmrInstanceAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getEmrInstanceAkas")
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	data := h.Item.(*emrInstanceInfo)
+
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	akas := []string{"arn:" + commonColumnData.Partition + ":emr:" + region + ":" + commonColumnData.AccountId + ":instance/" + *data.Id}
+
+	return akas, nil
 }
