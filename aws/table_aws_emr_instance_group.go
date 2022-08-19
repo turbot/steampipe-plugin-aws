@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -188,7 +189,14 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		},
 	)
 
-	return nil, err
+	if err != nil {
+		if strings.Contains(err.Error(), "InvalidRequestException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listEmrInstanceGroups", "ListInstanceGroupsPages-err", err)
+		return nil, err
+	}
+	return nil, nil
 }
 
 func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

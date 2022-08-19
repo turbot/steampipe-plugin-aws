@@ -171,6 +171,13 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ContinuousBackupsDescription.ContinuousBackupsStatus"),
 			},
 			{
+				Name:        "streaming_destination",
+				Description: "Provides information about the status of Kinesis streaming.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTableStreamingDestination,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "point_in_time_recovery_description",
 				Description: "The description of the point in time recovery settings applied to the table.",
 				Type:        proto.ColumnType_JSON,
@@ -369,6 +376,27 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	return tags, nil
+}
+
+func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	tableName := h.Item.(*dynamodb.TableDescription).TableName
+
+	// Create Session
+	svc, err := DynamoDbService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &dynamodb.DescribeKinesisStreamingDestinationInput{
+		TableName: tableName,
+	}
+
+	op, err := svc.DescribeKinesisStreamingDestination(input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("getTableStreamingDestination", err)
+	}
+	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS
