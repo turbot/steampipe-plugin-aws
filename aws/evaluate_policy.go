@@ -72,73 +72,35 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 }
 
 type EvaluatedStatement struct {
-	allowedOrganizationIdsSet              map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
-	allowedPrincipalFederatedIdentitiesSet map[string]bool
-	allowedPrincipalServicesSet            map[string]bool
-	allowedPrincipalsSet                   map[string]bool
-	availablePermissions                   AvailablePermissions
-	isPrivate                              bool
-	isPublic                               bool
-	isShared                               bool
-	sid                                    string
+	availablePermissions AvailablePermissions
+	isPrivate            bool
+	isPublic             bool
+	isShared             bool
+	principal            string
+	principalType        string
+	sid                  string
 }
 
-// TODO: Remove
-// func (evaluatedStatement EvaluatedStatement) Split(splitStatement EvaluatedStatement) (map[string]bool, map[string]bool) {
-// 	usedSet := map[string]bool{}
-// 	unusedSet := map[string]bool{}
-
-// 	for allowedPrincipal := range splitStatement.allowedPrincipalsSet {
-// 		if _, exists := evaluatedStatement.allowedPrincipalsSet[allowedPrincipal]; exists {
-// 			usedSet[allowedPrincipal] = true
-// 		} else {
-// 			unusedSet[allowedPrincipal] = true
-// 		}
-// 	}
-// }
-
-func (evaluatedStatement EvaluatedStatement) SplitPrincipals(usedSet map[string]bool, unusedSet map[string]bool) []EvaluatedStatement {
-	statements := []EvaluatedStatement{}
-	if len(usedSet) > 0 {
-		statement := evaluatedStatement
-		statement.allowedPrincipalsSet = usedSet
-		statements = append(statements, statement)
+func (evaluatedStatement *EvaluatedStatement) ApplyDenyStatement(denyStatement EvaluatedStatement) {
+	if denyStatement.principalType != evaluatedStatement.principalType {
+		return
 	}
 
-	if len(unusedSet) > 0 {
-		statement := evaluatedStatement
-		statement.allowedPrincipalsSet = unusedSet
-		statements = append(statements, statement)
+	if denyStatement.principal == evaluatedStatement.principal {
+		evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
+		return
 	}
 
-	return statements
-}
-
-func (evaluatedStatement EvaluatedStatement) SortByUsedPrincipals(statement EvaluatedStatement) (map[string]bool, map[string]bool) {
-	usedSet := map[string]bool{}
-	unusedSet := map[string]bool{}
-
-	for allowedPrincipal := range statement.allowedPrincipalsSet {
-		if _, exists := evaluatedStatement.allowedPrincipalsSet[allowedPrincipal]; exists {
-			usedSet[allowedPrincipal] = true
-		} else {
-			unusedSet[allowedPrincipal] = true
-		}
+	if denyStatement.principal == "*" {
+		evaluatedStatement.availablePermissions.permissions = map[string]bool{}
 	}
-
-	return usedSet, unusedSet
 }
 
 func evaluateStatements(statements []Statement, userAccountId string, allAvailablePermissions AllAvailablePermissions) ([]EvaluatedStatement, []EvaluatedStatement, error) {
 	var currentEvaluatedStatements *[]EvaluatedStatement
-	var newCurrentEvaluatedStatements *[]EvaluatedStatement
 
 	allowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
 	deniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
-
-	newAllowedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
-	newDeniedEvaluatedStatements := make([]EvaluatedStatement, 0, len(statements))
 
 	uniqueStatementIds := map[string]bool{}
 
@@ -149,10 +111,8 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 
 		if statement.Effect == "Deny" {
 			currentEvaluatedStatements = &deniedEvaluatedStatements
-			newCurrentEvaluatedStatements = &newDeniedEvaluatedStatements
 		} else {
 			currentEvaluatedStatements = &allowedEvaluatedStatements
-			newCurrentEvaluatedStatements = &newAllowedEvaluatedStatements
 		}
 
 		// Conditions
@@ -186,70 +146,85 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 			actionSet[action] = true
 		}
 
-		// TODO: type may chnage
-		commonStatementBody := EvaluatedStatement{
-			sid:                  sid,
-			isPublic:             evaluatedPrincipal.isPublic || evaluatedCondition.isPublic,
-			isShared:             evaluatedPrincipal.isShared || evaluatedCondition.isShared,
-			isPrivate:            evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate,
-			availablePermissions: allAvailablePermissions.findAvailablePermissions(actionSet),
-		}
+		availablePermissions := allAvailablePermissions.FindAvailablePermissions(actionSet)
+
+		isPublic := evaluatedPrincipal.isPublic || evaluatedCondition.isPublic
+		isShared := evaluatedPrincipal.isShared || evaluatedCondition.isShared
+		isPrivate := evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate
 
 		// Create individual statements here
 		for allowedOrganizationId := range allowedOrganizationIdsSet {
-			organisationStatement := commonStatementBody
-			// TODO: Overkill
-			organisationStatement.allowedOrganizationIdsSet = map[string]bool{allowedOrganizationId: true}
-			(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, organisationStatement)
+			newStatement := EvaluatedStatement{
+				availablePermissions: availablePermissions.Copy(),
+				isPrivate:            isPrivate,
+				isPublic:             isPublic,
+				isShared:             isShared,
+				principal:            allowedOrganizationId,
+				principalType:        "organization",
+				sid:                  sid,
+			}
+
+			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
 
 		for allowedPrincipalAccountId := range allowedPrincipalAccountIdsSet {
-			organisationStatement := commonStatementBody
-			// TODO: Overkill
-			organisationStatement.allowedPrincipalAccountIdsSet = map[string]bool{allowedPrincipalAccountId: true}
-			(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, organisationStatement)
+			newStatement := EvaluatedStatement{
+				availablePermissions: availablePermissions.Copy(),
+				isPrivate:            isPrivate,
+				isPublic:             isPublic,
+				isShared:             isShared,
+				principal:            allowedPrincipalAccountId,
+				principalType:        "id",
+				sid:                  sid,
+			}
+
+			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
 
 		for allowedPrincipalFederatedIdentity := range allowedPrincipalFederatedIdentitiesSet {
-			organisationStatement := commonStatementBody
-			// TODO: Overkill
-			organisationStatement.allowedPrincipalFederatedIdentitiesSet = map[string]bool{allowedPrincipalFederatedIdentity: true}
-			(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, organisationStatement)
+			newStatement := EvaluatedStatement{
+				availablePermissions: availablePermissions.Copy(),
+				isPrivate:            isPrivate,
+				isPublic:             isPublic,
+				isShared:             isShared,
+				principal:            allowedPrincipalFederatedIdentity,
+				principalType:        "federated",
+				sid:                  sid,
+			}
+
+			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
 
 		for allowedPrincipalService := range allowedPrincipalServicesSet {
-			organisationStatement := commonStatementBody
-			// TODO: Overkill
-			organisationStatement.allowedPrincipalServicesSet = map[string]bool{allowedPrincipalService: true}
-			(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, organisationStatement)
+			newStatement := EvaluatedStatement{
+				availablePermissions: availablePermissions.Copy(),
+				isPrivate:            isPrivate,
+				isPublic:             isPublic,
+				isShared:             isShared,
+				principal:            allowedPrincipalService,
+				principalType:        "service",
+				sid:                  sid,
+			}
+
+			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
 
 		for allowedPrincipal := range allowedPrincipalsSet {
-			organisationStatement := commonStatementBody
-			// TODO: Overkill
-			organisationStatement.allowedPrincipalsSet = map[string]bool{allowedPrincipal: true}
-			(*newCurrentEvaluatedStatements) = append(*newCurrentEvaluatedStatements, organisationStatement)
+			newStatement := EvaluatedStatement{
+				availablePermissions: availablePermissions.Copy(),
+				isPrivate:            isPrivate,
+				isPublic:             isPublic,
+				isShared:             isShared,
+				principal:            allowedPrincipal,
+				principalType:        "principal",
+				sid:                  sid,
+			}
+
+			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
-
-		evaluatedStatement := EvaluatedStatement{
-			sid:                                    sid,
-			allowedOrganizationIdsSet:              allowedOrganizationIdsSet,
-			allowedPrincipalAccountIdsSet:          allowedPrincipalAccountIdsSet,
-			allowedPrincipalFederatedIdentitiesSet: allowedPrincipalFederatedIdentitiesSet,
-			allowedPrincipalServicesSet:            allowedPrincipalServicesSet,
-			allowedPrincipalsSet:                   allowedPrincipalsSet,
-			isPublic:                               evaluatedPrincipal.isPublic || evaluatedCondition.isPublic,
-			isShared:                               evaluatedPrincipal.isShared || evaluatedCondition.isShared,
-			isPrivate:                              evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate,
-		}
-
-		evaluatedStatement.availablePermissions = allAvailablePermissions.findAvailablePermissions(actionSet)
-
-		(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, evaluatedStatement)
 	}
 
-	//return allowedEvaluatedStatements, deniedEvaluatedStatements, nil
-	return newAllowedEvaluatedStatements, newDeniedEvaluatedStatements, nil
+	return allowedEvaluatedStatements, deniedEvaluatedStatements, nil
 }
 
 func checkEffectValid(effect string) bool {
@@ -320,6 +295,10 @@ type AvailablePermissions struct {
 	permissions      map[string]bool
 }
 
+func (availablePermissions AvailablePermissions) HasPermissions() bool {
+	return availablePermissions.isAllPermissions || len(availablePermissions.permissions) > 0
+}
+
 func (availablePermissions AvailablePermissions) IsAllPermissions() bool {
 	return availablePermissions.isAllPermissions
 }
@@ -330,7 +309,20 @@ func (availablePermissions AvailablePermissions) RemovePermissions(permissionsTo
 	}
 }
 
-func (allAvailablePermissions AllAvailablePermissions) findAvailablePermissions(actionSet map[string]bool) AvailablePermissions {
+func (availablePermissions AvailablePermissions) Copy() AvailablePermissions {
+	copy := AvailablePermissions{
+		isAllPermissions: availablePermissions.isAllPermissions,
+		permissions:      map[string]bool{},
+	}
+
+	for key, value := range availablePermissions.permissions {
+		copy.permissions[key] = value
+	}
+
+	return copy
+}
+
+func (allAvailablePermissions AllAvailablePermissions) FindAvailablePermissions(actionSet map[string]bool) AvailablePermissions {
 	if _, exists := actionSet["*"]; exists {
 		return AvailablePermissions{isAllPermissions: true}
 	}
@@ -390,7 +382,7 @@ func (allAvailablePermissions AllAvailablePermissions) findAvailablePermissions(
 	return AvailablePermissions{permissions: permissions}
 }
 
-func (allAvailablePermissions AllAvailablePermissions) getAccessLevels(availablePermissions AvailablePermissions) map[string]bool {
+func (allAvailablePermissions AllAvailablePermissions) GetAccessLevels(availablePermissions AvailablePermissions) map[string]bool {
 	if availablePermissions.isAllPermissions {
 		return map[string]bool{
 			"List":                   true,
@@ -512,8 +504,13 @@ type StatementsSummary struct {
 
 func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
 	statementsSummary := StatementsSummary{
-		publicStatementIds: map[string]bool{},
-		sharedStatementIds: map[string]bool{},
+		allowedOrganizationIdsSet:              map[string]bool{},
+		allowedPrincipalAccountIdsSet:          map[string]bool{},
+		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
+		allowedPrincipalServicesSet:            map[string]bool{},
+		allowedPrincipalsSet:                   map[string]bool{},
+		publicStatementIds:                     map[string]bool{},
+		sharedStatementIds:                     map[string]bool{},
 	}
 
 	publicAccessLevelSet := map[string]bool{}
@@ -526,17 +523,30 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 			continue
 		}
 
-		evaluatedAccessLevels := allAvailablePermissions.getAccessLevels(reducedStatement.availablePermissions)
+		evaluatedAccessLevels := allAvailablePermissions.GetAccessLevels(reducedStatement.availablePermissions)
 
 		if len(evaluatedAccessLevels) == 0 {
 			continue
 		}
 
-		statementsSummary.allowedOrganizationIdsSet = mergeSet(statementsSummary.allowedOrganizationIdsSet, reducedStatement.allowedOrganizationIdsSet)
-		statementsSummary.allowedPrincipalAccountIdsSet = mergeSet(statementsSummary.allowedPrincipalAccountIdsSet, reducedStatement.allowedPrincipalAccountIdsSet)
-		statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSet(statementsSummary.allowedPrincipalFederatedIdentitiesSet, reducedStatement.allowedPrincipalFederatedIdentitiesSet)
-		statementsSummary.allowedPrincipalServicesSet = mergeSet(statementsSummary.allowedPrincipalServicesSet, reducedStatement.allowedPrincipalServicesSet)
-		statementsSummary.allowedPrincipalsSet = mergeSet(statementsSummary.allowedPrincipalsSet, reducedStatement.allowedPrincipalsSet)
+		switch reducedStatement.principalType {
+		case "federated":
+			statementsSummary.allowedPrincipalFederatedIdentitiesSet[reducedStatement.principal] = true
+		case "id":
+			statementsSummary.allowedPrincipalAccountIdsSet[reducedStatement.principal] = true
+		case "organization":
+			statementsSummary.allowedOrganizationIdsSet[reducedStatement.principal] = true
+		case "principal":
+			statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
+		case "service":
+			statementsSummary.allowedPrincipalServicesSet[reducedStatement.principal] = true
+		}
+
+		//statementsSummary.allowedOrganizationIdsSet = mergeSet(statementsSummary.allowedOrganizationIdsSet, reducedStatement.principal.allowedOrganizationIdsSet)
+		// statementsSummary.allowedPrincipalAccountIdsSet = mergeSet(statementsSummary.allowedPrincipalAccountIdsSet, reducedStatement.allowedPrincipalAccountIdsSet)
+		// statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSet(statementsSummary.allowedPrincipalFederatedIdentitiesSet, reducedStatement.allowedPrincipalFederatedIdentitiesSet)
+		// statementsSummary.allowedPrincipalServicesSet = mergeSet(statementsSummary.allowedPrincipalServicesSet, reducedStatement.allowedPrincipalServicesSet)
+		// statementsSummary.allowedPrincipalsSet = mergeSet(statementsSummary.allowedPrincipalsSet, reducedStatement.allowedPrincipalsSet)
 		statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.isPublic
 		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.isShared
 
@@ -564,34 +574,21 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 	return statementsSummary
 }
 
-// TODO: Move
-// func (evaluatedStatement EvaluatedStatement) ApplyDeniedStatements(deniedStatements []EvaluatedStatement) {
-// 	for _, deniedStatement := range deniedStatements {
-// 		evaluatedStatement.Split(deniedStatement)
-// 		usedSet, unusedSet := evaluatedStatement.SortByUsedPrincipals(deniedStatement)
-// 		//usedPrincipals, unusedPrincipals := evaluatedStatement.SplitPrincipals(usedSet, unusedSet)
-// 	}
-// }
-
 func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
-
-	// for _, allowedStatement := range allowedStatements {
-	// 	allowedStatement.ApplyDeniedStatements(deniedStatements)
-	// }
-
 	reducedStatements := allowedStatements
 
 	for _, deniedStatement := range deniedStatements {
-
-		for _, reducedStatement := range reducedStatements {
-			usedSet, unusedSet := reducedStatement.SortByUsedPrincipals(deniedStatement)
-
-			reducedStatement.SplitPrincipals(usedSet, unusedSet)
-
-			if len(usedSet) > 0 {
-				reducedStatement.availablePermissions.RemovePermissions(deniedStatement.availablePermissions)
+		updatedActiveStatements := []EvaluatedStatement{}
+		for _, activeStatement := range reducedStatements {
+			activeStatement.ApplyDenyStatement(deniedStatement)
+			if !activeStatement.availablePermissions.HasPermissions() {
+				continue
 			}
+
+			updatedActiveStatements = append(updatedActiveStatements, activeStatement)
 		}
+
+		reducedStatements = updatedActiveStatements
 	}
 
 	return createStatementsSummary(reducedStatements, allAvailablePermissions)
