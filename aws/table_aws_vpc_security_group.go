@@ -111,7 +111,7 @@ func tableAwsVpcSecurityGroup(_ context.Context) *plugin.Table {
 func listVpcSecurityGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_security_group.listVpcSecurityGroups", "connection_error", err)
 		return nil, err
@@ -178,7 +178,7 @@ func getVpcSecurityGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	groupID := d.KeyColumnQuals["group_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_security_group.getVpcSecurityGroup", "api_error", err)
 		return nil, err

@@ -83,7 +83,7 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_key_pair.listEc2KeyPairs", "connection_error", err)
 		return nil, err
@@ -121,7 +121,7 @@ func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	keyName := d.KeyColumnQuals["key_name"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_key_pair.getEc2KeyPair", "connection_error", err)
 		return nil, err

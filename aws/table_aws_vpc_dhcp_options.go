@@ -105,7 +105,7 @@ func tableAwsVpcDhcpOptions(_ context.Context) *plugin.Table {
 func listVpcDhcpOptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.listVpcDhcpOptions", "connection_error", err)
 		return nil, err
@@ -169,7 +169,7 @@ func getVpcDhcpOption(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	dhcpOptionsID := d.KeyColumnQuals["dhcp_options_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_dhcp_options.getVpcDhcpOption", "connection_error", err)
 		return nil, err

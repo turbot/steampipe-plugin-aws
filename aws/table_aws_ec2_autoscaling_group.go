@@ -265,7 +265,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 
 func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoscalingGroup", "connection_error", err)
 		return nil, err
@@ -322,7 +322,7 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroup", "connection_error", err)
 		return nil, err
@@ -350,7 +350,7 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	asg := h.Item.(types.AutoScalingGroup)
 
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "connection_error", err)
 		return nil, err

@@ -160,7 +160,7 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 
 func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.listEc2ApplicationLoadBalancers", "connection error", err)
 		return nil, err
@@ -230,7 +230,7 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getEc2ApplicationLoadBalancer", "connection_error", err)
 		return nil, err
@@ -257,7 +257,7 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerAttributes", "connection_error", err)
 		return nil, err
@@ -281,7 +281,7 @@ func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryDa
 	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerTags", "connection_error", err)
 		return nil, err

@@ -155,7 +155,7 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "connection_error", err)
 		return nil, err
@@ -228,7 +228,7 @@ func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "connection_error", err)
 		return nil, err

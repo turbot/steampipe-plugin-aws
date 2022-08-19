@@ -124,7 +124,7 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc.listVpcs", "connection error", err)
 		return nil, err
@@ -191,7 +191,7 @@ func getVpc(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (in
 	vpcID := d.KeyColumnQuals["vpc_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc.getVpc", "connection_error", err)
 		return nil, err

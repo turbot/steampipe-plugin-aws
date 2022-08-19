@@ -144,7 +144,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.listVpcEips", "connection_error", err)
 		return nil, err
@@ -192,7 +192,7 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	allocationID := d.KeyColumnQuals["allocation_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEip", "connection_error", err)
 		return nil, err

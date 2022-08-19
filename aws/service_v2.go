@@ -157,11 +157,11 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 	return svc, nil
 }
 
-// Ec2Client returns the service client for AWS Ec2 service
-func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+// EC2Client returns the service client for AWS Ec2 service
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+		return nil, fmt.Errorf("region must be passed EC2Client Client")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("ec2-v2-%s", region)
@@ -172,7 +172,7 @@ func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("Ec2Client", "service_client_error")
+		plugin.Logger(ctx).Error("EC2Client", "service_client_error")
 		return nil, err
 	}
 
@@ -182,11 +182,11 @@ func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	return svc, nil
 }
 
-// ELBv2Client returns the service client for AWS ElasticLoadBalance service
-func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
+// ELBV2Client returns the service client for AWS ElasticLoadBalance service
+func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+		return nil, fmt.Errorf("region must be passed ELBV2Client Client")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("elbv2-v2-%s", region)
@@ -197,7 +197,7 @@ func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("ELBv2Client", "service_client_error")
+		plugin.Logger(ctx).Error("ELBV2Client", "service_client_error")
 		return nil, err
 	}
 
@@ -211,10 +211,10 @@ func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error
 func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+		return nil, fmt.Errorf("region must be passed ELBClient Client")
 	}
 	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("elb-v2-%s", region)
+	serviceCacheKey := fmt.Sprintf("elb-%s", region)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
 		return cachedData.(*elb.Client), nil
 	}
@@ -222,7 +222,7 @@ func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("ELBv2Client", "service_client_error")
+		plugin.Logger(ctx).Error("ELBClient", "service_client_error")
 		return nil, err
 	}
 
@@ -232,11 +232,11 @@ func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	return svc, nil
 }
 
-// AutoscalingClient returns the service client for AWS Autoscaling service
-func AutoscalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+// AutoScalingClient returns the service client for AWS Autoscaling service
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+		return nil, fmt.Errorf("region must be passed AutoScalingClient Client")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("autoscaling-v2-%s", region)
@@ -247,7 +247,7 @@ func AutoscalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 	// so it was not in cache - create service
 	cfg, err := getSessionV2(ctx, d, region)
 	if err != nil {
-		plugin.Logger(ctx).Error("AutoscalingClient", "service_client_error")
+		plugin.Logger(ctx).Error("AutoScalingClient", "service_client_error")
 		return nil, err
 	}
 

@@ -145,7 +145,7 @@ func tableAwsVpcEndpoint(_ context.Context) *plugin.Table {
 func listVpcEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_endpoint.listVpcEndpoints", "connection_error", err)
 		return nil, err
@@ -210,7 +210,7 @@ func getVpcEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	vpcEndpointID := d.KeyColumnQuals["vpc_endpoint_id"].GetStringValue()
 
 	// Create session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_endpoint.getVpcEndpoint", "connection_error", err)
 		return nil, err
