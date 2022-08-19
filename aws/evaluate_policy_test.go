@@ -779,8 +779,8 @@ func TestPolicyPrincipalElement(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatements", testWhenPrincipalIsMultipleTypesAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard", testWhenPrincipalIsMultipleTypesAcrossMultipleStatementsWithWildcard)
 
-	t.Run("testWhenPricipalAndResourceIsPresent", testWhenPricipalAndResourceIsPresent)
-	t.Run("testWhenPricipalAndResourceIsMissing", testWhenPricipalAndResourceIsMissing)
+	t.Run("TestWhenPricipalAndResourceIsPresent", testWhenPricipalAndResourceIsPresent)
+	t.Run("TestWhenPricipalAndResourceIsMissing", testWhenPricipalAndResourceIsMissing)
 }
 
 func testWhenPricipalIsAMisformedAccountWithOneDigitShortFails(t *testing.T) {
@@ -4629,31 +4629,31 @@ func testAccessLevelPublicHasHigherPrecidenceThanAccessLevelShared(t *testing.T)
 }
 
 func TestPolicyActionElement(t *testing.T) {
-	t.Run("testPolicyActionUnknownApiService", testPolicyActionUnknownApiService)
-	t.Run("testPolicyActionUnknownApiFunction", testPolicyActionUnknownApiFunction)
-	t.Run("testPolicyActionKnownApiFunction", testPolicyActionKnownApiFunction)
+	t.Run("TestPolicyActionUnknownApiService", testPolicyActionUnknownApiService)
+	t.Run("TestPolicyActionUnknownApiFunction", testPolicyActionUnknownApiFunction)
+	t.Run("TestPolicyActionKnownApiFunction", testPolicyActionKnownApiFunction)
 
-	t.Run("testPolicyActionMultipleStatementsWithKnownApiFunctions", testPolicyActionMultipleStatementsWithKnownApiFunctions)
+	t.Run("TestPolicyActionMultipleStatementsWithKnownApiFunctions", testPolicyActionMultipleStatementsWithKnownApiFunctions)
 
-	t.Run("testPolicyActionFullWildcard", testPolicyActionFullWildcard)
+	t.Run("TestPolicyActionFullWildcard", testPolicyActionFullWildcard)
 
-	t.Run("testPolicyActionSingleFullWildcardWithNoActionName", testPolicyActionSingleFullWildcardWithNoActionName)
-	t.Run("testPolicyActionSingleFullWildcardAtFrontOfAction", testPolicyActionSingleFullWildcardAtFrontOfAction)
-	t.Run("testPolicyActionSingleFullWildcardInMiddleOfAction", testPolicyActionSingleFullWildcardInMiddleOfAction)
-	t.Run("testPolicyActionSingleFullWildcardAtEndOfAction", testPolicyActionSingleFullWildcardAtEndOfAction)
+	t.Run("TestPolicyActionSingleFullWildcardWithNoActionName", testPolicyActionSingleFullWildcardWithNoActionName)
+	t.Run("TestPolicyActionSingleFullWildcardAtFrontOfAction", testPolicyActionSingleFullWildcardAtFrontOfAction)
+	t.Run("TestPolicyActionSingleFullWildcardInMiddleOfAction", testPolicyActionSingleFullWildcardInMiddleOfAction)
+	t.Run("TestPolicyActionSingleFullWildcardAtEndOfAction", testPolicyActionSingleFullWildcardAtEndOfAction)
 
-	t.Run("testPolicyActionSinglePartialWildcardAtFrontOfAction", testPolicyActionSinglePartialWildcardAtFrontOfAction)
-	t.Run("testPolicyActionSinglePartialWildcardInMiddleOfAction", testPolicyActionSinglePartialWildcardInMiddleOfAction)
-	t.Run("testPolicyActionSinglePartialWildcardAtEndOfAction", testPolicyActionSinglePartialWildcardAtEndOfAction)
-	t.Run("testPolicyActionMultipleWildcardsInAction", testPolicyActionMultipleWildcardsInAction)
+	t.Run("TestPolicyActionSinglePartialWildcardAtFrontOfAction", testPolicyActionSinglePartialWildcardAtFrontOfAction)
+	t.Run("TestPolicyActionSinglePartialWildcardInMiddleOfAction", testPolicyActionSinglePartialWildcardInMiddleOfAction)
+	t.Run("TestPolicyActionSinglePartialWildcardAtEndOfAction", testPolicyActionSinglePartialWildcardAtEndOfAction)
+	t.Run("TestPolicyActionMultipleWildcardsInAction", testPolicyActionMultipleWildcardsInAction)
 
-	t.Run("testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction)
-	t.Run("testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction)
+	t.Run("TestPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSinglePartialWildcardAtEndOfKnownApiFunctionAction)
+	t.Run("TestPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction", testPolicyActionSingleFullWildcardAtEndOfKnownApiFunctionAction)
 
-	t.Run("testPolicyActionIncompleteActionMissingFunctionPattern", testPolicyActionIncompleteActionMissingFunctionPattern)
-	t.Run("testPolicyActionWhenServiceNameIsGivenOnly", testPolicyActionWhenServiceNameIsGivenOnly)
+	t.Run("TestPolicyActionIncompleteActionMissingFunctionPattern", testPolicyActionIncompleteActionMissingFunctionPattern)
+	t.Run("TestPolicyActionWhenServiceNameIsGivenOnly", testPolicyActionWhenServiceNameIsGivenOnly)
 
-	t.Run("testPolicyActionWhenServiceNameIsMissing", testPolicyActionWhenServiceNameIsMissing)
+	t.Run("TestPolicyActionWhenServiceNameIsMissing", testPolicyActionWhenServiceNameIsMissing)
 }
 
 func testPolicyActionUnknownApiService(t *testing.T) {
@@ -18055,13 +18055,25 @@ func testSourceOwnerConditionWhenAcrossMultipleStatements(t *testing.T) {
 }
 
 func TestDenyPermissions(t *testing.T) {
-	t.Run("testDenyWithDifferentPermissionsAtGlobalResource", testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel)
-	t.Run("testDenyWithSamePermissionsAtGlobalResource", testDenyPermissionsDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
-	t.Run("testDenyWithTwoPermissionsWithOneDeniedAtGlobalResource", testDenyPermissionsAllowedAndDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
-	t.Run("TestDenyWithOneDeniedPermissionsWithAndTwoDenyStatementsAtGlobalResource", testDenyPermissionsDeniedPermissionWithTwoDenyAtGlobalResourceLevel)
-	t.Run("testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel", testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel)
-	t.Run("testDenyPermissionsAllowedWildcardedPermissionWithDenyAtGlobalResourceLevel", testDenyPermissionsAllowedWildcardedPermissionWithDenyAtGlobalResourceLevel)
-	t.Run("testDenyPermissionsDeniedWildcardedPermissionWithWildcardedDenyAtGlobalResourceLevel", testDenyPermissionsDeniedWildcardedPermissionWithWildcardedDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel", testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsDeniedPermissionsWithOneDenyAtGlobalResourceLevel", testDenyPermissionsDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsAllowedAndDeniedPermissionsWithOneDenyAtGlobalResourceLevel", testDenyPermissionsAllowedAndDeniedPermissionsWithOneDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsDeniedPermissionWithTwoDenyAtGlobalResourceLevel", testDenyPermissionsDeniedPermissionWithTwoDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel", testDenyPermissionsDeniedPermissionWithWildcardedDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsAllowedWildcardedPermissionWithDenyAtGlobalResourceLevel", testDenyPermissionsAllowedWildcardedPermissionWithDenyAtGlobalResourceLevel)
+	t.Run("TestDenyPermissionsDeniedWildcardedPermissionWithWildcardedDenyAtGlobalResourceLevel", testDenyPermissionsDeniedWildcardedPermissionWithWildcardedDenyAtGlobalResourceLevel)
+
+	t.Run("TestDenyPermissionsRemovesPrincipalWithRespectiveDeny", testDenyPermissionsRemovesPrincipalWithRespectiveDeny)
+	t.Run("TestDenyPermissionsRemovesCorrectPrincipalWithRespectiveDeny", testDenyPermissionsRemovesCorrectPrincipalWithRespectiveDeny)
+	t.Run("TestDenyPermissionsRemovesCorrectPrincipalsWithRespectiveDenies", testDenyPermissionsRemovesCorrectPrincipalsWithRespectiveDenies)
+	t.Run("TestDenyPermissionsRemovesCorrectPrincipalsWhenDenyingMultiplePermissions", testDenyPermissionsRemovesCorrectPrincipalsWhenDenyingMultiplePermissions)
+
+	t.Run("TestDenyPermissionsRemovesCorrectPrincipalsWhenDenyWildcardPermissions", testDenyPermissionsRemovesCorrectPrincipalsWhenDenyWildcardPermissions)
+	t.Run("TestDenyPermissionsRemovesAllPrincipalsWhenDenyHasMultiplPrincipals", testDenyPermissionsRemovesAllPrincipalsWhenDenyHasMultiplPrincipals)
+	t.Run("TestDenyPermissionsMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach", testDenyPermissionsMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach)
+	t.Run("TestDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
+
+	//t.Run("TestDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
 }
 
 func testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel(t *testing.T) {
@@ -18508,7 +18520,75 @@ func testDenyPermissionsDeniedWildcardedPermissionWithWildcardedDenyAtGlobalReso
 	}
 }
 
-func TestDenyPermissionsRemovesCorrectDeniedPrincipal(t *testing.T) {
+func testDenyPermissionsRemovesPrincipalWithRespectiveDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsRemovesCorrectPrincipalWithRespectiveDeny(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
@@ -18544,7 +18624,7 @@ func TestDenyPermissionsRemovesCorrectDeniedPrincipal(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{"222244446666"},
 		AllowedPrincipalAccountIds:          []string{"222244446666"},
@@ -18552,8 +18632,92 @@ func TestDenyPermissionsRemovesCorrectDeniedPrincipal(t *testing.T) {
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsRemovesCorrectPrincipalsWithRespectiveDenies(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{"Read"},
+		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
 	}
@@ -18583,3 +18747,472 @@ func TestDenyPermissionsRemovesCorrectDeniedPrincipal(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func testDenyPermissionsRemovesCorrectPrincipalsWhenDenyingMultiplePermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"666644442222"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsRemovesCorrectPrincipalsWhenDenyWildcardPermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes*",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"666644442222"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsRemovesAllPrincipalsWhenDenyHasMultiplPrincipals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Principal": {
+            "AWS": ["222244446666", "666644442222"]
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": {
+            "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Principal": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+// TODO: We are going to fix up Principals
+// func testDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "ec2:DescribeVolumes",
+//           "Resource": "*",
+//           "Principal": {
+//             "AWS": "222244446666"
+//           }
+//         },
+//         {
+//           "Effect": "Deny",
+//           "Action": "ec2:DescribeVolumes",
+//           "Resource": "*",
+//           "Principal": "2222*"
+//         }
+//       ]
+//     }
+// 	`
+
+// 	expected := PolicySummary{
+// 		AccessLevel:                         "private",
+// 		AllowedOrganizationIds:              []string{},
+// 		AllowedPrincipals:                   []string{},
+// 		AllowedPrincipalAccountIds:          []string{},
+// 		AllowedPrincipalFederatedIdentities: []string{},
+// 		AllowedPrincipalServices:            []string{},
+// 		IsPublic:                            false,
+// 		PublicAccessLevels:                  []string{},
+// 		SharedAccessLevels:                  []string{},
+// 		PrivateAccessLevels:                 []string{},
+// 		PublicStatementIds:                  []string{},
+// 		SharedStatementIds:                  []string{},
+// 	}
+
+// 	// Test
+// 	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+// 	// Evaluate
+// 	if err != nil {
+// 		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+// 	}
+
+// 	errors := evaluatePrincipalTest(t, evaluated, expected)
+// 	if len(errors) > 0 {
+// 		for _, error := range errors {
+// 			t.Log(error)
+// 		}
+// 		t.Fatal("Conditions Unit Test error detected")
+// 	}
+
+// 	errors = evaluateIntegration(t, evaluated, expected)
+// 	if len(errors) > 0 {
+// 		for _, error := range errors {
+// 			t.Log(error)
+// 		}
+// 		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+// 		t.Fail()
+// 	}
+// }
