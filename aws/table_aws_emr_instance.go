@@ -26,7 +26,7 @@ func tableAwsEmrInstance(_ context.Context) *plugin.Table {
 				{Name: "instance_group_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

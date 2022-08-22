@@ -21,7 +21,7 @@ func tableAwsEmrInstanceFleet(_ context.Context) *plugin.Table {
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceFleets,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
