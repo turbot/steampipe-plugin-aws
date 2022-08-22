@@ -18252,8 +18252,7 @@ func TestDenyPermissions(t *testing.T) {
 	t.Run("TestDenyPermissionsRemovesAllPrincipalsWhenDenyHasMultiplPrincipals", testDenyPermissionsRemovesAllPrincipalsWhenDenyHasMultiplPrincipals)
 	t.Run("TestDenyPermissionsMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach", testDenyPermissionsMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach)
 	t.Run("TestDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
-
-	//t.Run("TestDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsPartialWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
+	t.Run("testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts", testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts)
 }
 
 func testDenyPermissionsAllowedPermissionWithOneDenyAtGlobalResourceLevel(t *testing.T) {
@@ -19350,22 +19349,24 @@ func testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *
           "Action": "ec2:DescribeVolumes",
           "Resource": "*",
           "Principal": {
-            "AWS": "AWS": "arn:aws:iam::012345678901:root"
+            "AWS": "arn:aws:iam::012345678901:root"
           }
         },
         {
-          "Effect": "Allow",
+          "Effect": "Deny",
           "Action": "ec2:DescribeVolumes",
           "Resource": "*",
           "Principal": {
-            "AWS": "AWS": "arn:aws:iam::012345678901:ro??"
+            "AWS": "arn:aws:iam::012345678901:ro??"
           }
         },
 		{
           "Effect": "Deny",
           "Action": "ec2:DescribeVolumes",
           "Resource": "*",
-          "Principal": "2222*"
+          "Principal": {
+            "AWS": "2222*"
+          }
         }
       ]
     }
@@ -19375,8 +19376,8 @@ func testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
-			"012345678901",
 			"222244446666",
+			"arn:aws:iam::012345678901:root",
 		},
 		AllowedPrincipalAccountIds: []string{
 			"012345678901",
@@ -19387,7 +19388,7 @@ func testDenyPermissionsWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
 		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{"Statement[1]"},
 	}
