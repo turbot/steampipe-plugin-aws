@@ -20,6 +20,9 @@ func tableAwsEksNodeGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"nodegroup_name", "cluster_name"}),
 			Hydrate:    getEksNodeGroup,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEksClusters,
@@ -237,20 +240,26 @@ func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			return true
 		},
 	)
-	return nil, err
+
+	if err != nil {
+		plugin.Logger(ctx).Error("ListNodegroupsPages", "api_error", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEksNodeGroup")
+	plugin.Logger(ctx).Error("getEksNodeGroup")
 
 	var clusterName, nodegroupName string
 	if h.Item != nil {
 		clusterName = *h.Item.(*eks.Nodegroup).ClusterName
 		nodegroupName = *h.Item.(*eks.Nodegroup).NodegroupName
 	} else {
-		clusterName = d.KeyColumnQuals["name"].GetStringValue()
+		clusterName = d.KeyColumnQuals["cluster_name"].GetStringValue()
 		nodegroupName = d.KeyColumnQuals["nodegroup_name"].GetStringValue()
 	}
 
@@ -271,7 +280,9 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	op, err := svc.DescribeNodegroup(params)
+
 	if err != nil {
+		plugin.Logger(ctx).Error("DescribeNodegroup", "api_error", err)
 		return nil, err
 	}
 
