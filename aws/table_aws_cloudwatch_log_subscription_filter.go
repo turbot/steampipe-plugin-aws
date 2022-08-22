@@ -95,6 +95,7 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.listCloudwatchLogSubscriptionFilters", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -149,8 +150,6 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogSubscriptionFilter")
-
 	if d.KeyColumnQuals["name"] == nil || d.KeyColumnQuals["log_group_name"] == nil {
 		return nil, nil
 	}
@@ -160,6 +159,7 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -176,7 +176,7 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 
 	for _, subscriptionFilter := range op.SubscriptionFilters {
 		if *subscriptionFilter.FilterName == name {
-			plugin.Logger(ctx).Trace("getCloudwatchLogSubscriptionFilter", "FilterName", subscriptionFilter)
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "api_error", err)
 			return subscriptionFilter, nil
 		}
 	}
@@ -184,13 +184,13 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 }
 
 func getCloudwatchLogSubscriptionFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	subscriptionFilter := h.Item.(*cloudwatchlogs.SubscriptionFilter)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilterAkas", "cache_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
