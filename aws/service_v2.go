@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
@@ -32,6 +33,15 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 	return noOpToken, nil
 }
 func noOpToken() error { return nil }
+
+// AccessAnalyzerClient returns the service connection for AWS IAM Access Analyzer service
+func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return accessanalyzer.NewFromConfig(*cfg), nil
+}
 
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)

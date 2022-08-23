@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
@@ -107,14 +106,6 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
-
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return accessanalyzer.New(sess), nil
-}
 
 func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
