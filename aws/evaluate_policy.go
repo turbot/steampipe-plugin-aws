@@ -82,7 +82,7 @@ type EvaluatedStatement struct {
 }
 
 func (evaluatedStatement *EvaluatedStatement) ApplyDenyStatement(denyStatement EvaluatedStatement) {
-	if denyStatement.principalType != evaluatedStatement.principalType {
+	if denyStatement.principalType != evaluatedStatement.principalType && denyStatement.principal != "*" {
 		return
 	}
 
@@ -1017,8 +1017,16 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 					continue
 				}
 
+				if principalItem == "cognito-identity.amazonaws.com" ||
+					principalItem == "www.amazon.com" ||
+					principalItem == "graph.facebook.com" ||
+					principalItem == "accounts.google.com" {
+					evaluatedPrincipal.isPublic = true
+				} else {
+					evaluatedPrincipal.isShared = true
+				}
+
 				evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
-				evaluatedPrincipal.isPrivate = true
 			}
 		}
 	}
