@@ -74,7 +74,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
-	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/aws/aws-sdk-go/service/ram"
@@ -607,14 +606,6 @@ func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchser
 		return nil, err
 	}
 	return opensearchservice.New(sess), nil
-}
-
-func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return organizations.New(sess), nil
 }
 
 func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
