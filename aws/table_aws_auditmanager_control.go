@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -135,21 +134,15 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAuditManagerControls", "AWS_REGION", region)
 
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.sa-east-1.amazonaws.com/controls?controlType=Standard": dial tcp: lookup auditmanager.sa-east-1.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List all standard controls
@@ -209,29 +202,22 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerControl")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.sa-east-1.amazonaws.com/controls?controlType=Standard": dial tcp: lookup auditmanager.sa-east-1.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
 
 	var id string
 	if h.Item != nil {
 		id = *h.Item.(*auditmanager.ControlMetadata).Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &auditmanager.GetControlInput{

@@ -89,6 +89,10 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Exclusion is a sub resource of an assessment run, we need the assessment run ARN to list these.
 	runArn := *h.Item.(*inspector.AssessmentRun).Arn

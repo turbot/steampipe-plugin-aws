@@ -92,7 +92,7 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	plugin.Logger(ctx).Trace("listTaggingResources")
 
 	// Create session
-	svc, err := TaggignResourceService(ctx, d)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := TaggignResourceService(ctx, d)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
