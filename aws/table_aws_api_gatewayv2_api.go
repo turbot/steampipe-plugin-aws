@@ -56,6 +56,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "disable_execute_api_endpoint",
+				Description: "Specifies whether clients can invoke your API by using the default execute-api endpoint",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "route_selection_expression",
 				Description: "The route selection expression for the API. For HTTP APIs, the routeSelectionExpression must be ${request.method} ${request.path}. If not provided, this will be the default for HTTP APIs",
 				Type:        proto.ColumnType_STRING,
