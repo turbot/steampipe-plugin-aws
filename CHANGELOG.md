@@ -1,3 +1,29 @@
+## v0.74.0 [2022-08-24]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v410-2022-08-24) which includes several caching and memory management improvements. ([#1250](https://github.com/turbot/steampipe-plugin-aws/pull/1250))
+- Recompiled plugin with Go version `1.19`. ([#1250](https://github.com/turbot/steampipe-plugin-aws/pull/1250))
+
+_What's new?_
+
+- New tables added
+  - [aws_dynamodb_table_export](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dynamodb_table_export) ([#1218](https://github.com/turbot/steampipe-plugin-aws/pull/1218))
+  - [aws_eks_node_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_node_group) ([#1236](https://github.com/turbot/steampipe-plugin-aws/pull/1236))
+  - [aws_emr_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_instance) ([#1225](https://github.com/turbot/steampipe-plugin-aws/pull/1225))
+  - [aws_emr_instance_fleet](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_instance_fleet) ([#1226](https://github.com/turbot/steampipe-plugin-aws/pull/1226))
+
+_Enhancements_
+
+- Added column `cluster_arn` to `aws_ecs_container_instance` table. ([#1239](https://github.com/turbot/steampipe-plugin-aws/pull/1239))
+- Added column `streaming_destination` to `aws_dynamodb_table` table. ([#1227](https://github.com/turbot/steampipe-plugin-aws/pull/1227))
+- Added column `vault_notification_config` to `aws_glacier_vault` table. ([#1231](https://github.com/turbot/steampipe-plugin-aws/pull/1231))
+- Added column f`ile_system_configs` to `aws_lambda_function` table. ([#1224](https://github.com/turbot/steampipe-plugin-aws/pull/1224))
+
+_Bug fixes_
+
+- Fixed the `InvalidRequestException` error in the `aws_emr_instance_group` table. ([#1228](https://github.com/turbot/steampipe-plugin-aws/pull/1228))
+
 ## v0.73.0 [2022-08-16]
 
 _Enhancements_
