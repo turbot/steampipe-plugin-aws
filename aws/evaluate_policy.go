@@ -82,17 +82,22 @@ type EvaluatedStatement struct {
 }
 
 func (evaluatedStatement *EvaluatedStatement) ApplyDenyStatement(denyStatement EvaluatedStatement) {
-	if denyStatement.principalType != evaluatedStatement.principalType && denyStatement.principal != "*" {
-		return
-	}
-
-	if denyStatement.principal == evaluatedStatement.principal {
-		evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
-		return
-	}
-
-	if denyStatement.principal == "*" {
+	if denyStatement.principal == "*" && denyStatement.principalType == "id" {
 		evaluatedStatement.availablePermissions.permissions = map[string]bool{}
+		evaluatedStatement.availablePermissions.isAllPermissions = false
+		return
+	}
+
+	if denyStatement.principalType != evaluatedStatement.principalType {
+		return
+	}
+
+	denyValue := MakePolicyValue(denyStatement.principal)
+
+	if denyValue.Contains(evaluatedStatement.principal) {
+		evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
+		evaluatedStatement.availablePermissions.isAllPermissions = false
+
 	}
 }
 
@@ -542,11 +547,6 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 			statementsSummary.allowedPrincipalServicesSet[reducedStatement.principal] = true
 		}
 
-		//statementsSummary.allowedOrganizationIdsSet = mergeSet(statementsSummary.allowedOrganizationIdsSet, reducedStatement.principal.allowedOrganizationIdsSet)
-		// statementsSummary.allowedPrincipalAccountIdsSet = mergeSet(statementsSummary.allowedPrincipalAccountIdsSet, reducedStatement.allowedPrincipalAccountIdsSet)
-		// statementsSummary.allowedPrincipalFederatedIdentitiesSet = mergeSet(statementsSummary.allowedPrincipalFederatedIdentitiesSet, reducedStatement.allowedPrincipalFederatedIdentitiesSet)
-		// statementsSummary.allowedPrincipalServicesSet = mergeSet(statementsSummary.allowedPrincipalServicesSet, reducedStatement.allowedPrincipalServicesSet)
-		// statementsSummary.allowedPrincipalsSet = mergeSet(statementsSummary.allowedPrincipalsSet, reducedStatement.allowedPrincipalsSet)
 		statementsSummary.isPublic = statementsSummary.isPublic || reducedStatement.isPublic
 		statementsSummary.isShared = statementsSummary.isShared || reducedStatement.isShared
 
@@ -557,9 +557,7 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 
 		if reducedStatement.isShared {
 			sharedAccessLevelSet = mergeSet(sharedAccessLevelSet, evaluatedAccessLevels)
-			//if len(sharedActionSet) > 0 {
 			statementsSummary.sharedStatementIds[reducedStatement.sid] = true
-			//}
 		}
 
 		if reducedStatement.isPrivate {
@@ -732,6 +730,8 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 		allowedPrincipalAccountIdsSet: map[string]bool{},
 	}
 
+	reAccountExtractor := regexp.MustCompile(`^.*[:\*\?]([0-9]{12})[:\*\?].*$`)
+
 	for _, principal := range conditionValues {
 		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
 			continue
@@ -743,7 +743,6 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 				// We need to pull the account out of a wildcard type
 				// Assume that account is before any other numeric
 				// There should always be 12 digits
-				reAccountExtractor := regexp.MustCompile(`^.*[:\*\?]([0-9]{12})[:\*\?].*$`)
 				arnAccount := reAccountExtractor.FindStringSubmatch(principal)
 				if len(arnAccount) > 0 {
 					account := arnAccount[1]

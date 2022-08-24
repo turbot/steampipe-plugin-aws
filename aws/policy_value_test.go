@@ -14,10 +14,9 @@ func TestPolicyValueContainsNoWildcards(t *testing.T) {
 func testContainsWithoutWildcardMatch(t *testing.T) {
 	// Set up
 	firstValue := "z"
-	secondValue := "z"
+	compareValue := "z"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -32,10 +31,9 @@ func testContainsWithoutWildcardMatch(t *testing.T) {
 func testContainsWithoutWildcardNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "z"
-	secondValue := "a"
+	compareValue := "a"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -50,10 +48,9 @@ func testContainsWithoutWildcardNoMatch1(t *testing.T) {
 func testContainsWithoutWildcardNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "z"
-	secondValue := "za"
+	compareValue := "za"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -68,10 +65,9 @@ func testContainsWithoutWildcardNoMatch2(t *testing.T) {
 func testContainsWithoutWildcardAndExtraCharacterMatch(t *testing.T) {
 	// Set up
 	firstValue := "za"
-	secondValue := "za"
+	compareValue := "za"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -86,10 +82,9 @@ func testContainsWithoutWildcardAndExtraCharacterMatch(t *testing.T) {
 func testContainsWithoutWildcardAndExtraCharacterNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "za"
-	secondValue := "z"
+	compareValue := "z"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -104,10 +99,9 @@ func testContainsWithoutWildcardAndExtraCharacterNoMatch1(t *testing.T) {
 func testContainsWithoutWildcardAndExtraCharacterNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "za"
-	secondValue := "zaa"
+	compareValue := "zaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -155,10 +149,9 @@ func TestPolicyValueContainsPartialWildcards(t *testing.T) {
 func testContainsWithPartialWildcardMatch1(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "z"
+	compareValue := "z"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -173,10 +166,9 @@ func testContainsWithPartialWildcardMatch1(t *testing.T) {
 func testContainsWithPartialWildcardMatch2(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "?"
+	compareValue := "?"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -191,10 +183,9 @@ func testContainsWithPartialWildcardMatch2(t *testing.T) {
 func testContainsWithPartialWildcardNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := ""
+	compareValue := ""
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -209,10 +200,9 @@ func testContainsWithPartialWildcardNoMatch1(t *testing.T) {
 func testContainsWithPartialWildcardNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "zz"
+	compareValue := "zz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -227,10 +217,9 @@ func testContainsWithPartialWildcardNoMatch2(t *testing.T) {
 func testContainsWithPartialWildcardNoMatch3(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "??"
+	compareValue := "??"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -245,10 +234,9 @@ func testContainsWithPartialWildcardNoMatch3(t *testing.T) {
 func testContainsWithPartialWildcardNoMatch4(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "?*"
+	compareValue := "?*"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -263,10 +251,9 @@ func testContainsWithPartialWildcardNoMatch4(t *testing.T) {
 func testContainsWithPartialWildcardNoMatch5(t *testing.T) {
 	// Set up
 	firstValue := "?"
-	secondValue := "*"
+	compareValue := "*"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -281,10 +268,9 @@ func testContainsWithPartialWildcardNoMatch5(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtStartMatch(t *testing.T) {
 	// Set up
 	firstValue := "a?"
-	secondValue := "az"
+	compareValue := "az"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -299,10 +285,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartMatch(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtStartNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a?"
-	secondValue := "a"
+	compareValue := "a"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -317,10 +302,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartNoMatch1(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtStartNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a?"
-	secondValue := "a"
+	compareValue := "a"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -335,10 +319,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartNoMatch2(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtEndMatch(t *testing.T) {
 	// Set up
 	firstValue := "?z"
-	secondValue := "az"
+	compareValue := "az"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -353,10 +336,9 @@ func testContainsWithPartialWildcardAndCharacterAtEndMatch(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtEndNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "?z"
-	secondValue := "azz"
+	compareValue := "azz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -371,10 +353,9 @@ func testContainsWithPartialWildcardAndCharacterAtEndNoMatch1(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtEndNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "?z"
-	secondValue := "a"
+	compareValue := "a"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -389,10 +370,9 @@ func testContainsWithPartialWildcardAndCharacterAtEndNoMatch2(t *testing.T) {
 func testContainsWithPartialWildcardAndCharacterAtStartAndEndMatch(t *testing.T) {
 	// Set up
 	firstValue := "a?z"
-	secondValue := "agz"
+	compareValue := "agz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -407,10 +387,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartAndEndMatch(t *testing.T)
 func testContainsWithPartialWildcardAndCharacterAtStartAndEndNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a?z"
-	secondValue := "ag"
+	compareValue := "ag"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -425,10 +404,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartAndEndNoMatch1(t *testing
 func testContainsWithPartialWildcardAndCharacterAtStartAndEndNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a?z"
-	secondValue := "agzg"
+	compareValue := "agzg"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -443,10 +421,9 @@ func testContainsWithPartialWildcardAndCharacterAtStartAndEndNoMatch2(t *testing
 func testContainsWithDoublePartialWildcardMatch(t *testing.T) {
 	// Set up
 	firstValue := "??"
-	secondValue := "zz"
+	compareValue := "zz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -461,10 +438,9 @@ func testContainsWithDoublePartialWildcardMatch(t *testing.T) {
 func testContainsWithDoublePartialWildcardNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "??"
-	secondValue := "z"
+	compareValue := "z"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -479,10 +455,9 @@ func testContainsWithDoublePartialWildcardNoMatch1(t *testing.T) {
 func testContainsWithDoublePartialWildcardNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "??"
-	secondValue := "zzz"
+	compareValue := "zzz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -497,10 +472,9 @@ func testContainsWithDoublePartialWildcardNoMatch2(t *testing.T) {
 func testContainsWithDoublePartialWildcardAndCharacterAtStartMatch(t *testing.T) {
 	// Set up
 	firstValue := "a??"
-	secondValue := "azz"
+	compareValue := "azz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -515,10 +489,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtStartMatch(t *testing.T)
 func testContainsWithDoublePartialWildcardAndCharacterAtStartNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a??"
-	secondValue := "az"
+	compareValue := "az"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -533,10 +506,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtStartNoMatch1(t *testing
 func testContainsWithDoublePartialWildcardAndCharacterAtStartNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a??"
-	secondValue := "azzz"
+	compareValue := "azzz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -551,10 +523,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtStartNoMatch2(t *testing
 func testContainsWithDoublePartialWildcardAndCharacterAtEndMatch(t *testing.T) {
 	// Set up
 	firstValue := "??z"
-	secondValue := "ggz"
+	compareValue := "ggz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -569,10 +540,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtEndMatch(t *testing.T) {
 func testContainsWithDoublePartialWildcardAndCharacterAtEndNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "??z"
-	secondValue := "ggza"
+	compareValue := "ggza"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -587,10 +557,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtEndNoMatch1(t *testing.T
 func testContainsWithDoublePartialWildcardAndCharacterAtEndNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "??z"
-	secondValue := "gg"
+	compareValue := "gg"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -605,10 +574,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtEndNoMatch2(t *testing.T
 func testContainsWithDoublePartialWildcardAndCharacterAtStartAndEndMatch(t *testing.T) {
 	// Set up
 	firstValue := "a??z"
-	secondValue := "aggz"
+	compareValue := "aggz"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -623,10 +591,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtStartAndEndMatch(t *test
 func testContainsWithDoublePartialWildcardAndCharacterAtStartAndEndNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a??z"
-	secondValue := "agg"
+	compareValue := "agg"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -641,10 +608,9 @@ func testContainsWithDoublePartialWildcardAndCharacterAtStartAndEndNoMatch1(t *t
 func testContainsWithDoublePartialWildcardAndCharacterAtStartAndEndNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a??z"
-	secondValue := "aggzg"
+	compareValue := "aggzg"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -713,10 +679,9 @@ func TestPolicyValueContainsFullWildcards(t *testing.T) {
 func testContainsWithFullWildcardMatch1(t *testing.T) {
 	// Set up
 	firstValue := "*"
-	secondValue := ""
+	compareValue := ""
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -731,10 +696,9 @@ func testContainsWithFullWildcardMatch1(t *testing.T) {
 func testContainsWithFullWildcardMatch2(t *testing.T) {
 	// Set up
 	firstValue := "*"
-	secondValue := "z"
+	compareValue := "z"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -749,10 +713,9 @@ func testContainsWithFullWildcardMatch2(t *testing.T) {
 func testContainsWithFullWildcardMatch3(t *testing.T) {
 	// Set up
 	firstValue := "*"
-	secondValue := "?"
+	compareValue := "?"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -767,10 +730,9 @@ func testContainsWithFullWildcardMatch3(t *testing.T) {
 func testContainsWithFullWildcardMatch4(t *testing.T) {
 	// Set up
 	firstValue := "*"
-	secondValue := "*"
+	compareValue := "*"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -785,10 +747,9 @@ func testContainsWithFullWildcardMatch4(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a*"
-	secondValue := "a"
+	compareValue := "a"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -803,10 +764,9 @@ func testContainsWithFullWildcardAndCharacterAtStartMatch1(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a*"
-	secondValue := "aa"
+	compareValue := "aa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -821,10 +781,9 @@ func testContainsWithFullWildcardAndCharacterAtStartMatch2(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a*"
-	secondValue := "aaa"
+	compareValue := "aaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -839,10 +798,9 @@ func testContainsWithFullWildcardAndCharacterAtStartMatch3(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "a*"
-	secondValue := "b"
+	compareValue := "b"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -857,10 +815,9 @@ func testContainsWithFullWildcardAndCharacterAtStartNoMatch(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtEndMatch1(t *testing.T) {
 	// Set up
 	firstValue := "*a"
-	secondValue := "ga"
+	compareValue := "ga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -875,10 +832,9 @@ func testContainsWithFullWildcardAndCharacterAtEndMatch1(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtEndMatch2(t *testing.T) {
 	// Set up
 	firstValue := "*a"
-	secondValue := "gaa"
+	compareValue := "gaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -893,10 +849,9 @@ func testContainsWithFullWildcardAndCharacterAtEndMatch2(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtEndMatch3(t *testing.T) {
 	// Set up
 	firstValue := "*a"
-	secondValue := "gaaa"
+	compareValue := "gaaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -911,10 +866,9 @@ func testContainsWithFullWildcardAndCharacterAtEndMatch3(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtEndNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "*a"
-	secondValue := "gb"
+	compareValue := "gb"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -929,10 +883,9 @@ func testContainsWithFullWildcardAndCharacterAtEndNoMatch(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a*a"
-	secondValue := "aga"
+	compareValue := "aga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -947,10 +900,9 @@ func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch1(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a*a"
-	secondValue := "agga"
+	compareValue := "agga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -965,10 +917,9 @@ func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch2(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a*a"
-	secondValue := "aggga"
+	compareValue := "aggga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -983,10 +934,9 @@ func testContainsWithFullWildcardAndCharacterAtStartAndEndMatch3(t *testing.T) {
 func testContainsWithFullWildcardAndCharacterAtStartAndEndNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "a*a"
-	secondValue := "ag"
+	compareValue := "ag"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1001,10 +951,9 @@ func testContainsWithFullWildcardAndCharacterAtStartAndEndNoMatch(t *testing.T) 
 func testContainsWithDoubleFullWildcardMatch1(t *testing.T) {
 	// Set up
 	firstValue := "**"
-	secondValue := ""
+	compareValue := ""
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1019,10 +968,9 @@ func testContainsWithDoubleFullWildcardMatch1(t *testing.T) {
 func testContainsWithDoubleFullWildcardMatch2(t *testing.T) {
 	// Set up
 	firstValue := "**"
-	secondValue := ""
+	compareValue := ""
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1037,10 +985,9 @@ func testContainsWithDoubleFullWildcardMatch2(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a**"
-	secondValue := "aa"
+	compareValue := "aa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1055,10 +1002,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch1(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a**"
-	secondValue := "aaa"
+	compareValue := "aaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1073,10 +1019,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch2(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a**"
-	secondValue := "aaaa"
+	compareValue := "aaaa"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1091,10 +1036,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartMatch3(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtStartNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "a**"
-	secondValue := "b"
+	compareValue := "b"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1109,10 +1053,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartNoMatch(t *testing.T) 
 func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch1(t *testing.T) {
 	// Set up
 	firstValue := "**a"
-	secondValue := "ga"
+	compareValue := "ga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1127,10 +1070,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch1(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch2(t *testing.T) {
 	// Set up
 	firstValue := "**a"
-	secondValue := "gga"
+	compareValue := "gga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1145,10 +1087,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch2(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch3(t *testing.T) {
 	// Set up
 	firstValue := "**a"
-	secondValue := "ggga"
+	compareValue := "ggga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1163,10 +1104,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtEndMatch3(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtEndNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "**a"
-	secondValue := "gb"
+	compareValue := "gb"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1181,10 +1121,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtEndNoMatch(t *testing.T) {
 func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a**a"
-	secondValue := "aga"
+	compareValue := "aga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1199,10 +1138,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch1(t *testin
 func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a**a"
-	secondValue := "agga"
+	compareValue := "agga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1217,10 +1155,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch2(t *testin
 func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a**a"
-	secondValue := "aggga"
+	compareValue := "aggga"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1235,10 +1172,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndMatch3(t *testin
 func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "a**a"
-	secondValue := "agb"
+	compareValue := "agb"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1253,10 +1189,9 @@ func testContainsWithDoubleFullWildcardAndCharacterAtStartAndEndNoMatch(t *testi
 func testContainsWithTwoFullWildcardMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "abc"
+	compareValue := "abc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1271,10 +1206,9 @@ func testContainsWithTwoFullWildcardMatch1(t *testing.T) {
 func testContainsWithTwoFullWildcardMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "agbc"
+	compareValue := "agbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1289,10 +1223,9 @@ func testContainsWithTwoFullWildcardMatch2(t *testing.T) {
 func testContainsWithTwoFullWildcardMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "agbgc"
+	compareValue := "agbgc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1307,10 +1240,9 @@ func testContainsWithTwoFullWildcardMatch3(t *testing.T) {
 func testContainsWithTwoFullWildcardMatch4(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "aggbggc"
+	compareValue := "aggbggc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1325,10 +1257,9 @@ func testContainsWithTwoFullWildcardMatch4(t *testing.T) {
 func testContainsWithTwoFullWildcardNoMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "Abc"
+	compareValue := "Abc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1343,10 +1274,9 @@ func testContainsWithTwoFullWildcardNoMatch1(t *testing.T) {
 func testContainsWithTwoFullWildcardNoMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "aBc"
+	compareValue := "aBc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1361,10 +1291,9 @@ func testContainsWithTwoFullWildcardNoMatch2(t *testing.T) {
 func testContainsWithTwoFullWildcardNoMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "abC"
+	compareValue := "abC"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1379,10 +1308,9 @@ func testContainsWithTwoFullWildcardNoMatch3(t *testing.T) {
 func testContainsWithTwoFullWildcardNoMatch4(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "abcd"
+	compareValue := "abcd"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1397,10 +1325,9 @@ func testContainsWithTwoFullWildcardNoMatch4(t *testing.T) {
 func testContainsWithTwoFullWildcardNoMatch5(t *testing.T) {
 	// Set up
 	firstValue := "a*b*c"
-	secondValue := "Aabc"
+	compareValue := "Aabc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1415,10 +1342,9 @@ func testContainsWithTwoFullWildcardNoMatch5(t *testing.T) {
 func testContainsWithRepeatingPatternMatch1(t *testing.T) {
 	// Set up
 	firstValue := "a*bc*bc"
-	secondValue := "aggggggbcggggggbc"
+	compareValue := "aggggggbcggggggbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1433,10 +1359,9 @@ func testContainsWithRepeatingPatternMatch1(t *testing.T) {
 func testContainsWithRepeatingPatternMatch2(t *testing.T) {
 	// Set up
 	firstValue := "a*bc*bc"
-	secondValue := "aggggggbcggggggbcggggggbc"
+	compareValue := "aggggggbcggggggbcggggggbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1451,10 +1376,9 @@ func testContainsWithRepeatingPatternMatch2(t *testing.T) {
 func testContainsWithRepeatingPatternMatch3(t *testing.T) {
 	// Set up
 	firstValue := "a*bc*bc"
-	secondValue := "aggggggbhcggggggbcggggggbc"
+	compareValue := "aggggggbhcggggggbcggggggbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1469,10 +1393,9 @@ func testContainsWithRepeatingPatternMatch3(t *testing.T) {
 func testContainsWithRepeatingPatternMatch4(t *testing.T) {
 	// Set up
 	firstValue := "a*bc*bc"
-	secondValue := "aggggggbcggggggbhcggggggbc"
+	compareValue := "aggggggbcggggggbhcggggggbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1487,10 +1410,9 @@ func testContainsWithRepeatingPatternMatch4(t *testing.T) {
 func testContainsWithRepeatingPatternMatch5(t *testing.T) {
 	// Set up
 	firstValue := "a*?bc*?bc"
-	secondValue := "a?bcgbchbc"
+	compareValue := "a?bcgbchbc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)
@@ -1505,10 +1427,9 @@ func testContainsWithRepeatingPatternMatch5(t *testing.T) {
 func testContainsWithRepeatingPatternNoMatch(t *testing.T) {
 	// Set up
 	firstValue := "a*bc*bc"
-	secondValue := "aggggggbcggggggbcggggggbhc"
+	compareValue := "aggggggbcggggggbcggggggbhc"
 
 	sourceValue := MakePolicyValue(firstValue)
-	compareValue := MakePolicyValue(secondValue)
 
 	// Run
 	result := sourceValue.Contains(compareValue)

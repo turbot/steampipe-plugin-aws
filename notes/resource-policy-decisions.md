@@ -65,3 +65,17 @@ If there is no Principal we have 3 types of behaviour:
 
 If there is no Action that is valid, in other words, there is no permission, then there is no access, don't report
 Action missing will no longer evaluate the statement
+
+## Issue 14
+
+Anything with `IfExists` is assume to not exists when evaulating the resource policy
+
+## Issue 15
+
+Our conditions should check the Pricipals better and evaluate if they should really show.
+
+Conditions should be applied against Pricipals and not appended it Principals as is the behaviour at the moment.
+
+## Issue 16
+
+Denies with conditions <- Work on this tests
