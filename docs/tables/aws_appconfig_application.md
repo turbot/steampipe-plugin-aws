@@ -11,7 +11,8 @@ select
   arn,
   id,
   name,
-  description
+  description,
+  tags
 from
   aws_appconfig_application;
 ```
