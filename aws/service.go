@@ -676,8 +676,7 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53r
 }
 
 func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53, error) {
-	defaultAwsRegion := GetDefaultAwsRegion(d)
-	sess, err := getSession(ctx, d, defaultAwsRegion)
+	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
