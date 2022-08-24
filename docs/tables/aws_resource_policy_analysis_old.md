@@ -2,10 +2,6 @@
 
 AWS Resource Policy Analysis table returns the access analysis of the IAM policies of the specific resource.
 
-## Limitations
-
-Add your limitations here Omero
-
 **Important Notes:**
 
 - You **_must_** specify a single `policy` and `account_id` in a `where` or `join` clause in order to use this table.
