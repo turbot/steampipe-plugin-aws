@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go/service/appconfig"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -212,6 +213,28 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv
 		return nil, err
 	}
 	svc := apigatewayv2.New(sess)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// AppConfigService returns the service connection for AWS AppConfig service
+func AppConfigService(ctx context.Context, d *plugin.QueryData) (*appconfig.AppConfig, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed AppConfigService")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("appconfig-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*appconfig.AppConfig), nil
+	}
+	// so it was not in cache - create service
+	sess, err := getSession(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := appconfig.New(sess)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
