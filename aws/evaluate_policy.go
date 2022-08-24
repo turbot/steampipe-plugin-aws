@@ -628,12 +628,14 @@ type EvaluatedOperator struct {
 }
 
 func evaulateOperator(operator string) (EvaluatedOperator, bool) {
-	// Check if there is an IfExists and then strip it.
-	operator = strings.ToLower(operator)
-	operator = strings.TrimSuffix(operator, "ifexists")
-
 	evaulatedOperator := EvaluatedOperator{}
 	evaluated := true
+
+	operator = strings.ToLower(operator)
+	if strings.HasSuffix(operator, "ifexists") {
+		return evaulatedOperator, false
+	}
+
 	switch operator {
 	case "stringequals":
 		evaulatedOperator.category = "string"
