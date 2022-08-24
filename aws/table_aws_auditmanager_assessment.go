@@ -159,7 +159,7 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
-	maxItems := int32(1000)
+	maxItems := int32(100)
 	input := &auditmanager.ListAssessmentsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

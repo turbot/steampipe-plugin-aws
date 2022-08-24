@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -21,7 +22,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
 			},
 			Hydrate: getAuditManagerFramework,
 		},
@@ -136,62 +137,85 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "client_error", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
+
+	maxItems := int32(100)
+	params := &auditmanager.ListAssessmentFrameworksInput{
+		FrameworkType: types.FrameworkTypeStandard,
 	}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
+	params.MaxResults = &maxItems
+	paginator := auditmanager.NewListAssessmentFrameworksPaginator(svc, params, func(o *auditmanager.ListAssessmentFrameworksPaginatorOptions) {
+		o.Limit = 32
+		o.StopOnDuplicateToken = true
+	})
 
 	// List standard audit manager frameworks
-	err = svc.ListAssessmentFrameworksPages(
-		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Standard")},
-		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
-			for _, framework := range page.FrameworkMetadataList {
-				d.StreamListItem(ctx, framework)
-
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
-	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
-	if err != nil {
-		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
-			return nil, nil
+			plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "api_error", err)
+			return nil, err
 		}
-		plugin.Logger(ctx).Error("listAuditManagerFrameworks_standard", "err", err)
-		return nil, err
+
+		for _, framework := range output.FrameworkMetadataList {
+			d.StreamListItem(ctx, framework)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
-	// List custom audit manager frameworks
-	err = svc.ListAssessmentFrameworksPages(
-		&auditmanager.ListAssessmentFrameworksInput{FrameworkType: aws.String("Custom")},
-		func(page *auditmanager.ListAssessmentFrameworksOutput, lastPage bool) bool {
-			for _, framework := range page.FrameworkMetadataList {
-				d.StreamListItem(ctx, framework)
-			}
-			return !lastPage
-		},
-	)
+	params.FrameworkType = types.FrameworkTypeCustom
+	paginatorCustom := auditmanager.NewListAssessmentFrameworksPaginator(svc, params, func(o *auditmanager.ListAssessmentFrameworksPaginatorOptions) {
+		o.Limit = 32
+		o.StopOnDuplicateToken = true
+	})
 
-	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
-	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
-	if err != nil {
-		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
-			return nil, nil
+	// List standard audit manager frameworks
+	for paginatorCustom.HasMorePages() {
+		output, err := paginatorCustom.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_auditmanager_framework.listAuditManagerFrameworks", "api_error", err)
+			return nil, err
 		}
-		plugin.Logger(ctx).Error("listAuditManagerFrameworks_custom", "err", err)
-		return nil, err
+
+		for _, framework := range output.FrameworkMetadataList {
+			d.StreamListItem(ctx, framework)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, nil
@@ -200,13 +224,18 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
+	// Get client
+	svc, err := AuditManagerClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.getAuditManagerFramework", "client_error", err)
+		return nil, err
+	}
 
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(*auditmanager.AssessmentFrameworkMetadata).Id
+		id = *h.Item.(types.AssessmentFrameworkMetadata).Id
 	} else {
+		region := d.KeyColumnQualString(matrixKeyRegion)
 		location := d.KeyColumnQuals["region"].GetStringValue()
 		if location != region {
 			return nil, nil
@@ -214,21 +243,11 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	// Create session
-	svc, err := AuditManagerService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
 	params := &auditmanager.GetAssessmentFrameworkInput{
 		FrameworkId: aws.String(id),
 	}
 
-	op, err := svc.GetAssessmentFramework(params)
+	op, err := svc.GetAssessmentFramework(ctx, params)
 
 	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
 	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
@@ -236,9 +255,9 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getAuditManagerFramework", "err", err)
+		plugin.Logger(ctx).Error("aws_auditmanager_framework.getAuditManagerFramework", "api_error", err)
 		return nil, err
 	}
 
-	return op.Framework, nil
+	return *op.Framework, nil
 }
