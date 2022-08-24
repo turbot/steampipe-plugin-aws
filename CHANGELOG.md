@@ -2,7 +2,7 @@
 
 _Dependencies_
 
-- Recompiled plugin with [steampipe-plugin-sdk v4.1.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v410-2022-08-24) which includes several caching and memory management improvements. ([#1250](https://github.com/turbot/steampipe-plugin-aws/pull/1250))
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v411-2022-08-24) which includes several caching and memory management improvements. ([#1252](https://github.com/turbot/steampipe-plugin-aws/pull/1252))
 - Recompiled plugin with Go version `1.19`. ([#1250](https://github.com/turbot/steampipe-plugin-aws/pull/1250))
 
 _What's new?_
@@ -22,7 +22,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the `InvalidRequestException` error in the `aws_emr_instance_group` table. ([#1228](https://github.com/turbot/steampipe-plugin-aws/pull/1228))
+- List queries for the `aws_emr_instance_group` table no longer fail if there are any instance groups in clusters that use instance fleets. ([#1228](https://github.com/turbot/steampipe-plugin-aws/pull/1228))
 
 ## v0.73.0 [2022-08-16]
 
