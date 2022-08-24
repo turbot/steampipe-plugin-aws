@@ -171,6 +171,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_addon_version":                                        tableAwsEksAddonVersion(ctx),
 			"aws_eks_cluster":                                              tableAwsEksCluster(ctx),
 			"aws_eks_identity_provider_config":                             tableAwsEksIdentityProviderConfig(ctx),
+			"aws_eks_node_group":                                           tableAwsEksNodeGroup(ctx),
 			"aws_elastic_beanstalk_application":                            tableAwsElasticBeanstalkApplication(ctx),
 			"aws_elastic_beanstalk_environment":                            tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_elasticache_cluster":                                      tableAwsElastiCacheCluster(ctx),
