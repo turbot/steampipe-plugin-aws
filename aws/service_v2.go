@@ -20,7 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -32,183 +33,72 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 }
 func noOpToken() error { return nil }
 
-// ACMClient returns the service client for AWS ACM service
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SNSV2Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("acm-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*acm.Client), nil
-	}
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
-	svc := acm.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return acm.NewFromConfig(*cfg), nil
 }
 
-// APIGatewayClient returns the service client for AWS API Gateway service
 func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed apigateway client")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("apigateway-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*apigateway.Client), nil
-	}
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("APIGatewayClient", "service_client_error")
 		return nil, err
 	}
-
-	svc := apigateway.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return apigateway.NewFromConfig(*cfg), nil
 }
 
-// APIGatewayV2Client returns the service client for AWS API GatewayV2 service
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed APIGatewayV2 Client")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("apigatewayv2-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*apigatewayv2.Client), nil
-	}
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("APIGatewayV2Client", "service_client_error")
 		return nil, err
 	}
-
-	svc := apigatewayv2.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-// DynamoDbClient returns the service client for AWS DynamoDb service
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("dynamodb-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*dynamodb.Client), nil
-	}
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("DynamoDbClient", "service_client_error")
 		return nil, err
 	}
-
-	svc := dynamodb.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-// IAMClient returns the service client for AWS IAM service
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
-	// have we already created and cached the service?
-	serviceCacheKey := "iam-v2"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*iam.Client), nil
-	}
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, GetDefaultAwsRegion(d))
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
-
-	svc := iam.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return iam.NewFromConfig(*cfg), nil
 }
 
-// S3Client returns the service client for AWS S3 service
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed S3Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("s3-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*s3.Client), nil
-	}
-
-	awsConfig := GetConfig(d.Connection)
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
-
-	var svc *s3.Client
-
-	if awsConfig.S3ForcePathStyle != nil {
-		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
-			o.UsePathStyle = *awsConfig.S3ForcePathStyle
-		})
-	} else {
-		svc = s3.NewFromConfig(*cfg)
-	}
-
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	return s3.NewFromConfig(*cfg), nil
 }
 
-// SNSClient returns the service client for AWS SNS service
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("region must be passed SNSV2Service")
-	}
-	// have we already created and cached the service?
-	serviceCacheKey := fmt.Sprintf("sns-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
-		return cachedData.(*sns.Client), nil
-	}
-
-	// so it was not in cache - create service
-	cfg, err := getSessionV2(ctx, d, region)
+	start := time.Now()
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
-	svc := sns.NewFromConfig(*cfg)
-	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
-
-	return svc, nil
+	result := sns.NewFromConfig(*cfg)
+	plugin.Logger(ctx).Warn(fmt.Sprintf("SNSClient exec time: %v", time.Since(start)))
+	return result, nil
 }
 
-func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+
+	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
+		return cachedData.(*aws.Config), nil
+	}
+
 	awsConfig := GetConfig(d.Connection)
 
 	// As per the logic used in retryRules of NewConnectionErrRetryer, default to minimum delay of 25ms and maximum
@@ -240,14 +130,56 @@ func getSessionV2(ctx context.Context, d *plugin.QueryData, region string) (*aws
 		panic("\nconnection config has invalid value for \"min_error_retry_delay\", it must be greater than or equal to 1. Edit your connection configuration file and then restart Steampipe.")
 	}
 
-	return getSessionV2WithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
+
+	// Caching sessions saves about 10ms, which is significant when there are
+	// multiple instantiations (per account region) and when doing queries that
+	// often take <100ms total. But, it's not that important compared to having
+	// fresh credentials all the time. So, set a short cache length to ensure
+	// we don't get tripped up by credential rotation on short lived roles etc.
+	// The minimum assume role time is 15 minutes, so 5 minutes feels like a
+	// reasonable balance - I certainly wouldn't do longer.
+	d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+
+	return sess, err
 }
 
-func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
-	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(sessionCacheKey); ok {
-		return cachedData.(*aws.Config), nil
+// Get a session for the region defined in query data, but only after checking it's
+// a supported region for the given serviceID.
+// func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+// 	region := d.KeyColumnQualString(matrixKeyRegion)
+// 	if region == "" {
+// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+// 	}
+// 	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+// 	if !helpers.StringSliceContains(validRegions, region) {
+// 		// We choose to ignore unsupported regions rather than returning an error
+// 		// for them - it's a better user experience. So, return a nil session rather
+// 		// than an error. The caller must handle this case.
+// 		return nil, nil
+// 	}
+// 	// Supported region, so get and return the session
+// 	return getClient(ctx, d, region)
+// }
+
+// Helper function to get the session for a region set in query data
+func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
+	return getClient(ctx, d, region)
+}
+
+// Helper function to get the session for a specific region
+func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForRegion called with an empty region")
+	}
+	return getClient(ctx, d, region)
+}
+
+func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
 	retryer := retry.NewStandard(func(o *retry.StandardOptions) {
 		// reseting state of rand to generate different random values
@@ -312,7 +244,6 @@ func getSessionV2WithMaxRetries(ctx context.Context, d *plugin.QueryData, region
 		plugin.Logger(ctx).Error("getAwsConfigWithMaxRetries", "load_default_config", err)
 		return nil, err
 	}
-	d.ConnectionManager.Cache.Set(sessionCacheKey, &cfg)
 
 	return &cfg, err
 }
