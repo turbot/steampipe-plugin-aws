@@ -22,7 +22,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsAuditManagerAssessment,
 		},
@@ -173,6 +173,8 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 			}
 		}
 	}
+
+	input.MaxResults = &maxItems
 
 	paginator := auditmanager.NewListAssessmentsPaginator(svc, input, func(o *auditmanager.ListAssessmentsPaginatorOptions) {
 		o.Limit = maxItems
