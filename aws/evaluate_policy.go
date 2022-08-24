@@ -747,7 +747,7 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 				evaluatedCondition.allowedPrincipalsArnsSet[principal] = true
 				account := extractAccountFromArn(principal)
 
-				if account == "*" {
+				if account == "*" || strings.Contains(account, "?") {
 					evaluatedCondition.isPublic = true
 				} else if account != userAccountId {
 					evaluatedCondition.isShared = true
