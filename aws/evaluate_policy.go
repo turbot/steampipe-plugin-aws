@@ -974,8 +974,8 @@ func evaluateAccountTypeCondition(conditionValues []string, evaulatedOperator Ev
 }
 
 type EvaluatedPrincipal struct {
-	allowedOrganizationIdsSet              map[string]bool
-	allowedPrincipalAccountIdsSet          map[string]bool
+	allowedOrganizationIdsSet map[string]bool
+	//allowedPrincipalAccountIdsSet          map[string]bool
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsSet                   map[string]bool
@@ -989,12 +989,12 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
 		allowedPrincipalServicesSet:            map[string]bool{},
 		allowedPrincipalsSet:                   map[string]bool{},
-		allowedPrincipalAccountIdsSet:          map[string]bool{},
+		//allowedPrincipalAccountIdsSet:          map[string]bool{},
 	}
 
 	if len(principal) == 0 && hasResources && !hasConditions {
 		evaluatedPrincipal.allowedPrincipalsSet[userAccountId] = true
-		evaluatedPrincipal.allowedPrincipalAccountIdsSet[userAccountId] = true
+		//evaluatedPrincipal.allowedPrincipalAccountIdsSet[userAccountId] = true
 		evaluatedPrincipal.isPrivate = true
 
 		return evaluatedPrincipal, nil
@@ -1014,7 +1014,7 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 				if principalItem == "*" {
 					account = principalItem
 					evaluatedPrincipal.isPublic = true
-					evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
+					//evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
 					evaluatedPrincipal.allowedPrincipalsSet[principalItem] = true
 					continue
 				}
@@ -1037,7 +1037,7 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 				} else {
 					evaluatedPrincipal.isPrivate = true
 				}
-				evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
+				//evaluatedPrincipal.allowedPrincipalAccountIdsSet[account] = true
 				evaluatedPrincipal.allowedPrincipalsSet[principalItem] = true
 			case "Service":
 				if strings.Contains(principalItem, "*") || strings.Contains(principalItem, "?") {
