@@ -9125,11 +9125,6 @@ func testSourceArnConditionWhenAcrossMultipleStatements(t *testing.T) {
 	}
 }
 
-// TODO
-func TestGlobalConditionPrincipalArnAndPrincipal(t *testing.T) {
-	t.Skip("TODO")
-}
-
 func TestGlobalConditionPrincipalArn(t *testing.T) {
 	// StringEquals
 	t.Run("TestPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals", testPrincipalArnConditionWhenValueIsAUserAccountUsingStringEquals)
@@ -12276,7 +12271,7 @@ func testSourceAccountConditionUsingStringEqualsIfExists(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEqualsIfExists": {
-              "aws:SourceAccount": ["012345678901"]
+              "aws:SourceAccount": ["222244442222"]
             }
           }
         }
@@ -12285,18 +12280,18 @@ func testSourceAccountConditionUsingStringEqualsIfExists(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "private",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{"222244442222"},
+		AllowedPrincipalAccountIds:          []string{"222244442222"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{"List"},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -21952,6 +21947,1773 @@ func testDenyPermissionsByServiceWhereDenyHasPartiallyWildcardedPrincipalsForAcc
 			"Statement[2]",
 		},
 		SharedStatementIds: []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestDenyPermissionsByGlobalConditionPrincipalAccount(t *testing.T) {
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesPrincipalWithRespectiveDeny", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesPrincipalWithRespectiveDeny)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalWithRespectiveDeny", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalWithRespectiveDeny)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWithRespectiveDenies", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWithRespectiveDenies)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyingMultiplePermissions", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyingMultiplePermissions)
+
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyWildcardPermissions", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyWildcardPermissions)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountRemovesAllPrincipalsWhenDenyHasMultiplPrincipals", testDenyPermissionsByGlobalConditionPrincipalAccountRemovesAllPrincipalsWhenDenyHasMultiplPrincipals)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach", testDenyPermissionsByGlobalConditionPrincipalAccountMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsByGlobalConditionPrincipalAccountFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForAccounts", testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForAccounts)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts", testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts)
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesPrincipalWithRespectiveDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalWithRespectiveDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["666644442222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"222244446666"},
+		AllowedPrincipalAccountIds:          []string{"222244446666"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWithRespectiveDenies(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyingMultiplePermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"666644442222"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesCorrectPrincipalsWhenDenyWildcardPermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes*",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"666644442222"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountRemovesAllPrincipalsWhenDenyHasMultiplPrincipals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666", "666644442222"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["666644442222"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["012345678901"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["0123456789??"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["2222*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalAccountWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["222244446666"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalAccount": ["012345678901"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["98765432310??"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalAccount": ["4444*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"222244446666",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"012345678901",
+			"222244446666",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+func TestDenyPermissionsByGlobalConditionPrincipalArn(t *testing.T) {
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesPrincipalWithRespectiveDeny", testDenyPermissionsByGlobalConditionPrincipalArnRemovesPrincipalWithRespectiveDeny)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalWithRespectiveDeny", testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalWithRespectiveDeny)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWithRespectiveDenies", testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWithRespectiveDenies)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyingMultiplePermissions", testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyingMultiplePermissions)
+
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyWildcardPermissions", testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyWildcardPermissions)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnRemovesAllPrincipalsWhenDenyHasMultiplPrincipals", testDenyPermissionsByGlobalConditionPrincipalArnRemovesAllPrincipalsWhenDenyHasMultiplPrincipals)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach", testDenyPermissionsByGlobalConditionPrincipalArnMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll", testDenyPermissionsByGlobalConditionPrincipalArnFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForAccounts", testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForAccounts)
+	t.Run("testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts", testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts)
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesPrincipalWithRespectiveDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalWithRespectiveDeny(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::666644442222:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::222244446666:root"},
+		AllowedPrincipalAccountIds:          []string{"222244446666"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWithRespectiveDenies(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyingMultiplePermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::666644442222:root"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesCorrectPrincipalsWhenDenyWildcardPermissions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes*",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "shared",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"arn:aws:iam::666644442222:root"},
+		AllowedPrincipalAccountIds:          []string{"666644442222"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnRemovesAllPrincipalsWhenDenyHasMultiplPrincipals(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnMultiplePermissionsWithMultiplePricipalsAndDenyOnePermissionsFromEach(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root", "arn:aws:iam::666644442222:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumesModifications",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::666644442222:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::222244446666:root",
+			"arn:aws:iam::666644442222:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
+			"List",
+			"Read",
+		},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnFullWildcardPrincipalThatFullyContainsAllAllowPermissionsDeniesAll(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["*"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForAccounts(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::012345678901:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["arn:aws:iam::0123456789??:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["arn:aws:iam::2222*:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildcardedPrincipalsForOtherAccounts(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::222244446666:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:PrincipalArn": ["arn:aws:iam::012345678901:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["arn:aws:iam::9876543231??:root"]
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "aws:PrincipalArn": ["arn:aws:iam::4444*:root"]
+            }
+          }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"012345678901",
+			"arn:aws:iam::222244446666:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"012345678901",
+			"222244446666",
+		},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{"List"},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
