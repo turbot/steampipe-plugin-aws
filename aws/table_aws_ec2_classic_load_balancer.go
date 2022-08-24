@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +28,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEc2ClassicLoadBalancers,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -285,11 +285,11 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	input := &elb.DescribeLoadBalancersInput{
+	input := &elasticloadbalancing.DescribeLoadBalancersInput{
 		PageSize: aws.Int32(maxLimit),
 	}
 
-	paginator := elb.NewDescribeLoadBalancersPaginator(svc, input, func(o *elb.DescribeLoadBalancersPaginatorOptions) {
+	paginator := elasticloadbalancing.NewDescribeLoadBalancersPaginator(svc, input, func(o *elasticloadbalancing.DescribeLoadBalancersPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -327,7 +327,7 @@ func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := &elb.DescribeLoadBalancersInput{
+	params := &elasticloadbalancing.DescribeLoadBalancersInput{
 		LoadBalancerNames: []string{loadBalancerName},
 	}
 
@@ -354,7 +354,7 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 		return nil, err
 	}
 
-	params := &elb.DescribeLoadBalancerAttributesInput{
+	params := &elasticloadbalancing.DescribeLoadBalancerAttributesInput{
 		LoadBalancerName: classicLoadBalancer.LoadBalancerName,
 	}
 
@@ -378,7 +378,7 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	params := &elb.DescribeTagsInput{
+	params := &elasticloadbalancing.DescribeTagsInput{
 		LoadBalancerNames: []string{*classicLoadBalancer.LoadBalancerName},
 	}
 

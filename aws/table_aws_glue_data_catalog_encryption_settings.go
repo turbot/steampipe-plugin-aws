@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/glue"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,7 +18,7 @@ func tableAwsGlueDataCatalogEncryptionSettings(_ context.Context) *plugin.Table 
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDataCatalogEncryptionSettings,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "encryption_at_rest",

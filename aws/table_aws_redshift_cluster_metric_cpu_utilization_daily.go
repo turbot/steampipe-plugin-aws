@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,7 +18,7 @@ func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin
 			ParentHydrate: listRedshiftClusters,
 			Hydrate:       listRedshiftClusterMetricCpuUtilizationDaily,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
@@ -18,7 +18,7 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSESDomainIdentities,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity",
@@ -78,10 +78,9 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listSESDomainIdentities")
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := SESService(ctx, d, region)
+	svc, err := SESService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
