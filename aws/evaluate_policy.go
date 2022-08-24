@@ -737,8 +737,6 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 		allowedPrincipalsArnsSet: map[string]bool{},
 	}
 
-	reAccountExtractor := regexp.MustCompile(`^.*[:\*\?]([0-9]{12})[:\*\?].*$`)
-
 	for _, principal := range conditionValues {
 		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
 			continue
@@ -746,22 +744,17 @@ func evaluateArnTypeCondition(conditionValues []string, evaulatedOperator Evalua
 
 		if evaulatedOperator.isLike {
 			if evaulatedOperator.category == "string" {
-				//evaluatedCondition.allowedPrincipalsSet[principal] = true
 				evaluatedCondition.allowedPrincipalsArnsSet[principal] = true
-				// We need to pull the account out of a wildcard type
-				// Assume that account is before any other numeric
-				// There should always be 12 digits
-				arnAccount := reAccountExtractor.FindStringSubmatch(principal)
-				if len(arnAccount) > 0 {
-					account := arnAccount[1]
-					if account != userAccountId {
-						evaluatedCondition.isShared = true
-					} else {
-						evaluatedCondition.isPrivate = true
-					}
-				} else {
+				account := extractAccountFromArn(principal)
+
+				if account == "*" {
 					evaluatedCondition.isPublic = true
+				} else if account != userAccountId {
+					evaluatedCondition.isShared = true
+				} else {
+					evaluatedCondition.isPrivate = true
 				}
+
 			} else if evaulatedOperator.category == "arn" {
 				splitPrincipal := strings.Split(principal, ":")
 				// There should always be an account
