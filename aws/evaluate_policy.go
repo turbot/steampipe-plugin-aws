@@ -53,7 +53,8 @@ func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, 
 		return policySummary, err
 	}
 
-	statementsSummary := generateStatementsSummary(allowedEvaluatedStatements, deniedEvaluatedStatements, allAvailablePermissions)
+	reducedStatements := reduceStatements(allowedEvaluatedStatements, deniedEvaluatedStatements)
+	statementsSummary := generateStatementsSummary(reducedStatements, allAvailablePermissions)
 
 	policySummary.AccessLevel = evaluateAccessLevel(statementsSummary)
 	policySummary.AllowedPrincipalFederatedIdentities = setToSortedSlice(statementsSummary.allowedPrincipalFederatedIdentitiesSet)
@@ -507,7 +508,7 @@ type StatementsSummary struct {
 	sharedStatementIds                     map[string]bool
 }
 
-func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
+func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
 	statementsSummary := StatementsSummary{
 		allowedOrganizationIdsSet:              map[string]bool{},
 		allowedPrincipalAccountIdsSet:          map[string]bool{},
@@ -572,7 +573,7 @@ func createStatementsSummary(statements []EvaluatedStatement, allAvailablePermis
 	return statementsSummary
 }
 
-func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement, allAvailablePermissions AllAvailablePermissions) StatementsSummary {
+func reduceStatements(allowedStatements []EvaluatedStatement, deniedStatements []EvaluatedStatement) []EvaluatedStatement {
 	reducedStatements := allowedStatements
 
 	for _, deniedStatement := range deniedStatements {
@@ -589,7 +590,7 @@ func generateStatementsSummary(allowedStatements []EvaluatedStatement, deniedSta
 		reducedStatements = updatedActiveStatements
 	}
 
-	return createStatementsSummary(reducedStatements, allAvailablePermissions)
+	return reducedStatements
 }
 
 type EvaluatedOperator struct {
