@@ -204,17 +204,19 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "target_group_arns",
 				Description: "The Amazon Resource Names (ARN) of the target groups for your load balancer.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TargetGroupARNs"),
+				Transform:   transform.FromField("TargetGroupARNs").Transform(handleTargetGroupArnsEmptyData),
 			},
 			{
 				Name:        "instances",
 				Description: "The EC2 instances associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleInstancesEmptyData),
 			},
 			{
 				Name:        "enabled_metrics",
 				Description: "The metrics enabled for the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleEnableMetricEmptyData),
 			},
 			{
 				Name:        "policies",
@@ -232,13 +234,16 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "suspended_processes",
 				Description: "The suspended processes associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleSuspendedProcessesEmptyData),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Auto Scaling Group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleASGTagsEmptyCheck),
 			},
+
+			// Steampipe Standard Columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
@@ -387,8 +392,16 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "api_error", err)
 			return nil, err
 		}
+		for _, policy := range output.ScalingPolicies {
+			if len(policy.Alarms) < 1 {
+				policy.Alarms = nil
+			}
 
-		policies = append(policies, output.ScalingPolicies...)
+			if len(policy.StepAdjustments) < 1 {
+				policy.StepAdjustments = nil
+			}
+			policies = append(policies, policy)
+		}
 
 	}
 
@@ -399,6 +412,10 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 
 func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	asg := d.HydrateItem.(types.AutoScalingGroup)
+	if len(asg.Tags) < 1 {
+		return nil, nil
+	}
+
 	var turbotTagsMap map[string]string
 	if asg.Tags == nil {
 		return nil, nil
@@ -410,4 +427,63 @@ func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	}
 
 	return &turbotTagsMap, nil
+}
+
+func handleASGTagsEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+	if len(asg.Tags) < 1 {
+		return nil, nil
+	}
+
+	return asg.Tags, nil
+}
+
+func handleEnableMetricEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.EnabledMetrics) > 0 {
+		return asg.EnabledMetrics, nil
+	}
+
+	return nil, nil
+}
+
+func handleInstancesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.Instances) > 0 {
+		return asg.Instances, nil
+	}
+
+	return nil, nil
+}
+
+func handleLoadBalancersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.LoadBalancerNames) > 0 {
+		return asg.LoadBalancerNames, nil
+	}
+
+	return nil, nil
+}
+
+func handleSuspendedProcessesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.SuspendedProcesses) > 0 {
+		return asg.SuspendedProcesses, nil
+	}
+
+	return nil, nil
+}
+
+func handleTargetGroupArnsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.TargetGroupARNs) > 0 {
+		return asg.TargetGroupARNs, nil
+	}
+
+	return nil, nil
 }
