@@ -32,6 +32,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "cluster_arn",
+				Description: "The ARN of the cluster.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "agent_connected",
 				Description: "True if the agent is connected to Amazon ECS.",
 				Type:        proto.ColumnType_BOOL,
@@ -123,6 +128,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 	}
 }
 
+type containerInstanceData = struct {
+	ecs.ContainerInstance
+	ClusterArn string
+}
+
 //// LIST FUNCTION
 
 // listEcsContainerInstances handles both listing and describing of the instances.
@@ -197,7 +207,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 
 		for _, inst := range result.ContainerInstances {
-			d.StreamListItem(ctx, inst)
+			d.StreamListItem(ctx, containerInstanceData{*inst, clusterArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -213,7 +223,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 func containerInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("containerInstanceTagsToTurbotTags")
-	tags := d.HydrateItem.(*ecs.ContainerInstance).Tags
+	tags := d.HydrateItem.(containerInstanceData).Tags
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
