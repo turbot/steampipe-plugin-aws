@@ -79,3 +79,8 @@ Conditions should be applied against Pricipals and not appended it Principals as
 ## Issue 16
 
 Denies with conditions <- Work on this tests
+
+## Issue 17
+
+This should not be valid: "aws:SourceArn": ["1234*"]
+}
