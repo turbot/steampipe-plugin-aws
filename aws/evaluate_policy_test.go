@@ -6976,7 +6976,7 @@ func testSourceArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:SourceArn": ["arn:*012345678901*"]
+              "aws:SourceArn": ["arn:*:012345678901:*"]
             }
           }
         }
@@ -6987,7 +6987,7 @@ func testSourceArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*012345678901*"},
+		AllowedPrincipals:                   []string{"arn:*:012345678901:*"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7038,7 +7038,7 @@ func testSourceArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.T) 
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:SourceArn": ["arn:*222233332222*"]
+              "aws:SourceArn": ["arn:*:222233332222:*"]
             }
           }
         }
@@ -7049,7 +7049,7 @@ func testSourceArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.T) 
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*222233332222*"},
+		AllowedPrincipals:                   []string{"arn:*:222233332222:*"},
 		AllowedPrincipalAccountIds:          []string{"222233332222"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7100,7 +7100,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:SourceArn": ["arn:*22223333222*"]
+              "aws:SourceArn": ["arn:*:22223333222:*"]
             }
           }
         }
@@ -7111,7 +7111,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*22223333222*"},
+		AllowedPrincipals:                   []string{"arn:*:22223333222:*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7162,7 +7162,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:SourceArn": ["arn:*2222333322222*"]
+              "aws:SourceArn": ["arn:*:2222333322222:*"]
             }
           }
         }
@@ -7173,7 +7173,7 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*2222333322222*"},
+		AllowedPrincipals:                   []string{"arn:*:2222333322222:*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7286,7 +7286,7 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:SourceArn": ["1234*"]
+              "aws:SourceArn": ["*1234*"]
             }
           }
         }
@@ -7297,7 +7297,7 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"1234*"},
+		AllowedPrincipals:                   []string{"*1234*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -9821,7 +9821,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalArn": ["arn:*012345678901*"]
+              "aws:PrincipalArn": ["arn:*:012345678901:*"]
             }
           }
         }
@@ -9832,7 +9832,7 @@ func testPrincipalArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*012345678901*"},
+		AllowedPrincipals:                   []string{"arn:*:012345678901:*"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -9883,7 +9883,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalArn": ["arn:*222233332222*"]
+              "aws:PrincipalArn": ["arn:*:222233332222:*"]
             }
           }
         }
@@ -9894,7 +9894,7 @@ func testPrincipalArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*222233332222*"},
+		AllowedPrincipals:                   []string{"arn:*:222233332222:*"},
 		AllowedPrincipalAccountIds:          []string{"222233332222"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -9945,7 +9945,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLi
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalArn": ["arn:*22223333222*"]
+              "aws:PrincipalArn": ["arn:*:22223333222:*"]
             }
           }
         }
@@ -9956,7 +9956,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLi
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*22223333222*"},
+		AllowedPrincipals:                   []string{"arn:*:22223333222:*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -10007,7 +10007,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringL
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalArn": ["arn:*2222333322222*"]
+              "aws:PrincipalArn": ["arn:*:2222333322222:*"]
             }
           }
         }
@@ -10018,7 +10018,7 @@ func testPrincipalArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringL
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:*2222333322222*"},
+		AllowedPrincipals:                   []string{"arn:*:2222333322222:*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -10131,7 +10131,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike(t *testin
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalArn": ["1234*"]
+              "aws:PrincipalArn": ["*1234*"]
             }
           }
         }
@@ -10142,7 +10142,7 @@ func testPrincipalArnConditionWhenValueIsPartialWildcardWithStringLike(t *testin
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"1234*"},
+		AllowedPrincipals:                   []string{"*1234*"},
 		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -23699,7 +23699,7 @@ func testDenyPermissionsByGlobalConditionPrincipalArnWhereDenyHasPartiallyWildca
 		AccessLevel:            "shared",
 		AllowedOrganizationIds: []string{},
 		AllowedPrincipals: []string{
-			"012345678901",
+			"arn:aws:iam::012345678901:root",
 			"arn:aws:iam::222244446666:root",
 		},
 		AllowedPrincipalAccountIds: []string{
