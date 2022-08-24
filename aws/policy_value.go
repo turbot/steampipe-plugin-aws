@@ -7,29 +7,29 @@ import (
 )
 
 type PolicyValue struct {
-	value string
-	regex string
+	value  string
+	regexp *regexp.Regexp
 }
 
 func MakePolicyValue(value string) PolicyValue {
 	regex := strings.Replace(value, "*", ".*", len(value))
 	regex = strings.Replace(regex, "?", "[^*]{1}", len(regex))
 	regex = fmt.Sprintf("^%s$", regex)
+	regexp := regexp.MustCompile(regex)
 
-	return PolicyValue{value, regex}
+	return PolicyValue{value, regexp}
 }
 
-func (policyValue PolicyValue) Contains(other PolicyValue) bool {
-	re := regexp.MustCompile(policyValue.regex)
-	return re.MatchString(other.value)
+func (policyValue PolicyValue) Contains(other string) bool {
+	return policyValue.regexp.MatchString(other)
 }
 
 func (policyValue PolicyValue) Intersection(other PolicyValue) string {
-	if policyValue.Contains(other) {
+	if policyValue.Contains(other.value) {
 		return other.value
 	}
 
-	if other.Contains(policyValue) {
+	if other.Contains(policyValue.value) {
 		return policyValue.value
 	}
 
