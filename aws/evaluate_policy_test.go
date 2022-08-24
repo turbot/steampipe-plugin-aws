@@ -6612,10 +6612,25 @@ func testSourceArnConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -6922,10 +6937,25 @@ func testSourceArnConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -7356,19 +7386,34 @@ func testSourceArnConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -7862,10 +7907,25 @@ func testSourceArnConditionUsingArnEqualsIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -8420,19 +8480,34 @@ func testSourceArnConditionUsingArnLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -9457,10 +9532,25 @@ func testPrincipalArnConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -9767,10 +9857,25 @@ func testPrincipalArnConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) 
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -10201,19 +10306,34 @@ func testPrincipalArnConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -10707,10 +10827,25 @@ func testPrincipalArnConditionUsingArnEqualsIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "private",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+	// 	AllowedPrincipalAccountIds:          []string{"012345678901"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{},
+	// 	PrivateAccessLevels:                 []string{"List"},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{},
+	// }
+
 	expected := PolicySummary{
 		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
+		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
@@ -11265,19 +11400,34 @@ func testPrincipalArnConditionUsingArnLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::222233332222:*"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -12279,19 +12429,34 @@ func testSourceAccountConditionUsingStringEqualsIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"222244442222"},
+	// 	AllowedPrincipalAccountIds:          []string{"222244442222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"222244442222"},
-		AllowedPrincipalAccountIds:          []string{"222244442222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -13023,19 +13188,34 @@ func testSourceAccountConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"222233332222"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"222233332222"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -14775,19 +14955,34 @@ func testPrincipalAccountConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"222233332222"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"222233332222"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -15776,19 +15971,34 @@ func testPrincipalOrgIDConditionUsingStringEqualsIfExists(t *testing.T) {
       ]
     }
 	`
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{"o-valid"},
+	// 	AllowedPrincipals:                   []string{},
+	// 	AllowedPrincipalAccountIds:          []string{},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -16087,18 +16297,18 @@ func testPrincipalOrgIDConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -16520,19 +16730,34 @@ func testPrincipalOrgIDConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{"o-valid"},
+	// 	AllowedPrincipals:                   []string{},
+	// 	AllowedPrincipalAccountIds:          []string{},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
@@ -17896,19 +18121,34 @@ func testSourceOwnerConditionUsingStringLikeIfExists(t *testing.T) {
     }
 	`
 
+	// expected := PolicySummary{
+	// 	AccessLevel:                         "shared",
+	// 	AllowedOrganizationIds:              []string{},
+	// 	AllowedPrincipals:                   []string{"222233332222"},
+	// 	AllowedPrincipalAccountIds:          []string{"222233332222"},
+	// 	AllowedPrincipalFederatedIdentities: []string{},
+	// 	AllowedPrincipalServices:            []string{},
+	// 	IsPublic:                            false,
+	// 	PublicAccessLevels:                  []string{},
+	// 	SharedAccessLevels:                  []string{"List"},
+	// 	PrivateAccessLevels:                 []string{},
+	// 	PublicStatementIds:                  []string{},
+	// 	SharedStatementIds:                  []string{"Statement[1]"},
+	// }
+
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
+		AccessLevel:                         "private",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"222233332222"},
-		AllowedPrincipalAccountIds:          []string{"222233332222"},
+		AllowedPrincipals:                   []string{"012345678901"},
+		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
-		SharedAccessLevels:                  []string{"List"},
-		PrivateAccessLevels:                 []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{"List"},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
 	}
 
 	// Test
