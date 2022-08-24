@@ -79,6 +79,7 @@ type EvaluatedStatement struct {
 	isShared             bool
 	principal            string
 	principalType        string
+	resource             string
 	sid                  string
 }
 
@@ -93,12 +94,14 @@ func (evaluatedStatement *EvaluatedStatement) ApplyDenyStatement(denyStatement E
 		return
 	}
 
-	denyValue := MakePolicyValue(denyStatement.principal)
+	denyPrincipalValue := MakePolicyValue(denyStatement.principal)
 
-	if denyValue.Contains(evaluatedStatement.principal) {
-		evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
-		evaluatedStatement.availablePermissions.isAllPermissions = false
-
+	if denyPrincipalValue.Contains(evaluatedStatement.principal) {
+		denyResourceValue := MakePolicyValue(denyStatement.resource)
+		if denyResourceValue.Contains(evaluatedStatement.resource) {
+			evaluatedStatement.availablePermissions.RemovePermissions(denyStatement.availablePermissions)
+			evaluatedStatement.availablePermissions.isAllPermissions = false
+		}
 	}
 }
 
@@ -127,8 +130,18 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 			return allowedEvaluatedStatements, deniedEvaluatedStatements, err
 		}
 
+		// Resources
+		var resources []string
+		var hasResources bool
+		if len(statement.Resource) > 0 {
+			hasResources = true
+			resources = statement.Resource
+		} else {
+			hasResources = false
+			resources = []string{""}
+		}
+
 		// Principals
-		hasResources := len(statement.Resource) > 0
 		evaluatedPrincipal, err := evaluatePrincipal(statement.Principal, userAccountId, hasResources, evaluatedCondition.hasConditions)
 		if err != nil {
 			return allowedEvaluatedStatements, deniedEvaluatedStatements, err
@@ -159,75 +172,82 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		isShared := evaluatedPrincipal.isShared || evaluatedCondition.isShared
 		isPrivate := evaluatedPrincipal.isPrivate || evaluatedCondition.isPrivate
 
-		// Create individual statements here
-		for allowedOrganizationId := range allowedOrganizationIdsSet {
-			newStatement := EvaluatedStatement{
-				availablePermissions: availablePermissions.Copy(),
-				isPrivate:            isPrivate,
-				isPublic:             isPublic,
-				isShared:             isShared,
-				principal:            allowedOrganizationId,
-				principalType:        "organization",
-				sid:                  sid,
+		for _, resource := range resources {
+			// Create individual statements here
+			for allowedOrganizationId := range allowedOrganizationIdsSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            allowedOrganizationId,
+					principalType:        "organization",
+					resource:             resource,
+					sid:                  sid,
+				}
+
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 			}
 
-			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
-		}
+			for allowedPrincipalFederatedIdentity := range allowedPrincipalFederatedIdentitiesSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            allowedPrincipalFederatedIdentity,
+					principalType:        "federated",
+					resource:             resource,
+					sid:                  sid,
+				}
 
-		for allowedPrincipalFederatedIdentity := range allowedPrincipalFederatedIdentitiesSet {
-			newStatement := EvaluatedStatement{
-				availablePermissions: availablePermissions.Copy(),
-				isPrivate:            isPrivate,
-				isPublic:             isPublic,
-				isShared:             isShared,
-				principal:            allowedPrincipalFederatedIdentity,
-				principalType:        "federated",
-				sid:                  sid,
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 			}
 
-			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
-		}
+			for allowedPrincipalService := range allowedPrincipalServicesSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            allowedPrincipalService,
+					principalType:        "service",
+					resource:             resource,
+					sid:                  sid,
+				}
 
-		for allowedPrincipalService := range allowedPrincipalServicesSet {
-			newStatement := EvaluatedStatement{
-				availablePermissions: availablePermissions.Copy(),
-				isPrivate:            isPrivate,
-				isPublic:             isPublic,
-				isShared:             isShared,
-				principal:            allowedPrincipalService,
-				principalType:        "service",
-				sid:                  sid,
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 			}
 
-			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
-		}
+			for allowedPrincipalArn := range allowedPrincipalsArnsSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            allowedPrincipalArn,
+					principalType:        "arn",
+					resource:             resource,
+					sid:                  sid,
+				}
 
-		for allowedPrincipalArn := range allowedPrincipalsArnsSet {
-			newStatement := EvaluatedStatement{
-				availablePermissions: availablePermissions.Copy(),
-				isPrivate:            isPrivate,
-				isPublic:             isPublic,
-				isShared:             isShared,
-				principal:            allowedPrincipalArn,
-				principalType:        "arn",
-				sid:                  sid,
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 			}
 
-			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
-		}
+			for allowedPrincipalAccount := range allowedPrincipalsAccountsSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            allowedPrincipalAccount,
+					principalType:        "account",
+					resource:             resource,
+					sid:                  sid,
+				}
 
-		for allowedPrincipalAccount := range allowedPrincipalsAccountsSet {
-			newStatement := EvaluatedStatement{
-				availablePermissions: availablePermissions.Copy(),
-				isPrivate:            isPrivate,
-				isPublic:             isPublic,
-				isShared:             isShared,
-				principal:            allowedPrincipalAccount,
-				principalType:        "account",
-				sid:                  sid,
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 			}
-
-			(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
 		}
 	}
 
@@ -947,6 +967,7 @@ func evaluatePrincipal(principal Principal, userAccountId string, hasResources b
 		allowedPrincipalsArnsSet:               map[string]bool{},
 	}
 
+	// TODO: I think this might not be 100 percent, hasConditions should be done after the principal set
 	if len(principal) == 0 && hasResources && !hasConditions {
 		evaluatedPrincipal.allowedPrincipalsAccountsSet[userAccountId] = true
 		evaluatedPrincipal.isPrivate = true
