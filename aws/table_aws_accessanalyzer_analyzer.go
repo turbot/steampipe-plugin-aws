@@ -155,7 +155,7 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 
 		for _, analyzer := range output.Analyzers {
-			d.StreamListItem(ctx, &analyzer)
+			d.StreamListItem(ctx, analyzer)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -194,11 +194,11 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	return data.Analyzer, nil
+	return *data.Analyzer, nil
 }
 
 func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*types.AnalyzerSummary)
+	data := h.Item.(types.AnalyzerSummary)
 
 	// Create Session
 	svc, err := AccessAnalyzerClient(ctx, d)
