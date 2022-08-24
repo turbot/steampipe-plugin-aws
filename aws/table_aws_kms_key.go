@@ -159,7 +159,8 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("KeyId"),
+				Hydrate:     getAwsKmsKeyAliases,
+				Transform:   transform.From(getAwsKmsKeyTitle),
 			},
 			{
 				Name:        "tags",
@@ -376,6 +377,16 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	return keyData, nil
+}
+
+func getAwsKmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getAwsKmsKeyTitle")
+	key := d.HydrateItem.([]*kms.AliasListEntry)
+
+	if len(key) > 0 {
+		return key[0].AliasName, nil
+	}
+	return nil, nil
 }
 
 func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
