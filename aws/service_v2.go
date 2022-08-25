@@ -82,14 +82,11 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
-	start := time.Now()
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	result := sns.NewFromConfig(*cfg)
-	plugin.Logger(ctx).Warn(fmt.Sprintf("SNSClient exec time: %v", time.Since(start)))
-	return result, nil
+	return sns.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
@@ -131,15 +128,18 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 	}
 
 	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-
-	// Caching sessions saves about 10ms, which is significant when there are
-	// multiple instantiations (per account region) and when doing queries that
-	// often take <100ms total. But, it's not that important compared to having
-	// fresh credentials all the time. So, set a short cache length to ensure
-	// we don't get tripped up by credential rotation on short lived roles etc.
-	// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-	// reasonable balance - I certainly wouldn't do longer.
-	d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	if err != nil {
+		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
+	} else {
+		// Caching sessions saves about 10ms, which is significant when there are
+		// multiple instantiations (per account region) and when doing queries that
+		// often take <100ms total. But, it's not that important compared to having
+		// fresh credentials all the time. So, set a short cache length to ensure
+		// we don't get tripped up by credential rotation on short lived roles etc.
+		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
+		// reasonable balance - I certainly wouldn't do longer.
+		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	}
 
 	return sess, err
 }
