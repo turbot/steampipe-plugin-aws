@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -40,7 +40,7 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -166,7 +166,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 		return nil, err
 	}
 
-	input := &elbv2.DescribeLoadBalancersInput{}
+	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{}
 	maxLimit := int32(400)
 
 	// Additional Filter
@@ -194,7 +194,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 		input.LoadBalancerArns = []string{equalQuals["arn"].GetStringValue()}
 	}
 
-	paginator := elbv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elbv2.DescribeLoadBalancersPaginatorOptions) {
+	paginator := elasticloadbalancingv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeLoadBalancersPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -236,7 +236,7 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 		return nil, err
 	}
 
-	params := &elbv2.DescribeLoadBalancersInput{
+	params := &elasticloadbalancingv2.DescribeLoadBalancersInput{
 		LoadBalancerArns: []string{loadBalancerArn},
 	}
 
@@ -263,7 +263,7 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 		return nil, err
 	}
 
-	params := &elbv2.DescribeLoadBalancerAttributesInput{
+	params := &elasticloadbalancingv2.DescribeLoadBalancerAttributesInput{
 		LoadBalancerArn: applicationLoadBalancer.LoadBalancerArn,
 	}
 
@@ -287,7 +287,7 @@ func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTagsInput{
+	params := &elasticloadbalancingv2.DescribeTagsInput{
 		ResourceArns: []string{*applicationLoadBalancer.LoadBalancerArn},
 	}
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -24,7 +24,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -187,6 +187,13 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
+			},
+			{
+				Name:        "file_system_configs",
+				Description: "Connection settings for an Amazon EFS file system.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Configuration.FileSystemConfigs"),
 			},
 			{
 				Name:        "policy",

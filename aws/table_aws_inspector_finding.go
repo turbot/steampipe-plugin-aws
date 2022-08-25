@@ -4,12 +4,10 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -33,7 +31,7 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 				{Name: "severity", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -182,17 +180,15 @@ type InspectorFindingInfo struct {
 //// LIST FUNCTION
 
 func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	serviceId := endpoints.InspectorServiceID
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
-	// Create session
+	// Create Session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &inspector.ListFindingsInput{
@@ -293,13 +289,6 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	logger := plugin.Logger(ctx)
 	logger.Trace("getInspectorFinding")
 
-	serviceId := endpoints.InspectorServiceID
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	var findingArn string
 	if h.Item != nil {
 		findingArn = *h.Item.(*inspector.Finding).Arn
@@ -308,10 +297,14 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		findingArn = quals["arn"].GetStringValue()
 	}
 
-	// get service
+	// Create Session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
