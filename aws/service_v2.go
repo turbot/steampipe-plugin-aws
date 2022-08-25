@@ -82,14 +82,11 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
-	start := time.Now()
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	result := sns.NewFromConfig(*cfg)
-	plugin.Logger(ctx).Warn(fmt.Sprintf("SNSClient exec time: %v", time.Since(start)))
-	return result, nil
+	return sns.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
