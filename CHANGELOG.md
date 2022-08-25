@@ -1,3 +1,13 @@
+## v0.74.1 [2022-08-25]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v412-2022-08-25) which fixes the stalling of dashboard queries and compliance checks. ([#1259](https://github.com/turbot/steampipe-plugin-aws/pull/1259))
+
+_Bug fixes_
+
+- Fixed the plugin credential caching issue wherein the sessions which had an error were also cached. ([#1255](https://github.com/turbot/steampipe-plugin-aws/pull/1255))
+
 ## v0.74.0 [2022-08-24]
 
 _Dependencies_
