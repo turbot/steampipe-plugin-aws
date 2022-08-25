@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -32,6 +32,6 @@ func tableAwsEc2InstanceMetricCpuUtilizationHourly(_ context.Context) *plugin.Ta
 }
 
 func listEc2InstanceMetricCpuUtilizationHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
 }
