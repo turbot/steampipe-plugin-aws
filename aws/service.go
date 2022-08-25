@@ -896,15 +896,18 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	}
 
 	sess, err := getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-
-	// Caching sessions saves about 10ms, which is significant when there are
-	// multiple instantiations (per account region) and when doing queries that
-	// often take <100ms total. But, it's not that important compared to having
-	// fresh credentials all the time. So, set a short cache length to ensure
-	// we don't get tripped up by credential rotation on short lived roles etc.
-	// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-	// reasonable balance - I certainly wouldn't do longer.
-	d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	if err != nil {
+		plugin.Logger(ctx).Error("getClient.getSessionWithMaxRetries", "region", region, "err", err)
+	} else {
+		// Caching sessions saves about 10ms, which is significant when there are
+		// multiple instantiations (per account region) and when doing queries that
+		// often take <100ms total. But, it's not that important compared to having
+		// fresh credentials all the time. So, set a short cache length to ensure
+		// we don't get tripped up by credential rotation on short lived roles etc.
+		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
+		// reasonable balance - I certainly wouldn't do longer.
+		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	}
 
 	return sess, err
 }
@@ -964,7 +967,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
-		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
+		plugin.Logger(ctx).Error("getSessionWithMaxRetries.NewSessionWithOptions", "sessionOptions", sessionOptions, "err", err)
 		return nil, err
 	}
 
