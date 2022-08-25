@@ -4,7 +4,7 @@
     "policies": [
       {
         "AdjustmentType": "ChangeInCapacity",
-        "Alarms": [],
+        "Alarms": null,
         "AutoScalingGroupName": "{{resourceName}}",
         "Cooldown": 300,
         "Enabled": true,
@@ -17,7 +17,7 @@
         "PolicyType": "SimpleScaling",
         "PredictiveScalingConfiguration": null,
         "ScalingAdjustment": 4,
-        "StepAdjustments": [],
+        "StepAdjustments": null,
         "TargetTrackingConfiguration": null
       }
     ]
