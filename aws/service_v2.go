@@ -209,7 +209,7 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
-		return nil, fmt.Errorf("region must be passed DynamodbClient Client")
+		return nil, fmt.Errorf("region must be passed Ec2Client Client")
 	}
 	// have we already created and cached the service?
 	serviceCacheKey := fmt.Sprintf("ec2-v2-%s", region)
@@ -229,6 +229,31 @@ func Ec2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
 
 	return svc, nil
 }
+
+// Ec2ClientWithRegion returns the service client for AWS Ec2 service with region
+func EC2ClientWithRegion(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed EC2ClientWithRegion Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("ec2_client_with_region-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*ec2.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("Ec2Client", "service_client_error")
+		return nil, err
+	}
+
+	svc := ec2.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 
 // ELBv2Client returns the service client for AWS ElasticLoadBalance service
 func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
