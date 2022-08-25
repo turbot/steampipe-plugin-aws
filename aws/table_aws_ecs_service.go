@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -21,7 +22,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsServices,
 			ParentHydrate: listEcsClusters,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException", "InvalidParameterException"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -331,6 +332,11 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	response, err := svc.ListTagsForResource(params)
 	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "InvalidParameterException" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("getEcsServiceTags", err)
 		return nil, err
 	}
