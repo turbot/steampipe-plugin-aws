@@ -199,6 +199,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "load_balancer_names",
 				Description: "One or more load balancers associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromCamel().Transform(handleLoadBalancersEmptyData),
 			},
 			{
 				Name:        "target_group_arns",

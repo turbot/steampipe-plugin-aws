@@ -314,12 +314,3 @@ func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interfac
 	}
 	return tags, nil
 }
-
-func handleTargetGroupTagEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
-
-	if len(data.TagDescriptions) < 1 {
-		return nil, nil
-	}
-	return data.TagDescriptions, nil
-}
