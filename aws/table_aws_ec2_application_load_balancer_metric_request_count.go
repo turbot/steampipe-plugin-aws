@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/elbv2"
+	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
@@ -33,7 +33,7 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *pl
 }
 
 func listEc2ApplicationLoadBalancerMetricRequestCount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	loadBalancer := h.Item.(*elbv2.LoadBalancer)
+	loadBalancer := h.Item.(elbv2.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
 }
