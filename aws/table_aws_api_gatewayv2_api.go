@@ -57,7 +57,7 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "disable_execute_api_endpoint",
-				Description: "Specifies whether clients can invoke your API by using the default execute-api endpoint",
+				Description: "Specifies whether clients can invoke your API by using the default execute-api endpoint.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
