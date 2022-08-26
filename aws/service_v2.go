@@ -17,7 +17,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -27,7 +29,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -186,6 +187,28 @@ func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Cli
 	return svc, nil
 }
 
+// CodeBuildClient returns the service connection for AWS CodeBuild service
+func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed CodeBuildClient")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("codebuild-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*codebuild.Client), nil
+	}
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	svc := codebuild.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
 	// have we already created and cached the service?
@@ -279,7 +302,6 @@ func EC2ClientWithRegion(ctx context.Context, d *plugin.QueryData, region string
 
 	return svc, nil
 }
-
 
 // ELBv2Client returns the service client for AWS ElasticLoadBalance service
 func ELBv2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
