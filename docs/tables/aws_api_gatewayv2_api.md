@@ -42,5 +42,5 @@ select
 from
   aws_api_gatewayv2_api
 where
-  not disable_execute_api_endpoint
+  not disable_execute_api_endpoint;
 ```
