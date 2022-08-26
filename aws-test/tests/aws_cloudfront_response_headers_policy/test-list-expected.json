@@ -2,7 +2,7 @@
 	{
 		"account_id": "{{ output.account_id.value }}",
 		"arn": "{{ output.resource_aka.value }}",
-		"e_tag": "{{ output.etag.value }}",
+		"etag": "{{ output.etag.value }}",
 		"id": "{{ output.resource_id.value }}",
 		"name": "{{ output.resource_name.value }}",
 		"response_headers_policy_config": {
@@ -72,7 +72,8 @@
 					"Protection": true,
 					"ReportUri": null
 				}
-			}
+			},
+			"ServerTimingHeadersConfig": null
 		},
 		"type": "custom"
 	}
