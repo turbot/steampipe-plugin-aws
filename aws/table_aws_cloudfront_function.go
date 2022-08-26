@@ -20,7 +20,7 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchFunctionExists"}),
 			},
 			Hydrate: getCloudFrontFunction,
 		},
