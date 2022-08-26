@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
@@ -133,6 +134,31 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 	}
 
 	svc := autoscaling.NewFromConfig(*cfg)
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
+// BackupClient returns the service client for AWS Backup service
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("region must be passed BackupClient Client")
+	}
+	// have we already created and cached the service?
+	serviceCacheKey := fmt.Sprintf("backup-v2-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*backup.Client), nil
+	}
+
+	// so it was not in cache - create service
+	cfg, err := getSessionV2(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("BackupClient", "service_client_error")
+		return nil, err
+	}
+
+	svc := backup.NewFromConfig(*cfg)
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
