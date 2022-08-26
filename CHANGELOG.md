@@ -1,3 +1,9 @@
+## v0.74.2 [2022-08-26]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.4](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v414-2022-08-26) which fixes the query timeout issues during dashboard execution and compliance checks. ([#1264](https://github.com/turbot/steampipe-plugin-aws/pull/1264))
+
 ## v0.74.1 [2022-08-25]
 
 _Dependencies_
