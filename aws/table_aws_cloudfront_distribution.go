@@ -195,7 +195,7 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the Maintenance Window",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCloudFrontDistributionTags,
-				Transform:   transform.FromField("Tags.Items"),
+				Transform:   transform.FromField("Tags.Items").Transform(handleEmptySliceAndMap),
 			},
 			{
 				Name:        "viewer_certificate",
