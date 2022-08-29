@@ -95,6 +95,10 @@ github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0 h1:LoDc6Bpr5S2vDemfPpdy1
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0/go.mod h1:8xLCTMp8Lp0TFMitgMZUGC1LQvt0aaLCt4PHxblxvT0=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8 h1:8y6EWV7zcggA+1mhI4AndodYLaDwTAD2m8kG2BGKQ48=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8/go.mod h1:DAYVFTQuWYLg/8haillTZEi0k1w/QAFEahIkreT4DMY=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.0 h1:r4zSLI9N3ttf/P2Zdi+q45WGmaNUeCM/HthN+xQtugc=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.0/go.mod h1:ywUhpu+J87l2z4y01o1tWl4zhZ0kf/M6c12CxOebofc=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14 h1:SO5LdqjF9dlURPzk3LNMzCz9RA5K8/yNOf6WpdoffJU=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14/go.mod h1:62kPuTAGPxpvo/0y/+QvaFwHffIe4l8hmStHLwaisLI=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9 h1:QTPDno4J5TyfpPi3dqCZpD+y7wbHtHhUQwnNGUHUGvg=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9/go.mod h1:Req/32OLRbXpPX5TxHkwf2Ln9qclJCV6n1S7v0v+FWo=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=

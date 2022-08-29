@@ -14,6 +14,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8
+	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.0
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8

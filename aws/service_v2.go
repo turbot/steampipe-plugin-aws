@@ -20,6 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -102,6 +104,22 @@ func CloudTrailRegionsClient(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudwatch.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudwatchlogs.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
