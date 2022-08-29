@@ -126,7 +126,7 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				Description: "A list of tags attached to the load balancer",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2NetworkLoadBalancerTags,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromValue().Transform(handleEc2NetworkLoadBalancerEmptyResult),
 			},
 
 			// Standard columns
@@ -285,6 +285,9 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 
 func getEc2NetworkLoadBalancerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	networkLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)
+	if len(networkLoadBalancerTags) < 1 {
+		return nil, nil
+	}
 
 	if networkLoadBalancerTags != nil {
 		turbotTagsMap := map[string]string{}
@@ -295,3 +298,12 @@ func getEc2NetworkLoadBalancerTurbotTags(_ context.Context, d *transform.Transfo
 	}
 	return nil, nil
 }
+
+func handleEc2NetworkLoadBalancerEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	networkLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)
+	if len(networkLoadBalancerTags) > 0  {
+		return networkLoadBalancerTags, nil
+	}
+	return nil, nil
+}
+

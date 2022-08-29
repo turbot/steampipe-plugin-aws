@@ -82,7 +82,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The tags for the prefix list.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handlePrefixListTagsEmptyResult),
 			},
 
 			// Steampipe standard columns
@@ -201,12 +201,25 @@ func prefixListTags(_ context.Context, d *transform.TransformData) (interface{},
 	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
 
 	var turbotTagsMap map[string]string
+
+	if len(prefixList.Tags) < 1 {
+		return nil, nil
+	}
+
 	if prefixList.Tags != nil {
 		turbotTagsMap = map[string]string{}
 		for _, i := range prefixList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
+func handlePrefixListTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
+	if len(prefixList.Tags) > 0  {
+		return prefixList.Tags, nil
 	}
 	return nil, nil
 }

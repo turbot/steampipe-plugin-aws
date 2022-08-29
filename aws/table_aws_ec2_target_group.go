@@ -302,10 +302,15 @@ func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) 
 
 func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
+	if len(data.TagDescriptions) < 1 {
+		return nil, nil
+	}
+
+	var tags []*elbv2.Tag
 	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
-		if data.TagDescriptions[0].Tags != nil {
-			return data.TagDescriptions[0].Tags, nil
+		for _, tag := range data.TagDescriptions {
+			tags = append(tags, tag.Tags...)
 		}
 	}
-	return nil, nil
+	return tags, nil
 }
