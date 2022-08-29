@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/service/appconfig"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,7 +24,7 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAppConfigApplication,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -86,9 +87,9 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// Limiting the results
-	maxLimit := int64(50)
+	maxLimit := int32(50)
 	if d.QueryContext.Limit != nil {
-		limit := int64(*d.QueryContext.Limit)
+		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
 			if limit < 1 {
 				maxLimit = 1
@@ -98,29 +99,29 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 
-	input := &appconfig.ListApplicationsInput{
-		MaxResults: aws.Int64(maxLimit),
+	params := &appconfig.ListApplicationsInput{
+		MaxResults: *aws.Int32(maxLimit),
 	}
 
-	err = svc.ListApplicationsPages(
-		input,
-		func(page *appconfig.ListApplicationsOutput, lastPage bool) bool {
-			for _, application := range page.Items {
-				d.StreamListItem(ctx, application)
+	paginator := appconfig.NewListApplicationsPaginator(svc, params, func(o *appconfig.ListApplicationsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_appconfig_application.listAppConfigApplication", "api_error", err)
+			return nil, err
+		}
+		for _, application := range output.Items {
+			d.StreamListItem(ctx, application)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-
-	if err != nil {
-		logger.Error("aws_appconfig_application.listAppConfigApplication", "api_error", err)
-		return nil, err
+		}
 	}
+
 	return nil, nil
 }
 
@@ -141,14 +142,14 @@ func getAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugin
 		ApplicationId: aws.String(id),
 	}
 
-	application, err := svc.GetApplication(params)
+	application, err := svc.GetApplication(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_appconfig_application.getAppConfigApplication", "api_error", err)
 		return nil, err
 	}
 
 	if application != nil {
-		api := &appconfig.Application{
+		api := types.Application{
 			Name:        application.Name,
 			Id:          application.Id,
 			Description: application.Description,
@@ -174,7 +175,7 @@ func getAppConfigTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		ResourceArn: &arn,
 	}
 
-	tags, err := svc.ListTagsForResource(params)
+	tags, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_appconfig_application.getAppConfigTags", "api_error", err)
 		return nil, err
@@ -190,7 +191,7 @@ func getAppConfigApplicationArn(ctx context.Context, d *plugin.QueryData, h *plu
 func getArnFormat(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	id := h.Item.(*appconfig.Application).Id
+	id := h.Item.(types.Application).Id
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)

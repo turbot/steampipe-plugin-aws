@@ -5,5 +5,5 @@ select
   description,
   tags
 from
-  aws.aws_appconfig_application
+  aws_appconfig_application
 where arn = '{{ output.resource_aka.value }}';
