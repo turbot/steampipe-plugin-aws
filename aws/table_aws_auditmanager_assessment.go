@@ -6,11 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -29,7 +28,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAuditManagerAssessments,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -153,22 +152,17 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAwsAuditManagerAssessments", "AWS_REGION", region)
-
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.eu-west-3.amazonaws.com/assessments?maxResults=1000": dial tcp: lookup auditmanager.eu-west-3.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	input := &auditmanager.ListAssessmentsInput{
 		MaxResults: aws.Int64(1000),
 	}
@@ -217,17 +211,6 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsAuditManagerAssessment")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.eu-west-3.amazonaws.com/assessments?maxResults=1000": dial tcp: lookup auditmanager.eu-west-3.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	var id string
 	if h.Item != nil {
@@ -236,10 +219,14 @@ func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *p
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
