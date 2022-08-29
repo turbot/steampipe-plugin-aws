@@ -84,3 +84,26 @@ Denies with conditions <- Work on this tests
 
 This should not be valid: "aws:SourceArn": ["1234*"]
 }
+
+## Issue 18
+
+If public service or public federation then we should give the direct value of the condition in Source Conditions.
+
+## Issue 19
+
+// Functionality is currently incorrect
+It looks like SourceOrg and stuff is definately for services only and not Principals.
+
+## Issue 20
+
+PrincipalArn is a condition that works exclusively for the Principal
+
+## Issue 21
+
+It would be interesting to know that your policy has services but not restricting by using `Source*`
+This means that the services are open to the world. Good use case.
+https://docs.aws.amazon.com/sns/latest/dg/sns-access-policy-use-cases.html
+
+## Issue 22
+
+Case-sensitive matching of the ARN. Each of the six colon-delimited components of the ARN is checked separately and each can include multi-character match wildcards (\*) or single-character match wildcards (?). The ArnEquals and ArnLike condition operators behave identically.
