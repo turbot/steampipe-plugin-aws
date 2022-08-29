@@ -76,9 +76,10 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "image_tags",
+				Name:        "tags",
 				Description: "The list of tags associated with this image.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ImageTags")
 			},
 		}),
 	}
