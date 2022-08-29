@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -77,10 +76,9 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "tags",
+				Name:        "image_tags",
 				Description: "The list of tags associated with this image.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ImageTags"),
 			},
 		}),
 	}
