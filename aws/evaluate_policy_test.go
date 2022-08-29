@@ -6680,9 +6680,7 @@ func testPolicyActionWhenServiceNameIsMissing(t *testing.T) {
 }
 
 func TestGlobalConditionSourceArn(t *testing.T) {
-	t.Skip("Reintroduce")
 	// StringEquals
-	t.Skip("Reintroduce")
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEquals", testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEquals", testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEquals", testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals)
@@ -6759,7 +6757,10 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals(t *testing.T
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -6821,7 +6822,10 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals(t *testing.
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -6883,7 +6887,10 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals(t *testing.T
             "StringEquals": {
               "aws:SourceArn": ["*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7011,9 +7018,9 @@ func testSourceArnConditionUsingStringEqualsIfExists(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7075,7 +7082,10 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase(t 
             "StringEqualsIgnoreCase": {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7137,7 +7147,10 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingStringEqualsIgnoreCase(t
             "StringEqualsIgnoreCase": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7199,7 +7212,10 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingStringEqualsIgnoreCase(t 
             "StringEqualsIgnoreCase": {
               "aws:SourceArn": ["*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7262,9 +7278,9 @@ func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEqualsI
               "aws:SourceArn": ["arn:*", "arn:?"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7327,9 +7343,9 @@ func testSourceArnConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7391,7 +7407,10 @@ func testSourceArnConditionWhenValueIsAUserAccountWithStringLike(t *testing.T) {
             "StringLike": {
               "aws:SourceArn": ["arn:*:012345678901:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7453,7 +7472,10 @@ func testSourceArnConditionWhenValueIsACrossAccountWithStringLike(t *testing.T) 
             "StringLike": {
               "aws:SourceArn": ["arn:*:222233332222:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7515,7 +7537,10 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(
             "StringLike": {
               "aws:SourceArn": ["arn:*:22223333222:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7642,7 +7667,10 @@ func testSourceArnConditionWhenValueIsFullWildcardWithStringLike(t *testing.T) {
             "StringLike": {
               "aws:SourceArn": ["*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7704,7 +7732,10 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithStringLike(t *testing.T
             "StringLike": {
               "aws:SourceArn": ["*1234*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7767,9 +7798,9 @@ func testSourceArnConditionUsingStringLikeIfExists(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::222233332222:*"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7831,7 +7862,10 @@ func testSourceArnConditionWhenValueWhenArnIsMalformedUsingStringOperators(t *te
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam:wrong:wrong:012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7893,7 +7927,10 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOperat
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam::01234567890:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -7955,7 +7992,10 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOpera
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam::0123456789012:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8021,7 +8061,10 @@ func testSourceArnConditionWithMulipleValuesUsingStringOperators(t *testing.T) {
                 "arn:aws:iam::222233332222:root"
               ]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8089,7 +8132,10 @@ func testSourceArnConditionWhenValueIsAUserAccountUsingArnEquals(t *testing.T) {
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8151,7 +8197,10 @@ func testSourceArnConditionWhenValueIsACrossAccountUsingArnEquals(t *testing.T) 
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8213,7 +8262,10 @@ func testSourceArnConditionWhenValueIsFullWildcardUsingArnEquals(t *testing.T) {
             "ArnEquals": {
               "aws:SourceArn": ["*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8276,9 +8328,9 @@ func testSourceArnConditionUsingArnEqualsIfExists(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8340,7 +8392,10 @@ func testSourceArnConditionWhenValueIsAUserAccountWithArnLike(t *testing.T) {
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::012345678901:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8402,7 +8457,10 @@ func testSourceArnConditionWhenValueIsACrossAccountWithArnLike(t *testing.T) {
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8464,7 +8522,10 @@ func testSourceArnConditionWhenValueIsMissingAccountSection(t *testing.T) {
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8526,7 +8587,10 @@ func testSourceArnConditionWhenValueIsMissingValueInAccountSection(t *testing.T)
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8588,7 +8652,10 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooFewWithArnLike(t *
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::22223333222:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8650,7 +8717,10 @@ func testSourceArnConditionWhenValueIsAnAccountWithOneDigitTooManyWithArnLike(t 
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::2222333322223:*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8712,7 +8782,10 @@ func testSourceArnConditionWhenValueIsFullWildcardWithArnLike(t *testing.T) {
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8774,7 +8847,10 @@ func testSourceArnConditionWhenValueIsInvalidValueWithArnLike(t *testing.T) {
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::01234567890A"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8837,9 +8913,9 @@ func testSourceArnConditionUsingArnLikeIfExists(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::222233332222:*"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8901,7 +8977,10 @@ func testSourceArnConditionWhenValueIsPartialWildcardWithArnLike(t *testing.T) {
             "ArnLike": {
               "aws:PrincipalArn": ["arn:aws:iam::0123456789??:root", "arn:aws:iam::2222333322*:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -8969,7 +9048,10 @@ func testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingArnLike
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::0123456789?:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9031,7 +9113,10 @@ func testSourceArnConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingArnLik
             "ArnLike": {
               "aws:SourceArn": ["arn:aws:iam::0123456789???:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9093,7 +9178,10 @@ func testSourceArnConditionWhenValueWhenArnIsMalformedUsingArnOperators(t *testi
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam:wrong:wrong:012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9155,7 +9243,10 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooFewUsingArnOperators
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam::01234567890:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9217,7 +9308,10 @@ func testSourceArnConditionWhenValueWhenAccountIsOneDigitTooManyUsingArnOperator
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam::0123456789012:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9283,7 +9377,10 @@ func testSourceArnConditionWithMulipleValuesUsingArnOperators(t *testing.T) {
                 "arn:aws:iam::222233332222:root"
               ]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9352,9 +9449,9 @@ func testSourceArnConditionIsNotAnArnOrStringType(t *testing.T) {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
           },
-          "Principal": {
-            "AWS": "0123456789??"
-          }
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9416,7 +9513,10 @@ func testSourceArnConditionWhenUnknownOperatoryType(t *testing.T) {
             "StringUnknown": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
@@ -9478,7 +9578,10 @@ func testSourceArnConditionWhenAcrossMultipleStatements(t *testing.T) {
             "StringEquals": {
               "aws:SourceArn": ["arn:aws:iam::012345678901:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         },
         {
           "Effect": "Allow",
@@ -9488,7 +9591,10 @@ func testSourceArnConditionWhenAcrossMultipleStatements(t *testing.T) {
             "StringLike": {
               "aws:SourceArn": ["*"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         },
         {
           "Effect": "Allow",
@@ -9498,7 +9604,10 @@ func testSourceArnConditionWhenAcrossMultipleStatements(t *testing.T) {
             "ArnEquals": {
               "aws:SourceArn": ["arn:aws:iam::222233332222:root"]
             }
-          }
+          },
+		  "Principal": {
+			"Service": ["ecs.amazonaws.com"]
+		  }
         }
       ]
     }
