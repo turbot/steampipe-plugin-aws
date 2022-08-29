@@ -1,7 +1,7 @@
 [
   {
     "active_services_count": 0,
-    "attachments": null,
+    "attachments": [],
     "attachments_status": null,
     "capacity_providers": [],
     "cluster_arn": "{{ output.resource_aka.value }}",
@@ -10,8 +10,6 @@
     "pending_tasks_count": 0,
     "registered_container_instances_count": 0,
     "running_tasks_count": 0,
-    "settings": [],
-    "statistics": [],
     "status": "ACTIVE"
   }
 ]

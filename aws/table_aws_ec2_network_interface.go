@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -52,7 +52,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "network_interface_id",
@@ -203,6 +203,11 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Name:        "source_dest_check",
 				Description: "Indicates whether traffic to or from the instance is validated.",
 				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "subnet_id",
+				Description: "The ID of the subnet.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "vpc_id",

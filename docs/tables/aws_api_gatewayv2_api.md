@@ -31,3 +31,16 @@ from
 where
   protocol_type = 'WEBSOCKET';
 ```
+
+### List of API gateway v2 API where default endpoint is enabled
+
+```sql
+select
+  name,
+  api_id,
+  api_endpoint
+from
+  aws_api_gatewayv2_api
+where
+  not disable_execute_api_endpoint;
+```

@@ -7,10 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -29,7 +28,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -137,20 +136,15 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "REGION", region)
 
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.ap-northeast-3.amazonaws.com/assessmentFrameworks?frameworkType=Standard": dial tcp: lookup auditmanager.ap-northeast-3.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List standard audit manager frameworks
@@ -206,22 +200,8 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("getAuditManagerFramework", "REGION", region)
-
-	// AWS Audit Manager is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Get "https://auditmanager.ap-northeast-3.amazonaws.com/assessmentFrameworks?frameworkType=Standard": dial tcp: lookup auditmanager.ap-northeast-3.amazonaws.com: no such host
-	serviceId := auditmanager.EndpointsID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
 
 	var id string
 	if h.Item != nil {
@@ -232,6 +212,16 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 			return nil, nil
 		}
 		id = d.KeyColumnQuals["id"].GetStringValue()
+	}
+
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &auditmanager.GetAssessmentFrameworkInput{

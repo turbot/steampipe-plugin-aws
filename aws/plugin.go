@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -114,6 +114,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dynamodb_metric_account_provisioned_read_capacity_util":   tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(ctx),
 			"aws_dynamodb_metric_account_provisioned_write_capacity_util":  tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(ctx),
 			"aws_dynamodb_table":                                           tableAwsDynamoDBTable(ctx),
+			"aws_dynamodb_table_export":                                    tableAwsDynamoDBTableExport(ctx),
 			"aws_ebs_snapshot":                                             tableAwsEBSSnapshot(ctx),
 			"aws_ebs_volume":                                               tableAwsEBSVolume(ctx),
 			"aws_ebs_volume_metric_read_ops":                               tableAwsEbsVolumeMetricReadOps(ctx),
@@ -171,6 +172,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_addon_version":                                        tableAwsEksAddonVersion(ctx),
 			"aws_eks_cluster":                                              tableAwsEksCluster(ctx),
 			"aws_eks_identity_provider_config":                             tableAwsEksIdentityProviderConfig(ctx),
+			"aws_eks_node_group":                                           tableAwsEksNodeGroup(ctx),
 			"aws_elastic_beanstalk_application":                            tableAwsElasticBeanstalkApplication(ctx),
 			"aws_elastic_beanstalk_environment":                            tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_elasticache_cluster":                                      tableAwsElastiCacheCluster(ctx),
@@ -188,6 +190,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticsearch_domain":                                     tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster":                                              tableAwsEmrCluster(ctx),
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
+			"aws_emr_instance":                                             tableAwsEmrInstance(ctx),
+			"aws_emr_instance_fleet":                                       tableAwsEmrInstanceFleet(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),
 			"aws_eventbridge_bus":                                          tableAwsEventBridgeBus(ctx),
 			"aws_eventbridge_rule":                                         tableAwsEventBridgeRule(ctx),
@@ -315,6 +319,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
+			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
 			"aws_ses_email_identity":                                       tableAwsSESEmailIdentity(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
@@ -355,8 +360,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_vpn_connection":                                       tableAwsVpcVpnConnection(ctx),
 			"aws_vpc_vpn_gateway":                                          tableAwsVpcVpnGateway(ctx),
 			"aws_waf_rate_based_rule":                                      tableAwsWafRateBasedRule(ctx),
-			"aws_waf_rule_group":                                           tableAwsWafRuleGroup(ctx),
 			"aws_waf_rule":                                                 tableAwsWAFRule(ctx),
+			"aws_waf_rule_group":                                           tableAwsWafRuleGroup(ctx),
 			"aws_waf_web_acl":                                              tableAwsWafWebAcl(ctx),
 			"aws_wafregional_rule":                                         tableAwsWAFRegionalRule(ctx),
 			"aws_wafv2_ip_set":                                             tableAwsWafv2IpSet(ctx),
