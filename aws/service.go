@@ -30,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
@@ -261,14 +260,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 		return nil, err
 	}
 	return cloudwatchlogs.New(sess), nil
-}
-
-func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return cloudtrail.New(sess), nil
 }
 
 func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
