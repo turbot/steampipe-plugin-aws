@@ -590,19 +590,6 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 			account := extractAccountFromArn(reducedStatement.principal)
 			statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
 			statementsSummary.allowedPrincipalAccountIdsSet[account] = true
-
-			// TODO: Questionable
-			// if reducedStatement.principal == "*" {
-			// 	statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
-			// 	statementsSummary.allowedPrincipalAccountIdsSet[reducedStatement.principal] = true
-			// } else {
-			// 	account := extractAccountFromArn(reducedStatement.principal)
-			// 	statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
-			// 	if account != "" && account != "*" {
-			// 		statementsSummary.allowedPrincipalAccountIdsSet[account] = true
-			// 	}
-			// }
-
 		case "account":
 			account := extractAccount(reducedStatement.principal)
 
@@ -633,6 +620,13 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 	statementsSummary.publicAccessLevels = setToSortedSlice(publicAccessLevelSet)
 	statementsSummary.sharedAccessLevels = setToSortedSlice(sharedAccessLevelSet)
 	statementsSummary.privateAccessLevels = setToSortedSlice(privateAccessLevelSet)
+
+	// finally enrich the account IDs and Principals if there are no account ids or principals with "*"
+	if statementsSummary.isPublic &&
+		(len(statementsSummary.allowedPrincipalAccountIdsSet) == 0 && len(statementsSummary.allowedPrincipalsSet) == 0) {
+		statementsSummary.allowedPrincipalsSet["*"] = true
+		statementsSummary.allowedPrincipalAccountIdsSet["*"] = true
+	}
 
 	return statementsSummary
 }
@@ -1111,93 +1105,52 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
 
-	isPublic := evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isServicePublic || evaluatedPrincipal.isFederatedPublic
+	isPublic := evaluatedPrincipal.isFederatedPublic
 	isShared := evaluatedPrincipal.isFederatedShared
 	isPrivate := false
 
-	for _, conditionValue := range conditionValues {
-		if evaulatedOperator.category != "string" {
-			continue
-		}
-
-		if evaulatedOperator.isLike {
-			// Sanity check the input first
-
-			// Regex to allow for account: ["222244446666", "22224444666?", "22224?446666", ...] and must be exactly 12
-			reAccountFormat := regexp.MustCompile(`^[0-9\?]{12}$`)
-
-			// Not OK
-			if !(strings.Contains(conditionValue, "*") && len(conditionValue) <= 12) && !reAccountFormat.MatchString(conditionValue) {
+	if len(evaluatedPrincipal.allowedPrincipalServicesSet) > 0 {
+		for _, conditionValue := range conditionValues {
+			if evaulatedOperator.category != "string" {
 				continue
 			}
-		} else {
-			// Regex to allow for account: ["222244446666", ...] and must be exactly 12
-			reAccountFormat := regexp.MustCompile(`^[0-9]{12}$`)
-			// Not OK
-			if !reAccountFormat.MatchString(conditionValue) {
-				continue
-			}
-		}
 
-		processed = true
+			if evaulatedOperator.isLike {
+				// Sanity check the input first
 
-		conditionPolicyValue := MakePolicyValue(conditionValue)
+				// Regex to allow for account: ["222244446666", "22224444666?", "22224?446666", ...] and must be exactly 12
+				reAccountFormat := regexp.MustCompile(`^[0-9\?]{12}$`)
 
-		for principalArns := range evaluatedPrincipal.allowedPrincipalsArnsSet {
-			if principalArns == "*" {
-				principalPolicyValue := MakePolicyValue("*")
-				resolved := principalPolicyValue.Intersection(conditionPolicyValue)
-
-				if resolved == "*" {
-					allowedPrincipalsArnsSet[resolved] = true
-					isPublic = true
+				// Not OK
+				if !(strings.Contains(conditionValue, "*") && len(conditionValue) <= 12) && !reAccountFormat.MatchString(conditionValue) {
 					continue
-				}
-
-				allowedPrincipalsAccountsSet[resolved] = true
-
-				if strings.Contains(resolved, "*") || strings.Contains(resolved, "?") {
-					isPublic = true
-					continue
-				}
-
-				isPublic = false
-				if resolved != evaluatedPrincipal.userAccountId {
-					isShared = true
-				} else {
-					isPrivate = true
 				}
 			} else {
-				account := extractAccountFromArn(principalArns)
-				if !conditionPolicyValue.Contains(account) {
+				// Regex to allow for account: ["222244446666", ...] and must be exactly 12
+				reAccountFormat := regexp.MustCompile(`^[0-9]{12}$`)
+				// Not OK
+				if !reAccountFormat.MatchString(conditionValue) {
 					continue
 				}
+			}
 
-				allowedPrincipalsArnsSet[principalArns] = true
-				if account != evaluatedPrincipal.userAccountId {
+			processed = true
+
+			if conditionValue == "*" {
+				isPublic = true
+				allowedPrincipalsAccountsSet[conditionValue] = true
+			} else if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
+				isPublic = true
+				allowedPrincipalsAccountsSet[conditionValue] = true
+			} else {
+				allowedPrincipalsAccountsSet[conditionValue] = true
+				if conditionValue != evaluatedPrincipal.userAccountId {
 					isShared = true
 				} else {
 					isPrivate = true
 				}
 			}
-		}
 
-		// BUG: Equals Looks like it does wildcards
-		for principalAccount := range evaluatedPrincipal.allowedPrincipalsAccountsSet {
-			if conditionPolicyValue.Contains(principalAccount) {
-				principalPolicyValue := MakePolicyValue(principalAccount)
-
-				resolved := conditionPolicyValue.Intersection(principalPolicyValue)
-				allowedPrincipalsAccountsSet[resolved] = true
-
-				if strings.Contains(resolved, "*") || strings.Contains(resolved, "?") {
-					isPublic = true
-				} else if resolved != evaluatedPrincipal.userAccountId {
-					isShared = true
-				} else {
-					isPrivate = true
-				}
-			}
 		}
 	}
 
