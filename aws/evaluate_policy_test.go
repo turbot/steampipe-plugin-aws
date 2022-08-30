@@ -3073,8 +3073,8 @@ func testWhenPrincipalIsAFederatedUser(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -3133,8 +3133,8 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                "public",
 		AllowedOrganizationIds:     []string{},
-		AllowedPrincipals:          []string{"*"},
-		AllowedPrincipalAccountIds: []string{"*"},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
 			"accounts.google.com",
 			"graph.facebook.com",
@@ -3196,8 +3196,8 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                "public",
 		AllowedOrganizationIds:     []string{},
-		AllowedPrincipals:          []string{"*"},
-		AllowedPrincipalAccountIds: []string{"*"},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
 			"accounts.google.com",
 			"graph.facebook.com",
@@ -3283,8 +3283,8 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
 	expected := PolicySummary{
 		AccessLevel:                "public",
 		AllowedOrganizationIds:     []string{},
-		AllowedPrincipals:          []string{"*"},
-		AllowedPrincipalAccountIds: []string{"*"},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
 			"accounts.google.com",
 			"graph.facebook.com",
@@ -3757,8 +3757,8 @@ func testWhenPrincipalIsAService(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
 		IsPublic:                            true,
@@ -3817,8 +3817,8 @@ func testWhenPrincipalIsMulitpleServicesInAscendingOrder(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices: []string{
 			"ecs.amazonaws.com",
@@ -3880,8 +3880,8 @@ func testWhenPrincipalIsMulitpleServicesInDescendingOrder(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices: []string{
 			"ecs.amazonaws.com",
@@ -3967,8 +3967,8 @@ func testWhenPrincipalIsMultipleServicePrincipalsAcrossMultipleStatements(t *tes
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices: []string{
 			"ecs.amazonaws.com",
@@ -5204,8 +5204,8 @@ func testServicePrincipalIsPublicAccess(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -6680,6 +6680,7 @@ func testPolicyActionWhenServiceNameIsMissing(t *testing.T) {
 }
 
 func TestGlobalConditionSourceArn(t *testing.T) {
+	t.Skip("Will add in later")
 	// StringEquals
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEquals", testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEquals", testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals)
@@ -14184,8 +14185,8 @@ func testSourceAccountConditionWhenValueIsFullWildcardUsingStringEquals(t *testi
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14249,8 +14250,8 @@ func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEquals(t *te
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14314,8 +14315,8 @@ func testSourceAccountConditionUsingStringEqualsIfExists(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14574,8 +14575,8 @@ func testSourceAccountConditionWhenValueIsPartialWildcardUsingStringEqualsIgnore
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14639,8 +14640,8 @@ func testSourceAccountConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T)
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14834,8 +14835,8 @@ func testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringL
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -14899,8 +14900,8 @@ func testSourceAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithString
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15094,8 +15095,8 @@ func testSourceAccountConditionUsingStringLikeIfExists(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15224,8 +15225,8 @@ func testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStr
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15289,8 +15290,8 @@ func testSourceAccountConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingSt
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15354,8 +15355,8 @@ func testSourceAccountConditionWhenValueWhenArnIsMalformedUsingStringOperators(t
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15419,8 +15420,8 @@ func testSourceAccountConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOp
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15484,8 +15485,8 @@ func testSourceAccountConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringO
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15622,8 +15623,8 @@ func TestSourceAccountConditionIsNotAStringType(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -15687,8 +15688,8 @@ func testSourceAccountConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20324,8 +20325,8 @@ func testSourceOwnerConditionWhenValueIsFullWildcardUsingStringEquals(t *testing
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20389,8 +20390,8 @@ func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEquals(t *test
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20454,8 +20455,8 @@ func testSourceOwnerConditionUsingStringEqualsIfExists(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20714,8 +20715,8 @@ func testSourceOwnerConditionWhenValueIsPartialWildcardUsingStringEqualsIgnoreCa
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20779,8 +20780,8 @@ func testSourceOwnerConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -20974,8 +20975,8 @@ func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLik
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21039,8 +21040,8 @@ func testSourceOwnerConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLi
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21234,8 +21235,8 @@ func testSourceOwnerConditionUsingStringLikeIfExists(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21364,8 +21365,8 @@ func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStrin
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21429,8 +21430,8 @@ func testSourceOwnerConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStri
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21494,8 +21495,8 @@ func testSourceOwnerConditionWhenValueWhenArnIsMalformedUsingStringOperators(t *
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21559,8 +21560,8 @@ func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooFewUsingStringOper
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21624,8 +21625,8 @@ func testSourceOwnerConditionWhenValueWhenAccountIsOneDigitTooManyUsingStringOpe
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21762,8 +21763,8 @@ func TestSourceOwnerConditionIsNotAStringType(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -21827,8 +21828,8 @@ func testSourceOwnerConditionWhenUnknownOperatoryType(t *testing.T) {
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
 		IsPublic:                            true,
@@ -23830,8 +23831,8 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalWithRespectiveDeny(t *
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -23998,8 +23999,8 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalsWhenDenyingMultiplePe
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"accounts.google.com"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -24080,8 +24081,8 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalsWhenDenyWildcardPermi
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"accounts.google.com"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -24238,8 +24239,8 @@ func testDenyPermissionsByFederatedMultiplePermissionsWithMultiplePrincipalsAndD
 	expected := PolicySummary{
 		AccessLevel:                "public",
 		AllowedOrganizationIds:     []string{},
-		AllowedPrincipals:          []string{"*"},
-		AllowedPrincipalAccountIds: []string{"*"},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
 			"accounts.google.com",
 			"cognito-identity.amazonaws.com",
@@ -24397,8 +24398,8 @@ func testDenyPermissionsByFederatedWhereDenyHasPartiallyWildcardedPrincipalsForA
 	expected := PolicySummary{
 		AccessLevel:                "public",
 		AllowedOrganizationIds:     []string{},
-		AllowedPrincipals:          []string{"*"},
-		AllowedPrincipalAccountIds: []string{"*"},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
 			"cognito-identity.amazonaws.com",
 			"graph.facebook.com",
@@ -24471,8 +24472,8 @@ func testDenyPermissionsByFederatedAllowPermissionsIsTheSupersetOfDenyResources(
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            true,
@@ -24699,8 +24700,8 @@ func testDenyPermissionsByServiceRemovesCorrectPrincipalWithRespectiveDeny(t *te
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
 		IsPublic:                            true,
@@ -24867,8 +24868,8 @@ func testDenyPermissionsByServiceRemovesCorrectPrincipalsWhenDenyingMultiplePerm
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"elasticloadbalancing.amazonaws.com"},
 		IsPublic:                            true,
@@ -24949,8 +24950,8 @@ func testDenyPermissionsByServiceRemovesCorrectPrincipalsWhenDenyWildcardPermiss
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"elasticloadbalancing.amazonaws.com"},
 		IsPublic:                            true,
@@ -25107,8 +25108,8 @@ func testDenyPermissionsByServiceMultiplePermissionsWithMultiplePrincipalsAndDen
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices: []string{
 			"ec2.amazonaws.com",
@@ -25266,8 +25267,8 @@ func testDenyPermissionsByServiceWhereDenyHasPartiallyWildcardedPrincipalsForAcc
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices: []string{
 			"ec2.amazonaws.com",
@@ -25340,8 +25341,8 @@ func testDenyPermissionsByServiceAllowPermissionsIsTheSupersetOfDenyResources(t 
 	expected := PolicySummary{
 		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"*"},
-		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
 		IsPublic:                            true,
