@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/codeartifact"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
@@ -215,6 +216,14 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
 
 	return svc, nil
+}
+
+func CodeArtifactService(ctx context.Context, d *plugin.QueryData) (*codeartifact.CodeArtifact, error) {
+	sess, err := getSessionForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codeartifact.New(sess), nil
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
