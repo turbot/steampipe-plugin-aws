@@ -233,8 +233,8 @@ jobs:
       - run: |-
           REF="$PLUGIN_REPO/$ORG/$PLUGIN_NAME:$GITHUB_RUN_ID"
           oras push $REF \
-            --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
-            --manifest-annotations annotations.json \
+            --config config.json:application/vnd.turbot.steampipe.config.v1+json \
+            --annotation-file annotations.json \
             steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_darwin_arm64.gz:application/vnd.turbot.steampipe.plugin.darwin-arm64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \
