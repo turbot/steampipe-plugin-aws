@@ -46,7 +46,8 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the query failures for any new region added by AWS when the configuration file uses wildcards(`[*]`) for the regions argument. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
+- Queries will no longer fail if the `regions` config arg is set to `["*"]` when AWS releases a new region that is not included in the plugin's region list. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
+- Queries will no longer fail if the `regions` config arg includes a wildcarded item, e.g., `["test-*"]`, that matches on no valid regions. ([#1276](https://github.com/turbot/steampipe-plugin-aws/pull/1276))
 
 ## v0.74.2 [2022-08-26]
 
