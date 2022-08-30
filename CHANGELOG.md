@@ -7,7 +7,6 @@ _What's new?_
 
 _Enhancements_
 
-- Added support for `me-central-1` region. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
 - Added column `disable_execute_api_endpoint` to `aws_api_gatewayv2_api` table. ([#1242](https://github.com/turbot/steampipe-plugin-aws/pull/1242))
 - Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2): ([#1219](https://github.com/turbot/steampipe-plugin-aws/pull/1219))
   - `aws_cost_by_account_daily`
@@ -44,6 +43,10 @@ _Enhancements_
   - `aws_vpc_vpn_connection`
   - `aws_vpc_vpn_gateway`
 - Updated the query headers in the `aws_api_gatewayv2_api` table documentation.
+
+_Bug fixes_
+
+- Fixed the query failures for any new region added by AWS when the configuration file uses wildcards(`[*]`) for the regions argument. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
 
 ## v0.74.2 [2022-08-26]
 
