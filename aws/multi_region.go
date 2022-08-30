@@ -43,7 +43,7 @@ func getAllAwsRegions() []string {
 }
 
 // BuildRegionList :: return a list of matrix items, one per region specified in the connection config.
-// Plugin supports wildcards "*" and "?" in the connection config for thr regions.
+// Plugin supports wildcards "*" and "?" in the connection config for the regions.
 //
 // This function will build the regions list dynamically based the activated region in the AWS account.
 // For this it uses https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRegions.html
@@ -59,7 +59,7 @@ func getAllAwsRegions() []string {
 // regions="af-south-1, eu-north-1, ap-south-1, eu-west-3, eu-west-2, eu-south-1, eu-west-1, ap-northeast-3, ap-northeast-2, me-south-1, ap-northeast-1, sa-east-1, ca-central-1, ap-southeast-1, ap-southeast-2, eu-central-1, us-east-1, us-east-2, us-west-1, us-west-2"
 //
 // regions = ["me-*", "ap-*", "us-*"]
-// BuildRegionList: connection_name=aws regions="me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2"
+// regions="me-south-1, ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1, ap-southeast-1, ap-southeast-2, us-east-1, us-east-2, us-west-1, us-west-2"
 func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
 
 	// Cache region list matrix
