@@ -182,8 +182,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
 	// a special client with a small number of retries to prevent hangs.
-	//svc, err := Ec2RegionsService(ctx, d, defaultRegion)
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsService(ctx, d, defaultRegion)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache

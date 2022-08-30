@@ -1053,7 +1053,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 				validRegions = append(validRegions, validRegion)
 			}
 		}
-		if len(validRegions) == 0 {
+
+		// Region items with wildcards that match on 0 regions should not be
+		// considered invalid
+		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
 			invalidPatterns = append(invalidPatterns, namePattern)
 		}
 	}
