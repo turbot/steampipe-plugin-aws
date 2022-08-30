@@ -4,7 +4,7 @@ Amazon API Gateway Version 2 resources are used for creating and deploying WebSo
 
 ## Examples
 
-### API gatewayv2 API key basic info
+### Basic info
 
 ```sql
 select
@@ -18,8 +18,7 @@ from
   aws_api_gatewayv2_api;
 ```
 
-
-### List of API gateway v2 API key where the protocol type is WEBSOCKET
+### List APIs with protocol type WEBSOCKET
 
 ```sql
 select
@@ -32,7 +31,7 @@ where
   protocol_type = 'WEBSOCKET';
 ```
 
-### List of API gateway v2 API where default endpoint is enabled
+### List APIs with default endpoint enabled
 
 ```sql
 select
