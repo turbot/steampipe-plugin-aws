@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -33,7 +33,7 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -169,6 +169,13 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDescribeContinuousBackups,
 				Transform:   transform.FromField("ContinuousBackupsDescription.ContinuousBackupsStatus"),
+			},
+			{
+				Name:        "streaming_destination",
+				Description: "Provides information about the status of Kinesis streaming.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTableStreamingDestination,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "point_in_time_recovery_description",
@@ -369,6 +376,27 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	return tags, nil
+}
+
+func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	tableName := h.Item.(*dynamodb.TableDescription).TableName
+
+	// Create Session
+	svc, err := DynamoDbService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &dynamodb.DescribeKinesisStreamingDestinationInput{
+		TableName: tableName,
+	}
+
+	op, err := svc.DescribeKinesisStreamingDestination(input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("getTableStreamingDestination", err)
+	}
+	return op, nil
 }
 
 //// TRANSFORM FUNCTIONS

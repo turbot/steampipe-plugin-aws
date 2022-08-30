@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +27,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listNeptuneDBClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -282,7 +282,14 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *neptune.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+				// The DescribeDBClusters API returns non-Neptune DB clusters as well,
+				// but we only want Neptune clusters here. The input has a Filter param
+				// which can help filter out non-Neptune clusters, but as of 2022/08/15,
+				// the SDK says the Filter param is not currently supported.
+				// Related issue: https://github.com/aws/aws-sdk-go/issues/4515
+				if *dbCluster.Engine == "neptune" {
+					d.StreamListItem(ctx, dbCluster)
+				}
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
@@ -18,7 +18,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			ParentHydrate: listEcsClusters,
 			Hydrate:       listEcsContainerInstances,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -29,6 +29,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			{
 				Name:        "ec2_instance_id",
 				Description: "The EC2 instance ID of the container instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "cluster_arn",
+				Description: "The ARN of the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -123,6 +128,11 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 	}
 }
 
+type containerInstanceData = struct {
+	ecs.ContainerInstance
+	ClusterArn string
+}
+
 //// LIST FUNCTION
 
 // listEcsContainerInstances handles both listing and describing of the instances.
@@ -197,7 +207,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 
 		for _, inst := range result.ContainerInstances {
-			d.StreamListItem(ctx, inst)
+			d.StreamListItem(ctx, containerInstanceData{*inst, clusterArn})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -213,7 +223,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 
 func containerInstanceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("containerInstanceTagsToTurbotTags")
-	tags := d.HydrateItem.(*ecs.ContainerInstance).Tags
+	tags := d.HydrateItem.(containerInstanceData).Tags
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
