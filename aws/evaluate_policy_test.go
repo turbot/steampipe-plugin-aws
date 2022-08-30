@@ -4529,42 +4529,43 @@ func testPolicyPrincipalElementPrincipalPresent(t *testing.T) {
 }
 
 func TestPolicyResourceElement(t *testing.T) {
-	t.Run("TestPolicyResourceElementResourceMissingFails", testPolicyResourceElementResourceMissingFails)
+	//t.Run("TestPolicyResourceElementResourceMissingFails", testPolicyResourceElementResourceMissingFails)
 	t.Run("TestPolicyResourceElementResourcePresent", testPolicyResourceElementResourcePresent)
 }
 
-func testPolicyResourceElementResourceMissingFails(t *testing.T) {
-	// Set up
-	userAccountId := "012345678901"
-	policyContent := `
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": "ec2:DescribeVolumes",
-          "Principal": {
-            "AWS": "012345678901"
-          }
-        }
-      ]
-    }
-	`
+// NOTE: Incorrect assumption, ECR policies do allow for missing Resources
+// func testPolicyResourceElementResourceMissingFails(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "ec2:DescribeVolumes",
+//           "Principal": {
+//             "AWS": "012345678901"
+//           }
+//         }
+//       ]
+//     }
+// 	`
 
-	// Test
-	_, err := EvaluatePolicy(policyContent, userAccountId)
+// 	// Test
+// 	_, err := EvaluatePolicy(policyContent, userAccountId)
 
-	// Evaluate
-	if err == nil {
-		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
-	}
+// 	// Evaluate
+// 	if err == nil {
+// 		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
+// 	}
 
-	expectedErrorMsg := "policy element Resource is missing"
+// 	expectedErrorMsg := "policy element Resource is missing"
 
-	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
-		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
-	}
-}
+// 	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+// 		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
+// 	}
+// }
 
 func testPolicyResourceElementResourcePresent(t *testing.T) {
 	// Set up
@@ -28155,6 +28156,74 @@ func testDenyPermissionsByGlobalConditionPrincipalArnWithTheSameWildcard(t *test
         }
       ]
     }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestOmero(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Sid":"CodeBuildAccess",
+         "Effect":"Allow",
+         "Principal":{
+            "Service":"codebuild.amazonaws.com"
+         },
+         "Action":[
+            "ecr:BatchGetImage",
+            "ecr:GetDownloadUrlForLayer"
+         ],
+         "Condition":{
+            "StringEquals":{
+               "aws:SourceAccount":"123456789012"
+            }
+         }
+      }
+   ]
+}
 	`
 
 	expected := PolicySummary{

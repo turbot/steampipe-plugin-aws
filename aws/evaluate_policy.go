@@ -45,9 +45,9 @@ func checkPolicyValidity(policy Policy) (bool, error) {
 			return false, fmt.Errorf("policy element Principal is missing")
 		}
 
-		if len(statement.Resource) == 0 {
-			return false, fmt.Errorf("policy element Resource is missing")
-		}
+		// if len(statement.Resource) == 0 {
+		// 	return false, fmt.Errorf("policy element Resource is missing")
+		// }
 	}
 
 	return true, nil
