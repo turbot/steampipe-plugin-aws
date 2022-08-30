@@ -621,12 +621,13 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 	statementsSummary.sharedAccessLevels = setToSortedSlice(sharedAccessLevelSet)
 	statementsSummary.privateAccessLevels = setToSortedSlice(privateAccessLevelSet)
 
-	// finally enrich the account IDs and Principals if there are no account ids or principals with "*"
-	if statementsSummary.isPublic &&
-		(len(statementsSummary.allowedPrincipalAccountIdsSet) == 0 && len(statementsSummary.allowedPrincipalsSet) == 0) {
-		statementsSummary.allowedPrincipalsSet["*"] = true
-		statementsSummary.allowedPrincipalAccountIdsSet["*"] = true
-	}
+	// NOTE: Removing this behaviour for now. We need further discussion on how the table will deal with services.
+	// // finally enrich the account IDs and Principals if there are no account ids or principals with "*"
+	// if statementsSummary.isPublic &&
+	// 	(len(statementsSummary.allowedPrincipalAccountIdsSet) == 0 && len(statementsSummary.allowedPrincipalsSet) == 0) {
+	// 	statementsSummary.allowedPrincipalsSet["*"] = true
+	// 	statementsSummary.allowedPrincipalAccountIdsSet["*"] = true
+	// }
 
 	return statementsSummary
 }
