@@ -143,6 +143,9 @@ jobs:
       - run: |-
           gcloud beta auth configure-docker us-docker.pkg.dev
 
+      # oras is pre-installed on the image, but we should install a specific version
+      # to protect against unexpected breaking changes
+
       - run: |
           curl -LO https://github.com/oras-project/oras/releases/download/v0.14.0/oras_0.14.0_linux_amd64.tar.gz
           sudo tar xzf oras_0.14.0_linux_amd64.tar.gz -C /usr/local/bin oras
