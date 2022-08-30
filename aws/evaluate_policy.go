@@ -202,7 +202,7 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		if len(statement.Resource) > 0 {
 			resources = statement.Resource
 		} else {
-			resources = []string{""}
+			resources = []string{"*"}
 		}
 
 		for _, resource := range resources {
