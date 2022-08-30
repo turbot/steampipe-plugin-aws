@@ -380,8 +380,11 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func kmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("kmsKeyTitle")
 	key := d.HydrateItem.([]*kms.AliasListEntry)
+	
+	if len(key) > 0 {
+		return key[0].AliasName, nil
+	}
 
 	var keyID string
 	if d.HydrateResults["listKmsKeys"] != nil {
@@ -390,9 +393,6 @@ func kmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, 
 		keyID = *(d.HydrateResults["getKmsKey"]).(*kms.KeyListEntry).KeyId
 	}
 
-	if len(key) > 0 {
-		return key[0].AliasName, nil
-	}
 	return keyID, nil
 }
 
