@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
@@ -27,7 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -98,6 +99,14 @@ func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
 		return nil, err
 	}
 	return dax.NewFromConfig(*cfg), nil
+}
+
+func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return directoryservice.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
