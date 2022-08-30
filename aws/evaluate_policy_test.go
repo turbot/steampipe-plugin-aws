@@ -22724,16 +22724,37 @@ func testDenyPermissionsByAccountAllowPermissionsIsTheSupersetOfDenyResources(t 
           "Principal": {
             "AWS": "222244446666"
           }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
         }
       ]
     }
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"222244446666"},
-		AllowedPrincipalAccountIds:          []string{"222244446666"},
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"222244446666",
+			"666644442222",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"222244446666",
+			"666644442222",
+		},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -22741,7 +22762,10 @@ func testDenyPermissionsByAccountAllowPermissionsIsTheSupersetOfDenyResources(t 
 		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[3]",
+		},
 	}
 
 	// Test
@@ -22780,7 +22804,7 @@ func testDenyPermissionsByAccountAllowPermissionsIsTheSubsetOfDenyResources(t *t
         {
           "Effect": "Allow",
           "Action": "ec2:DescribeVolumes",
-          "Resource": "arn:*",
+		  "Resource": "arn:*",
           "Principal": {
             "AWS": "222244446666"
           }
@@ -22791,6 +22815,21 @@ func testDenyPermissionsByAccountAllowPermissionsIsTheSubsetOfDenyResources(t *t
           "Resource": "*",
           "Principal": {
             "AWS": "222244446666"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "AWS": "666644442222"
           }
         }
       ]
@@ -23596,16 +23635,37 @@ func testDenyPermissionsByArnAllowPermissionsIsTheSupersetOfDenyResources(t *tes
           "Principal": {
             "AWS": "arn:aws:iam::222244446666:root"
           }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "AWS": "arn:aws:iam::666644442222:root"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "AWS": "arn:aws:iam::666644442222:root"
+          }
         }
       ]
     }
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"arn:aws:iam::222244446666:root"},
-		AllowedPrincipalAccountIds:          []string{"222244446666"},
+		AccessLevel:            "shared",
+		AllowedOrganizationIds: []string{},
+		AllowedPrincipals: []string{
+			"arn:aws:iam::222244446666:root",
+			"arn:aws:iam::666644442222:root",
+		},
+		AllowedPrincipalAccountIds: []string{
+			"222244446666",
+			"666644442222",
+		},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
@@ -23613,7 +23673,10 @@ func testDenyPermissionsByArnAllowPermissionsIsTheSupersetOfDenyResources(t *tes
 		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
-		SharedStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[3]",
+		},
 	}
 
 	// Test
@@ -23663,6 +23726,21 @@ func testDenyPermissionsByArnAllowPermissionsIsTheSubsetOfDenyResources(t *testi
           "Resource": "*",
           "Principal": {
             "AWS": "arn:aws:iam::222244446666:root"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "AWS": "arn:aws:iam::666644442222:root"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "AWS": "arn:aws:iam::666644442222:root"
           }
         }
       ]
@@ -24465,24 +24543,45 @@ func testDenyPermissionsByFederatedAllowPermissionsIsTheSupersetOfDenyResources(
           "Principal": {
             "Federated": "cognito-identity.amazonaws.com"
           }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "Federated": "graph.facebook.com"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "Federated": "graph.facebook.com"
+          }
         }
       ]
     }
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
-		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
-		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
-		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels:                  []string{"List"},
-		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
-		PublicStatementIds:                  []string{"Statement[1]"},
-		SharedStatementIds:                  []string{},
+		AccessLevel:                "public",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"cognito-identity.amazonaws.com",
+			"graph.facebook.com",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 true,
+		PublicAccessLevels:       []string{"List"},
+		SharedAccessLevels:       []string{},
+		PrivateAccessLevels:      []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[3]",
+		},
+		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -24532,6 +24631,21 @@ func testDenyPermissionsByFederatedAllowPermissionsIsTheSubsetOfDenyResources(t 
           "Resource": "*",
           "Principal": {
             "Federated": "cognito-identity.amazonaws.com"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "Federated": "graph.facebook.com"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "Federated": "graph.facebook.com"
           }
         }
       ]
@@ -25334,6 +25448,21 @@ func testDenyPermissionsByServiceAllowPermissionsIsTheSupersetOfDenyResources(t 
           "Principal": {
             "Service": "ec2.amazonaws.com"
           }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "Service": "ecr.amazonaws.com"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "Service": "ecr.amazonaws.com"
+          }
         }
       ]
     }
@@ -25345,13 +25474,19 @@ func testDenyPermissionsByServiceAllowPermissionsIsTheSupersetOfDenyResources(t 
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{},
-		AllowedPrincipalServices:            []string{"ec2.amazonaws.com"},
-		IsPublic:                            true,
-		PublicAccessLevels:                  []string{"List"},
-		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{},
-		PublicStatementIds:                  []string{"Statement[1]"},
-		SharedStatementIds:                  []string{},
+		AllowedPrincipalServices: []string{
+			"ec2.amazonaws.com",
+			"ecr.amazonaws.com",
+		},
+		IsPublic:            true,
+		PublicAccessLevels:  []string{"List"},
+		SharedAccessLevels:  []string{},
+		PrivateAccessLevels: []string{},
+		PublicStatementIds: []string{
+			"Statement[1]",
+			"Statement[3]",
+		},
+		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -25401,6 +25536,21 @@ func testDenyPermissionsByServiceAllowPermissionsIsTheSubsetOfDenyResources(t *t
           "Resource": "*",
           "Principal": {
             "Service": "ec2.amazonaws.com"
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "Service": "ecr.amazonaws.com"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "Service": "ecr.amazonaws.com"
           }
         }
       ]
@@ -28203,27 +28353,26 @@ func TestOmero(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
 	policyContent := `
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Sid":"CodeBuildAccess",
-         "Effect":"Allow",
-         "Principal":{
-            "Service":"codebuild.amazonaws.com"
-         },
-         "Action":[
-            "ecr:BatchGetImage",
-            "ecr:GetDownloadUrlForLayer"
-         ],
-         "Condition":{
-            "StringEquals":{
-               "aws:SourceAccount":"123456789012"
-            }
-         }
-      }
-   ]
-}
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:*",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:DescribeVolumes",
+          "Principal": {
+            "AWS": "666644442222"
+          }
+        }
+      ]
+    }
 	`
 
 	expected := PolicySummary{
