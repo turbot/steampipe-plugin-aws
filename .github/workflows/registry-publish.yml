@@ -143,6 +143,10 @@ jobs:
       - run: |-
           gcloud beta auth configure-docker us-docker.pkg.dev
 
+      - run: |
+          curl -LO https://github.com/oras-project/oras/releases/download/v0.14.0/oras_0.14.0_linux_amd64.tar.gz
+          sudo tar xzf oras_0.14.0_linux_amd64.tar.gz -C /usr/local/bin oras
+
       - run: oras version # oras is pre-installed on the image...
 
       - name: Download linux-amd64 artifact
