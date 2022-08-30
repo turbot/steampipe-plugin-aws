@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -89,6 +90,14 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 
 	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return dax.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
