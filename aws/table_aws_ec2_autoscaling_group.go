@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEc2ASG(_ context.Context) *plugin.Table {
@@ -21,12 +21,12 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError"}),
 			},
-			Hydrate: getAwsEc2AutoscalingGroup,
+			Hydrate: getAwsEc2AutoScalingGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEc2AutoscalingGroup,
+			Hydrate: listAwsEc2AutoScalingGroup,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -220,7 +220,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "policies",
 				Description: "A set of scaling policies for the specified Auto Scaling group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2AutoscalingGroupPolicy,
+				Hydrate:     getAwsEc2AutoScalingGroupPolicy,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -263,11 +263,11 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoscalingGroup", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -297,7 +297,7 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoscalingGroup", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "api_error", err)
 			return nil, err
 		}
 
@@ -317,14 +317,14 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroup", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutosScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -346,13 +346,13 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 	return nil, nil
 }
 
-func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	asg := h.Item.(types.AutoScalingGroup)
 
 	// Create Session
-	svc, err := AutoscalingClient(ctx, d)
+	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -384,7 +384,7 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "api_error", err)
 			return nil, err
 		}
 

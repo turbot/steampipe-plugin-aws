@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -44,7 +44,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 				{Name: "offering_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "reserved_instance_id",
@@ -180,7 +180,7 @@ func tableAwsEc2ReservedInstance(_ context.Context) *plugin.Table {
 func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.listEc2ReservedInstances", "connection_error", err)
 		return nil, err
@@ -227,7 +227,7 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	instanceID := d.KeyColumnQuals["reserved_instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstance", "connection_error", err)
 		return nil, err
@@ -270,7 +270,7 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 	instance := h.Item.(types.ReservedInstances)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_reserved_instance.getEc2ReservedInstanceModificationDetails", "connection_error", err)
 		return nil, err
@@ -319,7 +319,7 @@ func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformD
 	return &turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 reserved instance list call input filter
 func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

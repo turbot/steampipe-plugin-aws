@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -83,7 +83,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := EC2ClientWithRegion(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsClient(ctx, d, defaultRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -113,7 +113,7 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create service
-	svc, err := EC2ClientWithRegion(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsClient(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -53,7 +53,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "network_interface_id",
@@ -266,7 +266,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_network_interface.listEc2NetworkInterfaces", "connection_error", err)
 		return nil, err
@@ -329,7 +329,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	networkInterfaceID := d.KeyColumnQuals["network_interface_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_network_interface.getEc2NetworkInterface", "connection_error", err)
 		return nil, err
@@ -383,7 +383,7 @@ func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformD
 	return turbotTags, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 network interface list call input filter
 func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

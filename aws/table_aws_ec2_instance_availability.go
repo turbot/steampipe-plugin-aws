@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	go_kit_pack "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -72,7 +72,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 		return nil, nil
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -86,7 +86,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := EC2ClientWithRegion(ctx, d, *region.RegionName)
+	svc, err := Ec2RegionsClient(ctx, d, *region.RegionName)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance_availability.listAwsAvailableInstanceTypes", "connection_error", err)
 		return nil, err
@@ -111,7 +111,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {

@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -34,7 +34,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 				{Name: "target_group_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "target_group_name",
@@ -164,7 +164,7 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 
 func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_target_group.listEc2TargetGroups", "connection_error", err)
 		return nil, err
@@ -226,7 +226,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
 
 	// create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_target_group.getEc2TargetGroup", "connection_error", err)
 		return nil, err
@@ -253,7 +253,7 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 	targetGroup := h.Item.(types.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTargetHealthDescription", "connection_error", err)
 		return nil, err
@@ -277,7 +277,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	targetGroup := h.Item.(types.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_target_group.getAwsEc2TargetGroupTags", "connection_error", err)
 		return nil, err

@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -41,7 +41,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 				{Name: "instance_match_criteria", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "capacity_reservation_id",
@@ -168,7 +168,7 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.listEc2CapacityReservations", "connection_error", err)
 		return nil, err
@@ -228,7 +228,7 @@ func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plug
 	reservationId := d.KeyColumnQuals["capacity_reservation_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.getEc2CapacityReservation", "connection_error", err)
 		return nil, err
@@ -267,7 +267,7 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 	return turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 capacity reservation list call input filter
 func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

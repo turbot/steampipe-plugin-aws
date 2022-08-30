@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
@@ -29,7 +29,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 			},
 			Hydrate: listAwsWAFRegionalRules,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -79,7 +79,7 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+// // LIST FUNCTION
 func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWAFRegionalRules")
 	// Create session
@@ -128,7 +128,7 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	return nil, nil
 }
 
-//// HYDRATE FUNCTIONS
+// // HYDRATE FUNCTIONS
 func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsWAFRegionalRule")

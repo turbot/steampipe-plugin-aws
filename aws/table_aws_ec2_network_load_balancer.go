@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -37,7 +37,7 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -160,7 +160,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		logger.Error("aws_ec2_network_load_balancer.listEc2NetworkLoadBalancers", "connection error", err)
 		return nil, err
@@ -223,7 +223,7 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getEc2NetworkLoadBalancer", "connection", err)
 		return nil, err
@@ -251,7 +251,7 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	networkLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAwsEc2NetworkLoadBalancerAttributes", "connection_error", err)
 		return nil, err
@@ -275,7 +275,7 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	networkLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAwsEc2NetworkLoadBalancerTags", "connection_error", err)
 		return nil, err

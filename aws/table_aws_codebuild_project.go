@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -27,7 +27,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildProjects,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -379,8 +379,8 @@ func handleLogConfigEmptyData(_ context.Context, d *transform.TransformData) (in
 		s3Logs := &ProjectS3Logs{
 			EncryptionDisabled: logConfig.S3Logs.EncryptionDisabled,
 			Location:           logConfig.S3Logs.Location,
-			BucketOwnerAccess: (*string)(&logConfig.S3Logs.BucketOwnerAccess),
-			Status: (*string)(&logConfig.S3Logs.Status),
+			BucketOwnerAccess:  (*string)(&logConfig.S3Logs.BucketOwnerAccess),
+			Status:             (*string)(&logConfig.S3Logs.Status),
 		}
 		if logConfig.S3Logs.Status == "" {
 			s3Logs.Status = nil

@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -30,7 +30,7 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -95,7 +95,7 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 
 func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancers", "connection_error", err)
 		return nil, err
@@ -146,7 +146,7 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 	loadBalancerDetails := h.Item.(types.LoadBalancer)
 
 	// Create Session
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancerListeners", "connection_error", err)
 		return nil, err
@@ -202,7 +202,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 	listenerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.getEc2LoadBalancerListener", "connection_error", err)
 		return nil, err

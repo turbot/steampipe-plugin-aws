@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -41,7 +41,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_id",
@@ -168,13 +168,13 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.listEc2TransitGateways", "connection_error", err)
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -207,7 +207,6 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		o.StopOnDuplicateToken = true
 	})
 
-
 	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -235,7 +234,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.getEc2TransitGateway", "connection_error", err)
 		return nil, err
@@ -247,7 +246,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	op, err := svc.DescribeTransitGateways(ctx, params)
 	if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_transit_gateway.getEc2TransitGateway", "api_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.getEc2TransitGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -261,7 +260,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func getEc2TransitGatewayTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(types.TransitGateway)
-		var turbotTagsMap map[string]string
+	var turbotTagsMap map[string]string
 	if data.Tags == nil {
 		return nil, nil
 	}
@@ -287,7 +286,7 @@ func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformDa
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway list call input filter
 func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

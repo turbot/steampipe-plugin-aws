@@ -7,13 +7,13 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	go_kit_pack "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -52,7 +52,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
@@ -343,13 +343,13 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "connection_error", err)
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -374,7 +374,7 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filters = filters
 	}
 
-		paginator := ec2.NewDescribeInstancesPaginator(svc, input, func(o *ec2.DescribeInstancesPaginatorOptions) {
+	paginator := ec2.NewDescribeInstancesPaginator(svc, input, func(o *ec2.DescribeInstancesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
@@ -390,12 +390,12 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		for _, items := range output.Reservations {
 			for _, instance := range items.Instances {
 
-			d.StreamListItem(ctx, instance)
-			// Check if context has been cancelled or if the limit has been hit (if specified)
-					// if there is a limit, it will return the number of rows required to reach this limit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return nil, nil
-					}
+				d.StreamListItem(ctx, instance)
+				// Check if context has been cancelled or if the limit has been hit (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
 			}
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
@@ -415,7 +415,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "connection_error", err)
 		return nil, err
@@ -460,7 +460,7 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceDisableAPITerminationData", "connection_error", err)
 		return nil, err
@@ -484,7 +484,7 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceInitiatedShutdownBehavior", "connection_error", err)
 		return nil, err
@@ -508,7 +508,7 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceKernelID", "connection_error", err)
 		return nil, err
@@ -532,7 +532,7 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceRAMDiskID", "connection_error", err)
 		return nil, err
@@ -556,7 +556,7 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceSriovNetSupport", "connection_error", err)
 		return nil, err
@@ -580,7 +580,7 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceUserData", "connection_error", err)
 		return nil, err
@@ -604,7 +604,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Client(ctx, d)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceStatus", "connection_error", err)
 		return nil, err
@@ -628,7 +628,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getEc2InstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	instance := d.HydrateItem.(types.Instance)
-		var turbotTagsMap map[string]string
+	var turbotTagsMap map[string]string
 	if instance.Tags == nil {
 		return nil, nil
 	}
