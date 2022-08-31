@@ -1,0 +1,16 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "default_action": "ALLOW",
+    "name": "{{ resourceName }}",
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{ resourceName }}"
+      }
+    ],
+    "title": "{{ resourceName }}"
+  }
+]

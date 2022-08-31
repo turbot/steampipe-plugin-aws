@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -38,12 +38,6 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "primary" {}
 data "aws_region" "alternate" {
   provider = aws.alternate
-}
-
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
 }
 
 resource "aws_iam_group" "named_test_resource" {

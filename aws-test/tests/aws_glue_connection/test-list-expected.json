@@ -1,0 +1,8 @@
+[
+	{
+		"connection_type": "{{ output.connection_type.value }}",
+		"description": "{{ output.description.value }}",
+		"name": "{{ resourceName }}",
+		"region": "{{ output.aws_region.value }}"
+	}
+]

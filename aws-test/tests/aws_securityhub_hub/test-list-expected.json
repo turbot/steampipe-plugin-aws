@@ -1,10 +1,9 @@
 [
   {
     "akas": [
-      "arn:aws:securityhub:us-east-1:352685002396:hub/default"
+      "{{ output.arn.value }}"
     ],
-    "auto_enable_controls": false,
-    "hub_arn": "arn:aws:securityhub:us-east-1:352685002396:hub/default",
-    "region": "us-east-1"
+    "hub_arn": "{{ output.arn.value }}",
+    "region": "{{ output.aws_region.value }}"
   }
 ]

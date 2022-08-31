@@ -1,0 +1,10 @@
+[
+	{
+		"akas": ["{{ output.resource_aka.value }}"],
+		"tags": {
+			"Application": "Steampipe",
+			"Purpose": "Testing"
+		},
+		"title": "{{ output.resource_name.value }}"
+	}
+]

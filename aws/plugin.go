@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -46,6 +46,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
 			"aws_account":                                                  tableAwsAccount(ctx),
 			"aws_acm_certificate":                                          tableAwsAcmCertificate(ctx),
+			"aws_amplify_app":                                              tableAwsAmplifyApp(ctx),
 			"aws_api_gateway_api_key":                                      tableAwsAPIGatewayAPIKey(ctx),
 			"aws_api_gateway_authorizer":                                   tableAwsAPIGatewayAuthorizer(ctx),
 			"aws_api_gateway_rest_api":                                     tableAwsAPIGatewayRestAPI(ctx),
@@ -72,8 +73,10 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cloudformation_stack":                                     tableAwsCloudFormationStack(ctx),
 			"aws_cloudfront_cache_policy":                                  tableAwsCloudFrontCachePolicy(ctx),
 			"aws_cloudfront_distribution":                                  tableAwsCloudFrontDistribution(ctx),
+			"aws_cloudfront_function":                                      tableAwsCloudFrontFunction(ctx),
 			"aws_cloudfront_origin_access_identity":                        tableAwsCloudFrontOriginAccessIdentity(ctx),
 			"aws_cloudfront_origin_request_policy":                         tableAwsCloudFrontOriginRequestPolicy(ctx),
+			"aws_cloudfront_response_headers_policy":                       tableAwsCloudFrontResponseHeadersPolicy(ctx),
 			"aws_cloudtrail_trail":                                         tableAwsCloudtrailTrail(ctx),
 			"aws_cloudtrail_trail_event":                                   tableAwsCloudtrailTrailEvent(ctx),
 			"aws_cloudwatch_alarm":                                         tableAwsCloudWatchAlarm(ctx),
@@ -111,6 +114,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dynamodb_metric_account_provisioned_read_capacity_util":   tableAwsDynamoDBMetricAccountProvisionedReadCapacityUtilization(ctx),
 			"aws_dynamodb_metric_account_provisioned_write_capacity_util":  tableAwsDynamoDBMetricAccountProvisionedWriteCapacityUtilization(ctx),
 			"aws_dynamodb_table":                                           tableAwsDynamoDBTable(ctx),
+			"aws_dynamodb_table_export":                                    tableAwsDynamoDBTableExport(ctx),
 			"aws_ebs_snapshot":                                             tableAwsEBSSnapshot(ctx),
 			"aws_ebs_volume":                                               tableAwsEBSVolume(ctx),
 			"aws_ebs_volume_metric_read_ops":                               tableAwsEbsVolumeMetricReadOps(ctx),
@@ -150,6 +154,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_route":                                tableAwsEc2TransitGatewayRoute(ctx),
 			"aws_ec2_transit_gateway_route_table":                          tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment":                       tableAwsEc2TransitGatewayVpcAttachment(ctx),
+			"aws_ecr_image":                                                tableAwsEcrImage(ctx),
 			"aws_ecr_repository":                                           tableAwsEcrRepository(ctx),
 			"aws_ecrpublic_repository":                                     tableAwsEcrpublicRepository(ctx),
 			"aws_ecs_cluster":                                              tableAwsEcsCluster(ctx),
@@ -167,6 +172,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_addon_version":                                        tableAwsEksAddonVersion(ctx),
 			"aws_eks_cluster":                                              tableAwsEksCluster(ctx),
 			"aws_eks_identity_provider_config":                             tableAwsEksIdentityProviderConfig(ctx),
+			"aws_eks_node_group":                                           tableAwsEksNodeGroup(ctx),
 			"aws_elastic_beanstalk_application":                            tableAwsElasticBeanstalkApplication(ctx),
 			"aws_elastic_beanstalk_environment":                            tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_elasticache_cluster":                                      tableAwsElastiCacheCluster(ctx),
@@ -184,6 +190,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_elasticsearch_domain":                                     tableAwsElasticsearchDomain(ctx),
 			"aws_emr_cluster":                                              tableAwsEmrCluster(ctx),
 			"aws_emr_cluster_metric_is_idle":                               tableAwsEmrClusterMetricIsIdle(ctx),
+			"aws_emr_instance":                                             tableAwsEmrInstance(ctx),
+			"aws_emr_instance_fleet":                                       tableAwsEmrInstanceFleet(ctx),
 			"aws_emr_instance_group":                                       tableAwsEmrInstanceGroup(ctx),
 			"aws_eventbridge_bus":                                          tableAwsEventBridgeBus(ctx),
 			"aws_eventbridge_rule":                                         tableAwsEventBridgeRule(ctx),
@@ -194,8 +202,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_globalaccelerator_listener":                               tableAwsGlobalacceleratorListener(ctx),
 			"aws_glue_catalog_database":                                    tableAwsGlueCatalogDatabase(ctx),
 			"aws_glue_catalog_table":                                       tableAwsGlueCatalogTable(ctx),
+			"aws_glue_connection":                                          tableAwsGlueConnection(ctx),
 			"aws_glue_crawler":                                             tableAwsGlueCrawler(ctx),
+			"aws_glue_data_catalog_encryption_settings":                    tableAwsGlueDataCatalogEncryptionSettings(ctx),
 			"aws_glue_dev_endpoint":                                        tableAwsGlueDevEndpoint(ctx),
+			"aws_glue_job":                                                 tableAwsGlueJob(ctx),
+			"aws_glue_security_configuration":                              tableAwsGlueSecurityConfiguration(ctx),
 			"aws_guardduty_detector":                                       tableAwsGuardDutyDetector(ctx),
 			"aws_guardduty_filter":                                         tableAwsGuardDutyFilter(ctx),
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
@@ -214,6 +226,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_iam_policy_attachment":                                    tableAwsIamPolicyAttachment(ctx),
 			"aws_iam_policy_simulator":                                     tableAwsIamPolicySimulator(ctx),
 			"aws_iam_role":                                                 tableAwsIamRole(ctx),
+			"aws_iam_saml_provider":                                        tableAwsIamSamlProvider(ctx),
 			"aws_iam_server_certificate":                                   tableAwsIamServerCertificate(ctx),
 			"aws_iam_user":                                                 tableAwsIamUser(ctx),
 			"aws_iam_virtual_mfa_device":                                   tableAwsIamVirtualMfaDevice(ctx),
@@ -241,10 +254,12 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_macie2_classification_job":                                tableAwsMacie2ClassificationJob(ctx),
 			"aws_media_store_container":                                    tableAwsMediaStoreContainer(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
+			"aws_networkfirewall_firewall_policy":                          tableAwsNetworkFirewallPolicy(ctx),
 			"aws_networkfirewall_rule_group":                               tableAwsNetworkFirewallRuleGroup(ctx),
 			"aws_opensearch_domain":                                        tableAwsOpenSearchDomain(ctx),
 			"aws_organizations_account":                                    tableAwsOrganizationsAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
+			"aws_pricing_service_attribute":                                tableAwsPricingServiceAttribute(ctx),
 			"aws_ram_principal_association":                                tableAwsRAMPrincipalAssociation(ctx),
 			"aws_ram_resource_association":                                 tableAwsRAMResourceAssociation(ctx),
 			"aws_rds_db_cluster":                                           tableAwsRDSDBCluster(ctx),
@@ -307,6 +322,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
+			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
 			"aws_ses_email_identity":                                       tableAwsSESEmailIdentity(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
@@ -348,6 +364,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_vpn_gateway":                                          tableAwsVpcVpnGateway(ctx),
 			"aws_waf_rate_based_rule":                                      tableAwsWafRateBasedRule(ctx),
 			"aws_waf_rule":                                                 tableAwsWAFRule(ctx),
+			"aws_waf_rule_group":                                           tableAwsWafRuleGroup(ctx),
+			"aws_waf_web_acl":                                              tableAwsWafWebAcl(ctx),
 			"aws_wafregional_rule":                                         tableAwsWAFRegionalRule(ctx),
 			"aws_wafv2_ip_set":                                             tableAwsWafv2IpSet(ctx),
 			"aws_wafv2_regex_pattern_set":                                  tableAwsWafv2RegexPatternSet(ctx),

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type detectorInfo = struct {
@@ -31,7 +31,7 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGuardDutyDetectors,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "detector_id",
@@ -206,17 +206,17 @@ func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData,
 		return nil, err
 	}
 
-	params := &guardduty.GetMasterAccountInput{
+	params := &guardduty.GetAdministratorAccountInput{
 		DetectorId: &id,
 	}
 
-	op, err := svc.GetMasterAccount(params)
+	op, err := svc.GetAdministratorAccount(params)
 	if err != nil {
 		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "api_error", err)
 		return nil, err
 	}
 
-	return op.Master, nil
+	return op.Administrator, nil
 }
 
 func getGuardDutyDetectorARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +28,7 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "framework_name",
@@ -116,6 +116,14 @@ func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// LIST FUNCTION
 
 func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
+	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
+	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "ap-northeast-3" {
+		return nil, nil
+	}
+
 	// Create session
 	svc, err := BackupService(ctx, d)
 	if err != nil {
@@ -158,6 +166,14 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
+	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
+	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "ap-northeast-3" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := BackupService(ctx, d)
 	if err != nil {
