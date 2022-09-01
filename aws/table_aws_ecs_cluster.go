@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -186,8 +187,6 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEcsCluster")
 
 	var clusterArn string
 	if h.Item != nil {
@@ -197,9 +196,26 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		clusterArn = quals["cluster_arn"].GetStringValue()
 	}
 
+	if clusterArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(clusterArn) {
+		arnData, _ := arn.Parse(clusterArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := EcsService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "service_error", err)
 		return nil, err
 	}
 
@@ -210,7 +226,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	op, err := svc.DescribeClusters(params)
 	if err != nil {
-		logger.Debug("getEcsCluster", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "api_error", err)
 		return nil, err
 	}
 

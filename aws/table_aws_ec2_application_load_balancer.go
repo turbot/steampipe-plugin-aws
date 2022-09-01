@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
@@ -223,12 +224,24 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
 	if loadBalancerArn == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(loadBalancerArn) {
+		arnData, _ := arn.Parse(loadBalancerArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create service

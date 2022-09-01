@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -211,14 +212,29 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2TargetGroup")
-
+func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
+
+	if targetGroupArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(targetGroupArn) {
+		arnData, _ := arn.Parse(targetGroupArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// create service
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getEc2TargetGroup", "service_error", err)
 		return nil, err
 	}
 
@@ -228,6 +244,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	op, err := svc.DescribeTargetGroups(params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_target_group.getEc2TargetGroup", "api_error", err)
 		return nil, err
 	}
 

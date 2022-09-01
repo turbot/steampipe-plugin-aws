@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -160,8 +161,24 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	listenerArn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	if listenerArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(listenerArn) {
+		arnData, _ := arn.Parse(listenerArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d)

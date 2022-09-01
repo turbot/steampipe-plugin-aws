@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -272,8 +273,6 @@ func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEcsTaskDefinition")
 
 	var taskDefinitionArn string
 	if h.Item != nil {
@@ -283,9 +282,26 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		taskDefinitionArn = quals["task_definition_arn"].GetStringValue()
 	}
 
+	if taskDefinitionArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(taskDefinitionArn) {
+		arnData, _ := arn.Parse(taskDefinitionArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := EcsService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_ecs_task_definition.getEcsTaskDefinition", "service_error", err)
 		return nil, err
 	}
 
@@ -296,7 +312,7 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.DescribeTaskDefinition(params)
 	if err != nil {
-		logger.Debug("getEcsTaskDefinition", "ERROR", err)
+		plugin.Logger(ctx).Trace("aws_ecs_task_definition.getEcsTaskDefinition", "api_error", err)
 		return nil, err
 	}
 

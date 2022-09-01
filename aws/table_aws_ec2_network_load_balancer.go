@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -207,8 +208,24 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	if loadBalancerArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(loadBalancerArn) {
+		arnData, _ := arn.Parse(loadBalancerArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create service
 	svc, err := ELBv2Service(ctx, d)
@@ -301,9 +318,8 @@ func getEc2NetworkLoadBalancerTurbotTags(_ context.Context, d *transform.Transfo
 
 func handleEc2NetworkLoadBalancerEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	networkLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)
-	if len(networkLoadBalancerTags) > 0  {
+	if len(networkLoadBalancerTags) > 0 {
 		return networkLoadBalancerTags, nil
 	}
 	return nil, nil
 }
-
