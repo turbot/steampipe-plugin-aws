@@ -380,8 +380,8 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func kmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	// Use the first alias if one is set, else fallback to the key ID
 	key := d.HydrateItem.([]*kms.AliasListEntry)
-	
 	if len(key) > 0 {
 		return key[0].AliasName, nil
 	}
