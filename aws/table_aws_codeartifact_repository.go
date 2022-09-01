@@ -3,14 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/codeartifact"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -45,7 +46,7 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getCodeArtifactRepository},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -162,38 +163,46 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	input := &codeartifact.ListRepositoriesInput{
-		MaxResults: aws.Int64(100),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListRepositoriesPages(
-		input,
-		func(page *codeartifact.ListRepositoriesOutput, isLast bool) bool {
-			for _, repository := range page.Repositories {
-				d.StreamListItem(ctx, repository)
+	input := codeartifact.ListRepositoriesInput{
+		MaxResults: &maxLimit,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := codeartifact.NewListRepositoriesPaginator(svc, &input, func(o *codeartifact.ListRepositoriesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codeartifact_repository.listCodeArtifactRepositories", "api_error", err)
+			return nil, err
+		}
+
+		for _, repository := range output.Repositories {
+			d.StreamListItem(ctx, repository)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -229,7 +238,7 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 		Domain:     &domainName,
 	}
 	if owner != "" {
-		params.SetDomainOwner(owner)
+		params.DomainOwner = &owner
 	}
 
 	// Create session
@@ -240,7 +249,7 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	data, err := svc.DescribeRepository(params)
+	data, err := svc.DescribeRepository(ctx, params)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepository", "api_error", err)
 		return nil, err
@@ -258,7 +267,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 	}
 
 	resultData := []string{}
-	repository := h.HydrateResults["getCodeArtifactRepository"].(*codeartifact.RepositoryDescription)
+	repository := h.HydrateResults["getCodeArtifactRepository"].(*types.RepositoryDescription)
 
 	if len(repository.ExternalConnections) == 0 {
 		return nil, nil
@@ -268,10 +277,10 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 
 		// Build the params
 		params := &codeartifact.GetRepositoryEndpointInput{
-			Repository:  aws.String(*repository.Name),
-			Domain:      aws.String(*repository.DomainName),
-			DomainOwner: aws.String(*repository.DomainOwner),
-			Format:      aws.String(*item.PackageFormat),
+			Repository:  repository.Name,
+			Domain:      repository.DomainName,
+			DomainOwner: repository.DomainOwner,
+			Format:      item.PackageFormat,
 		}
 
 		// Create session
@@ -282,7 +291,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 		}
 
 		// Get call
-		data, err := svc.GetRepositoryEndpoint(params)
+		data, err := svc.GetRepositoryEndpoint(ctx, params)
 
 		if err != nil {
 			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoint", "api_error", err)
@@ -317,7 +326,7 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryTags", "api_error", err)
 		return nil, err
@@ -350,7 +359,7 @@ func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.Q
 	}
 
 	// Get call
-	op, err := svc.GetRepositoryPermissionsPolicy(params)
+	op, err := svc.GetRepositoryPermissionsPolicy(ctx, params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
 			if a.Code() == "ResourceNotFoundException" {
@@ -382,12 +391,12 @@ func codeArtifactRepositoryTurbotTags(ctx context.Context, d *transform.Transfor
 func repositoryData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *codeartifact.RepositorySummary:
+	case *types.RepositorySummary:
 		data["Arn"] = *item.Arn
 		data["Name"] = *item.Name
 		data["DomainOwner"] = *item.DomainOwner
 		data["DomainName"] = *item.DomainName
-	case *codeartifact.RepositoryDescription:
+	case *types.RepositoryDescription:
 		data["Arn"] = *item.Arn
 		data["Name"] = *item.Name
 		data["DomainOwner"] = *item.DomainOwner
