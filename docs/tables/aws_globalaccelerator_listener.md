@@ -9,7 +9,19 @@ with a listener.
 
 ## Examples
 
-### List listeners for an accelerator
+### Basic info
+
+```sql
+select
+  title,
+  client_affinity,
+  port_ranges,
+  protocol
+from
+  aws_globalaccelerator_listener;
+```
+
+### List listeners for a specific accelerator
 
 ```sql
 select
@@ -47,8 +59,8 @@ select
   a.name as accelerator_name,
   a.status as accelerator_status,
   l.protocol,
-  port_range->'FromPort' as from_port,
-  port_range->'ToPort' as to_port
+  port_range -> 'FromPort' as from_port,
+  port_range -> 'ToPort' as to_port
 from
   aws_globalaccelerator_accelerator a,
   aws_globalaccelerator_listener l,
@@ -56,6 +68,6 @@ from
 where
   l.accelerator_arn = a.arn
   and l.protocol = 'TCP'
-  and (port_range->'FromPort')::int >= 443
-  and (port_range->'ToPort')::int <= 443;
+  and (port_range -> 'FromPort')::int <= 443
+  and (port_range -> 'ToPort')::int >= 443;
 ```

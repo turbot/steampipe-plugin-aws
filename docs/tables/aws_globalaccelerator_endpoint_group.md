@@ -7,7 +7,25 @@ performance testing or blue/green deployment testing, for example, for new relea
 
 ## Examples
 
-### List endpoint groups for a listener
+### Basic info
+
+```sql
+select
+  title,
+  endpoint_descriptions,
+  endpoint_group_region,
+  traffic_dial_percentage,
+  port_overrides,
+  health_check_interval_seconds,
+  health_check_path,
+  health_check_port,
+  health_check_protocol,
+  threshold_count
+from
+  aws_globalaccelerator_endpoint_group;
+```
+
+### List endpoint groups for a specific listener
 
 ```sql
 select
@@ -27,7 +45,7 @@ where
   listener_arn = 'arn:aws:globalaccelerator::012345678901:accelerator/1234abcd-abcd-1234-abcd-1234abcdefgh/listener/abcdef1234';
 ```
 
-### Basic info for all accelerators, listeners, and endpoint groups
+### Get basic info for all accelerators, listeners, and endpoint groups
 
 ```sql
 select

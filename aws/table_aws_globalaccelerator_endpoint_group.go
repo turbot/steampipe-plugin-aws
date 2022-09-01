@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsGlobalacceleratorEndpointGroup(_ context.Context) *plugin.Table {
+func tableAwsGlobalAcceleratorEndpointGroup(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_globalaccelerator_endpoint_group",
 		Description: "AWS Global Accelerator Endpoint Group",
@@ -28,6 +28,9 @@ func tableAwsGlobalacceleratorEndpointGroup(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "listener_arn", Require: plugin.Optional},
 			},
+			// TODO: Directly getting listeners would be better, but nested parent
+			// hydrates are currently not working due to https://github.com/turbot/steampipe-plugin-sdk/issues/394
+			//ParentHydrate: listGlobalAcceleratorListeners,
 			ParentHydrate: listGlobalAcceleratorAccelerators,
 			Hydrate:       listGlobalAcceleratorEndpointGroups,
 		},
@@ -136,7 +139,7 @@ func listGlobalAcceleratorEndpointGroups(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
-	// First get accelerator listener arns
+	// First get accelerator listener ARNs
 	listenerArns := []*string{}
 
 	listenersInput := &globalaccelerator.ListListenersInput{

@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsGlobalacceleratorAccelerator(_ context.Context) *plugin.Table {
+func tableAwsGlobalAcceleratorAccelerator(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_globalaccelerator_accelerator",
 		Description: "AWS Global Accelerator Accelerator",

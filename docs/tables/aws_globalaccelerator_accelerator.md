@@ -37,7 +37,7 @@ from
   jsonb_array_elements(ip_sets -> 0 -> 'IpAddresses') as anycast_ip;
 ```
 
-### List  global accelerators without owner tag key
+### List global accelerators without owner tag key
 
 ```sql
 select
@@ -46,5 +46,5 @@ select
 from
   aws_globalaccelerator_accelerator
 where
-  not tags :: JSONB ? 'owner';
+  not tags::JSONB ? 'owner';
 ```
