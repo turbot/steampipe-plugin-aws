@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -134,32 +135,46 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisConsumer")
-
-	var arn string
+	var consumerARN string
 	if h.Item != nil {
 		i := h.Item.(*kinesis.Consumer)
-		arn = *i.ConsumerARN
+		consumerARN = *i.ConsumerARN
 	} else {
-		arn = d.KeyColumnQuals["consumer_arn"].GetStringValue()
+		consumerARN = d.KeyColumnQuals["consumer_arn"].GetStringValue()
+	}
+
+	if consumerARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(consumerARN) {
+		arnData, _ := arn.Parse(consumerARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create Session
 	svc, err := KinesisService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_kinesis_consumer.getAwsKinesisConsumer", "service_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &kinesis.DescribeStreamConsumerInput{
-		ConsumerARN: &arn,
+		ConsumerARN: &consumerARN,
 	}
 
 	// Get call
 	data, err := svc.DescribeStreamConsumer(params)
 	if err != nil {
-		logger.Debug("getAwsKinesisConsumer", "ERROR", err)
+		plugin.Logger(ctx).Trace("aws_kinesis_consumer.getAwsKinesisConsumer", "api_error", err)
 		return nil, err
 	}
 

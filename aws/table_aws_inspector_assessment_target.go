@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -134,9 +135,6 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 
 func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTarget")
-
 	var assessmentTargetArn string
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*inspector.AssessmentTarget).Arn
@@ -145,9 +143,22 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 		assessmentTargetArn = quals["arn"].GetStringValue()
 	}
 
+	if arn.IsARN(assessmentTargetArn) {
+		arnData, _ := arn.Parse(assessmentTargetArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_target.getInspectorAssessmentTarget", "service_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -163,7 +174,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.DescribeAssessmentTargets(params)
 	if err != nil {
-		logger.Debug("describeAssessmentTarget__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_assessment_target.getInspectorAssessmentTarget", "api_error", err)
 		return nil, err
 	}
 	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {

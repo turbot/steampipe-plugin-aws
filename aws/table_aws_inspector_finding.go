@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -286,9 +287,6 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorFinding")
-
 	var findingArn string
 	if h.Item != nil {
 		findingArn = *h.Item.(*inspector.Finding).Arn
@@ -297,9 +295,22 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		findingArn = quals["arn"].GetStringValue()
 	}
 
+	if arn.IsARN(findingArn) {
+		arnData, _ := arn.Parse(findingArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_finding.getInspectorFinding", "service_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -315,7 +326,7 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Get call
 	data, err := svc.DescribeFindings(params)
 	if err != nil {
-		logger.Debug("getInspectorFinding", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_finding.getInspectorFinding", "api_error", err)
 		return nil, err
 	}
 	if data.Findings != nil && len(data.Findings) > 0 {

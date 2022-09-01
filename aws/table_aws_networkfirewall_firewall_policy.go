@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -182,13 +183,13 @@ func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	var name, arn string
+	var name, firewallPolicyArn string
 	if h.Item != nil {
 		name = *h.Item.(*networkfirewall.FirewallPolicyMetadata).Name
-		arn = *h.Item.(*networkfirewall.FirewallPolicyMetadata).Arn
+		firewallPolicyArn = *h.Item.(*networkfirewall.FirewallPolicyMetadata).Arn
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		firewallPolicyArn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
 	// Build the params
@@ -197,14 +198,25 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	if name != "" {
 		params.FirewallPolicyName = aws.String(name)
 	}
-	if arn != "" {
-		params.FirewallPolicyArn = aws.String(arn)
+	if firewallPolicyArn != "" {
+		if arn.IsARN(firewallPolicyArn) {
+			arnData, _ := arn.Parse(firewallPolicyArn)
+			// Avoid cross-account queriying
+			if arnData.AccountID != getAccountId(ctx, d, h) {
+				return nil, nil
+			}
+			// Avoid cross-region queriying
+			if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+				return nil, nil
+			}
+		}
+		params.FirewallPolicyArn = aws.String(firewallPolicyArn)
 	}
 
 	// Create session
 	svc, err := NetworkFirewallService(ctx, d)
 	if err != nil {
-		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "service_creation_error", err)
+		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "service_error", err)
 		return nil, err
 	}
 

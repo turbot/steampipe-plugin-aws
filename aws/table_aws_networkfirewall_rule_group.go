@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -188,20 +189,18 @@ func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, _ *
 //// HYDRATE FUNCTIONS
 
 func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getNetworkFirewallRuleGroup")
-
-	var name, arn string
+	var name, ruleGroupArn string
 	if h.Item != nil {
 		name = *h.Item.(*networkfirewall.RuleGroupMetadata).Name
-		arn = *h.Item.(*networkfirewall.RuleGroupMetadata).Arn
+		ruleGroupArn = *h.Item.(*networkfirewall.RuleGroupMetadata).Arn
 	} else {
 		name = d.KeyColumnQuals["rule_group_name"].GetStringValue()
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		ruleGroupArn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 	// Create session
 	svc, err := NetworkFirewallService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "service_error", err)
 		return nil, err
 	}
 
@@ -211,14 +210,25 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 	if name != "" {
 		params.RuleGroupName = aws.String(name)
 	}
-	if arn != "" {
-		params.RuleGroupArn = aws.String(arn)
+	if ruleGroupArn != "" {
+		if arn.IsARN(ruleGroupArn) {
+			arnData, _ := arn.Parse(ruleGroupArn)
+			// Avoid cross-account queriying
+			if arnData.AccountID != getAccountId(ctx, d, h) {
+				return nil, nil
+			}
+			// Avoid cross-region queriying
+			if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+				return nil, nil
+			}
+		}
+		params.RuleGroupArn = aws.String(ruleGroupArn)
 	}
 
 	// Get call
 	data, err := svc.DescribeRuleGroup(params)
 	if err != nil {
-		logger.Debug("getNetworkFirewallRuleGroup", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_networkfirewall_rule_group.getNetworkFirewallRuleGroup", "api_error", err)
 		return nil, err
 	}
 	return data, nil

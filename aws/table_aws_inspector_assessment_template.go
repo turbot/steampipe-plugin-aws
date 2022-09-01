@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -193,10 +194,6 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 //// HYDRATE FUNCTIONS
 
 func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTemplate")
-
 	var assessmentTemplateArn string
 	if h.Item != nil {
 		assessmentTemplateArn = *h.Item.(*inspector.AssessmentTemplate).Arn
@@ -205,9 +202,22 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 		assessmentTemplateArn = quals["arn"].GetStringValue()
 	}
 
+	if arn.IsARN(assessmentTemplateArn) {
+		arnData, _ := arn.Parse(assessmentTemplateArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// Create Session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.getInspectorAssessmentTemplate", "service_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -223,7 +233,7 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 	// Get call
 	data, err := svc.DescribeAssessmentTemplates(params)
 	if err != nil {
-		logger.Debug("describeAssessmentTemplate__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.getInspectorAssessmentTemplate", "api_error", err)
 		return nil, err
 	}
 	if data.AssessmentTemplates != nil && len(data.AssessmentTemplates) > 0 {
