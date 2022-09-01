@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -117,7 +118,6 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHubFindingAggregator")
 
 	var aggregatorArn string
 	if h.Item != nil {
@@ -131,9 +131,22 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
+	if arn.IsARN(aggregatorArn) {
+		arnData, _ := arn.Parse(aggregatorArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// get service
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "service_error", err)
 		return nil, err
 	}
 
@@ -145,10 +158,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	// Get call
 	op, err := svc.GetFindingAggregator(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHubFindingAggregator", "ERROR", err)
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "api_error", err)
 		return nil, err
 	}
 	return op, nil

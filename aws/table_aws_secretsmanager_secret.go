@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/turbot/go-kit/types"
@@ -219,7 +220,6 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 //// HYDRATE FUNCTIONS
 
 func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("describeSecretsManagerSecret")
 
 	var secretID string
 	if h.Item != nil {
@@ -230,9 +230,22 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 		secretID = quals["arn"].GetStringValue()
 	}
 
+	if arn.IsARN(secretID) {
+		arnData, _ := arn.Parse(secretID)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
+
 	// get service
 	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_secretsmanager_secret.describeSecretsManagerSecret", "service_error", err)
 		return nil, err
 	}
 
@@ -244,7 +257,7 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	op, err := svc.DescribeSecret(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("describeSecretsManagerSecret", "ERROR", err)
+		plugin.Logger(ctx).Trace("aws_secretsmanager_secret.describeSecretsManagerSecret", "api_error", err)
 		return nil, err
 	}
 	return op, nil

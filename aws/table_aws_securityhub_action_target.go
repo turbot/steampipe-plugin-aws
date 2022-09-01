@@ -4,12 +4,13 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -122,20 +123,34 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSecurityHubActionTarget")
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	actionTargetARN := d.KeyColumnQuals["arn"].GetStringValue()
+	if actionTargetARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(actionTargetARN) {
+		arnData, _ := arn.Parse(actionTargetARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "service_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &securityhub.DescribeActionTargetsInput{
-		ActionTargetArns: aws.StringSlice([]string{arn}),
+		ActionTargetArns: aws.StringSlice([]string{actionTargetARN}),
 	}
 
 	// Get call
@@ -145,7 +160,7 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		logger.Error("getSecurityHubActionTarget", "get", err)
+		plugin.Logger(ctx).Error("aws_securityhub_action_target.getSecurityHubActionTarget", "api_error", err)
 		return nil, err
 	}
 

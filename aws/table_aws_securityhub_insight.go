@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -128,25 +129,35 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSecurityHubInsight")
-
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	insightArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Entry check
-	if arn == "" {
+	if insightArn == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(insightArn) {
+		arnData, _ := arn.Parse(insightArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create session
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "service_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &securityhub.GetInsightsInput{
-		InsightArns: []*string{aws.String(arn)},
+		InsightArns: []*string{aws.String(insightArn)},
 	}
 
 	// Get call
@@ -156,7 +167,7 @@ func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getSecurityHubInsight", "get", err)
+		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "api_error", err)
 	}
 	if len(data.Insights) > 0 {
 		return data.Insights[0], nil

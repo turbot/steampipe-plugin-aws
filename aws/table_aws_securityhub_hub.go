@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -98,14 +99,29 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHub")
+func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	hubArn := d.KeyColumnQuals["hub_arn"].GetStringValue()
+	if hubArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(hubArn) {
+		arnData, _ := arn.Parse(hubArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// get service
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "service_error", err)
 		return nil, err
 	}
 
@@ -117,7 +133,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Get call
 	op, err := svc.DescribeHub(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)
 		return nil, err
 	}
 	return op, nil
