@@ -7,6 +7,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -204,8 +205,28 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var exportARN string
+	if h.Item != nil {
+		exportARN = *h.Item.(*dynamodb.ExportSummary).ExportArn
+	} else {
+		exportARN = d.KeyColumnQuals["arn"].GetStringValue()
+	}
 
-	export := h.Item.(*dynamodb.ExportSummary)
+	if exportARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(exportARN) {
+		arnData, _ := arn.Parse(exportARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create Session
 	svc, err := DynamoDbService(ctx, d)
@@ -214,13 +235,13 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	input := &dynamodb.DescribeExportInput{
-		ExportArn: export.ExportArn,
+		ExportArn: aws.String(exportARN),
 	}
 
 	op, err := svc.DescribeExport(input)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("getTableExport", "get", err)
+		plugin.Logger(ctx).Error("aws_dynamodb_table_export.getTableExport", "api_error", err)
 		return nil, err
 	}
 

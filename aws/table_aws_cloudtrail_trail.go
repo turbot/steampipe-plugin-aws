@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -263,15 +264,27 @@ func listCloudtrailTrails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCloudtrailTrail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudtrailTrail")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
-	if len(arn) > 0 {
-		data := strings.Split(arn, "/")
+	trailArn := d.KeyColumnQuals["arn"].GetStringValue()
+	if len(trailArn) > 0 {
+		data := strings.Split(trailArn, "/")
 		name = data[len(data)-1]
+
+		if arn.IsARN(trailArn) {
+			arnData, _ := arn.Parse(trailArn)
+			// Avoid cross-account queriying
+			if arnData.AccountID != getAccountId(ctx, d, h) {
+				return nil, nil
+			}
+			// Avoid cross-region queriying
+			if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+				return nil, nil
+			}
+		}
 	}
 
 	if d.KeyColumnQuals["name"] != nil && d.KeyColumnQuals["name"].GetStringValue() == "" {

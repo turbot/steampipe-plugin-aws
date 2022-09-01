@@ -6,6 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -277,20 +278,36 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
 	svc, err := DatabaseMigrationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	resourceARN := d.KeyColumnQuals["arn"].GetStringValue()
+
+	if resourceARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(resourceARN) {
+		arnData, _ := arn.Parse(resourceARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	params := &databasemigrationservice.DescribeReplicationInstancesInput{
 		Filters: []*databasemigrationservice.Filter{
 			{
 				Name:   aws.String("replication-instance-arn"),
-				Values: []*string{aws.String(arn)},
+				Values: []*string{aws.String(resourceARN)},
 			},
 		},
 	}

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
 
@@ -104,28 +105,42 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTION
 
 func getAwsBackupProtectedResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsBackupProtectedResource")
-
 	// Create session
 	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	var arn string
+	var resourceArn string
 	if h.Item != nil {
-		arn = *h.Item.(*backup.ProtectedResource).ResourceArn
+		resourceArn = *h.Item.(*backup.ProtectedResource).ResourceArn
 	} else {
-		arn = d.KeyColumnQuals["resource_arn"].GetStringValue()
+		resourceArn = d.KeyColumnQuals["resource_arn"].GetStringValue()
+	}
+
+	if resourceArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(resourceArn) {
+		arnData, _ := arn.Parse(resourceArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	params := &backup.DescribeProtectedResourceInput{
-		ResourceArn: aws.String(arn),
+		ResourceArn: aws.String(resourceArn),
 	}
 
 	detail, err := svc.DescribeProtectedResource(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getAwsBackupProtectedResource", "DescribeProtectedResource error", err)
+		plugin.Logger(ctx).Error("aws_backup_protected_resource.getAwsBackupProtectedResource", "api_error", err)
 		return nil, err
 	}
 

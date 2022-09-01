@@ -8,6 +8,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -175,9 +176,25 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	backupArn := d.KeyColumnQuals["arn"].GetStringValue()
+
+	if backupArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(backupArn) {
+		arnData, _ := arn.Parse(backupArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create Session
 	svc, err := DynamoDbClient(ctx, d)
@@ -187,7 +204,7 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	params := &dynamodb.DescribeBackupInput{
-		BackupArn: aws.String(arn),
+		BackupArn: aws.String(backupArn),
 	}
 
 	item, err := svc.DescribeBackup(ctx, params)
