@@ -33,6 +33,9 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				{Name: "transit_gateway_id", Require: plugin.Optional},
 				{Name: "transit_gateway_owner_id", Require: plugin.Optional},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
