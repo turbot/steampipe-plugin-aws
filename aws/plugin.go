@@ -9,8 +9,8 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 const pluginName = "steampipe-plugin-aws"
@@ -155,6 +155,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_transit_gateway_route":                                tableAwsEc2TransitGatewayRoute(ctx),
 			"aws_ec2_transit_gateway_route_table":                          tableAwsEc2TransitGatewayRouteTable(ctx),
 			"aws_ec2_transit_gateway_vpc_attachment":                       tableAwsEc2TransitGatewayVpcAttachment(ctx),
+			"aws_ecr_image":                                                tableAwsEcrImage(ctx),
 			"aws_ecr_repository":                                           tableAwsEcrRepository(ctx),
 			"aws_ecrpublic_repository":                                     tableAwsEcrpublicRepository(ctx),
 			"aws_ecs_cluster":                                              tableAwsEcsCluster(ctx),
@@ -172,6 +173,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_eks_addon_version":                                        tableAwsEksAddonVersion(ctx),
 			"aws_eks_cluster":                                              tableAwsEksCluster(ctx),
 			"aws_eks_identity_provider_config":                             tableAwsEksIdentityProviderConfig(ctx),
+			"aws_eks_node_group":                                           tableAwsEksNodeGroup(ctx),
 			"aws_elastic_beanstalk_application":                            tableAwsElasticBeanstalkApplication(ctx),
 			"aws_elastic_beanstalk_environment":                            tableAwsElasticBeanstalkEnvironment(ctx),
 			"aws_elasticache_cluster":                                      tableAwsElastiCacheCluster(ctx),

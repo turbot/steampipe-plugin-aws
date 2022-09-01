@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -28,7 +28,7 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -54,6 +54,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Name:        "api_key_selection_expression",
 				Description: "An API key selection expression. Supported only for WebSocket APIs",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "disable_execute_api_endpoint",
+				Description: "Specifies whether clients can invoke your API by using the default execute-api endpoint.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "route_selection_expression",

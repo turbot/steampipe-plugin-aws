@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
@@ -29,7 +29,7 @@ func tableAwsCloudControlResource(_ context.Context) *plugin.Table {
 			},
 			Hydrate: getCloudControlResource,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "type_name",

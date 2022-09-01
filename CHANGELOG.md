@@ -1,3 +1,102 @@
+## v0.75.1 [2022-08-31]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.5](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v415-2022-08-31) which includes connection cache TTL fixes.
+
+## v0.75.0 [2022-08-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_ecr_image](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_image) ([#1200](https://github.com/turbot/steampipe-plugin-aws/pull/1200))
+
+_Enhancements_
+
+- Added column `disable_execute_api_endpoint` to `aws_api_gatewayv2_api` table. ([#1242](https://github.com/turbot/steampipe-plugin-aws/pull/1242))
+- Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2): ([#1219](https://github.com/turbot/steampipe-plugin-aws/pull/1219))
+  - `aws_cost_by_account_daily`
+  - `aws_cost_by_account_monthly`
+  - `aws_cost_by_record_type_daily`
+  - `aws_cost_by_record_type_monthly`
+  - `aws_cost_by_service_daily`
+  - `aws_cost_by_service_monthly`
+  - `aws_cost_by_service_usage_type_daily`
+  - `aws_cost_by_service_usage_type_monthly`
+  - `aws_cost_forecast_daily`
+  - `aws_cost_forecast_monthly`
+  - `aws_cost_usage`
+  - `aws_ec2_application_load_balancer`
+  - `aws_ec2_autoscaling_group`
+  - `aws_ec2_capacity_reservation`
+  - `aws_ec2_classic_load_balancer`
+  - `aws_ec2_gateway_load_balancer`
+  - `aws_ec2_key_pair`
+  - `aws_s3_access_point`
+  - `aws_s3_account_settings`
+  - `aws_vpc`
+  - `aws_vpc_customer_gateway`
+  - `aws_vpc_dhcp_options`
+  - `aws_vpc_eip`
+  - `aws_vpc_endpoint`
+  - `aws_vpc_flow_log`
+  - `aws_vpc_nat_gateway`
+  - `aws_vpc_network_acl`
+  - `aws_vpc_peering_connection`
+  - `aws_vpc_route_table`
+  - `aws_vpc_security_group`
+  - `aws_vpc_subnet`
+  - `aws_vpc_vpn_connection`
+  - `aws_vpc_vpn_gateway`
+- Updated the query headers in the `aws_api_gatewayv2_api` table documentation.
+
+_Bug fixes_
+
+- Queries will no longer fail if the `regions` config arg is set to `["*"]` when AWS releases a new region that is not included in the plugin's region list. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
+- Queries will no longer fail if the `regions` config arg includes a wildcarded item, e.g., `["test-*"]`, that matches on no valid regions. ([#1276](https://github.com/turbot/steampipe-plugin-aws/pull/1276))
+
+## v0.74.2 [2022-08-26]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.4](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v414-2022-08-26) which fixes the query timeout issues during dashboard execution and compliance checks. ([#1264](https://github.com/turbot/steampipe-plugin-aws/pull/1264))
+
+## v0.74.1 [2022-08-25]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.2](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v412-2022-08-25) which fixes the stalling of dashboard queries and compliance checks. ([#1259](https://github.com/turbot/steampipe-plugin-aws/pull/1259))
+
+_Bug fixes_
+
+- Fixed the plugin credential caching issue wherein the sessions which had an error were also cached. ([#1255](https://github.com/turbot/steampipe-plugin-aws/pull/1255))
+
+## v0.74.0 [2022-08-24]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v411-2022-08-24) which includes several caching and memory management improvements. ([#1252](https://github.com/turbot/steampipe-plugin-aws/pull/1252))
+- Recompiled plugin with Go version `1.19`. ([#1250](https://github.com/turbot/steampipe-plugin-aws/pull/1250))
+
+_What's new?_
+
+- New tables added
+  - [aws_dynamodb_table_export](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dynamodb_table_export) ([#1218](https://github.com/turbot/steampipe-plugin-aws/pull/1218))
+  - [aws_eks_node_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_node_group) ([#1236](https://github.com/turbot/steampipe-plugin-aws/pull/1236))
+  - [aws_emr_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_instance) ([#1225](https://github.com/turbot/steampipe-plugin-aws/pull/1225))
+  - [aws_emr_instance_fleet](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_instance_fleet) ([#1226](https://github.com/turbot/steampipe-plugin-aws/pull/1226))
+
+_Enhancements_
+
+- Added column `cluster_arn` to `aws_ecs_container_instance` table. ([#1239](https://github.com/turbot/steampipe-plugin-aws/pull/1239))
+- Added column `streaming_destination` to `aws_dynamodb_table` table. ([#1227](https://github.com/turbot/steampipe-plugin-aws/pull/1227))
+- Added column `vault_notification_config` to `aws_glacier_vault` table. ([#1231](https://github.com/turbot/steampipe-plugin-aws/pull/1231))
+- Added column `file_system_configs` to `aws_lambda_function` table. ([#1224](https://github.com/turbot/steampipe-plugin-aws/pull/1224))
+
+_Bug fixes_
+
+- List queries for the `aws_emr_instance_group` table no longer fail if there are any instance groups in clusters that use instance fleets. ([#1228](https://github.com/turbot/steampipe-plugin-aws/pull/1228))
+
 ## v0.73.0 [2022-08-16]
 
 _Enhancements_

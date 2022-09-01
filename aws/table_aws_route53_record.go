@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsRoute53Record(_ context.Context) *plugin.Table {
@@ -186,6 +186,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 				// that are greater in lexicographic order will also be returned.
 				// Since Postgres will filter on exact matches anyway, check for exact
 				// matches as an optimization to reduce the number of requests.
+
 				if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
 					plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
 					return false
@@ -236,11 +237,11 @@ func flattenResourceRecords(_ context.Context, d *transform.TransformData) (inte
 }
 
 func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53RecordSetAkas")
 	recordData := h.Item.(*recordInfo)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_route53_record.getRoute53RecordSetAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)

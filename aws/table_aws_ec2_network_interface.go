@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -52,7 +52,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "network_interface_id",
@@ -223,6 +223,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Name:        "ipv6_addresses",
 				Description: "The IPv6 addresses associated with the network interface.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleIpv6AddressesEmptyData),
 			},
 			{
 				Name:        "private_ip_addresses",
@@ -233,7 +234,7 @@ func tableAwsEc2NetworkInterface(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags that are attached to the network interface.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TagSet"),
+				Transform:   transform.FromField("TagSet").Transform(handleEc2NetworkInterfaceTagsEmptyResult),
 			},
 
 			// Standard columns for all tables
@@ -362,6 +363,9 @@ func getAwsEc2NetworkInterfaceAkas(ctx context.Context, d *plugin.QueryData, h *
 
 func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(*ec2.NetworkInterface)
+	if len(data.TagSet) < 1 {
+		return nil, nil
+	}
 
 	// Get resource tags
 	var turbotTags map[string]string
@@ -372,6 +376,22 @@ func getEc2NetworkInterfaceTurbotTags(_ context.Context, d *transform.TransformD
 		}
 	}
 	return turbotTags, nil
+}
+
+func handleEc2NetworkInterfaceTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	networkInterface := d.HydrateItem.(*ec2.NetworkInterface)
+	if len(networkInterface.TagSet) > 0 {
+		return networkInterface.TagSet, nil
+	}
+	return nil, nil
+}
+
+func handleIpv6AddressesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	networkInterface := d.HydrateItem.(*ec2.NetworkInterface)
+	if len(networkInterface.Ipv6Addresses) > 0 {
+		return networkInterface.Ipv6Addresses, nil
+	}
+	return nil, nil
 }
 
 //// UTILITY FUNCTION
