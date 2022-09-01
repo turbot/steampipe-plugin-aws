@@ -122,6 +122,25 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	return commonColumnData, nil
 }
 
+func getAccountId(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
+	cacheKey := "GetCallerAccountID"
+
+	// if found in cache, return the result
+	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		return cachedData.(string)
+	}
+
+	commonData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getAccountId", "common_data_error", err)
+		return ""
+	}
+
+	// save to cache
+	d.ConnectionManager.Cache.Set(cacheKey, commonData.(*awsCommonColumnData).AccountId)
+	return commonData.(*awsCommonColumnData).AccountId
+}
+
 func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	cacheKey := "GetCallerIdentity"
 

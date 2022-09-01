@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	snsTypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
+
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -283,16 +285,28 @@ func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var arn string
+	var topicArn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetTopicAttributesOutput)
-		arn = types.SafeString(data.Attributes["TopicArn"])
+		topicArn = types.SafeString(data.Attributes["TopicArn"])
 	} else {
-		arn = d.KeyColumnQuals["topic_arn"].GetStringValue()
+		topicArn = d.KeyColumnQuals["topic_arn"].GetStringValue()
 	}
 
-	if arn == "" {
+	if topicArn == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(topicArn) {
+		arnData, _ := arn.Parse(topicArn)
+		// cross-account
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// cross-region
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Get client
@@ -304,7 +318,7 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 	// Build params
 	params := &sns.GetTopicAttributesInput{
-		TopicArn: aws.String(arn),
+		TopicArn: aws.String(topicArn),
 	}
 
 	op, err := svc.GetTopicAttributes(ctx, params)
