@@ -3,14 +3,15 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/codeartifact"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -35,7 +36,7 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeArtifactDomains,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -151,37 +152,44 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	input := &codeartifact.ListDomainsInput{
-		MaxResults: aws.Int64(100),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListDomainsPages(
-		input,
-		func(page *codeartifact.ListDomainsOutput, isLast bool) bool {
-			for _, domain := range page.Domains {
-				d.StreamListItem(ctx, domain)
+	input := codeartifact.ListDomainsInput{
+		MaxResults: &maxLimit,
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := codeartifact.NewListDomainsPaginator(svc, &input, func(o *codeartifact.ListDomainsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codeartifact_domain.listCodeArtifactDomains", "api_error", err)
+			return nil, err
+		}
+
+		for _, domain := range output.Domains {
+			d.StreamListItem(ctx, domain)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 	return nil, err
 }
 
@@ -215,7 +223,7 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		Domain: &name,
 	}
 	if owner != "" {
-		params.SetDomainOwner(owner)
+		params.DomainOwner = &owner
 	}
 
 	// Create session
@@ -226,7 +234,7 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeDomain(params)
+	data, err := svc.DescribeDomain(ctx, params)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomain", "api_error", err)
 		return nil, err
@@ -257,7 +265,7 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainTags", "api_error", err)
 		return nil, err
@@ -289,7 +297,7 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 	}
 
 	// Get call
-	op, err := svc.GetDomainPermissionsPolicy(params)
+	op, err := svc.GetDomainPermissionsPolicy(ctx, params)
 	if err != nil {
 		if a, ok := err.(awserr.Error); ok {
 			if a.Code() == "ResourceNotFoundException" {
@@ -321,11 +329,11 @@ func codeArtifactDomainTurbotTags(ctx context.Context, d *transform.TransformDat
 func domainData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *codeartifact.DomainSummary:
+	case *types.DomainSummary:
 		data["Arn"] = *item.Arn
 		data["Name"] = *item.Name
 		data["Owner"] = *item.Owner
-	case *codeartifact.DomainDescription:
+	case *types.DomainDescription:
 		data["Arn"] = *item.Arn
 		data["Name"] = *item.Name
 		data["Owner"] = *item.Owner

@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -71,6 +72,14 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 	return autoscaling.NewFromConfig(*cfg), nil
 }
 
+func CodeArtifactService(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
+}
+
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
@@ -104,7 +113,6 @@ func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	}
 	return elb.NewFromConfig(*cfg), nil
 }
-
 
 func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
