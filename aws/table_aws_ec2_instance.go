@@ -5,15 +5,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/turbot/go-kit/helpers"
-	go_kit_pack "github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -612,7 +611,7 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	params := &ec2.DescribeInstanceStatusInput{
 		InstanceIds:         []string{*instance.InstanceId},
-		IncludeAllInstances: go_kit_pack.Bool(true),
+		IncludeAllInstances: aws.Bool(true),
 	}
 
 	instanceData, err := svc.DescribeInstanceStatus(ctx, params)
@@ -701,7 +700,7 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Fi
 	for columnName, filterName := range filterQuals {
 		if equalQuals[columnName] != nil {
 			filter := types.Filter{
-				Name: go_kit_pack.String(filterName),
+				Name: aws.String(filterName),
 			}
 			value := equalQuals[columnName]
 			if value.GetStringValue() != "" {
@@ -718,7 +717,7 @@ func getListValues(listValue *proto.QualValueList) []*string {
 	if listValue != nil {
 		for _, value := range listValue.Values {
 			if value.GetStringValue() != "" {
-				values = append(values, go_kit_pack.String(value.GetStringValue()))
+				values = append(values, aws.String(value.GetStringValue()))
 			}
 		}
 	}

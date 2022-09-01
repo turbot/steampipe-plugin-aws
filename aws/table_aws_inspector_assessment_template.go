@@ -6,8 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
+
 	"github.com/turbot/go-kit/helpers"
-	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
@@ -37,67 +38,67 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 			{
 				Name:        "name",
 				Description: "The name of the assessment template.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN of the assessment template.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "assessment_run_count",
 				Description: "The number of existing assessment runs associated with this assessment template.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "assessment_target_arn",
 				Description: "The ARN of the assessment target that corresponds to this assessment template.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "created_at",
 				Description: "The time at which the assessment template is created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "duration_in_seconds",
 				Description: "The duration in seconds specified for this assessment template.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "last_assessment_run_arn",
 				Description: "The Amazon Resource Name (ARN) of the most recent assessment run associated with this assessment template.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "rules_package_arns",
 				Description: "The rules packages that are specified for this assessment template.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "user_attributes_for_findings",
 				Description: "The user-defined attributes that are assigned to every generated finding from the assessment run that uses this assessment template.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getInspectorAssessmentTemplate,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the Assessment Template.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsInspectorAssessmentTemplateTags,
 				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "event_subscriptions",
 				Description: "A list of event subscriptions associated with the Assessment Template.",
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsInspectorAssessmentEventSubscriptions,
 				Transform:   transform.FromValue(),
 			},
@@ -105,21 +106,21 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTemplate,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsInspectorAssessmentTemplateTags,
 				Transform:   transform.FromField("Tags").Transform(inspectorTagListToTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),

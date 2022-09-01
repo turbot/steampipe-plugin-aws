@@ -92,6 +92,12 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
 			},
 			{
+				Name:        "vault_notification_config",
+				Description: "Contains the notification configuration set on the vault.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getGlacierVaultNotifications,
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags associated with the vault.",
 				Type:        proto.ColumnType_JSON,
@@ -271,6 +277,38 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 		}
 	}
 	return vaultLock, nil
+}
+
+func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+
+	data := h.Item.(*glacier.DescribeVaultOutput)
+	accountID := strings.Split(*data.VaultARN, ":")[4]
+
+	// Create session
+	svc, err := GlacierService(ctx, d)
+	if err != nil {
+		logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build param
+	param := &glacier.GetVaultNotificationsInput{
+		VaultName: data.VaultName,
+		AccountId: aws.String(accountID),
+	}
+
+	vaultNotifications, err := svc.GetVaultNotifications(param)
+	if err != nil {
+		if a, ok := err.(awserr.Error); ok {
+			if a.Code() == "ResourceNotFoundException" {
+				return nil, nil
+			}
+			logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "api_error", err)
+			return nil, err
+		}
+	}
+	return vaultNotifications, nil
 }
 
 func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

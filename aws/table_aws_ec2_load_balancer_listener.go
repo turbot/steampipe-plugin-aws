@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -114,11 +114,11 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 	}
 
-	input := &elbv2.DescribeLoadBalancersInput{
+	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{
 		PageSize: aws.Int32(maxLimit),
 	}
 
-	paginator := elbv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elbv2.DescribeLoadBalancersPaginatorOptions) {
+	paginator := elasticloadbalancingv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeLoadBalancersPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -165,12 +165,12 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 		}
 	}
 
-	input := &elbv2.DescribeListenersInput{
+	input := &elasticloadbalancingv2.DescribeListenersInput{
 		LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
 		PageSize:        aws.Int32(maxLimit),
 	}
 
-	paginator := elbv2.NewDescribeListenersPaginator(svc, input, func(o *elbv2.DescribeListenersPaginatorOptions) {
+	paginator := elasticloadbalancingv2.NewDescribeListenersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeListenersPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -208,7 +208,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 		return nil, err
 	}
 
-	params := &elbv2.DescribeListenersInput{
+	params := &elasticloadbalancingv2.DescribeListenersInput{
 		ListenerArns: []string{listenerArn},
 	}
 

@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -89,7 +89,7 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// List call
-	params := &elbv2.DescribeSSLPoliciesInput{
+	params := &elasticloadbalancingv2.DescribeSSLPoliciesInput{
 		PageSize: aws.Int32(maxLimit),
 	}
 
@@ -142,7 +142,7 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Build params
-	params := &elbv2.DescribeSSLPoliciesInput{
+	params := &elasticloadbalancingv2.DescribeSSLPoliciesInput{
 		Names: []string{name},
 	}
 

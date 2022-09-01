@@ -6,8 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
+
 	"github.com/turbot/go-kit/helpers"
-	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
@@ -30,30 +31,30 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 			{
 				Name:        "name",
 				Description: "The name of the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN that specifies the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "resource_group_arn",
 				Description: "The ARN that specifies the resource group that is associated with the assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "created_at",
 				Description: "The time at which the assessment target is created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The time at which UpdateAssessmentTarget is called.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 
@@ -61,14 +62,14 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),

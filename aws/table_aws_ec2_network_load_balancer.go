@@ -6,7 +6,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -166,7 +166,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-	input := &elbv2.DescribeLoadBalancersInput{}
+	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
@@ -188,7 +188,7 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	paginator := elbv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elbv2.DescribeLoadBalancersPaginatorOptions) {
+	paginator := elasticloadbalancingv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeLoadBalancersPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -229,7 +229,7 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-	params := &elbv2.DescribeLoadBalancersInput{
+	params := &elasticloadbalancingv2.DescribeLoadBalancersInput{
 		LoadBalancerArns: []string{loadBalancerArn},
 	}
 
@@ -257,7 +257,7 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 		return nil, err
 	}
 
-	params := &elbv2.DescribeLoadBalancerAttributesInput{
+	params := &elasticloadbalancingv2.DescribeLoadBalancerAttributesInput{
 		LoadBalancerArn: networkLoadBalancer.LoadBalancerArn,
 	}
 
@@ -281,7 +281,7 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTagsInput{
+	params := &elasticloadbalancingv2.DescribeTagsInput{
 		ResourceArns: []string{*networkLoadBalancer.LoadBalancerArn},
 	}
 

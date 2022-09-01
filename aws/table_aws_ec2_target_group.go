@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -183,7 +183,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 	}
 
-	input := &elbv2.DescribeTargetGroupsInput{
+	input := &elasticloadbalancingv2.DescribeTargetGroupsInput{
 		PageSize: aws.Int32(maxLimit),
 	}
 
@@ -193,7 +193,7 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		input.Names = []string{equalQuals["target_group_name"].GetStringValue()}
 	}
 
-	paginator := elbv2.NewDescribeTargetGroupsPaginator(svc, input, func(o *elbv2.DescribeTargetGroupsPaginatorOptions) {
+	paginator := elasticloadbalancingv2.NewDescribeTargetGroupsPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeTargetGroupsPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 
@@ -232,7 +232,7 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTargetGroupsInput{
+	params := &elasticloadbalancingv2.DescribeTargetGroupsInput{
 		TargetGroupArns: []string{targetGroupArn},
 	}
 
@@ -259,7 +259,7 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTargetHealthInput{
+	params := &elasticloadbalancingv2.DescribeTargetHealthInput{
 		TargetGroupArn: targetGroup.TargetGroupArn,
 	}
 
@@ -283,7 +283,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 		return nil, err
 	}
 
-	params := &elbv2.DescribeTagsInput{
+	params := &elasticloadbalancingv2.DescribeTagsInput{
 		ResourceArns: []string{*targetGroup.TargetGroupArn},
 	}
 
@@ -299,7 +299,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 //// TRANSFORM FUNCTIONS
 
 func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
+	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	var turbotTagsMap map[string]string
 	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
@@ -315,7 +315,7 @@ func targetGroupTagsToTurbotTags(_ context.Context, d *transform.TransformData) 
 
 func handleTargetHealthDescriptionsEmptyValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
 
-	healthDescriptions := d.HydrateItem.(*elbv2.DescribeTargetHealthOutput)
+	healthDescriptions := d.HydrateItem.(*elasticloadbalancingv2.DescribeTargetHealthOutput)
 	if len(healthDescriptions.TargetHealthDescriptions) > 0 {
 		return healthDescriptions.TargetHealthDescriptions, nil
 	}
@@ -324,7 +324,7 @@ func handleTargetHealthDescriptionsEmptyValue(_ context.Context, d *transform.Tr
 }
 
 func targetGroupRawTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.DescribeTagsOutput)
+	data := d.HydrateItem.(*elasticloadbalancingv2.DescribeTagsOutput)
 	if data.TagDescriptions != nil && len(data.TagDescriptions) > 0 {
 		if data.TagDescriptions[0].Tags != nil {
 			return data.TagDescriptions[0].Tags, nil
