@@ -124,6 +124,8 @@ func tableAwsVpc(_ context.Context) *plugin.Table {
 
 func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
+	plugin.Logger(ctx).Error("aws_vpc.listVpcs", "KIWIS")
+
 	// Create session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
@@ -174,6 +176,7 @@ func listVpcs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 
 		for _, items := range output.Vpcs {
 			d.StreamListItem(ctx, items)
+			plugin.Logger(ctx).Error("aws_vpc.listVpcs", "Returning item", items)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {

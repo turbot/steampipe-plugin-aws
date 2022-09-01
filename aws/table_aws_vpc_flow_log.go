@@ -147,6 +147,8 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 
 func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
+	plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "BANANAS", *d.Quals["resource_id"])
+
 	// Create session
 	svc, err := EC2Client(ctx, d)
 	if err != nil {
@@ -181,10 +183,19 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		{ColumnName: "traffic_type", FilterName: "traffic-type", ColumnType: "string"},
 	}
 
+	plugin.Logger(ctx).Debug("aws_vpc_flow_log_listVpcFlowLogs", "before build")
+
 	filters := buildVpcResourcesFilterParameter(filterKeyMap, d.Quals)
 	if len(filters) > 0 {
 		input.Filter = filters
 	}
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+
+	for _, filter := range filters {
+		plugin.Logger(ctx).Debug("aws_vpc_flow_log_listVpcFlowLogs", "region", region, "filter key", *filter.Name, "filter value", filter.Values)
+	}
+	//plugin.Logger(ctx).Debug("aws_vpc_flow_log_listVpcFlowLogs", "filters", filters)
 
 	paginator := ec2.NewDescribeFlowLogsPaginator(svc, input, func(o *ec2.DescribeFlowLogsPaginatorOptions) {
 		o.Limit = maxLimit
