@@ -26,7 +26,7 @@ type RegionsData struct {
 
 var (
 	awsCommercialRegions = []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-central-1", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"}
 
 	awsUsGovRegions  = []string{"us-gov-east-1", "us-gov-west-1"}
 	awsChinaRegions  = []string{"cn-north-1", "cn-northwest-1"}
@@ -182,8 +182,7 @@ func listRegions(ctx context.Context, d *plugin.QueryData) (RegionsData, error) 
 	// We can query EC2 for the list of supported regions. If credentials
 	// are insufficient this query will retry many times, so we create
 	// a special client with a small number of retries to prevent hangs.
-	//svc, err := Ec2RegionsService(ctx, d, defaultRegion)
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsService(ctx, d, defaultRegion)
 	if err != nil {
 		// handle in case user doesn't have access to ec2 service
 		// save to extension cache
