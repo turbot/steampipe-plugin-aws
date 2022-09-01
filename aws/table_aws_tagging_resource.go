@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -134,23 +135,40 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getTaggingResource")
+func getTaggingResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	resourceARN := d.KeyColumnQuals["arn"].GetStringValue()
+
+	if resourceARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(resourceARN) {
+		arnData, _ := arn.Parse(resourceARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create session
 	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_tagging_resource.getTaggingResource", "service_error", err)
 		return nil, err
 	}
 
 	param := &resourcegroupstaggingapi.GetResourcesInput{
-		ResourceARNList: []*string{&arn},
+		ResourceARNList: []*string{&resourceARN},
 	}
 
 	op, err := svc.GetResources(param)
 	if err != nil {
+		plugin.Logger(ctx).Trace("aws_tagging_resource.getTaggingResource", "api_error", err)
 		return nil, err
 	}
 

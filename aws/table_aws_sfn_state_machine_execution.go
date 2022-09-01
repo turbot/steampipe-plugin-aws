@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -184,29 +185,45 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	logger := plugin.Logger(ctx)
 	logger.Trace("getStepFunctionsStateMachineExecution")
 
-	var arn string
+	var executionArn string
 	if h.Item != nil {
-		arn = *h.Item.(*sfn.ExecutionListItem).ExecutionArn
+		executionArn = *h.Item.(*sfn.ExecutionListItem).ExecutionArn
 	} else {
-		arn = d.KeyColumnQuals["execution_arn"].GetStringValue()
+		executionArn = d.KeyColumnQuals["execution_arn"].GetStringValue()
+	}
+
+	if executionArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(executionArn) {
+		arnData, _ := arn.Parse(executionArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create Session
 	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "connection_error", err)
+		logger.Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &sfn.DescribeExecutionInput{
-		ExecutionArn: &arn,
+		ExecutionArn: &executionArn,
 	}
 
 	// Get call
 	data, err := svc.DescribeExecution(params)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachineExecution", "DescribeExecution_error", err)
+		logger.Error("aws_sfn_state_machine_execution.getStepFunctionsStateMachineExecution", "api_error", err)
 		return nil, err
 	}
 

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 
@@ -158,36 +159,45 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getStepFunctionsStateMachine")
-
-	var arn string
+	var stateMachineArn string
 	if h.Item != nil {
-		arn = *h.Item.(*sfn.StateMachineListItem).StateMachineArn
+		stateMachineArn = *h.Item.(*sfn.StateMachineListItem).StateMachineArn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		stateMachineArn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
-	if arn == "" {
+	if stateMachineArn == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(stateMachineArn) {
+		arnData, _ := arn.Parse(stateMachineArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create Session
 	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachine", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionsStateMachine", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &sfn.DescribeStateMachineInput{
-		StateMachineArn: &arn,
+		StateMachineArn: &stateMachineArn,
 	}
 
 	// Get call
 	data, err := svc.DescribeStateMachine(params)
 	if err != nil {
-		logger.Error("getStepFunctionsStateMachine", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_sfn_state_machine.getStepFunctionsStateMachine", "ERROR", err)
 		return nil, err
 	}
 

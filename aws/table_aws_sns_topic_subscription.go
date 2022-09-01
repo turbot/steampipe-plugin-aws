@@ -3,9 +3,11 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
+
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -165,24 +167,40 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSubscriptionAttributes")
 
-	var arn string
+	var subscriptionArn string
 	if h.Item != nil {
 		data := h.Item.(*sns.GetSubscriptionAttributesOutput)
-		arn = types.SafeString(data.Attributes["SubscriptionArn"])
+		subscriptionArn = types.SafeString(data.Attributes["SubscriptionArn"])
 	} else {
-		arn = d.KeyColumnQuals["subscription_arn"].GetStringValue()
+		subscriptionArn = d.KeyColumnQuals["subscription_arn"].GetStringValue()
+	}
+
+	if subscriptionArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(subscriptionArn) {
+		arnData, _ := arn.Parse(subscriptionArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create session
 	svc, err := SNSService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sns_topic_subscription.getSubscriptionAttributes", "service_error", err)
 		return nil, err
 	}
 
 	input := &sns.GetSubscriptionAttributesInput{
-		SubscriptionArn: aws.String(arn),
+		SubscriptionArn: aws.String(subscriptionArn),
 	}
 
 	// As of 7th september 2020, Next token is not supported in go
@@ -193,6 +211,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 			if a.Code() == "NotFound" || a.Code() == "InvalidParameter" {
 				return nil, nil
 			}
+			plugin.Logger(ctx).Error("aws_sns_topic_subscription.getSubscriptionAttributes", "api_error", err)
 			return nil, err
 		}
 	}

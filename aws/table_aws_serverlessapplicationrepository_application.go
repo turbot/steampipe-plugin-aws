@@ -3,9 +3,11 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/turbot/go-kit/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -180,36 +182,46 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 //// HYDRATE FUNCTIONS
 
 func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getServerlessApplicationRepositoryApplication")
 
-	var arn string
+	var applicationArn string
 	if h.Item != nil {
-		arn = *serverlessApplicationRepositoryArn(h.Item)
+		applicationArn = *serverlessApplicationRepositoryArn(h.Item)
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		applicationArn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
-	if arn == "" {
+	if applicationArn == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(applicationArn) {
+		arnData, _ := arn.Parse(applicationArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	// Create service
 	svc, err := ServerlessApplicationRepositoryService(ctx, d)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplication", "error_ServerlessApplicationRepositoryService", err)
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application.getServerlessApplicationRepositoryApplication", "service_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &serverlessapplicationrepository.GetApplicationInput{
-		ApplicationId: &arn,
+		ApplicationId: &applicationArn,
 	}
 
 	// Get call
 	data, err := svc.GetApplication(params)
 	if err != nil {
-		logger.Error("getServerlessApplicationRepositoryApplication", "error_GetApplication", err)
+		plugin.Logger(ctx).Error("aws_serverlessapplicationrepository_application", "api_error", err)
 		return nil, err
 	}
 
