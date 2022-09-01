@@ -11,7 +11,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_network_load_balancer_metric_net_flow_count",

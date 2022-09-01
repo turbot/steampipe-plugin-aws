@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsRedshiftClusterMetricCpuUtilizationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_redshift_cluster_metric_cpu_utilization_daily",

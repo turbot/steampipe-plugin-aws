@@ -167,7 +167,6 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{}
-
 	maxLimit := int32(400)
 
 	// Additional Filter
@@ -215,7 +214,6 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return nil, nil
 				}
-
 			}
 		}
 

@@ -316,7 +316,8 @@ func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (inter
 	return ec2TagsToMap(snapshot.Tags)
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
+
 // build ebs snapshot list call input filter
 func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

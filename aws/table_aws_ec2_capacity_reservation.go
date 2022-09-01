@@ -179,8 +179,8 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
+			if limit < 5 {
+				maxLimit = 5
 			} else {
 				maxLimit = limit
 			}
@@ -267,7 +267,8 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 	return turbotTagsMap, nil
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
+
 // Build ec2 capacity reservation list call input filter
 func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

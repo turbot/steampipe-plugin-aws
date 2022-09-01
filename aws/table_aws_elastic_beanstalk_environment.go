@@ -294,7 +294,8 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	return op, nil
 }
 
-// // TRANSFORM FUNCTIONS
+//// TRANSFORM FUNCTIONS
+
 func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("elasticBeanstalkEnvironmentTagListToTurbotTags")
 	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)

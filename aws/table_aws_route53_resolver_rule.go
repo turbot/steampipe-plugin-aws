@@ -313,7 +313,8 @@ func route53resolverRuleTagListToTurbotTags(ctx context.Context, d *transform.Tr
 	return turbotTagsMap, nil
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
+
 // Build route53resolver rule list call input filter
 func buildRoute53ResolverRuleFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
 	filters := make([]*route53resolver.Filter, 0)

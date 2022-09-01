@@ -319,7 +319,8 @@ func associationID(item interface{}) string {
 	return ""
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
+
 // Build ssm association list call input filter
 func buildSsmAssociationFilter(quals plugin.KeyColumnQualMap) []*ssm.AssociationFilter {
 	filters := make([]*ssm.AssociationFilter, 0)

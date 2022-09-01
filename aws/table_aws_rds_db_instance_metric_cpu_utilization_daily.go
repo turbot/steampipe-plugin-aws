@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricCpuUtilizationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_cpu_utilization_daily",

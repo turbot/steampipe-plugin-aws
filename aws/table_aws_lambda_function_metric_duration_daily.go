@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsLambdaFunctionMetricDurationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lambda_function_metric_duration_daily",

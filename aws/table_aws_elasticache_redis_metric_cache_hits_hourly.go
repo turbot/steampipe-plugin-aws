@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsElasticacheRedisMetricCacheHitsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_cache_hits_hourly",

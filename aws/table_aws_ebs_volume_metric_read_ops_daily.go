@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsEbsVolumeMetricReadOpsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume_metric_read_ops_daily",

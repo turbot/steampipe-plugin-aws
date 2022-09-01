@@ -10,7 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_application_load_balancer_metric_request_count",

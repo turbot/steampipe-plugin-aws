@@ -10,7 +10,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsEc2InstanceMetricCpuUtilizationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_instance_metric_cpu_utilization_daily",
