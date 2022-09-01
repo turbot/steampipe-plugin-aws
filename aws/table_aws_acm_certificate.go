@@ -4,14 +4,15 @@ import (
 	"context"
 	"strings"
 
-	go_kit_packs "github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 
+	go_kit_packs "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/acm"
-	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 )
 
 //// TABLE DEFINITION
@@ -291,15 +292,31 @@ func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
-	var arn string
+	var certificateArn string
 	if h.Item != nil {
-		arn = *h.Item.(*types.CertificateDetail).CertificateArn
+		certificateArn = *h.Item.(*types.CertificateDetail).CertificateArn
 	} else {
-		arn = d.KeyColumnQuals["certificate_arn"].GetStringValue()
+		certificateArn = d.KeyColumnQuals["certificate_arn"].GetStringValue()
+	}
+
+	if certificateArn == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(certificateArn) {
+		arnData, _ := arn.Parse(certificateArn)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
 	}
 
 	params := &acm.DescribeCertificateInput{
-		CertificateArn: aws.String(arn),
+		CertificateArn: aws.String(certificateArn),
 	}
 
 	detail, err := svc.DescribeCertificate(ctx, params)
