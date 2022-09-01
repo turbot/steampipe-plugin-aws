@@ -8,13 +8,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -218,12 +220,20 @@ func listIamUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 //// HYDRATE FUNCTIONS
 
-func getIamUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getIamUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	userARN := d.KeyColumnQuals["arn"].GetStringValue()
 	name := d.KeyColumnQuals["name"].GetStringValue()
-	if len(arn) > 0 {
-		name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+	if len(userARN) > 0 {
+		name = strings.Split(userARN, "/")[len(strings.Split(userARN, "/"))-1]
+
+		if arn.IsARN(userARN) {
+			arnData, _ := arn.Parse(userARN)
+			// Avoid cross-account queriying
+			if arnData.AccountID != getAccountId(ctx, d, h) {
+				return nil, nil
+			}
+		}
 	}
 
 	// Get client

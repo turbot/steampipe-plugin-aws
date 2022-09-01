@@ -7,10 +7,11 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -193,12 +194,20 @@ func listIamPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var arn string
+	var policyARN string
 	if h.Item != nil {
 		policy := h.Item.(types.Policy)
-		arn = *policy.Arn
+		policyARN = *policy.Arn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		policyARN = d.KeyColumnQuals["arn"].GetStringValue()
+	}
+
+	if arn.IsARN(policyARN) {
+		arnData, _ := arn.Parse(policyARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
 	}
 
 	// Create Session
@@ -209,7 +218,7 @@ func getIamPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	params := &iam.GetPolicyInput{
-		PolicyArn: &arn,
+		PolicyArn: &policyARN,
 	}
 
 	op, err := svc.GetPolicy(ctx, params)

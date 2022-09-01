@@ -7,10 +7,11 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -125,16 +126,24 @@ func listIamSamlProviders(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// HYDRATE FUNCTION
 
 func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var arn string
+	var SAMLProviderARN string
 	if h.Item != nil {
 		entry := h.Item.(SAMLProvider)
-		arn = *entry.Arn
+		SAMLProviderARN = *entry.Arn
 	} else {
-		arn = d.KeyColumnQuals["arn"].GetStringValue()
+		SAMLProviderARN = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 
-	if arn == "" {
+	if SAMLProviderARN == "" {
 		return nil, nil
+	}
+
+	if arn.IsARN(SAMLProviderARN) {
+		arnData, _ := arn.Parse(SAMLProviderARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
 	}
 
 	// Create Session
@@ -145,7 +154,7 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &iam.GetSAMLProviderInput{
-		SAMLProviderArn: aws.String(arn),
+		SAMLProviderArn: aws.String(SAMLProviderARN),
 	}
 
 	// List call
@@ -156,7 +165,7 @@ func getIamSamlProvider(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	provider := SAMLProvider{
-		Arn:                  &arn,
+		Arn:                  &SAMLProviderARN,
 		CreateDate:           result.CreateDate,
 		ValidUntil:           result.ValidUntil,
 		SAMLMetadataDocument: result.SAMLMetadataDocument,

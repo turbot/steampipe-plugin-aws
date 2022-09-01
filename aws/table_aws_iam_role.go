@@ -7,14 +7,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	goTypes "github.com/turbot/go-kit/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -254,9 +255,17 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 		name = goTypes.SafeString(data.RoleName)
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
-		arn := d.KeyColumnQuals["arn"].GetStringValue()
-		if len(arn) > 0 {
-			name = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
+		roleARN := d.KeyColumnQuals["arn"].GetStringValue()
+		if len(roleARN) > 0 {
+			name = strings.Split(roleARN, "/")[len(strings.Split(roleARN, "/"))-1]
+
+			if arn.IsARN(roleARN) {
+				arnData, _ := arn.Parse(roleARN)
+				// Avoid cross-account queriying
+				if arnData.AccountID != getAccountId(ctx, d, h) {
+					return nil, nil
+				}
+			}
 		}
 	}
 

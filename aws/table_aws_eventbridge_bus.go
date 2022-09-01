@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -154,26 +155,39 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeBus")
+	busARN := d.KeyColumnQuals["arn"].GetStringValue()
 
-	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	if busARN == "" {
+		return nil, nil
+	}
+
+	if arn.IsARN(busARN) {
+		arnData, _ := arn.Parse(busARN)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create Session
 	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
-		logger.Error("getAwsEventBridgeBus", "error_EventBridgeService", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "service_error", err)
 		return nil, err
 	}
 	// Build the params
 	params := &eventbridge.DescribeEventBusInput{
-		Name: &arn,
+		Name: &busARN,
 	}
 
 	// Get call
 	data, err := svc.DescribeEventBus(params)
 	if err != nil {
-		logger.Error("getAwsEventBridgeBus", "error_DescribeEventBus", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "api_error", err)
 		return nil, err
 	}
 
