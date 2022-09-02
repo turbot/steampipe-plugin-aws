@@ -4,23 +4,15 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.49
-	github.com/aws/aws-sdk-go-v2 v1.16.11
-<<<<<<< HEAD
-	github.com/aws/aws-sdk-go-v2/config v1.15.14
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.9
-	github.com/aws/aws-sdk-go-v2/service/acm v1.14.8
-	github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10
-	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8
-	github.com/aws/aws-sdk-go-v2/service/appconfig v1.13.4
-=======
+	github.com/aws/aws-sdk-go-v2 v1.16.13
 	github.com/aws/aws-sdk-go-v2/config v1.17.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/acm v1.14.8
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8
+	github.com/aws/aws-sdk-go-v2/service/appconfig v1.13.7
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2
->>>>>>> main
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12
@@ -29,16 +21,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
-	github.com/aws/smithy-go v1.12.1
+	github.com/aws/smithy-go v1.13.1
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
 	github.com/turbot/go-kit v0.4.0
-<<<<<<< HEAD
-	github.com/turbot/steampipe-plugin-sdk/v3 v3.3.2
-	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.4
-=======
 	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.5
->>>>>>> main
 	golang.org/x/text v0.3.7
 )
 
@@ -49,17 +36,10 @@ require (
 	github.com/allegro/bigcache/v3 v3.0.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
-<<<<<<< HEAD
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.8 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.18 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.12 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15 // indirect
-=======
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.12 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.18 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.12 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.20 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.14 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.19 // indirect
->>>>>>> main
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.9 // indirect
