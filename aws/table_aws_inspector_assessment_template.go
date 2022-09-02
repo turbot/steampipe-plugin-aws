@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,7 +20,7 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{}),
 			},
 			Hydrate: getInspectorAssessmentTemplate,
 		},
@@ -129,8 +130,9 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -138,54 +140,61 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 		return nil, nil
 	}
 
+		// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &inspector.ListAssessmentTemplatesInput{
-		MaxResults: aws.Int64(500),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
-		input.Filter = &inspector.AssessmentTemplateFilter{
+		input.Filter = &types.AssessmentTemplateFilter{
 			NamePattern: aws.String(equalQuals["name"].GetStringValue()),
 		}
 	}
 
 	if equalQuals["assessment_target_arn"] != nil {
 		if equalQuals["assessment_target_arn"].GetStringValue() != "" {
-			input.AssessmentTargetArns = []*string{aws.String(equalQuals["assessment_target_arn"].GetStringValue())}
-		} else {
-			input.AssessmentTargetArns = getListValues(equalQuals["assessment_target_arn"].GetListValue())
+			input.AssessmentTargetArns = []string{equalQuals["assessment_target_arn"].GetStringValue()}
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+		paginator := inspector.NewListAssessmentTemplatesPaginator(svc, input, func(o *inspector.ListAssessmentTemplatesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	// List call
-	err = svc.ListAssessmentTemplatesPages(
-		input,
-		func(page *inspector.ListAssessmentTemplatesOutput, isLast bool) bool {
-			for _, assessmentTemplate := range page.AssessmentTemplateArns {
-				d.StreamListItem(ctx, &inspector.AssessmentTemplate{
-					Arn: assessmentTemplate,
+		// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.AssessmentTemplateArns {
+			d.StreamListItem(ctx, &types.AssessmentTemplate{
+					Arn: &items,
 				})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
@@ -194,20 +203,18 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 
 func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTemplate")
-
 	var assessmentTemplateArn string
 	if h.Item != nil {
-		assessmentTemplateArn = *h.Item.(*inspector.AssessmentTemplate).Arn
+		assessmentTemplateArn = *h.Item.(*types.AssessmentTemplate).Arn
 	} else {
 		quals := d.KeyColumnQuals
 		assessmentTemplateArn = quals["arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -217,17 +224,17 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 
 	// Build the params
 	params := &inspector.DescribeAssessmentTemplatesInput{
-		AssessmentTemplateArns: []*string{aws.String(assessmentTemplateArn)},
+		AssessmentTemplateArns: []string{assessmentTemplateArn},
 	}
 
 	// Get call
-	data, err := svc.DescribeAssessmentTemplates(params)
+	data, err := svc.DescribeAssessmentTemplates(ctx, params)
 	if err != nil {
-		logger.Debug("describeAssessmentTemplate__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listInspectorAssessmentTemplates", "api_error", err)
 		return nil, err
 	}
 	if data.AssessmentTemplates != nil && len(data.AssessmentTemplates) > 0 {
-		return data.AssessmentTemplates[0], nil
+		return &data.AssessmentTemplates[0], nil
 	}
 	return nil, nil
 }
@@ -235,14 +242,12 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 // API call for fetching tag list
 func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsInspectorAssessmentTemplateTags")
-
-	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
+	assessmentTemplateArn := *h.Item.(*types.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.getAwsInspectorAssessmentTemplateTags", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -256,9 +261,9 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsInspectorAssessmentTemplateTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.getAwsInspectorAssessmentTemplateTags", "api_error", err)
 		return nil, err
 	}
 
@@ -267,14 +272,13 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 
 // API call for fetching event subscriptions
 func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("ListAwsInspectorAssessmentTemplateEventSubscriptions")
 
-	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
+	assessmentTemplateArn := *h.Item.(*types.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_assessment_template.listAwsInspectorAssessmentEventSubscriptions", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -287,15 +291,22 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 		ResourceArn: &assessmentTemplateArn,
 	}
 
-	var associatedEventSubscriptions []*inspector.Subscription
+	var associatedEventSubscriptions []types.Subscription
 
-	err = svc.ListEventSubscriptionsPages(
-		params,
-		func(page *inspector.ListEventSubscriptionsOutput, lastPage bool) bool {
-			associatedEventSubscriptions = append(associatedEventSubscriptions, page.Subscriptions...)
-			return !lastPage
-		},
-	)
+	paginator := inspector.NewListEventSubscriptionsPaginator(svc, params, func(o *inspector.ListEventSubscriptionsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_assessment_template.listAwsInspectorAssessmentEventSubscriptions", "api_error", err)
+			return nil, err
+		}
+
+		associatedEventSubscriptions = append(associatedEventSubscriptions, output.Subscriptions...)
+	}
 
 	return associatedEventSubscriptions, err
 }
@@ -303,8 +314,7 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 //// TRANSFORM FUNCTIONS
 
 func inspectorTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inspectorTagListToTurbotTags")
-	tagList := d.Value.([]*inspector.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {
 		return nil, nil
