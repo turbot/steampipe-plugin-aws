@@ -155,10 +155,6 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	if arn.IsARN(productArn) {
 		arnData, _ := arn.Parse(productArn)
-		// Avoid cross-account queriying
-		if arnData.AccountID != getAccountId(ctx, d, h) {
-			return nil, nil
-		}
 		// Avoid cross-region queriying
 		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
 			return nil, nil
