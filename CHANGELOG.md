@@ -1,3 +1,9 @@
+## v0.75.1 [2022-08-31]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.5](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v415-2022-08-31) which includes connection cache TTL fixes.
+
 ## v0.75.0 [2022-08-30]
 
 _What's new?_
