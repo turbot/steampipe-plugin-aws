@@ -14,6 +14,7 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Policy Analysis",
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.KeyColumnSlice{
+				//{Name: "policy", CacheMatch: "exact", Require: plugin.Optional},
 				{Name: "policy", CacheMatch: "exact"},
 				{Name: "account_id", CacheMatch: "exact"},
 			},
@@ -99,17 +100,16 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listResourcePolicyAnalysis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	policyVal := d.KeyColumnQuals["policy"].GetJsonbValue()
-	if policyVal == "" {
-		return nil, nil
-	}
-
 	accountID := d.KeyColumnQuals["account_id"].GetStringValue()
 	if accountID == "" {
 		return nil, nil
 	}
 
+	policyVal := d.KeyColumnQuals["policy"].GetJsonbValue()
+	// plugin.Logger(ctx).Trace(fmt.Sprintf("OMERO 1 - Policy: %s", policyVal))
+
 	evaluation, err := EvaluatePolicy(policyVal, accountID)
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_resource_policy_analysis.listResourcePolicyAnalysis", "policy_evaluation_error", err)
 		return nil, err
