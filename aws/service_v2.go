@@ -17,9 +17,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -63,8 +69,25 @@ func AppConfigService(ctx context.Context, d *plugin.QueryData) (*appconfig.Clie
 	if err != nil {
 		return nil, err
 	}
-
 	return appconfig.NewFromConfig(*cfg), nil
+}
+
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+// CostExplorerClient returns the connection client for AWS Cost Explorer service
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+
+	return costexplorer.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
@@ -73,6 +96,30 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 		return nil, err
 	}
 	return dynamodb.NewFromConfig(*cfg), nil
+}
+
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return elb.NewFromConfig(*cfg), nil
+}
+
+func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return elbv2.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
@@ -88,7 +135,27 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 	if err != nil {
 		return nil, err
 	}
-	return s3.NewFromConfig(*cfg), nil
+
+	var svc *s3.Client
+
+	awsConfig := GetConfig(d.Connection)
+	if awsConfig.S3ForcePathStyle != nil {
+		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
+			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+		})
+	} else {
+		svc = s3.NewFromConfig(*cfg)
+	}
+
+	return svc, nil
+}
+
+func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return s3control.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
