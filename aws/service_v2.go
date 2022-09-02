@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
@@ -92,6 +93,14 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 
 	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return databasemigrationservice.NewFromConfig(*cfg), nil
 }
 
 func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
