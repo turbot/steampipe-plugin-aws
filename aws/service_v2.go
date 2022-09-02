@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -153,6 +154,15 @@ func EcrClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
 		return nil, err
 	}
 	return ecr.NewFromConfig(*cfg), nil
+}
+
+func EcsClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client,
+	error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ecs.NewFromConfig(*cfg), nil
 }
 
 func EcrPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client,

@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,7 +21,7 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidParameterException"}),
 			},
 			Hydrate: getEcsCluster,
 		},
@@ -75,12 +76,14 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Description: "The status of the capacity providers associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
+				Transform:   transform.From(handleAttachmentStatusEmptyresult),
 			},
 			{
 				Name:        "attachments",
 				Description: "The resources attached to a cluster. When using a capacity provider with a cluster, the Auto Scaling plan that is created will be returned as a cluster attachment.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
+				Transform:   transform.From(handleAttachmentsEmptyresult),
 			},
 			{
 				Name:        "capacity_providers",
@@ -142,43 +145,53 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 
 func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := EcsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ecs.ListClustersInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListClustersPages(
-		input,
-		func(page *ecs.ListClustersOutput, isLast bool) bool {
-			for _, results := range page.ClusterArns {
-				d.StreamListItem(ctx, &ecs.Cluster{
-					ClusterArn: results,
-				})
+	input := &ecs.ListClustersInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := ecs.NewListClustersPaginator(svc, input, func(o *ecs.ListClustersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ClusterArns {
+			d.StreamListItem(ctx, types.Cluster{
+				ClusterArn: aws.String(items),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -186,31 +199,34 @@ func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getEcsCluster")
 
 	var clusterArn string
 	if h.Item != nil {
-		clusterArn = *h.Item.(*ecs.Cluster).ClusterArn
+		clusterArn = *h.Item.(types.Cluster).ClusterArn
 	} else {
 		quals := d.KeyColumnQuals
 		clusterArn = quals["cluster_arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := EcsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ecs.DescribeClustersInput{
-		Clusters: []*string{aws.String(clusterArn)},
-		Include:  []*string{aws.String("ATTACHMENTS"), aws.String("SETTINGS"), aws.String("STATISTICS")},
+		Clusters: []string{clusterArn},
+		Include: []types.ClusterField{
+			types.ClusterFieldAttachments,
+			types.ClusterFieldSettings,
+			types.ClusterFieldStatistics,
+		},
 	}
 
-	op, err := svc.DescribeClusters(params)
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
-		logger.Debug("getEcsCluster", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -222,13 +238,13 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 }
 
 func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEcsClusterTags")
 
-	clusterArn := *h.Item.(*ecs.Cluster).ClusterArn
+	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
 	// Create service
-	svc, err := EcsService(ctx, d)
+	svc, err := EcsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getAwsEcsClusterTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -236,8 +252,9 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		ResourceArn: &clusterArn,
 	}
 
-	clusterdata, err := svc.ListTagsForResource(params)
+	clusterdata, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_cluster.getAwsEcsClusterTags", "api_error", err)
 		return nil, err
 	}
 
@@ -262,4 +279,22 @@ func getAwsEcsClusterTurbotTags(_ context.Context, d *transform.TransformData) (
 		return turbotTagsMap, nil
 	}
 	return nil, nil
+}
+
+func handleAttachmentsEmptyresult(_ context.Context, d *transform.TransformData) (interface{},
+	error) {
+	attachments := d.HydrateItem.(types.Cluster).Attachments
+	if len(attachments) <= 0 {
+		return nil, nil
+	}
+	return attachments, nil
+}
+
+func handleAttachmentStatusEmptyresult(_ context.Context, d *transform.TransformData) (interface{},
+	error) {
+	attachmentStatus := d.HydrateItem.(types.Cluster).AttachmentsStatus
+	if attachmentStatus == nil {
+		return nil, nil
+	}
+	return attachmentStatus, nil
 }
