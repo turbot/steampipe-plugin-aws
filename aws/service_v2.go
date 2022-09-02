@@ -25,6 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -135,12 +136,22 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client,
+	error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return ec2.NewFromConfig(*cfg), nil
+}
+
+func EcrClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
+	error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ecr.NewFromConfig(*cfg), nil
 }
 
 func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
