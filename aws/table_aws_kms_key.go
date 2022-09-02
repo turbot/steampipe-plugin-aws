@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -222,10 +223,28 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getKmsKey")
 
 	keyID := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Empty check
+	if keyID == "" {
+		return nil, nil
+	}
+
+	// AWS allows key ID, key ARN, alias name, or alias ARN for DescribeKey API
+	if arn.IsARN(keyID) {
+		arnData, _ := arn.Parse(keyID)
+		// Avoid cross-account queriying
+		if arnData.AccountID != getAccountId(ctx, d, h) {
+			return nil, nil
+		}
+		// Avoid cross-region queriying
+		if arnData.Region != d.KeyColumnQualString(matrixKeyRegion) {
+			return nil, nil
+		}
+	}
 
 	// Create Session
 	svc, err := KMSService(ctx, d)
