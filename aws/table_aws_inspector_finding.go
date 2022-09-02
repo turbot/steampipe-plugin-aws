@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -173,8 +174,8 @@ func tableAwsInspectorFinding(_ context.Context) *plugin.Table {
 }
 
 type InspectorFindingInfo struct {
-	FailedItems map[string]*inspector.FailedItemDetails
-	Finding     *inspector.Finding
+	FailedItems map[string]types.FailedItemDetails
+	Finding     types.Finding
 }
 
 //// LIST FUNCTION
@@ -182,8 +183,9 @@ type InspectorFindingInfo struct {
 func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_finding.listInspectorFindings", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -191,8 +193,21 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, nil
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &inspector.ListFindingsInput{
-		MaxResults: aws.Int64(500),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterParam := buildListInspectorFindingsParam(d.Quals)
@@ -200,36 +215,21 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input.Filter = filterParam
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	findingArns := []string{}
 
-	findingArns := []*string{}
+	paginator := inspector.NewListFindingsPaginator(svc, input, func(o *inspector.ListFindingsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListFindingsPages(
-		input,
-		func(page *inspector.ListFindingsOutput, isLast bool) bool {
-			findingArns = append(findingArns, page.FindingArns...)
-
-			// plugin.Logger(ctx).Error("Total Number of Findings ====>>>>", len(page.FindingArns))
-			// if len(page.FindingArns) <= 500 {
-			// 	return false
-			// }
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		return nil, err
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_finding.listInspectorFindings", "api_error", err)
+			return nil, err
+		}
+		findingArns = append(findingArns, output.FindingArns...)
 	}
 
 	// Skip api call if there is no findings
@@ -242,7 +242,7 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	for findingLeft {
 
 		// DescribeFindings api can take maximum 10 number of repository name at a time.
-		var arns []*string
+		var arns []string
 		if len(findingArns) > passedFindingArn {
 			if (len(findingArns) - passedFindingArn) >= 10 {
 				arns = findingArns[passedFindingArn : passedFindingArn+10]
@@ -259,9 +259,10 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 
 		// Get call
-		data, err := svc.DescribeFindings(params)
+		data, err := svc.DescribeFindings(ctx, params)
 
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_finding.listInspectorFindings.DescribeFindings", "api_error", err)
 			return nil, err
 		}
 
@@ -286,20 +287,19 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorFinding")
 
 	var findingArn string
 	if h.Item != nil {
-		findingArn = *h.Item.(*inspector.Finding).Arn
+		findingArn = *h.Item.(*InspectorFindingInfo).Finding.Arn
 	} else {
 		quals := d.KeyColumnQuals
 		findingArn = quals["arn"].GetStringValue()
 	}
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_finding.getInspectorFinding", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -309,13 +309,13 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// Build the params
 	params := &inspector.DescribeFindingsInput{
-		FindingArns: []*string{aws.String(findingArn)},
+		FindingArns: []string{findingArn},
 	}
 
 	// Get call
-	data, err := svc.DescribeFindings(params)
+	data, err := svc.DescribeFindings(ctx, params)
 	if err != nil {
-		logger.Debug("getInspectorFinding", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_inspector_finding.getInspectorFinding", "api_error", err)
 		return nil, err
 	}
 	if data.Findings != nil && len(data.Findings) > 0 {
@@ -328,8 +328,8 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 // Build param for findings list call
-func buildListInspectorFindingsParam(quals plugin.KeyColumnQualMap) *inspector.FindingFilter {
-	inspectorFindingFilter := &inspector.FindingFilter{}
+func buildListInspectorFindingsParam(quals plugin.KeyColumnQualMap) *types.FindingFilter {
+	inspectorFindingFilter := &types.FindingFilter{}
 
 	strColumns := []string{"agent_id", "auto_scaling_group", "severity"}
 
@@ -345,11 +345,13 @@ func buildListInspectorFindingsParam(quals plugin.KeyColumnQualMap) *inspector.F
 
 			switch s {
 			case "agent_id":
-				inspectorFindingFilter.AgentIds = []*string{aws.String(value)}
+				inspectorFindingFilter.AgentIds = []string{value}
 			case "auto_scaling_group":
-				inspectorFindingFilter.AutoScalingGroups = []*string{aws.String(value)}
+				inspectorFindingFilter.AutoScalingGroups = []string{value}
 			case "severity":
-				inspectorFindingFilter.Severities = []*string{aws.String(value)}
+				inspectorFindingFilter.Severities = []types.Severity{
+					types.Severity(value),
+				}
 			}
 
 		}
