@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,6 +22,9 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("policy_id"),
 			Hydrate:    getDLMLifecyclePolicy,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFound"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDLMLifecyclePolicies,
@@ -82,6 +87,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 				Description: "The configuration of the lifecycle policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDLMLifecyclePolicy,
+				Transform:   transform.From(handlePolicyDetailsIntervalUnitEmptyData),
 			},
 
 			// Steampipe standard columns
@@ -113,7 +119,7 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
@@ -121,7 +127,7 @@ func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	input := &dlm.GetLifecyclePoliciesInput{}
 
-	policies, err := svc.GetLifecyclePolicies(input)
+	policies, err := svc.GetLifecyclePolicies(ctx, input)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "list_api_error", err)
 		return nil, err
@@ -160,7 +166,7 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err
@@ -170,7 +176,7 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		PolicyId: aws.String(id),
 	}
 
-	op, err := svc.GetLifecyclePolicy(params)
+	op, err := svc.GetLifecyclePolicy(ctx, params)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "get_api_error", err)
 		return nil, err
@@ -180,10 +186,42 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func policyId(item interface{}) *string {
 	switch item := item.(type) {
-	case *dlm.LifecyclePolicy:
+	case *types.LifecyclePolicy:
 		return item.PolicyId
-	case *dlm.LifecyclePolicySummary:
+	case types.LifecyclePolicySummary:
 		return item.PolicyId
 	}
 	return nil
+}
+
+// // TRANSFORM FUNCTION
+func handlePolicyDetailsIntervalUnitEmptyData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	policyDetails := d.HydrateItem.(*types.LifecyclePolicy)
+
+	if policyDetails != nil {
+		if policyDetails.PolicyDetails != nil {
+			var s []map[string]interface{}
+			var p map[string]interface{}
+			policy, _ := json.Marshal(policyDetails.PolicyDetails)
+			schedules, _ := json.Marshal(policyDetails.PolicyDetails.Schedules)
+			json.Unmarshal(policy, &p)
+			json.Unmarshal(schedules, &s)
+			var scheduleData []map[string]interface{}
+			for _, schedule := range s {
+				var retainRule map[string]interface{}
+				retainRule = schedule["RetainRule"].(map[string]interface{})
+				if retainRule["IntervalUnit"].(string) == "" {
+					retainRule["IntervalUnit"] = nil
+				}
+				schedule["RetainRule"] = retainRule
+				scheduleData = append(scheduleData, schedule)
+			}
+			p["Schedules"] = scheduleData
+			return p, nil
+		} else {
+			return policyDetails, nil
+		}
+	}
+
+	return nil, nil
 }

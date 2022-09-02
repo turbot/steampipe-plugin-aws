@@ -20,6 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
@@ -28,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -107,6 +108,14 @@ func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*director
 		return nil, err
 	}
 	return directoryservice.NewFromConfig(*cfg), nil
+}
+
+func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return dlm.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
