@@ -362,6 +362,17 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 
 	functionName := functionName(h.Item)
 
+	commonColumnData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+
+	awsCommonData := commonColumnData.(*awsCommonColumnData)
+	if awsCommonData.Partition == "aws-us-gov"{
+		plugin.Logger(ctx).Debug("getLambdaFunctionUrlConfig", "aws-gov-cloud encountered", functionName)
+		return nil,nil
+	}
+
 	// Create Session
 	svc, err := LambdaService(ctx, d)
 	if err != nil {
