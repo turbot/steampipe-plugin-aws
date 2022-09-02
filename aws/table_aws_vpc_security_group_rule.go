@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
@@ -17,9 +17,11 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_security_group_rule",
 		Description: "AWS VPC Security Group Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("security_group_rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
-			Hydrate:           getSecurityGroupRule,
+			KeyColumns: plugin.SingleColumn("security_group_rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSecurityGroupRuleId.Malformed", "InvalidSecurityGroupRuleId.NotFound"}),
+			},
+			Hydrate: getSecurityGroupRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityGroupRules,
@@ -30,7 +32,7 @@ func tableAwsVpcSecurityGroupRule(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "security_group_rule_id",

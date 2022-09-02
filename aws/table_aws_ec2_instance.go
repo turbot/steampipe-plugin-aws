@@ -7,12 +7,12 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -22,9 +22,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance",
 		Description: "AWS EC2 Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2Instance,
+			KeyColumns: plugin.SingleColumn("instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
@@ -49,7 +51,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",

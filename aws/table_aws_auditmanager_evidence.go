@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type evidenceInfo struct {
@@ -25,15 +26,17 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_evidence",
 		Description: "AWS Audit Manager Evidence",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAuditManagerEvidence,
+			KeyColumns: plugin.AllColumns([]string{"id", "evidence_folder_id", "assessment_id", "control_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getAuditManagerEvidence,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidences,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -166,16 +169,19 @@ func tableAwsAuditManagerEvidence(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAuditManagerEvidences", "AWS_REGION", region)
 
 	// Get assessment details
 	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var evidenceFolders []auditmanager.AssessmentEvidenceFolder
@@ -252,9 +258,13 @@ func getRowDataForEvidenceAsync(ctx context.Context, d *plugin.QueryData, item a
 }
 
 func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, region string) ([]evidenceInfo, error) {
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &auditmanager.GetEvidenceByEvidenceFolderInput{
@@ -266,26 +276,37 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 	var items []evidenceInfo
 
 	listEvidence, err := svc.GetEvidenceByEvidenceFolder(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getRowDataForEvidence", "err", err)
 		return nil, err
 	}
 
 	for _, evidence := range listEvidence.Evidence {
 		items = append(items, evidenceInfo{evidence, item.AssessmentId, item.ControlSetId})
 	}
-	return items, err
+
+	return items, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
@@ -303,8 +324,14 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	// Get call
 	data, err := svc.GetEvidence(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAuditManagerEvidence", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerEvidence", "err", err)
 		return nil, err
 	}
 

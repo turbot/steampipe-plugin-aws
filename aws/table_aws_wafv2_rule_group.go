@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_rule_group",
 		Description: "AWS WAFv2 Rule Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsWafv2RuleGroup,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsWafv2RuleGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RuleGroups,
 		},
-		GetMatrixItem: BuildWafRegionList,
+		GetMatrixItemFunc: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsTaggingResource(_ context.Context) *plugin.Table {
@@ -15,14 +15,16 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		Name:        "aws_tagging_resource",
 		Description: "AWS Tagging Resource",
 		Get: &plugin.GetConfig{
-			Hydrate:           getTaggingResource,
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException"}),
+			Hydrate:    getTaggingResource,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listTaggingResources,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -90,7 +92,7 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	plugin.Logger(ctx).Trace("listTaggingResources")
 
 	// Create session
-	svc, err := TaggignResourceService(ctx, d)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +140,7 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := TaggignResourceService(ctx, d)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

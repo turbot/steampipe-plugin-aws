@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_cluster",
 		Description: "AWS ECS Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
-			Hydrate:           getEcsCluster,
+			KeyColumns: plugin.SingleColumn("cluster_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameterException"}),
+			},
+			Hydrate: getEcsCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_arn",
@@ -203,6 +205,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	params := &ecs.DescribeClustersInput{
 		Clusters: []*string{aws.String(clusterArn)},
+		Include:  []*string{aws.String("ATTACHMENTS"), aws.String("SETTINGS"), aws.String("STATISTICS")},
 	}
 
 	op, err := svc.DescribeClusters(params)

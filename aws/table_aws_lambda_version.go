@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -19,9 +19,11 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_version",
 		Description: "AWS Lambda Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"version", "function_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           getFunctionVersion,
+			KeyColumns: plugin.AllColumns([]string{"version", "function_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: getFunctionVersion,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -30,7 +32,7 @@ func tableAwsLambdaVersion(_ context.Context) *plugin.Table {
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "version",

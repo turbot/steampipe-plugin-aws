@@ -7,10 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -20,9 +20,11 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudformation_stack",
 		Description: "AWS CloudFormation Stack",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
-			Hydrate:           getCloudFormationStack,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationError", "ResourceNotFoundException"}),
+			},
+			Hydrate: getCloudFormationStack,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFormationStacks,
@@ -33,7 +35,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,11 +18,13 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_service",
 		Description: "AWS ECS Service",
 		List: &plugin.ListConfig{
-			Hydrate:           listEcsServices,
-			ParentHydrate:     listEcsClusters,
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFoundException"}),
+			Hydrate:       listEcsServices,
+			ParentHydrate: listEcsClusters,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundException"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",

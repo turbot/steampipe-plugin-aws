@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		Name:        "aws_eventbridge_bus",
 		Description: "AWS EventBridge Bus",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getAwsEventBridgeBus,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
+			},
+			Hydrate: getAwsEventBridgeBus,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEventBridgeBuses,
@@ -25,7 +27,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 				{Name: "name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -102,6 +104,11 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
 		input.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
+	}
+
+	// For case when listAwsEventBridgeBuses is used as parent hydrate in aws_eventbridge_rule table
+	if equalQuals["name"] == nil && equalQuals["event_bus_name"] != nil {
+		input.NamePrefix = aws.String(equalQuals["event_bus_name"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

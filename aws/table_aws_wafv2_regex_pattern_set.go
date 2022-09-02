@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_regex_pattern_set",
 		Description: "AWS WAFv2 Regex Pattern Set",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAwsWafv2RegexPatternSet,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFInvalidParameterException", "WAFNonexistentItemException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAwsWafv2RegexPatternSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2RegexPatternSets,
 		},
-		GetMatrixItem: BuildWafRegionList,
+		GetMatrixItemFunc: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",

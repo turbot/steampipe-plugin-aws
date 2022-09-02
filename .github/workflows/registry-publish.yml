@@ -18,6 +18,7 @@ env:
   ORG: turbot
   PLUGIN_REPO: us-docker.pkg.dev/steampipe/plugins
   CONFIG_SCHEMA_VERSION: '2020-11-18'
+  ORAS_VERSION: '0.14.0'
 
 jobs:
   build:
@@ -42,7 +43,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18
+          go-version: 1.19
 
       - name: Get latest version tag
         run: |-
@@ -143,7 +144,12 @@ jobs:
       - run: |-
           gcloud beta auth configure-docker us-docker.pkg.dev
 
-      - run: oras version # oras is pre-installed on the image...
+      # oras is pre-installed on the image, but we should install a specific version
+      # to protect against unexpected breaking changes
+      - run: |
+          curl -LO https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz
+          sudo tar xzf oras_${ORAS_VERSION}_linux_amd64.tar.gz -C /usr/local/bin oras
+          oras version
 
       - name: Download linux-amd64 artifact
         uses: actions/download-artifact@v2
@@ -233,8 +239,8 @@ jobs:
       - run: |-
           REF="$PLUGIN_REPO/$ORG/$PLUGIN_NAME:$GITHUB_RUN_ID"
           oras push $REF \
-            --manifest-config config.json:application/vnd.turbot.steampipe.config.v1+json \
-            --manifest-annotations annotations.json \
+            --config config.json:application/vnd.turbot.steampipe.config.v1+json \
+            --annotation-file annotations.json \
             steampipe-plugin-${PLUGIN_NAME}_darwin_amd64.gz:application/vnd.turbot.steampipe.plugin.darwin-amd64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_darwin_arm64.gz:application/vnd.turbot.steampipe.plugin.darwin-arm64.layer.v1+gzip \
             steampipe-plugin-${PLUGIN_NAME}_linux_amd64.gz:application/vnd.turbot.steampipe.plugin.linux-amd64.layer.v1+gzip \

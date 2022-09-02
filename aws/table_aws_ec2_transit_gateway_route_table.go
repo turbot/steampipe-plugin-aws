@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_transit_gateway_route_table",
 		Description: "AWS EC2 Transit Gateway Route Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("transit_gateway_route_table_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
-			Hydrate:           getEc2TransitGatewayRouteTable,
+			KeyColumns: plugin.SingleColumn("transit_gateway_route_table_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
+			},
+			Hydrate: getEc2TransitGatewayRouteTable,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2TransitGatewayRouteTable,
@@ -32,7 +34,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 				{Name: "default_propagation_route_table", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_route_table_id",

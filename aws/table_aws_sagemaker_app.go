@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_app",
 		Description: "AWS Sagemaker App",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
-			Hydrate:           getSageMakerApp,
+			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+			},
+			Hydrate: getSageMakerApp,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsSageMakerDomains,
@@ -30,7 +32,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				{Name: "domain_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

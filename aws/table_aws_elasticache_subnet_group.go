@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_subnet_group",
 		Description: "AWS ElastiCache Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_subnet_group_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
-			Hydrate:           getElastiCacheSubnetGroup,
+			KeyColumns: plugin.SingleColumn("cache_subnet_group_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getElastiCacheSubnetGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheSubnetGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_subnet_group_name",

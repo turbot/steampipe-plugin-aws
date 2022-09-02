@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,15 +19,17 @@ func tableAwsBackupSelection(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_selection",
 		Description: "AWS Backup Selection",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"backup_plan_id", "selection_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
-			Hydrate:           getBackupSelection,
+			KeyColumns: plugin.AllColumns([]string{"backup_plan_id", "selection_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue", "InvalidParameterValueException"}),
+			},
+			Hydrate: getBackupSelection,
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listBackupSelections,
 			ParentHydrate: listAwsBackupPlans,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "selection_name",

@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
@@ -19,9 +19,11 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_layer_version",
 		Description: "AWS Lambda Layer Version",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"layer_name", "version"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
-			Hydrate:           getLambdaLayerVersion,
+			KeyColumns: plugin.AllColumns([]string{"layer_name", "version"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
+			},
+			Hydrate: getLambdaLayerVersion,
 		},
 		List: &plugin.ListConfig{
 			Hydrate:       listLambdaLayerVersions,
@@ -30,7 +32,7 @@ func tableAwsLambdaLayerVersion(_ context.Context) *plugin.Table {
 				{Name: "layer_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "layer_name",

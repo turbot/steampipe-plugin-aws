@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
@@ -15,20 +15,22 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticsearch_domain",
 		Description: "AWS Elasticsearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("domain_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsElasticsearchDomain,
+			KeyColumns: plugin.SingleColumn("domain_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsElasticsearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsElasticsearchDomains,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listAwsElasticsearchDomainTags,
 				Depends: []plugin.HydrateFunc{getAwsElasticsearchDomain},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -279,6 +281,12 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsElasticsearchDomainTags")
+
+	// Domain will be nil if getAwsElasticsearchDomain returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getAwsElasticsearchDomain"] == nil {
+		return nil, nil
+	}
 
 	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*elasticsearchservice.ElasticsearchDomainStatus).ARN
 

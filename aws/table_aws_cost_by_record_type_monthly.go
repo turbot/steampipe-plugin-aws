@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
@@ -56,19 +57,19 @@ func buildCostByRecordTypeInput(granularity string) *costexplorer.GetCostAndUsag
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
 	params := &costexplorer.GetCostAndUsageInput{
-		TimePeriod: &costexplorer.DateInterval{
+		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
-		Granularity: aws.String(granularity),
-		Metrics:     aws.StringSlice(AllCostMetrics()),
-		GroupBy: []*costexplorer.GroupDefinition{
+		Granularity: types.Granularity(granularity),
+		Metrics:     AllCostMetrics(),
+		GroupBy: []types.GroupDefinition{
 			{
-				Type: aws.String("DIMENSION"),
+				Type: types.GroupDefinitionType("DIMENSION"),
 				Key:  aws.String("LINKED_ACCOUNT"),
 			},
 			{
-				Type: aws.String("DIMENSION"),
+				Type: types.GroupDefinitionType("DIMENSION"),
 				Key:  aws.String("RECORD_TYPE"),
 			},
 		},

@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_managed_instance_compliance",
 		Description: "AWS SSM Managed Instance Compliance",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
-			Hydrate:           listSsmManagedInstanceCompliances,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidResourceId", "ValidationException"}),
+			},
+			Hydrate: listSsmManagedInstanceCompliances,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "resource_id", Require: plugin.Required},
 				{Name: "resource_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

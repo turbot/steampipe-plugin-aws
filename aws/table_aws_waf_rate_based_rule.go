@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,9 +16,11 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 		Name:        "aws_waf_rate_based_rule",
 		Description: "AWS WAF Rate Based Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
-			Hydrate:           getAwsWafRateBasedRule,
+			KeyColumns: plugin.SingleColumn("rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "ValidationException"}),
+			},
+			Hydrate: getAwsWafRateBasedRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafRateBasedRules,

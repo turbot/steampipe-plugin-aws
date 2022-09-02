@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_training_job",
 		Description: "AWS SageMaker Training Job",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerTrainingJob,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerTrainingJob,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerTrainingJobs,
@@ -27,7 +29,7 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 				{Name: "training_job_status", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

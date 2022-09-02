@@ -14,8 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
@@ -73,7 +73,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}

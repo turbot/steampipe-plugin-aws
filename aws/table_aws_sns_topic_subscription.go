@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +19,16 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_sns_topic_subscription",
 		Description: "AWS SNS Topic Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("subscription_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
-			Hydrate:           getSubscriptionAttributes,
+			KeyColumns: plugin.SingleColumn("subscription_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFound", "InvalidParameter"}),
+			},
+			Hydrate: getSubscriptionAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSnsTopicSubscriptions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "subscription_arn",

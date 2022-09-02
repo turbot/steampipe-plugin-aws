@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +19,16 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_cluster",
 		Description: "AWS ElastiCache Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cache_cluster_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheCluster,
+			KeyColumns: plugin.SingleColumn("cache_cluster_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"CacheClusterNotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cache_cluster_id",

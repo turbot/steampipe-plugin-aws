@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
@@ -20,9 +20,11 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_zone",
 		Description: "AWS Route53 Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			Hydrate:           getHostedZone,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchHostedZone"}),
+			KeyColumns: plugin.SingleColumn("id"),
+			Hydrate:    getHostedZone,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchHostedZone"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listHostedZones,
@@ -100,6 +102,13 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Hydrate:     getHostedZoneTags,
 				Transform:   transform.FromField("ResourceTagSet.Tags"),
 			},
+			{
+				Name:        "vpcs",
+				Description: "The list of VPCs that are authorized to be associated with the specified hosted zone.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getHostedZone,
+				Transform:   transform.FromField("VPCs"),
+			},
 
 			// Steampipe standard columns
 			{
@@ -124,6 +133,11 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+type HostedZoneResult struct {
+	route53.HostedZone
+	VPCs []*route53.VPC
 }
 
 //// LIST FUNCTION
@@ -159,7 +173,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input,
 		func(page *route53.ListHostedZonesOutput, isLast bool) bool {
 			for _, hostedZone := range page.HostedZones {
-				d.StreamListItem(ctx, hostedZone)
+				d.StreamListItem(ctx, &HostedZoneResult{HostedZone: *hostedZone})
 
 				// Context may get cancelled due to manual cancellation or if the limit has been reached
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -175,7 +189,7 @@ func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
 
 	// Create session
@@ -184,6 +198,11 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 	id := d.KeyColumnQuals["id"].GetStringValue()
+
+	if h.Item != nil && id == "" {
+		hostedZone := h.Item.(*HostedZoneResult)
+		id = *hostedZone.Id
+	}
 
 	// Error: pq: rpc error: code = Unknown desc = InvalidParameter: 1 validation error(s) found.
 	// - minimum field size of 1, GetHostedZoneInput.Id.
@@ -201,12 +220,15 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		return nil, err
 	}
 
-	return item.HostedZone, nil
+	return &HostedZoneResult{
+		HostedZone: *item.HostedZone,
+		VPCs:       item.VPCs,
+	}, nil
 }
 
 func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZone")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(*HostedZoneResult)
 
 	// Create session
 	svc, err := Route53Service(ctx, d)
@@ -230,7 +252,7 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZoneQueryLoggingConfigs")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(*HostedZoneResult)
 
 	// Create session
 	svc, err := Route53Service(ctx, d)
@@ -256,7 +278,7 @@ func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, 
 
 func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getHostedZoneDNSSEC")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(*HostedZoneResult)
 
 	// Operation is unsupported for private hosted zones.
 	if *hostedZone.Config.PrivateZone {
@@ -284,7 +306,7 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getRoute53HostedZoneTurbotAkas")
-	hostedZone := h.Item.(*route53.HostedZone)
+	hostedZone := h.Item.(*HostedZoneResult)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -302,7 +324,7 @@ func getRoute53HostedZoneTurbotAkas(ctx context.Context, d *plugin.QueryData, h 
 //// TRANSFORM FUNCTIONS
 
 func route53ZoneID(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	hostedZone := d.HydrateItem.(*route53.HostedZone)
+	hostedZone := d.HydrateItem.(*HostedZoneResult)
 	id := strings.Split(string(*hostedZone.Id), "/")[2]
 
 	return id, nil

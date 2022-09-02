@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/firehose"
-	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_firehose_delivery_stream",
 		Description: "AWS Kinesis Firehose Delivery Stream",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("delivery_stream_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           describeFirehoseDeliveryStream,
+			KeyColumns: plugin.SingleColumn("delivery_stream_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: describeFirehoseDeliveryStream,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listFirehoseDeliveryStreams,
@@ -27,7 +29,7 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 				{Name: "delivery_stream_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "delivery_stream_name",

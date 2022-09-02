@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecrpublic"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_ecrpublic_repository",
 		Description: "AWS ECR Public Repository",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("repository_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
-			Hydrate:           getAwsEcrpublicRepository,
+			KeyColumns: plugin.SingleColumn("repository_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"RepositoryNotFoundException", "RepositoryPolicyNotFoundException", "LifecyclePolicyNotFoundException"}),
+			},
+			Hydrate: getAwsEcrpublicRepository,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEcrpublicRepositories,
@@ -28,7 +30,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 				{Name: "registry_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

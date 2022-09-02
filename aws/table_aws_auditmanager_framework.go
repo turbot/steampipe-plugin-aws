@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +19,16 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_framework",
 		Description: "AWS Audit Manager Framework",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
-			Hydrate:           getAuditManagerFramework,
+			KeyColumns: plugin.AllColumns([]string{"id", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InternalServerException"}),
+			},
+			Hydrate: getAuditManagerFramework,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerFrameworks,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -133,12 +136,15 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("listAuditManagerFrameworks", "REGION", region)
 
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List standard audit manager frameworks
@@ -157,7 +163,13 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listAuditManagerFrameworks_standard", "err", err)
 		return nil, err
 	}
 
@@ -172,20 +184,24 @@ func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, _ *plu
 		},
 	)
 
-	return nil, err
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listAuditManagerFrameworks_custom", "err", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Debug("getAuditManagerFramework", "REGION", region)
 
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
+	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id string
 	if h.Item != nil {
@@ -198,12 +214,29 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &auditmanager.GetAssessmentFrameworkInput{
 		FrameworkId: aws.String(id),
 	}
 
 	op, err := svc.GetAssessmentFramework(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerFramework", "err", err)
 		return nil, err
 	}
 

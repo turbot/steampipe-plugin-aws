@@ -10,9 +10,9 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
@@ -20,9 +20,11 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_maintenance_window",
 		Description: "AWS SSM Maintenance Window",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("window_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException"}),
-			Hydrate:           getAwsSSMMaintenanceWindow,
+			KeyColumns: plugin.SingleColumn("window_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DoesNotExistException"}),
+			},
+			Hydrate: getAwsSSMMaintenanceWindow,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMMaintenanceWindow,
@@ -31,7 +33,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				{Name: "enabled", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

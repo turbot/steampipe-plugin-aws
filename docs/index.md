@@ -93,16 +93,33 @@ connection "aws" {
   # This delay is also used as a base value when calculating the exponential backoff retry times.
   # Defaults to 25ms and must be greater than or equal to 1ms.
   #min_error_retry_delay = 25
+
+  # List of additional AWS error codes to ignore for all queries.
+  # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
+  #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
+
+  # Specify the endpoint URL used when making requests to AWS services.
+  # If not set, the default AWS generated endpoint will be used.
+  # Can also be set with the AWS_ENDPOINT_URL environment variable.
+  #endpoint_url = "http://localhost:4566"
+  
+  # Set to `true` to force S3 requests to use path-style addressing,
+  # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
+  # will use virtual hosted bucket addressing when possible (`http://BUCKET.s3.amazonaws.com/KEY`).
+  #s3_force_path_style = false
 }
 ```
 
 - `access_key` - (Optional) AWS access key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
-- `max_error_retry_attempts` (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
-- `min_error_retry_delay` (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
+- `endpoint_url` - (Optional) The endpoint URL used when making requests to AWS services. If not set, the default AWS generated endpoint will be used. Can also be set with the `AWS_ENDPOINT_URL` environment variable.
+- `ignore_error_codes` - (Optional) List of additional AWS error codes to ignore for all queries. By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
+- `max_error_retry_attempts` - (Optional) The maximum number of attempts (including the initial call) Steampipe will make for failing API calls. Can also be set with the `AWS_MAX_ATTEMPTS` environment variable. Defaults to 9 and must be greater than or equal to 1.
+- `min_error_retry_delay` - (Optional) The minimum retry delay in milliseconds after which retries will be performed. This delay is also used as a base value when calculating the exponential backoff retry times. Defaults to 25ms and must be greater than or equal to 1ms.
 - `profile` - (Optional) AWS profile name to use for credentials. Can also be set with the `AWS_PROFILE` or `AWS_DEFAULT_PROFILE` environment variables.
 - `regions` - (Optional) List of AWS regions Steampipe will connect to. Can also be set with the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables, or the region specified in the active profile.
 - `secret_key` - (Optional) AWS secret key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
 - `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
+- `s3_force_path_style`- (Optional) Specifies whether to use path-style addressing, i.e., `https://s3.amazonaws.com/BUCKET/KEY`, or virtual hosted bucket addressing, i.e., `https://BUCKET.s3.amazonaws.com/KEY`. By default, the S3 client will use virtual hosted bucket addressing when possible.
 
 By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
 
@@ -111,8 +128,8 @@ By default, all options are commented out in the default connection, thus Steamp
 By default, AWS connections behave like the `aws` cli and connect to a single default region.  Alternatively, you may also specify one or more regions with the `regions` argument:
 ```hcl
 connection "aws" {
-  plugin    = "aws"
-  regions   = ["eu-west-1", "ca-central-1", "us-west-2", "ap-southeast-2", "sa-east-1", "ap-northeast-1", "eu-west-3", "ap-northeast-2", "us-east-1",  "eu-central-1", "us-west-1", "us-east-2", "ap-south-1", "eu-north-1",  "ap-southeast-1"]
+  plugin  = "aws"
+  regions = ["eu-west-1", "ca-central-1", "us-west-2", "ap-southeast-2", "sa-east-1", "ap-northeast-1", "eu-west-3", "ap-northeast-2", "us-east-1",  "eu-central-1", "us-west-1", "us-east-2", "ap-south-1", "eu-north-1",  "ap-southeast-1"]
 }
 ```
 
@@ -120,22 +137,22 @@ The `region` argument supports wildcards:
 - All regions
   ```hcl
   connection "aws" {
-    plugin    = "aws"
-    regions   = ["*"]
+    plugin  = "aws"
+    regions = ["*"]
   }
   ```
 - All regions (gov-cloud)
   ```hcl
   connection "aws" {
-    plugin    = "aws"
-    regions   = ["us-gov*"]
+    plugin  = "aws"
+    regions = ["us-gov*"]
   }
   ```
 - All US and EU regions
   ```hcl
   connection "aws" {
-    plugin    = "aws"
-    regions   = ["us-*", "eu-*"]
+    plugin  = "aws"
+    regions = ["us-*", "eu-*"]
   }
   ```
 
@@ -146,21 +163,21 @@ AWS multi-region connections are common, but be aware that performance may be im
 You may create multiple aws connections:
 ```hcl
 connection "aws_01" {
-  plugin      = "aws"
-  profile     = "aws_01"
-  regions     = ["us-east-1", "us-west-2"]
+  plugin  = "aws"
+  profile = "aws_01"
+  regions = ["us-east-1", "us-west-2"]
 }
 
 connection "aws_02" {
-  plugin      = "aws"
-  profile     = "aws_02"
-  regions     = ["*"]
+  plugin  = "aws"
+  profile = "aws_02"
+  regions = ["*"]
 }
 
 connection "aws_03" {
-  plugin      = "aws"
-  profile     = "aws_03"
-  regions     = ["us-*"]
+  plugin  = "aws"
+  profile = "aws_03"
+  regions = ["us-*"]
 }
 ```
 
@@ -226,15 +243,15 @@ aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 
 ```hcl
 connection "aws_account_y" {
-  plugin      = "aws"
-  profile     = "profile_y"
-  regions     = ["us-east-1", "us-west-2"]
+  plugin  = "aws"
+  profile = "profile_y"
+  regions = ["us-east-1", "us-west-2"]
 }
 
 connection "aws_account_z" {
-  plugin      = "aws"
-  profile     = "profile_z"
-  regions     = ["ap-southeast-1", "ap-southeast-2"]
+  plugin  = "aws"
+  profile = "profile_z"
+  regions = ["ap-southeast-1", "ap-southeast-2"]
 }
 ```
 
@@ -255,18 +272,16 @@ sso_region = us-east-2
 sso_account_id = 000000000000
 sso_role_name = SSO-ReadOnly
 region = us-east-1
-
 ```
 
 #### aws.spc:
 
 ```hcl
 connection "aws_000000000000" {
-  plugin    = "aws"
-  profile   = "aws_000000000000"
-  regions   = ["us-west-2", "us-east-1",  "us-west-1", "us-east-2"]
+  plugin  = "aws"
+  profile = "aws_000000000000"
+  regions = ["us-west-2", "us-east-1",  "us-west-1", "us-east-2"]
 }
-
 ```
 
 ### AssumeRole Credentials (No MFA)
@@ -329,17 +344,20 @@ connection "aws_account_123456789012" {
 
 ### AWS-Vault Credentials
 
-Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (You must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA):
+Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
+
+When authenticating with temporary credentials, like using an access key pair with aws-vault, some IAM and STS APIs may be restricted. You can avoid creating a temporary session with the `--no-session` option (e.g., `aws-vault exec my_profile --no-session -- steampipe query "select name from aws_iam_user;"`). For more information, please see [aws-vault Temporary credentials limitations with STS, IAM
+](https://github.com/99designs/aws-vault/blob/master/USAGE.md#temporary-credentials-limitations-with-sts-iam).
 
 #### aws credential file:
 
 ```bash
 [vault_user_account]
-credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile IN AWS_VAULT...
+credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile in AWS_VAULT...
 
 [aws_account_123456789012]
 source_profile = vault_user_account
-role_arn =  arn:aws:iam::123456789012:role/my_role
+role_arn = arn:aws:iam::123456789012:role/my_role
 mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
 ```
 
@@ -359,10 +377,10 @@ The AWS plugin allows you set static credentials with the `access_key`, `secret_
 
 ```hcl
 connection "aws_account_x" {
-  plugin      = "aws"
-  secret_key  = "gMCYsoGqjfThisISNotARealKeyVVhh"
-  access_key  = "ASIA3ODZSWFYSN2PFHPJ"
-  regions     = ["us-east-1" , "us-west-2"]
+  plugin     = "aws"
+  secret_key = "gMCYsoGqjfThisISNotARealKeyVVhh"
+  access_key = "ASIA3ODZSWFYSN2PFHPJ"
+  regions    = ["us-east-1" , "us-west-2"]
 }
 ```
 
@@ -377,9 +395,10 @@ export AWS_DEFAULT_REGION=eu-west-1
 export AWS_SESSION_TOKEN=AQoDYXdzEJr...
 export AWS_ROLE_SESSION_NAME=steampipe@myaccount
 ```
+
 ```hcl
 connection "aws" {
-  plugin      = "aws"
+  plugin = "aws"
 }
 ```
 
@@ -389,8 +408,8 @@ If you are running Steampipe on a AWS EC2 instance, and that instance has an [in
 
 ```hcl
 connection "aws" {
-  plugin      = "aws"
-  regions     = ["eu-west-1", "eu-west-2"]
+  plugin  = "aws"
+  regions = ["eu-west-1", "eu-west-2"]
 }
 ```
 

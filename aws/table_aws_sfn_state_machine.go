@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sfn"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
@@ -16,14 +16,16 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 		Name:        "aws_sfn_state_machine",
 		Description: "AWS Step Functions State Machine",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
-			Hydrate:           getStepFunctionsStateMachine,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "StateMachineDoesNotExist", "InvalidArn"}),
+			},
+			Hydrate: getStepFunctionsStateMachine,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listStepFunctionsStateManchines,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

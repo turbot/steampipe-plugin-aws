@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_instance",
 		Description: "AWS RDS DB Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_instance_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBInstanceNotFound"}),
-			Hydrate:           getRDSDBInstance,
+			KeyColumns: plugin.SingleColumn("db_instance_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBInstanceNotFound"}),
+			},
+			Hydrate: getRDSDBInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBInstances,
@@ -30,7 +32,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				{Name: "engine", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",
@@ -334,6 +336,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "certificate",
+				Description: "The CA certificate associated with the DB instance.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getRDSDBInstanceCertificate,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "db_parameter_groups",
 				Description: "A list of DB parameter groups applied to this DB instance.",
 				Type:        proto.ColumnType_JSON,
@@ -359,6 +368,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "option_group_memberships",
 				Description: "A list of option group memberships for this DB instance",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "pending_maintenance_actions",
+				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "processor_features",
@@ -496,6 +512,60 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	if op.DBInstances != nil && len(op.DBInstances) > 0 {
 		return op.DBInstances[0], nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	dbInstanceIdentifier := *h.Item.(*rds.DBInstance).DBInstanceIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := &rds.Filter{
+		Name:   aws.String("db-instance-id"),
+		Values: aws.StringSlice([]string{dbInstanceIdentifier}),
+	}
+	params := &rds.DescribePendingMaintenanceActionsInput{
+		Filters: []*rds.Filter{filter},
+	}
+
+	op, err := svc.DescribePendingMaintenanceActions(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstancePendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		return nil, err
+	}
+
+	if len(op.PendingMaintenanceActions) > 0 {
+		return op.PendingMaintenanceActions, nil
+	}
+	return nil, nil
+}
+
+func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	caCertificateIdentifier := *h.Item.(*rds.DBInstance).CACertificateIdentifier
+
+	// Create service
+	svc, err := RDSService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &rds.DescribeCertificatesInput{
+		CertificateIdentifier: aws.String(caCertificateIdentifier),
+	}
+
+	op, err := svc.DescribeCertificates(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("getRDSDBInstanceCertificate", "DescribeCertificates", err)
+		return nil, err
+	}
+
+	if len(op.Certificates) > 0 {
+		return op.Certificates[0], nil
 	}
 	return nil, nil
 }

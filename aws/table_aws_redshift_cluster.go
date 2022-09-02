@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_cluster",
 		Description: "AWS Redshift Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cluster_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterNotFound"}),
-			Hydrate:           getRedshiftCluster,
+			KeyColumns: plugin.SingleColumn("cluster_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFound"}),
+			},
+			Hydrate: getRedshiftCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRedshiftClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_identifier",

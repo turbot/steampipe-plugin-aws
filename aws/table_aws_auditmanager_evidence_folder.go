@@ -2,13 +2,14 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +19,17 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 		Name:        "aws_auditmanager_evidence_folder",
 		Description: "AWS Audit Manager Evidence Folder",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
-			Hydrate:           getAuditManagerEvidenceFolder,
+			KeyColumns: plugin.AllColumns([]string{"id", "assessment_id", "control_set_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter"}),
+			},
+			Hydrate: getAuditManagerEvidenceFolder,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsAuditManagerAssessments,
 			Hydrate:       listAuditManagerEvidenceFolders,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -147,13 +150,15 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAuditManagerEvidenceFolders", "AWS_REGION", region)
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, region)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Get assessment details
@@ -191,20 +196,32 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 			return !isLast
 		},
 	)
-	return nil, err
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listAuditManagerEvidenceFolders", "err", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolder")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
@@ -220,8 +237,14 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 
 	// Get call
 	data, err := svc.GetEvidenceFolder(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAuditManagerEvidenceFolder", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerEvidenceFolder", "err", err)
 		return nil, err
 	}
 

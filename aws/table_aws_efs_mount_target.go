@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +18,17 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 		Name:        "aws_efs_mount_target",
 		Description: "AWS EFS Mount Target",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("mount_target_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
-			Hydrate:           getAwsEfsMountTarget,
+			KeyColumns: plugin.SingleColumn("mount_target_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"MountTargetNotFound", "InvalidParameter"}),
+			},
+			Hydrate: getAwsEfsMountTarget,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listElasticFileSystem,
 			Hydrate:       listAwsEfsMountTargets,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "mount_target_id",

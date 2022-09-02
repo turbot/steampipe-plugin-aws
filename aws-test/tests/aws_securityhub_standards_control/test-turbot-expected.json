@@ -1,0 +1,8 @@
+[
+  {
+    "akas": [
+      "{{ output.standards_control_arn.value }}"
+    ],
+    "region": "{{ output.aws_region.value }}"
+  }
+]

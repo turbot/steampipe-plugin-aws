@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +18,17 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_managed_prefix_list",
 		Description: "AWS EC2 Managed Prefix List",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
-			Hydrate:           listManagedPrefixList,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction", "InvalidRequest"}),
+			},
+			Hydrate: listManagedPrefixList,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "name", Require: plugin.Optional},
 				{Name: "id", Require: plugin.Optional},
 				{Name: "owner_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -80,7 +82,7 @@ func tableAwsEc2ManagedPrefixList(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The tags for the prefix list.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handlePrefixListTagsEmptyResult),
 			},
 
 			// Steampipe standard columns
@@ -199,12 +201,25 @@ func prefixListTags(_ context.Context, d *transform.TransformData) (interface{},
 	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
 
 	var turbotTagsMap map[string]string
+
+	if len(prefixList.Tags) < 1 {
+		return nil, nil
+	}
+
 	if prefixList.Tags != nil {
 		turbotTagsMap = map[string]string{}
 		for _, i := range prefixList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
+func handlePrefixListTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
+	if len(prefixList.Tags) > 0  {
+		return prefixList.Tags, nil
 	}
 	return nil, nil
 }

@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //
@@ -355,7 +355,6 @@ func policyToCanonical(ctx context.Context, d *transform.TransformData) (interfa
 
 // Inline policies in canonical form
 func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("inlinePoliciesToStd")
 	inlinePolicies := d.HydrateItem.([]map[string]interface{})
 
 	var inlinePoliciesStd []map[string]interface{}
@@ -366,6 +365,7 @@ func inlinePoliciesToStd(ctx context.Context, d *transform.TransformData) (inter
 	for _, inlinePolicy := range inlinePolicies {
 		strPolicy, err := json.Marshal(inlinePolicy["PolicyDocument"])
 		if err != nil {
+			plugin.Logger(ctx).Error("inlinePoliciesToStd", fmt.Sprintf("transform_error for %s", d.ColumnName), err)
 			return nil, err
 		}
 		policyStd, errStd := canonicalPolicy(string(strPolicy))

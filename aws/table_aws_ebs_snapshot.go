@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -17,9 +17,11 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_snapshot",
 		Description: "AWS EBS Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
-			Hydrate:           getAwsEBSSnapshot,
+			KeyColumns: plugin.SingleColumn("snapshot_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidSnapshot.NotFound", "InvalidSnapshotID.Malformed", "InvalidParameterValue"}),
+			},
+			Hydrate: getAwsEBSSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEBSSnapshots,
@@ -62,7 +64,7 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_id",

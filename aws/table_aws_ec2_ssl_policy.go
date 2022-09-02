@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_ssl_policy",
 		Description: "AWS EC2 SSL Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"SSLPolicyNotFound"}),
-			Hydrate:           getEc2SslPolicy,
+			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SSLPolicyNotFound"}),
+			},
+			Hydrate: getEc2SslPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2SslPolicies,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

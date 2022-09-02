@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/identitystore"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
@@ -15,15 +15,20 @@ func tableAwsIdentityStoreGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_identitystore_group",
 		Description: "AWS Identity Store Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"identity_store_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getIdentityStoreGroup,
+			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getIdentityStoreGroup,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.AllColumns([]string{"identity_store_id", "name"}),
 			Hydrate:    listIdentityStoreGroups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_store_id",

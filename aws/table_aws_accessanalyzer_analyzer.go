@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 		Name:        "aws_accessanalyzer_analyzer",
 		Description: "AWS Access Analyzer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
-			Hydrate:           getAccessAnalyzer,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+			},
+			Hydrate: getAccessAnalyzer,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAccessAnalyzers,
@@ -32,7 +34,7 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -2,14 +2,13 @@ package aws
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plugin.Table {
@@ -17,14 +16,16 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		Name:        "aws_serverlessapplicationrepository_application",
 		Description: "AWS Serverless Application Repository Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "NotFoundException"}),
-			Hydrate:           getServerlessApplicationRepositoryApplication,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "NotFoundException"}),
+			},
+			Hydrate: getServerlessApplicationRepositoryApplication,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listServerlessApplicationRepositoryApplications,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -209,12 +210,6 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	data, err := svc.GetApplication(params)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplication", "error_GetApplication", err)
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "AccessDeniedException" {
-				return nil, errors.New("Unauthorized or InvalidFormat")
-			}
-		}
-
 		return nil, err
 	}
 

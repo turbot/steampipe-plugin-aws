@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -19,14 +19,16 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Name:        "aws_sqs_queue",
 		Description: "AWS SQS Queue",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("queue_url"),
-			ShouldIgnoreError: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
-			Hydrate:           getQueueAttributes,
+			KeyColumns: plugin.SingleColumn("queue_url"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+			},
+			Hydrate: getQueueAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "queue_url",

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 		Name:        "aws_wafv2_ip_set",
 		Description: "AWS WAFv2 IP Set",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"id", "name", "scope"}),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
-			Hydrate:           getAwsWafv2IpSet,
+			KeyColumns: plugin.AllColumns([]string{"id", "name", "scope"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException", "WAFInvalidParameterException", "InvalidParameter", "ValidationException"}),
+			},
+			Hydrate: getAwsWafv2IpSet,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsWafv2IpSets,
 		},
-		GetMatrixItem: BuildWafRegionList,
+		GetMatrixItemFunc: BuildWafRegionList,
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",

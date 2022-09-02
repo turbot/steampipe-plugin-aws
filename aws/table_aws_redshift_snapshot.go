@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_snapshot",
 		Description: "AWS Redshift Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
-			Hydrate:           getAwsRedshiftSnapshot,
+			KeyColumns: plugin.SingleColumn("snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterSnapshotNotFound"}),
+			},
+			Hydrate: getAwsRedshiftSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftSnapshots,
@@ -31,7 +33,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				{Name: "snapshot_create_time", Require: plugin.Optional, Operators: []string{"="}},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "snapshot_identifier",
@@ -161,7 +163,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 			{
 				Name:        "snapshot_create_time",
 				Description: "The time (in UTC format) when Amazon Redshift began the snapshot.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "snapshot_retention_start_time",

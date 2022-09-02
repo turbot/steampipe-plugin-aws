@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsCloudFrontOriginRequestPolicy(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_origin_request_policy",
 		Description: "AWS CloudFront Origin Request Policy",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
-			Hydrate:           getCloudFrontOriginRequestPolicy,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchOriginRequestPolicy", "InvalidParameter"}),
+			},
+			Hydrate: getCloudFrontOriginRequestPolicy,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginRequestPolicies,

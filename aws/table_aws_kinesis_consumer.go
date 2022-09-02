@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,15 +17,17 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_consumer",
 		Description: "AWS Kinesis Consumer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("consumer_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsKinesisConsumer,
+			KeyColumns: plugin.SingleColumn("consumer_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsKinesisConsumer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listStreams,
 			Hydrate:       listKinesisConsumers,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "consumer_name",

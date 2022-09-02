@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
@@ -15,14 +15,16 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_launch_configuration",
 		Description: "AWS EC2 Launch Configuration",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
-			Hydrate:           getAwsEc2LaunchConfiguration,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationError"}),
+			},
+			Hydrate: getAwsEc2LaunchConfiguration,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsEc2LaunchConfigurations,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

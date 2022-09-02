@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,15 +19,17 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Name:        "aws_ec2_load_balancer_listener",
 		Description: "AWS EC2 Load Balancer Listener",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
-			Hydrate:           getEc2LoadBalancerListener,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
+			},
+			Hydrate: getEc2LoadBalancerListener,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

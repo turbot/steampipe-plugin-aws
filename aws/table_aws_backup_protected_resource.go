@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,14 +19,16 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_protected_resource",
 		Description: "AWS Backup Protected Resource",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("resource_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
-			Hydrate:           getAwsBackupProtectedResource,
+			KeyColumns: plugin.SingleColumn("resource_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidParameter", "InvalidParameterValueException"}),
+			},
+			Hydrate: getAwsBackupProtectedResource,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupProtectedResources,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_arn",
