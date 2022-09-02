@@ -66,6 +66,8 @@ func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
 				Description: "A symbolic description of how CloudWatch Logs should interpret the data in each log event.",
 				Type:        proto.ColumnType_STRING,
 			},
+
+			// Steampipe standard column
 			{
 				Name:        "role_arn",
 				Description: "The role associated to the filter.",
