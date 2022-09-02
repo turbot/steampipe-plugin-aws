@@ -1370,7 +1370,9 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 					account = reIsAwsResource.FindStringSubmatch(principalItem)[1]
 					currentSet = &evaluatedPrincipal.allowedPrincipalsArnsSet
 				} else {
-					return evaluatedPrincipal, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
+					// Malformed arn
+					continue
+					//return evaluatedPrincipal, fmt.Errorf("unabled to parse arn or account: %s", principalItem)
 				}
 
 				if userAccountId != account {
