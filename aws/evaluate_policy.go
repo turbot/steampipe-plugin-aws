@@ -23,6 +23,23 @@ type PolicySummary struct {
 	SharedStatementIds                  []string `json:"shared_statement_ids"`
 }
 
+func makeEmptyPolicySummary() PolicySummary {
+	return PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+}
+
 func checkPolicyValidity(policy Policy) (bool, error) {
 	if policy.Version == "" {
 		return false, fmt.Errorf("policy element Version is missing")
@@ -54,54 +71,52 @@ func checkPolicyValidity(policy Policy) (bool, error) {
 }
 
 func EvaluatePolicy(policyContent string, userAccountId string) (PolicySummary, error) {
-	policySummary := PolicySummary{
-		AccessLevel: "private",
+	if policyContent == "" || policyContent == "{}" {
+		return makeEmptyPolicySummary(), nil
 	}
+
+	policyInterface, err := canonicalPolicy(policyContent)
+	if err != nil {
+		return makeEmptyPolicySummary(), err
+	}
+
+	policy := policyInterface.(Policy)
 
 	// Check source account id which should be valid.
 	re := regexp.MustCompile(`^[0-9]{12}$`)
 
 	if !re.MatchString(userAccountId) {
-		return policySummary, fmt.Errorf("source account id is invalid: %s", userAccountId)
+		return makeEmptyPolicySummary(), fmt.Errorf("source account id is invalid: %s", userAccountId)
 	}
 
-	if policyContent == "" || policyContent == "{}" {
-		return policySummary, nil
-	}
-
-	policyInterface, err := canonicalPolicy(policyContent)
-	if err != nil {
-		return policySummary, err
+	if valid, err := checkPolicyValidity(policy); !valid {
+		return makeEmptyPolicySummary(), err
 	}
 
 	allAvailablePermissions := loadAllAvailablePermissions()
 
-	policy := policyInterface.(Policy)
-
-	if valid, err := checkPolicyValidity(policy); !valid {
-		return policySummary, err
-	}
-
 	allowedEvaluatedStatements, deniedEvaluatedStatements, err := evaluateStatements(policy.Statements, userAccountId, allAvailablePermissions)
 	if err != nil {
-		return policySummary, err
+		return makeEmptyPolicySummary(), err
 	}
 
 	reducedStatements := reduceStatements(allowedEvaluatedStatements, deniedEvaluatedStatements)
 	statementsSummary := generateStatementsSummary(reducedStatements, allAvailablePermissions)
 
-	policySummary.AccessLevel = evaluateAccessLevel(statementsSummary)
-	policySummary.AllowedPrincipalFederatedIdentities = setToSortedSlice(statementsSummary.allowedPrincipalFederatedIdentitiesSet)
-	policySummary.AllowedPrincipalServices = setToSortedSlice(statementsSummary.allowedPrincipalServicesSet)
-	policySummary.AllowedPrincipals = setToSortedSlice(statementsSummary.allowedPrincipalsSet)
-	policySummary.AllowedPrincipalAccountIds = setToSortedSlice(statementsSummary.allowedPrincipalAccountIdsSet)
-	policySummary.AllowedOrganizationIds = setToSortedSlice(statementsSummary.allowedOrganizationIdsSet)
-	policySummary.PublicStatementIds = setToSortedSlice(statementsSummary.publicStatementIds)
-	policySummary.SharedStatementIds = setToSortedSlice(statementsSummary.sharedStatementIds)
-	policySummary.PublicAccessLevels = statementsSummary.publicAccessLevels
-	policySummary.SharedAccessLevels = statementsSummary.sharedAccessLevels
-	policySummary.PrivateAccessLevels = statementsSummary.privateAccessLevels
-	policySummary.IsPublic = statementsSummary.isPublic
+	policySummary := PolicySummary{
+		AccessLevel:                         evaluateAccessLevel(statementsSummary),
+		AllowedPrincipalFederatedIdentities: setToSortedSlice(statementsSummary.allowedPrincipalFederatedIdentitiesSet),
+		AllowedPrincipalServices:            setToSortedSlice(statementsSummary.allowedPrincipalServicesSet),
+		AllowedPrincipals:                   setToSortedSlice(statementsSummary.allowedPrincipalsSet),
+		AllowedPrincipalAccountIds:          setToSortedSlice(statementsSummary.allowedPrincipalAccountIdsSet),
+		AllowedOrganizationIds:              setToSortedSlice(statementsSummary.allowedOrganizationIdsSet),
+		PublicStatementIds:                  setToSortedSlice(statementsSummary.publicStatementIds),
+		SharedStatementIds:                  setToSortedSlice(statementsSummary.sharedStatementIds),
+		PublicAccessLevels:                  statementsSummary.publicAccessLevels,
+		SharedAccessLevels:                  statementsSummary.sharedAccessLevels,
+		PrivateAccessLevels:                 statementsSummary.privateAccessLevels,
+		IsPublic:                            statementsSummary.isPublic,
+	}
 
 	return policySummary, nil
 }
@@ -765,26 +780,31 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 		}
 
 		for conditionName, conditionValues := range conditionKey.(map[string]interface{}) {
-			processed = true
 			switch conditionName {
 			case "aws:principalaccount":
 				partialEvaluatedCondition := evaluatePrincipalAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			case "aws:sourceaccount":
 				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			case "aws:sourceowner":
 				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			case "aws:principalorgid":
 				partialEvaluatedCondition := evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			case "aws:principalarn":
 				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			case "aws:sourcearn":
 				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			}
 		}
 	}

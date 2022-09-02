@@ -331,7 +331,7 @@ func evaluateIntegration(t *testing.T, source PolicySummary, expected PolicySumm
 func TestPolicyInstantiation(t *testing.T) {
 	t.Run("TestPolicyInstantiationEmptyStringEvaluates", testPolicyInstantiationEmptyStringEvaluates)
 	t.Run("TestPolicyInstantiationEmptyJsonStringEvaluates", testPolicyInstantiationEmptyJsonStringEvaluates)
-	t.Run("TestPolicyInstantiationWithCanonicaliseWithNoStatementsPolicyEvaluates", testPolicyInstantiationWithCanonicaliseWithNoStatementsPolicyEvaluates)
+	t.Run("TestPolicyInstantiationWithPrincipalAndWithoutStatementsPolicyEvaluates", testPolicyInstantiationWithPrincipalAndWithoutStatementsPolicyEvaluates)
 
 	t.Run("TestPolicyValidityPolicyWithCorrectVersionEvaluates1", testPolicyValidityPolicyWithCorrectVersionEvaluates1)
 	t.Run("TestPolicyValidityPolicyWithCorrectVersionEvaluates2", testPolicyValidityPolicyWithCorrectVersionEvaluates2)
@@ -409,7 +409,7 @@ func testPolicyInstantiationEmptyJsonStringEvaluates(t *testing.T) {
 	}
 }
 
-func testPolicyInstantiationWithCanonicaliseWithNoStatementsPolicyEvaluates(t *testing.T) {
+func testPolicyInstantiationWithPrincipalAndWithoutStatementsPolicyEvaluates(t *testing.T) {
 	// Set up
 	userAccountId := "123456789012"
 	policyContent := `
@@ -827,8 +827,14 @@ func testIfSourceAccountIdContainsNonNumericalValuesItFails(t *testing.T) {
 	// Set up
 	userAccountId := "123A123123"
 
+	policyContent := `
+	{
+	  "Version": "2012-10-17"
+	}
+	`
+
 	// Test
-	_, err := EvaluatePolicy("", userAccountId)
+	_, err := EvaluatePolicy(policyContent, userAccountId)
 
 	// Evaluate
 	if err == nil {
@@ -846,8 +852,14 @@ func testIfSourceAccountIdContainsTooFewNumericalValuesItFails(t *testing.T) {
 	// Set up
 	userAccountId := "01234567890"
 
+	policyContent := `
+	{
+	  "Version": "2012-10-17"
+	}
+	`
+
 	// Test
-	_, err := EvaluatePolicy("", userAccountId)
+	_, err := EvaluatePolicy(policyContent, userAccountId)
 
 	// Evaluate
 	if err == nil {
@@ -865,8 +877,14 @@ func testIfSourceAccountIdContainsTooManyNumericalValuesItFails(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901234"
 
+	policyContent := `
+	{
+	  "Version": "2012-10-17"
+	}
+	`
+
 	// Test
-	_, err := EvaluatePolicy("", userAccountId)
+	_, err := EvaluatePolicy(policyContent, userAccountId)
 
 	// Evaluate
 	if err == nil {
@@ -955,6 +973,7 @@ func testIfSourceAccountIdContainsCorrectAmountOfNumericalValuesAndStartsWithZer
 func TestPolicyPrincipalElementWildcard(t *testing.T) {
 	t.Run("TestWhenPrincipalIsWildcarded", testWhenPrincipalIsWildcarded)
 	t.Run("TestWhenAwsPrincipalIsWildcarded", testWhenAwsPrincipalIsWildcarded)
+	t.Run("TestWhenAwsPrincipalIsWildcardedAndUnknownCondition", testWhenAwsPrincipalIsWildcardedAndUnknownCondition)
 	t.Run("TestWhenPrincipalIsMultipleMixedAccountsWithWildcard", testWhenPrincipalIsMultipleMixedAccountsWithWildcard)
 	t.Run("TestWhenStatementHasBothPublicAndSharedAccountThenTheEvaluationIsPublic", testWhenStatementHasBothPublicAndSharedAccountThenTheEvaluationIsPublic)
 	t.Run("TestWhenStatementHasBothPublicAndPrivateAccountThenTheEvaluationIsPublic", testWhenStatementHasBothPublicAndPrivateAccountThenTheEvaluationIsPublic)
@@ -1032,6 +1051,72 @@ func testWhenAwsPrincipalIsWildcarded(t *testing.T) {
           "Action": "sts:AssumeRole",
           "Principal": "*",
           "Resource": "*"
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "public",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"Write"},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testWhenAwsPrincipalIsWildcardedAndUnknownCondition(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": "*",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "sts:ExternalId": "shdf89awphfgiohigui;sahyf09238[478r["
+            },
+            "Bool": {
+              "aws:MultiFactorAuthPresent": "true"
+            }
+          }
         }
       ]
     }
