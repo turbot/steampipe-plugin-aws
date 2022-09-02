@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -48,10 +49,9 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "create_time",
+				Name:        "cluster_create_time",
 				Description: "Specifies the time when the cluster was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("ClusterCreateTime"),
 			},
 			{
 				Name:        "backup_retention_period",
@@ -272,7 +272,15 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		}
 
 		for _, cluster := range output.DBClusters {
-			d.StreamListItem(ctx, cluster)
+
+			if helpers.StringSliceContains(
+				[]string{
+					"docdb",
+				},
+				*cluster.Engine) {
+
+				d.StreamListItem(ctx, cluster)
+			}
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -318,7 +326,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	cluster := h.Item.(*types.DBCluster)
+	cluster := h.Item.(types.DBCluster)
 
 	// Create Session
 	svc, err := DocDBService(ctx, d)
@@ -346,7 +354,7 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func docDBClusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("docDBClusterTagListToTurbotTags")
-	tagList := d.Value.([]*types.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

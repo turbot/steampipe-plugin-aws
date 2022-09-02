@@ -10,7 +10,7 @@ Amazon DocumentDB (with MongoDB compatibility) is a fast, reliable, and fully ma
 select
   db_cluster_identifier,
   status,
-  create_time,
+  cluster_create_time,
   kms_key_id,
   storage_encrypted
 from
@@ -61,7 +61,7 @@ from
 select
   db_cluster_identifier,
   status,
-  create_time,
+  cluster_create_time,
   deletion_protection
 from
   aws_docdb_cluster
