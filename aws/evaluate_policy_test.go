@@ -1374,8 +1374,9 @@ func testWhenStatementHasBothPublicAndPrivateAccountThenTheEvaluationIsPublic(t 
 }
 
 func TestPolicyPrincipalElementAccounts(t *testing.T) {
-	t.Run("TestWhenPrincipalIsAMisformedAccountWithOneDigitShortFails", testWhenPrincipalIsAMisformedAccountWithOneDigitShortFails)
-	t.Run("TestWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails", testWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails)
+	// NOTE: Changed to silently failed
+	// t.Run("TestWhenPrincipalIsAMisformedAccountWithOneDigitShortFails", testWhenPrincipalIsAMisformedAccountWithOneDigitShortFails)
+	// t.Run("TestWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails", testWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails)
 	t.Run("TestWhenPrincipalIsAUserAccountId", testWhenPrincipalIsAUserAccountId)
 	t.Run("TestWhenPrincipalIsAUserAccountArn", testWhenPrincipalIsAUserAccountArn)
 	t.Run("TestWhenPrincipalIsACrossAccountId", testWhenPrincipalIsACrossAccountId)
@@ -1388,73 +1389,75 @@ func TestPolicyPrincipalElementAccounts(t *testing.T) {
 	t.Run("TestWhenPrincipalHasAWildcardInAccountThenIgnorePrincipal", testWhenPrincipalHasAWildcardInAccountThenIgnorePrincipal)
 }
 
-func testWhenPrincipalIsAMisformedAccountWithOneDigitShortFails(t *testing.T) {
-	// Set up
-	userAccountId := "012345678901"
-	policyContent := `
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": "sts:AssumeRole",
-          "Principal": {
-            "AWS": "12345678901"
-          },
-          "Resource": "*"
-        }
-      ]
-    }
-	`
+// NOTE: Changed to silently failed
+// func testWhenPrincipalIsAMisformedAccountWithOneDigitShortFails(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "sts:AssumeRole",
+//           "Principal": {
+//             "AWS": "12345678901"
+//           },
+//           "Resource": "*"
+//         }
+//       ]
+//     }
+// 	`
 
-	// Test
-	_, err := EvaluatePolicy(policyContent, userAccountId)
+// 	// Test
+// 	_, err := EvaluatePolicy(policyContent, userAccountId)
 
-	// Evaluate
-	if err == nil {
-		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
-	}
+// 	// Evaluate
+// 	if err == nil {
+// 		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
+// 	}
 
-	expectedErrorMsg := "unabled to parse arn or account: 12345678901"
+// 	expectedErrorMsg := "unabled to parse arn or account: 12345678901"
 
-	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
-		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
-	}
-}
+// 	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+// 		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
+// 	}
+// }
 
-func testWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails(t *testing.T) {
-	// Set up
-	userAccountId := "012345678901"
-	policyContent := `
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": "sts:AssumeRole",
-          "Principal": {
-            "AWS": "0123456789012"
-          },
-          "Resource": "*"
-        }
-      ]
-    }
-	`
+// NOTE: Changed to silently failed
+// func testWhenPrincipalIsAMisformedAccountWithOneDigitExtraFails(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "sts:AssumeRole",
+//           "Principal": {
+//             "AWS": "0123456789012"
+//           },
+//           "Resource": "*"
+//         }
+//       ]
+//     }
+// 	`
 
-	// Test
-	_, err := EvaluatePolicy(policyContent, userAccountId)
+// 	// Test
+// 	_, err := EvaluatePolicy(policyContent, userAccountId)
 
-	// Evaluate
-	if err == nil {
-		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
-	}
+// 	// Evaluate
+// 	if err == nil {
+// 		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
+// 	}
 
-	expectedErrorMsg := "unabled to parse arn or account: 0123456789012"
+// 	expectedErrorMsg := "unabled to parse arn or account: 0123456789012"
 
-	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
-		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
-	}
-}
+// 	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+// 		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
+// 	}
+// }
 
 func testWhenPrincipalIsAUserAccountId(t *testing.T) {
 	// Set up
@@ -2097,7 +2100,8 @@ func testWhenPrincipalHasAWildcardInAccountThenIgnorePrincipal(t *testing.T) {
 }
 
 func TestPolicyPrincipalElementArn(t *testing.T) {
-	t.Run("TestWhenPrincipalIsAMisformedArnFails", testWhenPrincipalIsAMisformedArnFails)
+	// NOTE: Changed to silently failed
+	// t.Run("TestWhenPrincipalIsAMisformedArnFails", testWhenPrincipalIsAMisformedArnFails)
 	t.Run("TestWhenPrincipalIsAUserAccountRole", testWhenPrincipalIsAUserAccountRole)
 	t.Run("TestWhenPrincipalIsACrossAccountRole", testWhenPrincipalIsACrossAccountRole)
 	t.Run("TestWhenPrincipalIsMultipleUserAccountRoles", testWhenPrincipalIsMultipleUserAccountRoles)
@@ -2107,39 +2111,40 @@ func TestPolicyPrincipalElementArn(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMultipleMixedAccountRoles", testWhenPrincipalIsMultipleMixedAccountRoles)
 }
 
-func testWhenPrincipalIsAMisformedArnFails(t *testing.T) {
-	// Set up
-	userAccountId := "012345678901"
-	policyContent := `
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": "sts:AssumeRole",
-          "Principal": {
-            "AWS": "arn:aws:sts::misformed:012345678901:assumed-role/role-name/role-session-name"
-          },
-          "Resource": "*"
-        }
-      ]
-    }
-	`
+// NOTE: Changed to silently failed
+// func testWhenPrincipalIsAMisformedArnFails(t *testing.T) {
+// 	// Set up
+// 	userAccountId := "012345678901"
+// 	policyContent := `
+//     {
+//       "Version": "2012-10-17",
+//       "Statement": [
+//         {
+//           "Effect": "Allow",
+//           "Action": "sts:AssumeRole",
+//           "Principal": {
+//             "AWS": "arn:aws:sts::misformed:012345678901:assumed-role/role-name/role-session-name"
+//           },
+//           "Resource": "*"
+//         }
+//       ]
+//     }
+// 	`
 
-	// Test
-	_, err := EvaluatePolicy(policyContent, userAccountId)
+// 	// Test
+// 	_, err := EvaluatePolicy(policyContent, userAccountId)
 
-	// Evaluate
-	if err == nil {
-		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
-	}
+// 	// Evaluate
+// 	if err == nil {
+// 		t.Fatal("Expected error but no error was returned from EvaluatePolicy")
+// 	}
 
-	expectedErrorMsg := "unabled to parse arn or account: arn:aws:sts::misformed:012345678901:assumed-role/role-name/role-session-name"
+// 	expectedErrorMsg := "unabled to parse arn or account: arn:aws:sts::misformed:012345678901:assumed-role/role-name/role-session-name"
 
-	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
-		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
-	}
-}
+// 	if errorMsg := err.Error(); errorMsg != expectedErrorMsg {
+// 		t.Fatalf("The error message returned: '%s' but was expected to be: '%s'", errorMsg, expectedErrorMsg)
+// 	}
+// }
 
 func testWhenPrincipalIsAUserAccountRole(t *testing.T) {
 	// Set up
