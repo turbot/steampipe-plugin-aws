@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/docdb"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
+	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +19,16 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_docdb_cluster",
 		Description: "AWS Doc DB Cluster",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_cluster_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBClusterNotFoundFault"}),
-			Hydrate:           getDocDBCluster,
+			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBClusterNotFoundFault"}),
+			},
+			Hydrate: getDocDBCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDocDBClusters,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -54,6 +57,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Name:        "backup_retention_period",
 				Description: "Specifies the number of days for which automatic snapshots are retained.",
 				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "clone_group_id",
+				Description: "Identifies the clone group to which the DB cluster is associated.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "db_cluster_parameter_group",
@@ -170,6 +178,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "enabled_cloudwatch_logs_exports",
+				Description: "A list of log types that this cluster is configured to export to Amazon CloudWatch Logs.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "members",
 				Description: "A list of instances that make up the cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -220,52 +233,61 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listDocDBClusters")
+	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := DocDBService(ctx, d)
 	if err != nil {
+		logger.Error("aws_docdb_cluster.listDocDBClusters", "service_creation_error", err)
 		return nil, err
 	}
 
-	input := &docdb.DescribeDBClustersInput{
-		MaxRecords: aws.Int64(100),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeDBClustersPages(
-		input,
-		func(page *docdb.DescribeDBClustersOutput, isLast bool) bool {
-			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+	input := docdb.DescribeDBClustersInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Check if context has been cancelled or if the limit has been reached (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := docdb.NewDescribeDBClustersPaginator(svc, &input, func(o *docdb.DescribeDBClustersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_docdb_cluster.listDocDBClusters", "api_error", err)
+			return nil, err
+		}
+
+		for _, cluster := range output.DBClusters {
+			d.StreamListItem(ctx, cluster)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 	if len(dbClusterIdentifier) < 1 {
 		return nil, nil
@@ -274,6 +296,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	// Create service
 	svc, err := DocDBService(ctx, d)
 	if err != nil {
+		logger.Error("aws_docdb_cluster.getDocDBCluster", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -281,8 +304,9 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		DBClusterIdentifier: aws.String(dbClusterIdentifier),
 	}
 
-	op, err := svc.DescribeDBClusters(params)
+	op, err := svc.DescribeDBClusters(ctx, params)
 	if err != nil {
+		logger.Error("aws_docdb_cluster.getDocDBCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -294,12 +318,12 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getDocDBClusterTags")
-	cluster := h.Item.(*docdb.DBCluster)
+	cluster := h.Item.(*types.DBCluster)
 
 	// Create Session
 	svc, err := DocDBService(ctx, d)
 	if err != nil {
+		logger.Error("aws_docdb_cluster.getDocDBClusterTags", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -309,9 +333,9 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("getDocDBClusterTags", "ERROR", err)
+		logger.Error("aws_docdb_cluster.getDocDBClusterTags", "api_error", err)
 		return nil, err
 	}
 
@@ -322,7 +346,7 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func docDBClusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("docDBClusterTagListToTurbotTags")
-	tagList := d.Value.([]*docdb.Tag)
+	tagList := d.Value.([]*types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

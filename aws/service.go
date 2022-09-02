@@ -42,11 +42,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dax"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
-<<<<<<< HEAD
-	"github.com/aws/aws-sdk-go/service/docdb"
-=======
 	"github.com/aws/aws-sdk-go/service/dlm"
->>>>>>> main
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -343,14 +339,6 @@ func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.Dynamo
 		return nil, err
 	}
 	return dynamodb.New(sess), nil
-}
-
-func DocDBService(ctx context.Context, d *plugin.QueryData) (*docdb.DocDB, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return docdb.New(sess), nil
 }
 
 func Ec2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.EC2, error) {
