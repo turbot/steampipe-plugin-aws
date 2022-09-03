@@ -368,8 +368,9 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	awsCommonData := commonColumnData.(*awsCommonColumnData)
-	if awsCommonData.Partition == "aws-us-gov"{
-		plugin.Logger(ctx).Debug("getLambdaFunctionUrlConfig", "aws-gov-cloud encountered", functionName)
+	//	https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-lambda.html#govcloud-lambda-diffs
+	//	Case for handling gov cloud permission issue, as lambda function url is not available in gov cloud.
+	if awsCommonData.Partition == "aws-us-gov" {
 		return nil,nil
 	}
 
