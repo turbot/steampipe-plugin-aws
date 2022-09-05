@@ -20,13 +20,10 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Managed Streaming for Apache Kafka",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_arn"),
-			// IgnoreConfig: &plugin.IgnoreConfig{
-			// 	ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBClusterNotFoundFault"}),
-			// },
-			Hydrate: getKafkaCluster,
+			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listKafkaClusters,
+			Hydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -85,11 +82,6 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "serverless",
-				Description: "Information about the serverless cluster.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "state_info",
 				Description: "State Info for the Amazon MSK cluster.",
 				Type:        proto.ColumnType_JSON,
@@ -119,88 +111,95 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKafkaClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
+func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+		logger := plugin.Logger(ctx)
 
-	// Create Session
-	svc, err := KafkaClient(ctx, d)
-	if err != nil {
-		logger.Error("aws_msk_cluster.listKafkaClusters", "service_creation_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		return nil, nil
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(100)
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxLimit {
-			if limit < 20 {
-				maxLimit = 20
-			} else {
-				maxLimit = limit
-			}
-		}
-	}
-
-	input := kafka.ListClustersV2Input{
-		MaxResults: maxLimit,
-	}
-
-	paginator := kafka.NewListClustersV2Paginator(svc, &input, func(o *kafka.ListClustersV2PaginatorOptions) {
-		o.Limit = maxLimit
-		o.StopOnDuplicateToken = true
-	})
-
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
+		// Create Session
+		svc, err := KafkaClient(ctx, d)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_msk_cluster.listKafkaClusters", "api_error", err)
+			logger.Error("aws_msk_cluster.listKafkaClusters", "service_creation_error", err)
 			return nil, err
 		}
+		if svc == nil {
+			return nil, nil
+		}
 
-		for _, cluster := range output.ClusterInfoList {
-			d.StreamListItem(ctx, cluster)
-
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil, nil
+		// Reduce the basic request limit down if the user has only requested a small number of rows
+		maxLimit := int32(100)
+		if d.QueryContext.Limit != nil {
+			limit := int32(*d.QueryContext.Limit)
+			if limit < maxLimit {
+				if limit < 20 {
+					maxLimit = 20
+				} else {
+					maxLimit = limit
+				}
 			}
 		}
-	}
 
-	return nil, nil
+		input := kafka.ListClustersV2Input{
+			MaxResults:        maxLimit,
+			ClusterTypeFilter: &clusterType,
+		}
+
+		paginator := kafka.NewListClustersV2Paginator(svc, &input, func(o *kafka.ListClustersV2PaginatorOptions) {
+			o.Limit = maxLimit
+			o.StopOnDuplicateToken = true
+		})
+
+		for paginator.HasMorePages() {
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_msk_cluster.listKafkaClusters", "api_error", err)
+				return nil, err
+			}
+
+			for _, cluster := range output.ClusterInfoList {
+				d.StreamListItem(ctx, cluster)
+
+				// Context may get cancelled due to manual cancellation or if the limit has been reached
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
+			}
+		}
+
+		return nil, nil
+	}
 }
 
 //// HYDRATE FUNCTIONS
 
-func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
-	if len(clusterArn) < 1 {
+func getKafkaCluster(clusterType string) func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	return func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+		logger := plugin.Logger(ctx)
+		clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
+		if len(clusterArn) < 1 {
+			return nil, nil
+		}
+
+		// Create service
+		svc, err := KafkaClient(ctx, d)
+		if err != nil {
+			logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
+			return nil, err
+		}
+
+		params := &kafka.DescribeClusterV2Input{
+			ClusterArn: aws.String(clusterArn),
+		}
+
+		op, err := svc.DescribeClusterV2(ctx, params)
+		if err != nil {
+			logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
+			return nil, err
+		}
+		if op.ClusterInfo.ClusterType == types.ClusterType(clusterType) {
+			return op.ClusterInfo, nil
+		}
 		return nil, nil
 	}
-
-	// Create service
-	svc, err := KafkaClient(ctx, d)
-	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
-		return nil, err
-	}
-
-	params := &kafka.DescribeClusterV2Input{
-		ClusterArn: aws.String(clusterArn),
-	}
-
-	op, err := svc.DescribeClusterV2(ctx, params)
-	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
-		return nil, err
-	}
-
-	return op.ClusterInfo, nil
 }
 
 func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

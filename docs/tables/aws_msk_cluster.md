@@ -34,33 +34,7 @@ where
   state <> 'ACTIVE';
 ```
 
-### List all serverless clusters
-
-```sql
-select
-  cluster_arn,
-  cluster_name,
-  state,
-  creation_time
-from
-  aws_msk_cluster
-where
-  cluster_type = 'SERVERLESS';
-```
-
-### Get the number of clusters in each cluster type
-
-```sql
-select
-  cluster_type,
-  count(cluster_arn) as cluster_count
-from
-  aws_msk_cluster
-group by
-  cluster_type;
-```
-
-### List provissioned clusters having public access
+### List clusters having public access
 
 ```sql
 select
@@ -74,7 +48,7 @@ where
   provisioned -> 'BrokerNodeGroupInfo' -> 'ConnectivityInfo' -> 'PublicAccess' ->> 'Type' <> 'DISABLED';
 ```
 
-### List provisioned clusters with encryption at rest disabled
+### List clusters with encryption at rest disabled
 
 ```sql
 select
@@ -88,7 +62,7 @@ where
   provisioned -> 'EncryptionInfo' -> 'EncryptionAtRest' is null;
 ```
 
-### List provisioned clusters with encryption in transit disabled
+### List clusters with encryption in transit disabled
 
 ```sql
 select
@@ -102,7 +76,7 @@ where
   provisioned -> 'EncryptionInfo' -> 'EncryptionInTransit' is null;
 ```
 
-### List provisioned clusters with logging disabled
+### List clusters with logging disabled
 
 ```sql
 select
@@ -116,7 +90,7 @@ where
   provisioned -> 'LoggingInfo' is null;
 ```
 
-### Get total storage used by the provisioned clusters
+### Get total storage used by all the clusters
 
 ```sql
 select
