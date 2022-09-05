@@ -4,6 +4,20 @@ Amazon DocumentDB (with MongoDB compatibility) is a fast, reliable, and fully ma
 
 ## Examples
 
+## Basic Info
+
+```sql
+select
+  arn,
+  db_cluster_identifier,
+  deletion_protection,
+  engine,
+  status,
+  region
+from
+  aws_docdb_cluster;
+```
+
 ### List clusters which are not encrypted
 
 ```sql
@@ -36,7 +50,7 @@ where
 ```sql
 select
   db_cluster_identifier,
-  jsonb_array_length(availability_zones) availability_zones_count
+  jsonb_array_length(availability_zones) as availability_zones_count
 from
   aws_docdb_cluster;
 ```

@@ -18,7 +18,7 @@ import (
 func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_docdb_cluster",
-		Description: "AWS Doc DB Cluster",
+		Description: "AWS DocumentDB Cluster",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_cluster_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -236,7 +236,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.listDocDBClusters", "service_creation_error", err)
 		return nil, err
@@ -272,7 +272,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		}
 
 		for _, cluster := range output.DBClusters {
-
+			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
 			if helpers.StringSliceContains(
 				[]string{
 					"docdb",
@@ -302,7 +302,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBCluster", "service_creation_error", err)
 		return nil, err
@@ -329,7 +329,7 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	cluster := h.Item.(types.DBCluster)
 
 	// Create Session
-	svc, err := DocDBService(ctx, d)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBClusterTags", "service_creation_error", err)
 		return nil, err

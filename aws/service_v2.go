@@ -82,7 +82,7 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
-func DocDBService(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
