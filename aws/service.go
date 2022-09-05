@@ -219,9 +219,12 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
@@ -727,9 +730,12 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return serverlessapplicationrepository.New(sess), nil
 }

@@ -68,6 +68,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Name:        "sns_topic_arn",
 				Description: "An ARN that uniquely identifies an Amazon Simple Notification Service.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupVaultNotification,
 				Transform:   transform.FromField("SNSTopicArn"),
 			},
 			{
