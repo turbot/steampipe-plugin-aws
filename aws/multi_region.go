@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
 	"github.com/turbot/go-kit/helpers"
@@ -240,22 +239,37 @@ func unique(stringSlice []string) []string {
 	return list
 }
 
-func SupportedRegionsForService(_ context.Context, d *plugin.QueryData, serviceId string) []string {
+func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+		plugin.Logger(ctx).Info("SupportedRegionsForService FROM CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(cachedData.([]string), ", "))
 		return cachedData.([]string)
 	}
 
-	var validRegions []string
-	regions := endpoints.AwsPartition().Services()[serviceId].Regions()
-	for rs := range regions {
-		validRegions = append(validRegions, rs)
+	var endpoints *Endpoints
+	getCachedEndpoints := plugin.HydrateFunc(GetAwsEndpoints).WithCache()
+	getCachedEndpointsData, err := getCachedEndpoints(ctx, d, h)
+	if err != nil {
+		return []string{}
 	}
 
-	// set cache
-	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
+	endpoints = getCachedEndpointsData.(*Endpoints)
+	partition := getAccountPartition(ctx, d, h)
 
-	return validRegions
+	// var validRegions []string
+	regions := endpoints.GetPartitionByName(partition).Service(serviceId).Regions()
+
+	// var validRegions []string
+	// regions := endpoints.AwsPartition().Services()[serviceId].Regions()
+	// for rs := range regions {
+	// 	validRegions = append(validRegions, rs)
+	// }
+
+	// set cache
+	d.ConnectionManager.Cache.Set(cacheKey, regions)
+	// plugin.Logger(ctx).Info("SupportedRegionsForService WITHOUT CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(validRegions, ", "))
+	plugin.Logger(ctx).Info("SupportedRegionsForService WITHOUT CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(regions, ", "))
+	return regions
 }
 
 // BuildServiceQuotasServicesRegionList :: return a list of matrix items, one per region-services specified in the connection config

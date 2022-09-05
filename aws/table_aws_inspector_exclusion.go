@@ -85,7 +85,7 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 	plugin.Logger(ctx).Trace("listInspectorExclusions")
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

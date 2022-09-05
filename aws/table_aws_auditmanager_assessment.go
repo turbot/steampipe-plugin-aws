@@ -151,10 +151,10 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

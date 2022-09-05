@@ -175,7 +175,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	// Iterating all the available evidence folder
 	for _, item := range evidenceFolders {
 		wg.Add(1)
-		go getRowDataForEvidenceAsync(ctx, d, item, &wg, evidenceCh, errorCh, region)
+		go getRowDataForEvidenceAsync(ctx, svc, d, item, &wg, evidenceCh, errorCh, region)
 	}
 
 	// wait for all evidence folder to be processed
@@ -246,10 +246,10 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	return nil, err
 }
 
-func getRowDataForEvidenceAsync(ctx context.Context, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, wg *sync.WaitGroup, subnetCh chan []evidenceInfo, errorCh chan error, region string) {
+func getRowDataForEvidenceAsync(ctx context.Context, svc *auditmanager.AuditManager, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, wg *sync.WaitGroup, subnetCh chan []evidenceInfo, errorCh chan error, region string) {
 	defer wg.Done()
 
-	rowData, err := getRowDataForEvidence(ctx, d, item, region)
+	rowData, err := getRowDataForEvidence(ctx, svc, d, item, region)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -257,16 +257,7 @@ func getRowDataForEvidenceAsync(ctx context.Context, d *plugin.QueryData, item a
 	}
 }
 
-func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, region string) ([]evidenceInfo, error) {
-	svc, err := AuditManagerService(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
+func getRowDataForEvidence(ctx context.Context, svc *auditmanager.AuditManager, d *plugin.QueryData, item auditmanager.AssessmentEvidenceFolder, region string) ([]evidenceInfo, error) {
 	params := &auditmanager.GetEvidenceByEvidenceFolderInput{
 		AssessmentId:     item.AssessmentId,
 		ControlSetId:     item.ControlSetId,
@@ -296,11 +287,11 @@ func getRowDataForEvidence(ctx context.Context, d *plugin.QueryData, item auditm
 
 //// HYDRATE FUNCTIONS
 
-func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 
 	// Create Session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

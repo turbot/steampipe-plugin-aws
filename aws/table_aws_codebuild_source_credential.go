@@ -56,9 +56,9 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

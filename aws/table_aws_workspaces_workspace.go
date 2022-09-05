@@ -154,7 +154,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err
@@ -233,7 +233,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getWorkspace", "connection_error", err)
 		return nil, err
@@ -268,7 +268,7 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d)
+	svc, err := WorkspacesService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err

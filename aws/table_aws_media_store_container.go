@@ -114,7 +114,7 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 	logger.Trace("listMediaStoreContainers")
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listMediaStoreContainers", "connection_error", err)
 		return nil, err
@@ -179,7 +179,7 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainer", "connection_error", err)
 		return nil, err
@@ -214,7 +214,7 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainerPolicy", "connection_error", err)
 		return nil, err
@@ -254,7 +254,7 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d)
+	svc, err := MediaStoreService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainerTags", "connection_error", err)
 		return nil, err

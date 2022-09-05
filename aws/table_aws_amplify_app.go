@@ -173,7 +173,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := AmplifyService(ctx, d)
+	svc, err := AmplifyService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
@@ -239,7 +239,7 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := AmplifyService(ctx, d)
+	svc, err := AmplifyService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
