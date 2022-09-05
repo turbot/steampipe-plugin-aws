@@ -60,70 +60,18 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Description: "The current version of the MSK cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
-			// {
-			// 	Name:        "number_of_broker_nodes",
-			// 	Description: "The number of broker nodes in the cluster.",
-			// 	Type:        proto.ColumnType_TIMESTAMP,
-			// },
 			{
 				Name:        "state",
 				Description: "Settings for open monitoring using Prometheus.",
 				Type:        proto.ColumnType_STRING,
 			},
-			// {
-			// 	Name:        "zookeeper_connect_string",
-			// 	Description: "The connection string to use to connect to the Apache ZooKeeper cluster.",
-			// 	Type:        proto.ColumnType_TIMESTAMP,
-			// },
-			// {
-			// 	Name:        "zookeeper_connect_string_tls",
-			// 	Description: "The connection string to use to connect to zookeeper cluster on Tls port.",
-			// 	Type:        proto.ColumnType_TIMESTAMP,
-			// },
-
-			// JSON columns
-			// {
-			// 	Name:        "broker_node_group_info",
-			// 	Description: "Information about the broker nodes.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "client_authentication",
-			// 	Description: "Includes all client authentication information.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "current_broker_software_info",
-			// 	Description: "Information about the version of software currently deployed on the Apache Kafka brokers in the cluster.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "encryption_info",
-			// 	Description: "Includes all encryption-related information.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "enhanced_monitoring",
-			// 	Description: "Specifies which metrics are gathered for the MSK cluster.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "logging_info",
-			// 	Description: "Includes all logging-related information.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "open_monitoring",
-			// 	Description: "Settings for open monitoring using Prometheus.",
-			// 	Type:        proto.ColumnType_JSON,
-			// },
-			// {
-			// 	Name:        "cluster_configuration",
-			// 	Description: "Description of this MSK configuration.",
-			// 	Type:        proto.ColumnType_JSON,
-			// 	Hydrate:     getKafkaClusterConfiguration,
-			// 	Transform:   transform.FromValue(),
-			// },
+			{
+				Name:        "cluster_configuration",
+				Description: "Description of this MSK configuration.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getKafkaClusterConfiguration,
+				Transform:   transform.FromValue(),
+			},
 			{
 				Name:        "cluster_operation",
 				Description: "Description of this MSK operation.",
@@ -157,13 +105,13 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DBClusterIdentifier"),
+				Transform:   transform.FromField("ClusterName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBClusterArn").Transform(transform.EnsureStringArray),
+				Transform:   transform.FromField("ClusterArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -255,32 +203,6 @@ func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	return op.ClusterInfo, nil
 }
 
-func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	cluster := h.Item.(types.Cluster)
-
-	// Create Session
-	svc, err := KafkaClient(ctx, d)
-	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaClusterConfiguration", "service_creation_error", err)
-		return nil, err
-	}
-
-	// Build the params
-	params := &kafka.DescribeConfigurationInput{
-		Arn: cluster.ClusterArn,
-	}
-
-	// Get call
-	op, err := svc.DescribeConfiguration(ctx, params)
-	if err != nil {
-		logger.Error("aws_kafka_cluster.getKafkaClusterConfiguration", "api_error", err)
-		return nil, err
-	}
-
-	return op, nil
-}
-
 func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	cluster := h.Item.(types.Cluster)
@@ -309,4 +231,38 @@ func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	return op.ClusterOperationInfo, nil
+}
+
+func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	cluster := h.Item.(types.Cluster)
+	var configArn string
+	if cluster.ClusterType == types.ClusterTypeProvisioned {
+		configArn = *cluster.Provisioned.CurrentBrokerSoftwareInfo.ConfigurationArn
+	}
+
+	if len(configArn) < 1 {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := KafkaClient(ctx, d)
+	if err != nil {
+		logger.Error("aws_msk_cluster.getKafkaClusterConfiguration", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &kafka.DescribeConfigurationInput{
+		Arn: &configArn,
+	}
+
+	// Get call
+	op, err := svc.DescribeConfiguration(ctx, params)
+	if err != nil {
+		logger.Error("aws_kafka_cluster.getKafkaClusterConfiguration", "api_error", err)
+		return nil, err
+	}
+
+	return op, nil
 }
