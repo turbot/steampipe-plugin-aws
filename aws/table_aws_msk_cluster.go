@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,7 +21,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Managed Streaming for Apache Kafka",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_arn"),
-			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
+			Hydrate:    getKafkaCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
@@ -171,35 +172,35 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 
 //// HYDRATE FUNCTIONS
 
-func getKafkaCluster(clusterType string) func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	return func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-		logger := plugin.Logger(ctx)
-		clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
-		if len(clusterArn) < 1 {
-			return nil, nil
-		}
-
-		// Create service
-		svc, err := KafkaClient(ctx, d)
-		if err != nil {
-			logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
-			return nil, err
-		}
-
-		params := &kafka.DescribeClusterV2Input{
-			ClusterArn: aws.String(clusterArn),
-		}
-
-		op, err := svc.DescribeClusterV2(ctx, params)
-		if err != nil {
-			logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
-			return nil, err
-		}
-		if op.ClusterInfo.ClusterType == types.ClusterType(clusterType) {
-			return op.ClusterInfo, nil
-		}
+func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	logger := plugin.Logger(ctx)
+	clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
+	if len(clusterArn) < 1 {
 		return nil, nil
 	}
+
+	// Create service
+	svc, err := KafkaClient(ctx, d)
+	if err != nil {
+		logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
+		return nil, err
+	}
+
+	params := &kafka.DescribeClusterV2Input{
+		ClusterArn: aws.String(clusterArn),
+	}
+
+	op, err := svc.DescribeClusterV2(ctx, params)
+	if err != nil {
+		if strings.Contains(err.Error(), "NotFoundException") {
+			return nil, nil
+		}
+		logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
+		return nil, err
+	}
+	logger.Trace("------------------------------------op", *op.ClusterInfo.ClusterArn)
+	logger.Trace("------------------------------------err", err)
+	return op.ClusterInfo, nil
 }
 
 func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

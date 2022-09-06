@@ -71,7 +71,7 @@ select
   cluster_arn,
   cluster_name,
   state,
-  serverless -> 'ClientAuthentication'
+  serverless -> 'ClientAuthentication' as client_authentication
 from
   aws_msk_serverless_cluster
 where

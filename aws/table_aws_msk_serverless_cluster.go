@@ -18,7 +18,7 @@ func tableAwsMSKServerlessCluster(_ context.Context) *plugin.Table {
 		Description: "AWS Serverless Managed Streaming for Apache Kafka",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_arn"),
-			Hydrate:    getKafkaCluster(string(types.ClusterTypeServerless)),
+			Hydrate:    getKafkaCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeServerless)),
