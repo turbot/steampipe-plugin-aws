@@ -793,6 +793,8 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 				partialEvaluatedCondition := evaluateSourceAccountTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
+			// TODO: Will be added later but used for OU-: See `aws:PrincipalOrgPaths` from https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html
+			// case "aws:principalorgpaths":
 			case "aws:principalorgid":
 				partialEvaluatedCondition := evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
@@ -801,10 +803,11 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
-			case "aws:sourcearn":
-				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
-				evaluatedCondition.Merge(partialEvaluatedCondition)
-				processed = true
+				// TODO: Broken
+				// case "aws:sourcearn":
+				// 	partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				// 	evaluatedCondition.Merge(partialEvaluatedCondition)
+				// 	processed = true
 			}
 		}
 	}
@@ -1267,7 +1270,6 @@ func evaluatePrincipalAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal
 			}
 		}
 
-		// BUG: Equals Looks like it does wildcards
 		for principalAccount := range evaluatedPrincipal.allowedPrincipalsAccountsSet {
 			if conditionPolicyValue.Contains(principalAccount) {
 				principalPolicyValue := MakePolicyValue(principalAccount)
