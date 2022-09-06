@@ -175,7 +175,7 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
-	if len(clusterArn) < 1 {
+	if clusterArn == "" {
 		return nil, nil
 	}
 
@@ -198,9 +198,11 @@ func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
 		return nil, err
 	}
-	logger.Trace("------------------------------------op", *op.ClusterInfo.ClusterArn)
-	logger.Trace("------------------------------------err", err)
-	return op.ClusterInfo, nil
+	logger.Trace("------------------------------------op", *op.ClusterInfo)
+	if op != nil {
+		return *op.ClusterInfo, nil
+	}
+	return nil, nil
 }
 
 func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
