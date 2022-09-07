@@ -368,6 +368,19 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 
 	functionName := functionName(h.Item)
 
+	commonColumnData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "get_common_columns_error", err)
+		return nil, err
+	}
+
+	awsCommonData := commonColumnData.(*awsCommonColumnData)
+	// GovCloud does not support function URLs
+	// https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-lambda.html#govcloud-lambda-diffs
+	if awsCommonData.Partition == "aws-us-gov" {
+		return nil, nil
+	}
+
 	// Create Session
 	svc, err := LambdaService(ctx, d)
 	if err != nil {
