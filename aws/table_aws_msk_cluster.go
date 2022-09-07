@@ -123,6 +123,7 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 			return nil, err
 		}
 		if svc == nil {
+			// Unsupported region, return no data
 			return nil, nil
 		}
 
@@ -186,19 +187,24 @@ func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &kafka.DescribeClusterV2Input{
 		ClusterArn: aws.String(clusterArn),
 	}
 
 	op, err := svc.DescribeClusterV2(ctx, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "NotFoundException") {
+		if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "api error") {
 			return nil, nil
 		}
-		logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
+		logger.Error("aws_msk_cluster.getKafkaCluster", "DescribeClusterV2", err)
 		return nil, err
 	}
-	logger.Trace("------------------------------------op", *op.ClusterInfo)
+
 	if op != nil {
 		return *op.ClusterInfo, nil
 	}
@@ -240,7 +246,9 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	cluster := h.Item.(types.Cluster)
 	var configArn string
 	if cluster.ClusterType == types.ClusterTypeProvisioned {
-		configArn = *cluster.Provisioned.CurrentBrokerSoftwareInfo.ConfigurationArn
+		if cluster.Provisioned.CurrentBrokerSoftwareInfo.ConfigurationArn != nil {
+			configArn = *cluster.Provisioned.CurrentBrokerSoftwareInfo.ConfigurationArn
+		}
 	}
 
 	if len(configArn) < 1 {
