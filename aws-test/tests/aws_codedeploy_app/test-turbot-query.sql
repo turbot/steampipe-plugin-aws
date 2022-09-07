@@ -1,9 +1,10 @@
-select 
+select
   title,
   tags,
   akas,
   account_id
-from 
+from
   aws_codedeploy_app
 where
-  application_id = '{{ output.resource_id.value }}';
+  application_name = '{{ resourceName }}';
+

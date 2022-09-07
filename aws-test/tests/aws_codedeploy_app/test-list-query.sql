@@ -1,11 +1,12 @@
-select 
+select
   application_id,
   application_name,
   arn,
   compute_platform,
   linked_to_github,
   tags
-from 
+from
   aws_codedeploy_app
-where 
+where
   application_id = '{{ output.resource_id.value }}';
+

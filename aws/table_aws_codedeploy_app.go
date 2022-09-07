@@ -134,7 +134,7 @@ func listCodeDeployApplications(ctx context.Context, d *plugin.QueryData, _ *plu
 
 		for _, application := range output.Applications {
 			item := &types.ApplicationInfo{
-				ApplicationName: &application,
+				ApplicationName: aws.String(application),
 			}
 			d.StreamListItem(ctx, item)
 

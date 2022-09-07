@@ -1,7 +1,7 @@
 
 variable "resource_name" {
   type        = string
-  default     = "turbot-test-20200125"
+  default     = "turbot-test-20200126"
   description = "Name of the resource used throughout the test."
 }
 
