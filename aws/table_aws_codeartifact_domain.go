@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -182,7 +181,15 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 		}
 
 		for _, domain := range output.Domains {
-			d.StreamListItem(ctx, domain)
+			item := &types.DomainDescription{
+				Arn:           domain.Arn,
+				CreatedTime:   domain.CreatedTime,
+				EncryptionKey: domain.EncryptionKey,
+				Name:          domain.Name,
+				Owner:         domain.Owner,
+				Status:        domain.Status,
+			}
+			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -206,9 +213,9 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	var name, owner string
 	if h.Item != nil {
-		data := domainData(h.Item, ctx, d, h)
-		name = data["Name"]
-		owner = data["Owner"]
+		data := h.Item.(*types.DomainDescription)
+		name = *data.Name
+		owner = *data.Owner
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		owner = d.KeyColumnQuals["owner"].GetStringValue()
@@ -244,7 +251,7 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	data := domainData(h.Item, ctx, d, h)
+	data := h.Item.(*types.DomainDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
 	validRegions := SupportedRegionsForService(ctx, d, serviceId)
@@ -261,7 +268,7 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// Build the params
 	params := &codeartifact.ListTagsForResourceInput{
-		ResourceArn: aws.String(data["Arn"]),
+		ResourceArn: aws.String(*data.Arn),
 	}
 
 	// Get call
@@ -275,7 +282,7 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	data := domainData(h.Item, ctx, d, h)
+	data := h.Item.(*types.DomainDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
 	validRegions := SupportedRegionsForService(ctx, d, serviceId)
@@ -292,22 +299,20 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 
 	// Build the params
 	params := &codeartifact.GetDomainPermissionsPolicyInput{
-		Domain:      aws.String(data["Name"]),
-		DomainOwner: aws.String(data["Owner"]),
+		Domain:      aws.String(*data.Name),
+		DomainOwner: aws.String(*data.Owner),
 	}
 
 	// Get call
 	op, err := svc.GetDomainPermissionsPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-			return nil, err
-		}
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainPermissionsPolicy", "api_error", err)
+		return nil, err
 	}
-	return op.Policy.Document, nil
+	if op != nil && op.Policy != nil {
+		return op.Policy.Document, nil
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -324,19 +329,4 @@ func codeArtifactDomainTurbotTags(ctx context.Context, d *transform.TransformDat
 		}
 	}
 	return turbotTagsMap, nil
-}
-
-func domainData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
-	data := map[string]string{}
-	switch item := item.(type) {
-	case *types.DomainSummary:
-		data["Arn"] = *item.Arn
-		data["Name"] = *item.Name
-		data["Owner"] = *item.Owner
-	case *types.DomainDescription:
-		data["Arn"] = *item.Arn
-		data["Name"] = *item.Name
-		data["Owner"] = *item.Owner
-	}
-	return data
 }
