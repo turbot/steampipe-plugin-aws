@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
@@ -306,6 +307,9 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 	// Get call
 	op, err := svc.GetDomainPermissionsPolicy(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainPermissionsPolicy", "api_error", err)
 		return nil, err
 	}
