@@ -2,11 +2,11 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -193,7 +193,15 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 		}
 
 		for _, repository := range output.Repositories {
-			d.StreamListItem(ctx, repository)
+			item := &types.RepositoryDescription{
+				AdministratorAccount: repository.AdministratorAccount,
+				Arn:                  repository.Arn,
+				Description:          repository.Description,
+				DomainName:           repository.DomainName,
+				DomainOwner:          repository.DomainOwner,
+				Name:                 repository.Name,
+			}
+			d.StreamListItem(ctx, item)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -218,10 +226,10 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 
 	var domainName, name, owner string
 	if h.Item != nil {
-		data := repositoryData(h.Item, ctx, d, h)
-		name = data["Name"]
-		owner = data["DomainOwner"]
-		domainName = data["DomainName"]
+		data := h.Item.(*types.RepositoryDescription)
+		name = *data.Name
+		owner = *data.DomainOwner
+		domainName = *data.DomainName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		owner = d.KeyColumnQuals["owner"].GetStringValue()
@@ -305,7 +313,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 
 func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	data := repositoryData(h.Item, ctx, d, h)
+	data := h.Item.(*types.RepositoryDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
 	validRegions := SupportedRegionsForService(ctx, d, serviceId)
@@ -322,7 +330,7 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 
 	// Build the params
 	params := &codeartifact.ListTagsForResourceInput{
-		ResourceArn: aws.String(data["Arn"]),
+		ResourceArn: aws.String(*data.Arn),
 	}
 
 	// Get call
@@ -336,7 +344,7 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 
 func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	data := repositoryData(h.Item, ctx, d, h)
+	data := h.Item.(*types.RepositoryDescription)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := "codeartifact"
 	validRegions := SupportedRegionsForService(ctx, d, serviceId)
@@ -353,23 +361,24 @@ func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.Q
 
 	// Build the params
 	params := &codeartifact.GetRepositoryPermissionsPolicyInput{
-		Repository:  aws.String(data["Name"]),
-		DomainOwner: aws.String(data["DomainOwner"]),
-		Domain:      aws.String(data["DomainName"]),
+		Repository:  aws.String(*data.Name),
+		DomainOwner: aws.String(*data.DomainOwner),
+		Domain:      aws.String(*data.DomainName),
 	}
 
 	// Get call
 	op, err := svc.GetRepositoryPermissionsPolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ResourceNotFoundException" {
-				return nil, nil
-			}
-			return nil, err
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
 		}
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryPermissionsPolicy", "api_error", err)
+		return nil, err
 	}
-	return op.Policy.Document, nil
+	if op != nil && op.Policy != nil {
+		return op.Policy.Document, nil
+	}
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
@@ -386,21 +395,4 @@ func codeArtifactRepositoryTurbotTags(ctx context.Context, d *transform.Transfor
 		}
 	}
 	return turbotTagsMap, nil
-}
-
-func repositoryData(item interface{}, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) map[string]string {
-	data := map[string]string{}
-	switch item := item.(type) {
-	case *types.RepositorySummary:
-		data["Arn"] = *item.Arn
-		data["Name"] = *item.Name
-		data["DomainOwner"] = *item.DomainOwner
-		data["DomainName"] = *item.DomainName
-	case *types.RepositoryDescription:
-		data["Arn"] = *item.Arn
-		data["Name"] = *item.Name
-		data["DomainOwner"] = *item.DomainOwner
-		data["DomainName"] = *item.DomainName
-	}
-	return data
 }
