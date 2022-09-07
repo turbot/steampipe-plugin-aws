@@ -1,3 +1,60 @@
+## v0.75.1 [2022-08-31]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.5](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v415-2022-08-31) which includes connection cache TTL fixes.
+
+## v0.75.0 [2022-08-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_ecr_image](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_image) ([#1200](https://github.com/turbot/steampipe-plugin-aws/pull/1200))
+
+_Enhancements_
+
+- Added column `disable_execute_api_endpoint` to `aws_api_gatewayv2_api` table. ([#1242](https://github.com/turbot/steampipe-plugin-aws/pull/1242))
+- Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2): ([#1219](https://github.com/turbot/steampipe-plugin-aws/pull/1219))
+  - `aws_cost_by_account_daily`
+  - `aws_cost_by_account_monthly`
+  - `aws_cost_by_record_type_daily`
+  - `aws_cost_by_record_type_monthly`
+  - `aws_cost_by_service_daily`
+  - `aws_cost_by_service_monthly`
+  - `aws_cost_by_service_usage_type_daily`
+  - `aws_cost_by_service_usage_type_monthly`
+  - `aws_cost_forecast_daily`
+  - `aws_cost_forecast_monthly`
+  - `aws_cost_usage`
+  - `aws_ec2_application_load_balancer`
+  - `aws_ec2_autoscaling_group`
+  - `aws_ec2_capacity_reservation`
+  - `aws_ec2_classic_load_balancer`
+  - `aws_ec2_gateway_load_balancer`
+  - `aws_ec2_key_pair`
+  - `aws_s3_access_point`
+  - `aws_s3_account_settings`
+  - `aws_vpc`
+  - `aws_vpc_customer_gateway`
+  - `aws_vpc_dhcp_options`
+  - `aws_vpc_eip`
+  - `aws_vpc_endpoint`
+  - `aws_vpc_flow_log`
+  - `aws_vpc_nat_gateway`
+  - `aws_vpc_network_acl`
+  - `aws_vpc_peering_connection`
+  - `aws_vpc_route_table`
+  - `aws_vpc_security_group`
+  - `aws_vpc_subnet`
+  - `aws_vpc_vpn_connection`
+  - `aws_vpc_vpn_gateway`
+- Updated the query headers in the `aws_api_gatewayv2_api` table documentation.
+
+_Bug fixes_
+
+- Queries will no longer fail if the `regions` config arg is set to `["*"]` when AWS releases a new region that is not included in the plugin's region list. ([#1267](https://github.com/turbot/steampipe-plugin-aws/pull/1267))
+- Queries will no longer fail if the `regions` config arg includes a wildcarded item, e.g., `["test-*"]`, that matches on no valid regions. ([#1276](https://github.com/turbot/steampipe-plugin-aws/pull/1276))
+
 ## v0.74.2 [2022-08-26]
 
 _Dependencies_

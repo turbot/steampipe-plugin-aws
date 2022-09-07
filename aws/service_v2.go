@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
@@ -88,6 +89,14 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 
 	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return docdb.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
