@@ -60,6 +60,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -218,9 +219,12 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
@@ -481,6 +485,16 @@ func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier,
 	return glacier.New(sess), nil
 }
 
+func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	sess, err := getSession(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.New(sess), nil
+}
+
 func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -716,9 +730,12 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return serverlessapplicationrepository.New(sess), nil
 }
@@ -1012,8 +1029,7 @@ func getSessionForRegion(ctx context.Context, d *plugin.QueryData, region string
 // GetDefaultAwsRegion returns the default region for AWS partiton
 // if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1", "us-iso-east-1", "us-iso-west-1", "us-isob-east-1"}
+	allAwsRegions := getAllAwsRegions()
 
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
@@ -1054,7 +1070,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 				validRegions = append(validRegions, validRegion)
 			}
 		}
-		if len(validRegions) == 0 {
+
+		// Region items with wildcards that match on 0 regions should not be
+		// considered invalid
+		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
 			invalidPatterns = append(invalidPatterns, namePattern)
 		}
 	}
