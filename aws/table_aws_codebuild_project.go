@@ -219,6 +219,11 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// List call
 	err = svc.ListProjectsPages(
 		&codebuild.ListProjectsInput{},
@@ -257,6 +262,11 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
