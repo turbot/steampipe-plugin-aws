@@ -542,7 +542,7 @@ func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, er
 }
 
 func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, macie2.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
