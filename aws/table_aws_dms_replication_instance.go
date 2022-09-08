@@ -204,6 +204,10 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	input := &databasemigrationservice.DescribeReplicationInstancesInput{
@@ -283,6 +287,10 @@ func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -315,6 +323,10 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 	svc, err := DatabaseMigrationService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &databasemigrationservice.ListTagsForResourceInput{

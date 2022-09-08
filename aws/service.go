@@ -285,7 +285,7 @@ func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
 }
 
 func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.DatabaseMigrationService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, databasemigrationservice.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
