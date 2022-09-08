@@ -561,7 +561,7 @@ func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.Me
 }
 
 func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, neptune.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

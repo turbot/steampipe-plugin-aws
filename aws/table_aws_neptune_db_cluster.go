@@ -259,6 +259,10 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &neptune.DescribeDBClustersInput{
@@ -315,6 +319,10 @@ func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &neptune.DescribeDBClustersInput{
@@ -342,6 +350,10 @@ func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := NeptuneService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &neptune.ListTagsForResourceInput{
