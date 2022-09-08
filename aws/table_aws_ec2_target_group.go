@@ -167,6 +167,10 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elbv2.DescribeTargetGroupsInput{
 		PageSize: aws.Int64(400),
@@ -221,6 +225,10 @@ func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &elbv2.DescribeTargetGroupsInput{
 		TargetGroupArns: []*string{aws.String(targetGroupArn)},
@@ -247,6 +255,10 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &elbv2.DescribeTargetHealthInput{
 		TargetGroupArn: targetGroup.TargetGroupArn,
@@ -269,6 +281,10 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elbv2.DescribeTagsInput{

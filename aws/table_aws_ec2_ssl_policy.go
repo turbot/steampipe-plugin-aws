@@ -73,6 +73,10 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	params := &elbv2.DescribeSSLPoliciesInput{
@@ -136,6 +140,10 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params

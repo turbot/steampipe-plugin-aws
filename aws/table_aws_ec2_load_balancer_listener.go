@@ -98,6 +98,10 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	err = svc.DescribeLoadBalancersPages(
@@ -122,6 +126,10 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &elbv2.DescribeListenersInput{
@@ -167,6 +175,10 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elbv2.DescribeListenersInput{

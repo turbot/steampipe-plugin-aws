@@ -161,6 +161,10 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elbv2.DescribeLoadBalancersInput{}
 
@@ -215,6 +219,10 @@ func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &elbv2.DescribeLoadBalancersInput{
 		LoadBalancerArns: []*string{aws.String(loadBalancerArn)},
@@ -241,6 +249,10 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &elbv2.DescribeLoadBalancerAttributesInput{
 		LoadBalancerArn: networkLoadBalancer.LoadBalancerArn,
@@ -263,6 +275,10 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	svc, err := ELBv2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elbv2.DescribeTagsInput{
@@ -301,9 +317,8 @@ func getEc2NetworkLoadBalancerTurbotTags(_ context.Context, d *transform.Transfo
 
 func handleEc2NetworkLoadBalancerEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	networkLoadBalancerTags := d.HydrateItem.([]*elbv2.Tag)
-	if len(networkLoadBalancerTags) > 0  {
+	if len(networkLoadBalancerTags) > 0 {
 		return networkLoadBalancerTags, nil
 	}
 	return nil, nil
 }
-

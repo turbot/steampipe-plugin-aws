@@ -49,7 +49,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
-	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
@@ -409,16 +408,8 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsea
 	return elasticsearchservice.New(sess), nil
 }
 
-func ELBService(ctx context.Context, d *plugin.QueryData) (*elb.ELB, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return elb.New(sess), nil
-}
-
 func ELBv2Service(ctx context.Context, d *plugin.QueryData) (*elbv2.ELBV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, elbv2.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
