@@ -803,7 +803,7 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 }
 
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, wafregional.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
