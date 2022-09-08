@@ -483,7 +483,7 @@ func IAMService(ctx context.Context, d *plugin.QueryData) (*iam.IAM, error) {
 }
 
 func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identitystore.IdentityStore, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, identitystore.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

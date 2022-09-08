@@ -72,6 +72,10 @@ func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &identitystore.ListUsersInput{
 		IdentityStoreId: aws.String(identityStoreId),
@@ -138,6 +142,10 @@ func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	svc, err := IdentityStoreService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &identitystore.DescribeUserInput{

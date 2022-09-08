@@ -80,6 +80,10 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &identitystore.ListGroupsInput{
 		IdentityStoreId: aws.String(identityStoreId),
@@ -146,6 +150,10 @@ func getIdentityStoreGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	svc, err := IdentityStoreService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &identitystore.DescribeGroupInput{
