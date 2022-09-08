@@ -161,10 +161,12 @@ func (p Partition) Service(name string) *Service {
 
 // Services returns a list of regions supported by the service.
 func (s Service) Regions() []string {
-	regions := make([]string, len(s.Endpoints))
+	regions := make([]string, 0, len(s.Endpoints))
 
 	for k := range s.Endpoints {
-		regions = append(regions, k)
+		if k != "" {
+			regions = append(regions, k)
+		}
 	}
 
 	return regions

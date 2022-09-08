@@ -105,7 +105,6 @@ func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	return elb.NewFromConfig(*cfg), nil
 }
 
-
 func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
