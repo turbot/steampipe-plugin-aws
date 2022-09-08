@@ -814,7 +814,8 @@ func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*waf
 	validRegions := SupportedRegionsForService(ctx, d, wafv2.EndpointsID)
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
-		// for them - it's a better user experience.
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
 		return nil, nil
 	}
 	sess, err := getSessionForRegion(ctx, d, region)
