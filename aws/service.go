@@ -661,7 +661,7 @@ func Route53Service(ctx context.Context, d *plugin.QueryData) (*route53.Route53,
 }
 
 func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsmanager.SecretsManager, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, secretsmanager.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

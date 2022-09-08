@@ -175,6 +175,10 @@ func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &secretsmanager.ListSecretsInput{
 		MaxResults: aws.Int64(100),
@@ -235,6 +239,10 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &secretsmanager.DescribeSecretInput{
@@ -265,6 +273,10 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		logger.Error("getSecretsManagerSecretPolicy", "error_SecretsManagerService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
