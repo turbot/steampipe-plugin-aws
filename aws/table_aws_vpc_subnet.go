@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-  
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -153,13 +153,17 @@ func tableAwsVpcSubnet(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcSubnets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_subnet.listVpcSubnets", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -224,15 +228,19 @@ func listVpcSubnets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getVpcSubnet(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getVpcSubnet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	subnetID := d.KeyColumnQuals["subnet_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_subnet.getVpcSubnet", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

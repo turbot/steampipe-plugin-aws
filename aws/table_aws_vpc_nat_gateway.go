@@ -122,13 +122,17 @@ func tableAwsVpcNatGateway(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.listVpcNatGateways", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -187,15 +191,19 @@ func listVpcNatGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getVpcNatGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	natGatewayID := d.KeyColumnQuals["nat_gateway_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_nat_gateway.getVpcNatGateway", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

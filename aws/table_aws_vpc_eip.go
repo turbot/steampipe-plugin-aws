@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-  
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -142,13 +142,17 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listVpcEips(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.listVpcEips", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ec2.DescribeAddressesInput{}
@@ -188,15 +192,19 @@ func listVpcEips(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getVpcEip(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	allocationID := d.KeyColumnQuals["allocation_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_eip.getVpcEip", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

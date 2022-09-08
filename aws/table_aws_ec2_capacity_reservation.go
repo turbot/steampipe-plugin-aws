@@ -165,13 +165,17 @@ func tableAwsEc2CapacityReservation(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.listEc2CapacityReservations", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -224,14 +228,18 @@ func listEc2CapacityReservations(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2CapacityReservation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	reservationId := d.KeyColumnQuals["capacity_reservation_id"].GetStringValue()
 
 	// create service
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_capacity_reservation.getEc2CapacityReservation", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &ec2.DescribeCapacityReservationsInput{
@@ -267,7 +275,7 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 	return turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 capacity reservation list call input filter
 func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

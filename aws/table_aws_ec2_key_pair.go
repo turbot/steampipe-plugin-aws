@@ -6,10 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-  
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -80,13 +80,17 @@ func tableAwsEc2KeyPair(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_key_pair.listEc2KeyPairs", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ec2.DescribeKeyPairsInput{}
@@ -117,11 +121,11 @@ func listEc2KeyPairs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2KeyPair(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	keyName := d.KeyColumnQuals["key_name"].GetStringValue()
 
 	// create service
-	svc, err := EC2Client(ctx, d)
+	svc, err := EC2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_key_pair.getEc2KeyPair", "connection_error", err)
 		return nil, err

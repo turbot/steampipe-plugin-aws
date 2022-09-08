@@ -100,8 +100,8 @@ func DynamoDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func EC2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*ec2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, EC2ServiceID)
 	if err != nil {
 		return nil, err
 	}
