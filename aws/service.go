@@ -301,7 +301,7 @@ func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservi
 }
 
 func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, dlm.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
