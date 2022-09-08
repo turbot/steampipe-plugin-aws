@@ -160,8 +160,8 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	return s3control.NewFromConfig(*cfg), nil
 }
 
-func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func SNSClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*sns.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, SNSServiceID)
 	if err != nil {
 		return nil, err
 	}
