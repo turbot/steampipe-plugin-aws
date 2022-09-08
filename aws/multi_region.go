@@ -14,6 +14,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
+// var SupportedRegionsForClientCount = 0
+
 const matrixKeyRegion = "region"
 const matrixKeyServiceCode = "serviceCode"
 
@@ -256,39 +258,6 @@ func SupportedRegionsForService(_ context.Context, d *plugin.QueryData, serviceI
 	d.ConnectionManager.Cache.Set(cacheKey, validRegions)
 
 	return validRegions
-}
-
-func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		plugin.Logger(ctx).Info("SupportedRegionsForClient FROM CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(cachedData.([]string), ", "))
-		return cachedData.([]string)
-	}
-
-	var endpoints *Endpoints
-	getCachedEndpoints := plugin.HydrateFunc(GetAwsEndpoints).WithCache()
-	getCachedEndpointsData, err := getCachedEndpoints(ctx, d, h)
-	if err != nil {
-		return []string{}
-	}
-
-	endpoints = getCachedEndpointsData.(*Endpoints)
-	partition := getAccountPartition(ctx, d, h)
-
-	// var validRegions []string
-	regions := endpoints.GetPartitionByName(partition).Service(serviceId).Regions()
-
-	// var validRegions []string
-	// regions := endpoints.AwsPartition().Services()[serviceId].Regions()
-	// for rs := range regions {
-	// 	validRegions = append(validRegions, rs)
-	// }
-
-	// set cache
-	d.ConnectionManager.Cache.Set(cacheKey, regions)
-	// plugin.Logger(ctx).Info("SupportedRegionsForService WITHOUT CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(validRegions, ", "))
-	plugin.Logger(ctx).Info("SupportedRegionsForClient WITHOUT CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(regions, ", "))
-	return regions
 }
 
 // BuildServiceQuotasServicesRegionList :: return a list of matrix items, one per region-services specified in the connection config
