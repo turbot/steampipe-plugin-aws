@@ -113,6 +113,10 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get backup plan details
 	plan := h.Item.(*backup.PlansListMember)
@@ -160,6 +164,10 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var backupPlanID, selectionID string

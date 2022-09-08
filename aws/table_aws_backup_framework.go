@@ -14,6 +14,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_backup_framework",
@@ -129,6 +130,10 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &backup.ListFrameworksInput{
 		MaxResults: aws.Int64(1000),
@@ -179,6 +184,10 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -215,6 +224,10 @@ func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var arn *string

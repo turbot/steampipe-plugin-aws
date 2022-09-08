@@ -164,6 +164,10 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &backup.ListRecoveryPointsByBackupVaultInput{
 		MaxResults: aws.Int64(1000),
@@ -220,6 +224,10 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var backupVaultName, recoveryPointArn string

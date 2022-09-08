@@ -67,6 +67,10 @@ func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &backup.ListProtectedResourcesInput{
 		MaxResults: aws.Int64(1000),
@@ -110,6 +114,10 @@ func getAwsBackupProtectedResource(ctx context.Context, d *plugin.QueryData, h *
 	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var arn string
