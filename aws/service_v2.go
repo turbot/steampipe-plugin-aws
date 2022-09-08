@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -40,8 +41,8 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 }
 func noOpToken() error { return nil }
 
-func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func ACMClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*acm.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ACMServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -223,21 +224,21 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-// func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	if region == "" {
-// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-// 	}
-// 	validRegions := SupportedRegionsForService(ctx, d, serviceID)
-// 	if !helpers.StringSliceContains(validRegions, region) {
-// 		// We choose to ignore unsupported regions rather than returning an error
-// 		// for them - it's a better user experience. So, return a nil session rather
-// 		// than an error. The caller must handle this case.
-// 		return nil, nil
-// 	}
-// 	// Supported region, so get and return the session
-// 	return getClient(ctx, d, region)
-// }
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceID string) (*aws.Config, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+	}
+	validRegions := SupportedRegionsForClient(ctx, d, h, serviceID)
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
+	}
+	// Supported region, so get and return the session
+	return getClient(ctx, d, region)
+}
 
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {

@@ -6,12 +6,12 @@ import (
 
 	go_kit_packs "github.com/turbot/go-kit/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/acm/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -219,14 +219,18 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d, h)
 	if err != nil {
-		logger.Error("listAwsAcmCertificates", "connection error", err)
+		logger.Error("aws_acm_certificate.listAwsAcmCertificates", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -286,9 +290,14 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var arn string
@@ -314,10 +323,14 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	detail, err := svc.GetCertificate(ctx, &acm.GetCertificateInput{
@@ -335,10 +348,14 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param

@@ -14,7 +14,7 @@ const (
 	APIGatewayServiceID                      = "apigateway"              // API Gateway
 	APIGatewayV2ServiceID                    = "apigateway"              // ApiGatewayV2
 	AccessAnalyzerServiceID                  = "access-analyzer"         // AccessAnalyzer
-	AcmServiceID                             = "acm"                     // ACM
+	ACMServiceID                             = "acm"                     // ACM
 	AmplifyServiceID                         = "amplify"                 // Amplify
 	ApplicationAutoScalingServiceID          = "application-autoscaling" // Application Auto Scaling
 	AuditManagerServiceID                    = "auditmanager"            // AuditManager

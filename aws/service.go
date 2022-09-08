@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
-	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -108,24 +107,16 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*accessanalyzer.AccessAnalyzer, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, accessanalyzer.EndpointsID)
+func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, accessanalyzer.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
 	return accessanalyzer.New(sess), nil
 }
 
-func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return acm.New(sess), nil
-}
-
-func AmplifyService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*amplify.Amplify, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, amplify.EndpointsID)
+func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, amplify.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -159,8 +150,8 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*a
 	return applicationautoscaling.New(sess), nil
 }
 
-func AuditManagerService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*auditmanager.AuditManager, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, auditmanager.EndpointsID)
+func AuditManagerService(ctx context.Context, d *plugin.QueryData) (*auditmanager.AuditManager, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, auditmanager.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +208,8 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 	return svc, nil
 }
 
-func CodeBuildService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, codebuild.EndpointsID)
+func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codebuild.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -300,8 +291,8 @@ func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplore
 	return costexplorer.New(sess), nil
 }
 
-func DaxService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*dax.DAX, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, dax.EndpointsID)
+func DaxService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, dax.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -526,8 +517,8 @@ func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identityst
 	return identitystore.New(sess), nil
 }
 
-func InspectorService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*inspector.Inspector, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, inspector.EndpointsID)
+func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Inspector, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, inspector.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -585,8 +576,8 @@ func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, er
 	return macie2.New(sess), nil
 }
 
-func MediaStoreService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*mediastore.MediaStore, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, mediastore.EndpointsID)
+func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.MediaStore, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, mediastore.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -612,8 +603,8 @@ func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkf
 	return networkfirewall.New(sess), nil
 }
 
-func PinpointService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*pinpoint.Pinpoint, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, pinpoint.EndpointsID)
+func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoint, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, pinpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -728,8 +719,8 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 	return sagemaker.New(sess), nil
 }
 
-func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, serverlessapplicationrepository.EndpointsID)
+func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, serverlessapplicationrepository.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -862,8 +853,8 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	return wellarchitected.New(sess), nil
 }
 
-func WorkspacesService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*workspaces.WorkSpaces, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, workspaces.EndpointsID)
+func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.WorkSpaces, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, workspaces.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -992,12 +983,12 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceID string) (*session.Session, error) {
+func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*session.Session, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForService(ctx, d, h, serviceID)
+	validRegions := SupportedRegionsForService(ctx, d, serviceID)
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
