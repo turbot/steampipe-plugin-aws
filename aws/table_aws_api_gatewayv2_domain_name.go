@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -70,12 +70,16 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := APIGatewayV2Client(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -125,13 +129,17 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayV2Client(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	domainName := d.KeyColumnQuals["domain_name"].GetStringValue()
