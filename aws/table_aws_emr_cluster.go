@@ -247,6 +247,10 @@ func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &emr.ListClustersInput{}
 
@@ -292,6 +296,10 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	svc, err := EmrService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &emr.DescribeClusterInput{

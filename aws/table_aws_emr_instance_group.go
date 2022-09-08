@@ -167,6 +167,10 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get cluster details
 	clusterID := h.Item.(*emr.ClusterSummary).Id

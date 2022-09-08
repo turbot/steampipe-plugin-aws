@@ -425,7 +425,7 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.
 }
 
 func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, emr.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
