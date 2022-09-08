@@ -645,7 +645,7 @@ func Route53DomainsService(ctx context.Context, d *plugin.QueryData) (*route53do
 }
 
 func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53resolver.Route53Resolver, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, route53resolver.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

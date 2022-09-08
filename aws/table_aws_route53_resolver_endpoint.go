@@ -146,6 +146,10 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &route53resolver.ListResolverEndpointsInput{
 		MaxResults: aws.Int64(100),
@@ -200,6 +204,10 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &route53resolver.GetResolverEndpointInput{
@@ -227,6 +235,10 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &route53resolver.ListResolverEndpointIpAddressesInput{
@@ -252,6 +264,10 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	svc, err := Route53ResolverService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -289,7 +305,7 @@ func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.Transf
 	return turbotTagsMap, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build route53resolver endpoint list call input filter
 func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
 	filters := make([]*route53resolver.Filter, 0)
