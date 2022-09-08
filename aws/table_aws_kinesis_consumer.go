@@ -97,6 +97,10 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &kinesis.ListStreamConsumersInput{
 		StreamARN:  &arn,
@@ -149,6 +153,10 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

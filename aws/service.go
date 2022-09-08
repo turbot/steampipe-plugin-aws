@@ -502,7 +502,7 @@ func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Insp
 }
 
 func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, kinesis.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

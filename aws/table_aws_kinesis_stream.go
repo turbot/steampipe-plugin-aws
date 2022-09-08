@@ -152,6 +152,10 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &kinesis.ListStreamsInput{
 		Limit: aws.Int64(100),
@@ -211,6 +215,10 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &kinesis.DescribeStreamInput{
@@ -238,6 +246,10 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &kinesis.DescribeStreamSummaryInput{
@@ -264,6 +276,10 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
