@@ -180,6 +180,10 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	pagesLeft := true
 	params := &elasticbeanstalk.DescribeEnvironmentsInput{
@@ -241,6 +245,10 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var name string
 	if h.Item != nil {
@@ -279,6 +287,10 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build param
 	params := &elasticbeanstalk.ListTagsForResourceInput{
@@ -294,7 +306,7 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS
+// // TRANSFORM FUNCTIONS
 func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("elasticBeanstalkEnvironmentTagListToTurbotTags")
 	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)

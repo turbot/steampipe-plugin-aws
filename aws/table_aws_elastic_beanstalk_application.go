@@ -109,6 +109,10 @@ func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	params := &elasticbeanstalk.DescribeApplicationsInput{}
@@ -143,6 +147,10 @@ func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &elasticbeanstalk.DescribeApplicationsInput{
@@ -169,6 +177,10 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

@@ -386,7 +386,7 @@ func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
 }
 
 func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData) (*elasticbeanstalk.ElasticBeanstalk, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, elasticbeanstalk.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
