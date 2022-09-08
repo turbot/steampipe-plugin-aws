@@ -362,7 +362,7 @@ func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
 }
 
 func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, efs.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

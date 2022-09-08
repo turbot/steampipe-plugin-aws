@@ -117,6 +117,10 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &efs.DescribeAccessPointsInput{
 		MaxResults: aws.Int64(100),
@@ -167,6 +171,10 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &efs.DescribeAccessPointsInput{

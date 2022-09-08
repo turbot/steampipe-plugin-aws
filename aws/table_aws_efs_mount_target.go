@@ -113,6 +113,10 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	data := h.Item.(*efs.FileSystemDescription)
 	params := &efs.DescribeMountTargetsInput{
@@ -167,6 +171,10 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	mountTargetID := d.KeyColumnQuals["mount_target_id"].GetStringValue()
 
@@ -194,6 +202,10 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 	svc, err := EfsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	data := h.Item.(*efs.MountTargetDescription)
