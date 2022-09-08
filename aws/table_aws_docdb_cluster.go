@@ -232,14 +232,18 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDocDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DocDBClient(ctx, d)
+	svc, err := DocDBClient(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.listDocDBClusters", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -294,7 +298,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDocDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 	if len(dbClusterIdentifier) < 1 {
@@ -302,10 +306,14 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := DocDBClient(ctx, d)
+	svc, err := DocDBClient(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBCluster", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &docdb.DescribeDBClustersInput{
@@ -329,10 +337,14 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	cluster := h.Item.(types.DBCluster)
 
 	// Create Session
-	svc, err := DocDBClient(ctx, d)
+	svc, err := DocDBClient(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBClusterTags", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

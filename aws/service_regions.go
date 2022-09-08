@@ -33,6 +33,7 @@ const (
 	DAXServiceID                             = "dax"                     // DAX
 	DLMServiceID                             = "dlm"                     // DLM
 	DatabaseMigrationServiceID               = "dms"                     // Database Migration Service
+	DocDBServiceID                           = "rds"                     // DocumentDB Service
 	DirectoryServiceID                       = "ds"                      // Directory Service
 	DynamoDBServiceID                        = "dynamodb"                // DynamoDB
 	EC2ServiceID                             = "ec2"                     // EC2
