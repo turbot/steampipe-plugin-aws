@@ -354,7 +354,7 @@ func EcrPublicService(ctx context.Context, d *plugin.QueryData) (*ecrpublic.ECRP
 }
 
 func EcsService(ctx context.Context, d *plugin.QueryData) (*ecs.ECS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ecs.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

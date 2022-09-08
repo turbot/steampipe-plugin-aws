@@ -150,6 +150,10 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// EcsContainerInstance is a sub resource of an EcsCluster, we need the cluster ARN to list these.
 	var clusterArn string

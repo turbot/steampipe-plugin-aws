@@ -213,6 +213,10 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Get cluster details
 	cluster := h.Item.(*ecs.Cluster)
@@ -323,6 +327,10 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		plugin.Logger(ctx).Error("getEcsServiceTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &ecs.ListTagsForResourceInput{
