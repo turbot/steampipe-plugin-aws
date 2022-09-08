@@ -338,7 +338,7 @@ func Ec2RegionsService(ctx context.Context, d *plugin.QueryData, region string) 
 }
 
 func EcrService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ecr.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
