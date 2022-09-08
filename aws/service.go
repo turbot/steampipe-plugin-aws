@@ -108,8 +108,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*accessanalyzer.AccessAnalyzer, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, h, accessanalyzer.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

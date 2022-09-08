@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
@@ -109,14 +110,18 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
-		logger.Trace("listAccessAnalyzers", "connection error", err)
+		logger.Error("aws_accessanalyzer_analyzer.listAccessAnalyzers", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// The maximum number for MaxResults parameter is not defined by the API
@@ -165,15 +170,21 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAccessAnalyzer")
-
+func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
+	if strings.TrimSpace(name) == "" {
+		return nil, nil
+	}
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.getAccessAnalyzer", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -184,7 +195,7 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// Get call
 	data, err := svc.GetAnalyzer(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAccessAnalyzer", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_accessanalyzer_analyzer.getAccessAnalyzer", "api_error", err)
 		return nil, err
 	}
 
@@ -192,14 +203,17 @@ func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 }
 
 func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAccessAnalyzerFindings")
-
 	data := h.Item.(*accessanalyzer.AnalyzerSummary)
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var findings []*accessanalyzer.FindingSummary
@@ -213,6 +227,7 @@ func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plu
 		},
 	)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "api_error", err)
 		return nil, err
 	}
 
