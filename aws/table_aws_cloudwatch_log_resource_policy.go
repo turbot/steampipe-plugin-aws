@@ -66,6 +66,10 @@ func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData,
 		logger.Error("listCloudwatchLogResourcePolicies", "error_CloudWatchLogsService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Set MaxItems to the maximum number allowed
 	input := cloudwatchlogs.DescribeResourcePoliciesInput{

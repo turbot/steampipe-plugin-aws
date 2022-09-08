@@ -242,7 +242,7 @@ func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Cl
 }
 
 func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.CloudWatchLogs, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, cloudwatchlogs.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

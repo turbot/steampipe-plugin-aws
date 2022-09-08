@@ -114,6 +114,10 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &cloudwatchlogs.DescribeLogStreamsInput{
 		Limit: aws.Int64(50),
@@ -176,6 +180,10 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudwatchlogs.DescribeLogStreamsInput{

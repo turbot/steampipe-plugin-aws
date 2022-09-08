@@ -98,6 +98,10 @@ func listCloudwatchLogGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &cloudwatchlogs.DescribeLogGroupsInput{
 		Limit: aws.Int64(50),
@@ -150,6 +154,10 @@ func getCloudwatchLogGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	params := &cloudwatchlogs.DescribeLogGroupsInput{
@@ -179,6 +187,10 @@ func getLogGroupTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudwatchlogs.ListTagsLogGroupInput{

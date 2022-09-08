@@ -90,7 +90,7 @@ func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+// // LIST FUNCTION
 func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
@@ -99,6 +99,10 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.listCloudwatchLogSubscriptionFilters", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &cloudwatchlogs.DescribeSubscriptionFiltersInput{
@@ -163,6 +167,10 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudwatchlogs.DescribeSubscriptionFiltersInput{

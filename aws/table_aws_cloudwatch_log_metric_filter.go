@@ -98,12 +98,16 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 	}
 }
 
-//// LIST FUNCTION
+// // LIST FUNCTION
 func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &cloudwatchlogs.DescribeMetricFiltersInput{
@@ -167,6 +171,10 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudwatchlogs.DescribeMetricFiltersInput{
