@@ -81,6 +81,10 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elasticache.DescribeCacheSubnetGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -125,6 +129,10 @@ func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	quals := d.KeyColumnQuals

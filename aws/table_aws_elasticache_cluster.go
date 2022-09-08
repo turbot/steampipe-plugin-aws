@@ -191,6 +191,10 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elasticache.DescribeCacheClustersInput{
 		MaxRecords: aws.Int64(100),
@@ -234,6 +238,10 @@ func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	quals := d.KeyColumnQuals
 	cacheClusterID := quals["cache_cluster_id"].GetStringValue()
@@ -263,6 +271,10 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param

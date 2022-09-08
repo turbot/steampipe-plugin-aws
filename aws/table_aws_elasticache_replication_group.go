@@ -172,6 +172,10 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elasticache.DescribeReplicationGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -216,6 +220,10 @@ func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ 
 	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	quals := d.KeyColumnQuals

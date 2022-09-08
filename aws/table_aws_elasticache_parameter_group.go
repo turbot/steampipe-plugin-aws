@@ -81,6 +81,10 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elasticache.DescribeCacheParameterGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -125,6 +129,10 @@ func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *p
 	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	quals := d.KeyColumnQuals

@@ -128,6 +128,10 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &elasticache.DescribeReservedCacheNodesInput{
 		MaxRecords: aws.Int64(100),
@@ -198,6 +202,10 @@ func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _
 	svc, err := ElastiCacheService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticache.DescribeReservedCacheNodesInput{

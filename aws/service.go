@@ -394,7 +394,7 @@ func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData) (*elastic
 }
 
 func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.ElastiCache, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, elasticache.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
