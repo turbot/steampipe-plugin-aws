@@ -170,7 +170,7 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAmplifyApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
 	svc, err := AmplifyService(ctx, d)
@@ -230,7 +230,7 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getAmplifyApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 	if appId == "" {
@@ -263,3 +263,5 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 	return data.App, nil
 }
+
+//// TRANSFORM FUNCTION

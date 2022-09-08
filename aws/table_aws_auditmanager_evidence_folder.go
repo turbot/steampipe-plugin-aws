@@ -212,7 +212,7 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 
 //// HYDRATE FUNCTIONS
 
-func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
 	svc, err := AuditManagerService(ctx, d)

@@ -109,7 +109,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listMediaStoreContainers")
 
@@ -167,7 +167,7 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getMediaStoreContainer")
 

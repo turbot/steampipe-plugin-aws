@@ -75,7 +75,7 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
 	svc, err := InspectorService(ctx, d)

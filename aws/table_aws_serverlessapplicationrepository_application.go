@@ -125,7 +125,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 
 //// LIST FUNCTION
 
-func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listServerlessApplicationRepositoryApplications")
 

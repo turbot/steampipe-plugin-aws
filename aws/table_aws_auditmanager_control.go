@@ -133,7 +133,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
 	svc, err := AuditManagerService(ctx, d)
