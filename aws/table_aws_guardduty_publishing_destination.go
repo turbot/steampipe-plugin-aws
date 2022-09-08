@@ -117,6 +117,10 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 
@@ -185,6 +189,11 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	var detectorID string
 	var id string
 	if h.Item != nil {

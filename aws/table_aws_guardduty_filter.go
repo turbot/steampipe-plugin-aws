@@ -110,6 +110,10 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 
@@ -176,6 +180,11 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	var detectorID string
 	var name string
 	if h.Item != nil {

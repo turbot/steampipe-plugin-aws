@@ -112,6 +112,10 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 
@@ -178,6 +182,11 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	var detectorID string
 	var id string
 	if h.Item != nil {

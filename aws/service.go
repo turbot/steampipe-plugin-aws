@@ -467,7 +467,7 @@ func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
 }
 
 func GuardDutyService(ctx context.Context, d *plugin.QueryData) (*guardduty.GuardDuty, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, guardduty.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

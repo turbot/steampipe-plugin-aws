@@ -113,6 +113,11 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	equalQuals := d.KeyColumnQuals
 
 	// Minimize the API call with the given detector_id
@@ -165,6 +170,10 @@ func getGuardDutyThreatIntelSet(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var id string

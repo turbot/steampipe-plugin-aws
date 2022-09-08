@@ -125,6 +125,10 @@ func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		logger.Error("aws_guardduty_detector.listGuardDutyDetectors", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &guardduty.ListDetectorsInput{
 		MaxResults: aws.Int64(50),
@@ -180,6 +184,10 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &guardduty.GetDetectorInput{
 		DetectorId: &id,
@@ -204,6 +212,10 @@ func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &guardduty.GetAdministratorAccountInput{

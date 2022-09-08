@@ -113,6 +113,10 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &guardduty.ListMembersInput{
 		MaxResults:     aws.Int64(50),
@@ -172,6 +176,10 @@ func getGuardDutyMember(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	svc, err := GuardDutyService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &guardduty.GetMembersInput{
