@@ -135,6 +135,10 @@ func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	err = svc.ListSubscriptionsPages(
 		&sns.ListSubscriptionsInput{},
@@ -179,6 +183,10 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &sns.GetSubscriptionAttributesInput{

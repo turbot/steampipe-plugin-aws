@@ -712,7 +712,7 @@ func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
 }
 
 func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, sns.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
