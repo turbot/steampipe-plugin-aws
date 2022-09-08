@@ -185,6 +185,10 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 	equalQuals := d.KeyColumnQuals
@@ -249,6 +253,10 @@ func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	version := d.KeyColumnQuals["version"].GetStringValue()
 	functionName := d.KeyColumnQuals["function_name"].GetStringValue()
@@ -288,6 +296,10 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_LambdaService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &lambda.GetPolicyInput{

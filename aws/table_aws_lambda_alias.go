@@ -122,6 +122,10 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	function := h.Item.(*lambda.FunctionConfiguration)
 
@@ -198,6 +202,10 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build params
 	params := &lambda.GetAliasInput{
@@ -224,6 +232,10 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_LambdaService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &lambda.GetPolicyInput{
@@ -254,6 +266,10 @@ func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &lambda.GetFunctionUrlConfigInput{

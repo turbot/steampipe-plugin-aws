@@ -534,7 +534,7 @@ func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
 }
 
 func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, lambda.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

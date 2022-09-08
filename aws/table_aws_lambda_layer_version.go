@@ -140,6 +140,10 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 		logger.Error("listLambdaLayerVersions", "error_LambdaService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	layerName := h.Item.(*lambda.LayersListItem).LayerName
 
@@ -229,6 +233,10 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		logger.Error("getLambdaLayerVersion", "error_LambdaService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &lambda.GetLayerVersionInput{
@@ -265,6 +273,10 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	if err != nil {
 		logger.Error("getLambdaLayerVersionPolicy", "error_LambdaService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
