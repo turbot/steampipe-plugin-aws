@@ -100,6 +100,10 @@ func listResourceShareAssociations(associationType string) func(ctx context.Cont
 		if err != nil {
 			return nil, err
 		}
+		if svc == nil {
+			// Unsupported region, return no data
+			return nil, nil
+		}
 
 		// List call
 		input := &ram.GetResourceShareAssociationsInput{
@@ -150,6 +154,10 @@ func getResourceSharePermissions(ctx context.Context, d *plugin.QueryData, h *pl
 	svc, err := RAMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

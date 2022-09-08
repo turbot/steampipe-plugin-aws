@@ -612,7 +612,7 @@ func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing,
 }
 
 func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ram.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
