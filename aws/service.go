@@ -202,7 +202,7 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.Code
 }
 
 func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

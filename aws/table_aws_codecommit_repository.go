@@ -102,6 +102,10 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List all available repositories
 	var repositoryNames []*string
@@ -166,6 +170,11 @@ func listCodeCommitRepositoryTags(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	repositoryARN := h.Item.(*codecommit.RepositoryMetadata).Arn
 
 	// Build the params
