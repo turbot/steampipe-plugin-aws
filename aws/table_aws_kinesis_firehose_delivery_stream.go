@@ -145,6 +145,10 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	param := &firehose.ListDeliveryStreamsInput{
@@ -215,6 +219,10 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &firehose.DescribeDeliveryStreamInput{
@@ -241,6 +249,10 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	svc, err := FirehoseService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

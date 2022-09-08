@@ -433,7 +433,7 @@ func EmrService(ctx context.Context, d *plugin.QueryData) (*emr.EMR, error) {
 }
 
 func FirehoseService(ctx context.Context, d *plugin.QueryData) (*firehose.Firehose, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, firehose.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
