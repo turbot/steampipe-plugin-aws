@@ -161,6 +161,10 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		logger.Error("aws_glue_catalog_table.listGlueCatalogTables", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	if d.KeyColumnQualString("catalog_id") != "" && *database.CatalogId != d.KeyColumnQualString("catalog_id") {
 		return nil, nil
@@ -222,6 +226,10 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	svc, err := GlueService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

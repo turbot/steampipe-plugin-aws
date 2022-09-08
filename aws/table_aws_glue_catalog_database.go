@@ -96,6 +96,10 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetDatabasesInput{
 		MaxResults: aws.Int64(100),
@@ -143,6 +147,10 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	svc, err := GlueService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

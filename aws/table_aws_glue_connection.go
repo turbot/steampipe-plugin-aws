@@ -114,6 +114,10 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetConnectionsInput{
 		MaxResults: aws.Int64(100),
@@ -180,6 +184,10 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

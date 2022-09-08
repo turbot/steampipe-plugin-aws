@@ -459,7 +459,7 @@ func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*global
 }
 
 func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, glue.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

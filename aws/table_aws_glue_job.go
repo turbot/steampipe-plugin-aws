@@ -171,6 +171,10 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetJobsInput{
 		MaxResults: aws.Int64(100),
@@ -228,6 +232,10 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &glue.GetJobInput{
@@ -251,6 +259,10 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

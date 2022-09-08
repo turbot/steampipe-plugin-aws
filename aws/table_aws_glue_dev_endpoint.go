@@ -184,6 +184,10 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetDevEndpointsInput{
 		MaxResults: aws.Int64(100),
@@ -240,6 +244,10 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpoint", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

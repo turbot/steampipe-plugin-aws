@@ -85,6 +85,10 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetSecurityConfigurationsInput{
 		MaxResults: aws.Int64(100),
@@ -141,6 +145,10 @@ func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfiguration", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

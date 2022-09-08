@@ -160,6 +160,10 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &glue.GetCrawlersInput{
 		MaxResults: aws.Int64(100),
@@ -215,6 +219,10 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	svc, err := GlueService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
