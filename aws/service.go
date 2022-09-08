@@ -144,7 +144,7 @@ func AuditManagerService(ctx context.Context, d *plugin.QueryData) (*auditmanage
 }
 
 func AutoScalingService(ctx context.Context, d *plugin.QueryData) (*autoscaling.AutoScaling, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, autoscaling.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

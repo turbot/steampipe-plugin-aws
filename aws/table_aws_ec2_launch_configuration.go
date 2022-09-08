@@ -175,6 +175,10 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &autoscaling.DescribeLaunchConfigurationsInput{
 		MaxRecords: aws.Int64(100),
@@ -221,6 +225,10 @@ func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 	svc, err := AutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params
