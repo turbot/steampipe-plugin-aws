@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -176,9 +176,13 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	restAPI := h.Item.(types.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &apigateway.GetStagesInput{
@@ -204,13 +208,17 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_stage.getAPIGatewayStage", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	stageName := d.KeyColumnQuals["name"].GetStringValue()

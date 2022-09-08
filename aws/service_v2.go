@@ -49,8 +49,8 @@ func ACMClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	return acm.NewFromConfig(*cfg), nil
 }
 
-func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func APIGatewayClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*apigateway.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, APIGatewayServiceID)
 	if err != nil {
 		return nil, err
 	}

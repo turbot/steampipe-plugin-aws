@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -112,13 +112,17 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAPIKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_api_key.listAPIKeys", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -171,14 +175,18 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIKey")
 
 	// Create session
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAPIKey", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	id := d.KeyColumnQuals["id"].GetStringValue()

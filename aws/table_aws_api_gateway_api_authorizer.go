@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -114,10 +114,14 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 	restAPI := h.Item.(types.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.listRestAPIAuthorizers", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -157,13 +161,17 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d)
+	svc, err := APIGatewayClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.getRestAPIAuthorizer", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	authorizerID := d.KeyColumnQuals["id"].GetStringValue()
