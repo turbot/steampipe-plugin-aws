@@ -168,9 +168,13 @@ func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *pl
 	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ssm.DescribeMaintenanceWindowsInput{
@@ -228,9 +232,13 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -270,9 +278,13 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -298,9 +310,13 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -325,9 +341,13 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

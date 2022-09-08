@@ -148,9 +148,13 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	plugin.Logger(ctx).Trace("listAwsSSMParameters")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ssm.DescribeParametersInput{
@@ -202,9 +206,13 @@ func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -240,9 +248,13 @@ func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -268,9 +280,13 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

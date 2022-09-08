@@ -169,9 +169,13 @@ func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	plugin.Logger(ctx).Trace("describePatchBaselines")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -242,9 +246,13 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// get service
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -268,9 +276,13 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 	baseline := h.Item.(*ssm.GetPatchBaselineOutput)
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	baselineIDSplitted := strings.Split(*baseline.BaselineId, "/")

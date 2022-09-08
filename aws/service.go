@@ -753,8 +753,8 @@ func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
 	return sqs.New(sess), nil
 }
 
-func SsmService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+func SSMService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ssm.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

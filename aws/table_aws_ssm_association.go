@@ -200,9 +200,13 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	plugin.Logger(ctx).Trace("listAwsSSMAssociations")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ssm.ListAssociationsInput{
@@ -275,9 +279,13 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -319,7 +327,7 @@ func associationID(item interface{}) string {
 	return ""
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ssm association list call input filter
 func buildSsmAssociationFilter(quals plugin.KeyColumnQualMap) []*ssm.AssociationFilter {
 	filters := make([]*ssm.AssociationFilter, 0)

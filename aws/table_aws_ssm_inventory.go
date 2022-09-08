@@ -82,9 +82,13 @@ func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	plugin.Logger(ctx).Trace("listAwsSSMInventories")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := buildSsmInventoryFilter(ctx, d.Quals)
@@ -135,10 +139,14 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 	plugin.Logger(ctx).Trace("getAwsSSMInventorySchema")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	inventory := h.Item.(*InventoryInfo)
