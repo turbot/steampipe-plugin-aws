@@ -97,6 +97,10 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &configservice.DescribeConfigurationRecordersInput{}
 
@@ -138,6 +142,10 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &configservice.DescribeConfigurationRecordersInput{
 		ConfigurationRecorderNames: []*string{aws.String(name)},
@@ -166,6 +174,10 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &configservice.DescribeConfigurationRecorderStatusInput{

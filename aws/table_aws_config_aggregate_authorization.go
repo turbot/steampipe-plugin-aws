@@ -82,6 +82,10 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "service_connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &configservice.DescribeAggregationAuthorizationsInput{
 		Limit: aws.Int64(0),
@@ -123,6 +127,10 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

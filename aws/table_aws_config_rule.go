@@ -135,6 +135,10 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &configservice.DescribeConfigRulesInput{}
 
@@ -172,6 +176,11 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Build params
@@ -199,6 +208,11 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	ruleArn := h.Item.(*configservice.ConfigRule).ConfigRuleArn
 
 	// Build params
@@ -223,6 +237,11 @@ func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	ruleName := h.Item.(*configservice.ConfigRule).ConfigRuleName
 
 	// Build params

@@ -258,7 +258,7 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 }
 
 func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, configservice.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

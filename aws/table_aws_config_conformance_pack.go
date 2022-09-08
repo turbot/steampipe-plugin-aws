@@ -101,6 +101,10 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &configservice.DescribeConformancePacksInput{
 		Limit: aws.Int64(20),
@@ -153,6 +157,10 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &configservice.DescribeConformancePacksInput{
