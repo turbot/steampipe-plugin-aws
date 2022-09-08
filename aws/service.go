@@ -588,7 +588,7 @@ func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoi
 }
 
 func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchservice.OpenSearchService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, opensearchservice.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

@@ -220,6 +220,10 @@ func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	params := &opensearchservice.ListDomainNamesInput{}
@@ -266,6 +270,10 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &opensearchservice.DescribeDomainInput{
@@ -298,6 +306,10 @@ func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := OpenSearchService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
