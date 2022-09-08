@@ -293,7 +293,7 @@ func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databa
 }
 
 func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservice.DirectoryService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, directoryservice.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

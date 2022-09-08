@@ -215,6 +215,10 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	input := &directoryservice.DescribeDirectoriesInput{
@@ -273,6 +277,10 @@ func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	directoryID := d.KeyColumnQuals["directory_id"].GetStringValue()
 	if directoryID == "" {
@@ -309,6 +317,11 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &directoryservice.DescribeSharedDirectoriesInput{
 		OwnerDirectoryId: directory.DirectoryId,
 	}
@@ -359,6 +372,10 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &directoryservice.ListTagsForResourceInput{
