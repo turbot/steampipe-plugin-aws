@@ -826,7 +826,7 @@ func WAFv2Service(ctx context.Context, d *plugin.QueryData, region string) (*waf
 }
 
 func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarchitected.WellArchitected, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, wellarchitected.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

@@ -192,6 +192,10 @@ func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &wellarchitected.ListWorkloadsInput{
 		MaxResults: aws.Int64(50),
@@ -267,6 +271,10 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := WellArchitectedService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &wellarchitected.GetWorkloadInput{
