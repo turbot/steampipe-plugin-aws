@@ -569,7 +569,7 @@ func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune,
 }
 
 func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkfirewall.NetworkFirewall, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, networkfirewall.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

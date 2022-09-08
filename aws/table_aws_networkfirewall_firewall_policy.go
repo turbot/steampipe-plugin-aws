@@ -142,6 +142,10 @@ func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *pl
 		plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "service_creation_error", err)
 		return nil, err
 	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &networkfirewall.ListFirewallPoliciesInput{
 		MaxResults: aws.Int64(100),
@@ -206,6 +210,10 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "service_creation_error", err)
 		return nil, err
+	}
+		if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Get call
