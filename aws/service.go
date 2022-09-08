@@ -417,7 +417,7 @@ func ELBv2Service(ctx context.Context, d *plugin.QueryData) (*elbv2.ELBV2, error
 }
 
 func EventBridgeService(ctx context.Context, d *plugin.QueryData) (*eventbridge.EventBridge, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, eventbridge.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

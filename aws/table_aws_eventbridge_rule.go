@@ -131,6 +131,10 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	input := &eventbridge.ListRulesInput{
@@ -204,6 +208,11 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// Build the params
 	params := &eventbridge.DescribeRuleInput{
 		Name: &name,
@@ -231,6 +240,11 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// Build the params
 	params := &eventbridge.ListTargetsByRuleInput{
 		EventBusName: eventbusname,
@@ -255,6 +269,10 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

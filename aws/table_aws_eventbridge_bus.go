@@ -94,6 +94,10 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		logger.Error("listAwsEventBridgeBuses", "error_EventBridgeService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	input := eventbridge.ListEventBusesInput{
@@ -165,6 +169,11 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		logger.Error("getAwsEventBridgeBus", "error_EventBridgeService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// Build the params
 	params := &eventbridge.DescribeEventBusInput{
 		Name: &arn,
@@ -191,6 +200,10 @@ func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		logger.Error("getAwsEventBridgeBusTags", "error_EventBridgeService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
