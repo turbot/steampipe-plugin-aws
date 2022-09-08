@@ -240,6 +240,10 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	stateMachineArn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 	var executions []sfn.ExecutionListItem
@@ -325,6 +329,10 @@ func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn
 	if err != nil {
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &sfn.GetExecutionHistoryInput{

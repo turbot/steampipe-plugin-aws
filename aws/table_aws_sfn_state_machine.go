@@ -119,6 +119,10 @@ func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _
 		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sfn.ListStateMachinesInput{
 		MaxResults: aws.Int64(1000),
@@ -178,6 +182,10 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 		logger.Error("getStepFunctionsStateMachine", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sfn.DescribeStateMachineInput{
@@ -208,6 +216,10 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &sfn.ListTagsForResourceInput{

@@ -770,7 +770,7 @@ func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdm
 }
 
 func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, sfn.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

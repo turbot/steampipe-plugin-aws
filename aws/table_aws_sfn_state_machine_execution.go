@@ -120,6 +120,10 @@ func listStepFunctionsStateMachineExecutions(ctx context.Context, d *plugin.Quer
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutions", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	arn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
 
@@ -196,6 +200,10 @@ func getStepFunctionsStateMachineExecution(ctx context.Context, d *plugin.QueryD
 	if err != nil {
 		logger.Error("getStepFunctionsStateMachineExecution", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
