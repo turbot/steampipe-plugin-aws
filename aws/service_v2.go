@@ -65,8 +65,8 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*autoscaling.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, AutoScalingServiceID)
 	if err != nil {
 		return nil, err
 	}
