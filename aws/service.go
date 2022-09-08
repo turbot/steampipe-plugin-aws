@@ -526,7 +526,7 @@ func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvide
 }
 
 func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, kms.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

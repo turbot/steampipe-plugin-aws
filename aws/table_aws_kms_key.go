@@ -186,6 +186,10 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &kms.ListKeysInput{
 		Limit: aws.Int64(1000),
@@ -233,6 +237,10 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &kms.DescribeKeyInput{
 		KeyId: aws.String(keyID),
@@ -261,6 +269,10 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &kms.DescribeKeyInput{
 		KeyId: key.KeyId,
@@ -282,6 +294,10 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &kms.GetKeyRotationStatusInput{
@@ -309,6 +325,10 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	tagsData := map[string]interface{}{}
@@ -360,6 +380,10 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &kms.ListAliasesInput{
 		KeyId: key.KeyId,
@@ -404,6 +428,10 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	svc, err := KMSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &kms.GetKeyPolicyInput{
