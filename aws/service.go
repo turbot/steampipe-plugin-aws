@@ -980,13 +980,13 @@ func getSessionForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData,
 }
 
 // Helper function to get the session for a region set in query data
-func getSessionForQueryRegion(ctx context.Context, d *plugin.QueryData) (*session.Session, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-	}
-	return getSession(ctx, d, region)
-}
+// func getSessionForQueryRegion(ctx context.Context, d *plugin.QueryData) (*session.Session, error) {
+// 	region := d.KeyColumnQualString(matrixKeyRegion)
+// 	if region == "" {
+// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+// 	}
+// 	return getSession(ctx, d, region)
+// }
 
 // Helper function to get the session for a specific region
 func getSessionForRegion(ctx context.Context, d *plugin.QueryData, region string) (*session.Session, error) {
