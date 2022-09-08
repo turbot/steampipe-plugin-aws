@@ -131,6 +131,10 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	pagesLeft := true
@@ -199,6 +203,10 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &kinesisanalyticsv2.DescribeApplicationInput{
@@ -225,6 +233,10 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	svc, err := KinesisAnalyticsV2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

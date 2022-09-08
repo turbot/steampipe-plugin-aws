@@ -510,7 +510,7 @@ func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis,
 }
 
 func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kinesisanalyticsv2.KinesisAnalyticsV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, kinesisanalyticsv2.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
