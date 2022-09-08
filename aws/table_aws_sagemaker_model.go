@@ -126,6 +126,10 @@ func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sagemaker.ListModelsInput{
 		MaxResults: aws.Int64(100),
@@ -188,6 +192,10 @@ func getAwsSageMakerModel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeModelInput{
@@ -219,6 +227,10 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

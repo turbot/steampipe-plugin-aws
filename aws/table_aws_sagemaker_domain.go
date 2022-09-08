@@ -175,6 +175,10 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sagemaker.ListDomainsInput{
 		MaxResults: aws.Int64(100),
@@ -228,6 +232,10 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeDomainInput{
@@ -256,6 +264,10 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

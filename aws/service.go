@@ -685,7 +685,7 @@ func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (
 }
 
 func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.SageMaker, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, sagemaker.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

@@ -107,6 +107,10 @@ func listSagemakerEndpointConfigurations(ctx context.Context, d *plugin.QueryDat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sagemaker.ListEndpointConfigsInput{
 		MaxResults: aws.Int64(100),
@@ -171,6 +175,10 @@ func getSagemakerEndpointConfiguration(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeEndpointConfigInput{
@@ -195,6 +203,11 @@ func listSageMakerEndpointConfigurationTags(ctx context.Context, d *plugin.Query
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	configArn := endpointConfigARN(h.Item)
 
 	// Build the params

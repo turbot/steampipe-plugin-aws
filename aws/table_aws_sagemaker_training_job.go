@@ -303,6 +303,10 @@ func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sagemaker.ListTrainingJobsInput{
 		MaxResults: aws.Int64(100),
@@ -383,6 +387,10 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeTrainingJobInput{
@@ -406,6 +414,10 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

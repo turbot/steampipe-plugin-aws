@@ -188,6 +188,10 @@ func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sagemaker.ListNotebookInstancesInput{
 		MaxResults: aws.Int64(100),
@@ -256,6 +260,10 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &sagemaker.DescribeNotebookInstanceInput{
@@ -281,6 +289,10 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
