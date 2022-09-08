@@ -134,12 +134,15 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 		region = "us-east-1"
 		scope = aws.String("CLOUDFRONT")
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2RegexPatternSets", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List all Regex Pattern Sets
@@ -236,6 +239,10 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wafv2.GetRegexPatternSetInput{
 		Id:    aws.String(id),
@@ -275,6 +282,10 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param with maximum limit set

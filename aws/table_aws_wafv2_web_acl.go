@@ -179,12 +179,15 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		region = "us-east-1"
 		scope = aws.String("CLOUDFRONT")
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2WebAcls", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	pagesLeft := true
@@ -280,6 +283,10 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wafv2.GetWebACLInput{
 		Id:    aws.String(id),
@@ -320,6 +327,10 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
@@ -354,6 +365,10 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param
@@ -393,6 +408,10 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param

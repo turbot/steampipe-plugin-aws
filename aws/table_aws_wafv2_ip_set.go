@@ -136,12 +136,15 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		region = "us-east-1"
 		scope = aws.String("CLOUDFRONT")
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2IpSets", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List all IP sets
@@ -238,6 +241,10 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wafv2.GetIPSetInput{
 		Id:    aws.String(id),
@@ -277,6 +284,10 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param with maximum limit set

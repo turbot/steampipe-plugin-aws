@@ -148,12 +148,15 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		region = "us-east-1"
 		scope = aws.String("CLOUDFRONT")
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2RuleGroups", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List all rule groups
@@ -250,6 +253,10 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &wafv2.GetRuleGroupInput{
 		Id:    aws.String(id),
@@ -289,6 +296,10 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := WAFv2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
