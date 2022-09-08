@@ -104,6 +104,10 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 		plugin.Logger(ctx).Error("listAwsApplicationAutoScalingTargets", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// The maximum number for MaxResults parameter is not defined by the API
 	// We have set the MaxResults to 1000 based on our test
@@ -165,6 +169,10 @@ func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData
 	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

@@ -20,8 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/amplify"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -126,24 +124,8 @@ func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify,
 	return amplify.New(sess), nil
 }
 
-func APIGatewayService(ctx context.Context, d *plugin.QueryData) (*apigateway.APIGateway, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return apigateway.New(sess), nil
-}
-
-func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.ApiGatewayV2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return apigatewayv2.New(sess), nil
-}
-
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, applicationautoscaling.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
