@@ -90,6 +90,10 @@ func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &cloudwatch.ListMetricsInput{}
 

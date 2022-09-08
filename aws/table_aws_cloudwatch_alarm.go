@@ -213,6 +213,10 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &cloudwatch.DescribeAlarmsInput{
 		MaxRecords: aws.Int64(100),
@@ -272,6 +276,10 @@ func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &cloudwatch.DescribeAlarmsInput{
 		AlarmNames: []*string{aws.String(name)},
@@ -298,6 +306,10 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudwatch.ListTagsForResourceInput{

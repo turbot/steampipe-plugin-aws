@@ -234,7 +234,7 @@ func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudform
 }
 
 func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.CloudWatch, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, cloudwatch.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
