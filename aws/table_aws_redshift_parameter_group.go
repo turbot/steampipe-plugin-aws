@@ -92,6 +92,10 @@ func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &redshift.DescribeClusterParameterGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -139,6 +143,10 @@ func getAwsRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
@@ -167,6 +175,10 @@ func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	name := h.Item.(*redshift.ClusterParameterGroup).ParameterGroupName

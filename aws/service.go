@@ -628,7 +628,7 @@ func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
 }
 
 func RedshiftService(ctx context.Context, d *plugin.QueryData) (*redshift.Redshift, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, redshift.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

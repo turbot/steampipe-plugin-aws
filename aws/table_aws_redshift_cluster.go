@@ -331,6 +331,10 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	input := &redshift.DescribeClustersInput{
 		MaxRecords: aws.Int64(100),
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
@@ -370,6 +374,10 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 	name := d.KeyColumnQuals["cluster_identifier"].GetStringValue()
 
 	// Return nil, if no input provided
@@ -401,6 +409,10 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &redshift.DescribeLoggingStatusInput{
 		ClusterIdentifier: name,
@@ -422,6 +434,11 @@ func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	name := h.Item.(*redshift.Cluster).ClusterIdentifier
 
 	// List call

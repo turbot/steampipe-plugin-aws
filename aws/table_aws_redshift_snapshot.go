@@ -239,6 +239,10 @@ func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &redshift.DescribeClusterSnapshotsInput{
 		MaxRecords: aws.Int64(100),
@@ -308,6 +312,10 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &redshift.DescribeClusterSnapshotsInput{

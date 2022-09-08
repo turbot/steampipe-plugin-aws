@@ -118,6 +118,10 @@ func listAwsRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &redshift.DescribeEventSubscriptionsInput{
 		MaxRecords: aws.Int64(100),
@@ -164,6 +168,10 @@ func getAwsRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _
 	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	name := d.KeyColumnQuals["cust_subscription_id"].GetStringValue()

@@ -96,6 +96,10 @@ func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &redshift.DescribeClusterSubnetGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -140,6 +144,10 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &redshift.DescribeClusterSubnetGroupsInput{
