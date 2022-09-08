@@ -370,7 +370,7 @@ func EfsService(ctx context.Context, d *plugin.QueryData) (*efs.EFS, error) {
 }
 
 func FsxService(ctx context.Context, d *plugin.QueryData) (*fsx.FSx, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, fsx.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
