@@ -119,6 +119,10 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &securityhub.DescribeStandardsControlsInput{
 		MaxResults:               aws.Int64(100),

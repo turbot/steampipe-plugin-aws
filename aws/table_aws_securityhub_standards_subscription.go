@@ -96,6 +96,10 @@ func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &securityhub.DescribeStandardsInput{
 		MaxResults: aws.Int64(100),
@@ -140,6 +144,10 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the input

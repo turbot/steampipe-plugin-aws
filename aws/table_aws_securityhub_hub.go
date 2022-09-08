@@ -82,6 +82,10 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	resp, err := svc.DescribeHub(&securityhub.DescribeHubInput{})
@@ -108,6 +112,10 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &securityhub.DescribeHubInput{
@@ -129,6 +137,10 @@ func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -152,6 +164,10 @@ func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

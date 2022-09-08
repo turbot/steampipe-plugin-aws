@@ -103,6 +103,10 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &securityhub.DescribeProductsInput{
 		MaxResults: aws.Int64(100),
@@ -152,6 +156,10 @@ func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &securityhub.DescribeProductsInput{

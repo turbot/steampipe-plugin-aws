@@ -248,6 +248,11 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	input := &securityhub.GetFindingsInput{
 		MaxResults: aws.Int64(100),
 	}
@@ -312,6 +317,10 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

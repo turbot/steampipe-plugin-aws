@@ -72,6 +72,10 @@ func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &securityhub.ListFindingAggregatorsInput{
 		MaxResults: aws.Int64(100),
@@ -135,6 +139,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

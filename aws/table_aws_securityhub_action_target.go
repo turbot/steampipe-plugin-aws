@@ -74,6 +74,10 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Filter parameter is not supported yet in this SDK version so optional quals can not be implemented
 	input := &securityhub.DescribeActionTargetsInput{
@@ -131,6 +135,10 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

@@ -84,6 +84,10 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &securityhub.ListMembersInput{
 		MaxResults:     aws.Int64(50),
