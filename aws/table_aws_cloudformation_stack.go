@@ -187,6 +187,10 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// We can not pass the MaxResult value in param so we can't limit the result per page
 	input := &cloudformation.DescribeStacksInput{}
@@ -222,6 +226,10 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	params := &cloudformation.DescribeStacksInput{
@@ -250,6 +258,10 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// template_body is the template in its original string form
 	params := &cloudformation.GetTemplateInput{
@@ -271,6 +283,10 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &cloudformation.DescribeStackResourcesInput{

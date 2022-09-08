@@ -226,7 +226,7 @@ func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cl
 }
 
 func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudformation.CloudFormation, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, cloudformation.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
