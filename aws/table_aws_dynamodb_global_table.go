@@ -88,6 +88,10 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dynamodb.ListGlobalTablesInput{
 		Limit: aws.Int64(100),
@@ -145,6 +149,10 @@ func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeGlobalTableInput{

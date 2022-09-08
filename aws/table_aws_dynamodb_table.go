@@ -223,6 +223,10 @@ func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dynamodb.ListTablesInput{
 		Limit: aws.Int64(100),
@@ -289,6 +293,10 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &dynamodb.DescribeTableInput{
 		TableName: aws.String(name),
@@ -315,6 +323,10 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeContinuousBackupsInput{
@@ -352,6 +364,10 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *table.TableName
 
@@ -385,6 +401,10 @@ func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.DescribeKinesisStreamingDestinationInput{

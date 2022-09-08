@@ -309,7 +309,7 @@ func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
 }
 
 func DynamoDbService(ctx context.Context, d *plugin.QueryData) (*dynamodb.DynamoDB, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, dynamodb.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

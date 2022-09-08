@@ -173,6 +173,10 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &dynamodb.ListExportsInput{
 		MaxResults: aws.Int64(25),
@@ -211,6 +215,10 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	svc, err := DynamoDbService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &dynamodb.DescribeExportInput{
