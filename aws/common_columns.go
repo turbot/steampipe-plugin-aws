@@ -133,7 +133,7 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// get the service connection for the service
-	stsSvc, err := StsService(ctx, d)
+	stsSvc, err := STSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

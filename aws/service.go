@@ -777,7 +777,7 @@ func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, e
 	return sfn.New(sess), nil
 }
 
-func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
+func STSService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 	// TODO - Should STS be regional instead?
 	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -787,7 +787,7 @@ func StsService(ctx context.Context, d *plugin.QueryData) (*sts.STS, error) {
 }
 
 func TaggingResourceService(ctx context.Context, d *plugin.QueryData) (*resourcegroupstaggingapi.ResourceGroupsTaggingAPI, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, resourcegroupstaggingapi.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

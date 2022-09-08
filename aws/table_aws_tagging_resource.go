@@ -96,6 +96,10 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourcesPerPage: aws.Int64(100),
@@ -143,6 +147,10 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	param := &resourcegroupstaggingapi.GetResourcesInput{
