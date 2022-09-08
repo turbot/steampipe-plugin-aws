@@ -242,13 +242,13 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 }
 
 // Helper function to get the session for a region set in query data
-func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	if region == "" {
-		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-	}
-	return getClient(ctx, d, region)
-}
+// func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
+// 	region := d.KeyColumnQualString(matrixKeyRegion)
+// 	if region == "" {
+// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+// 	}
+// 	return getClient(ctx, d, region)
+// }
 
 // Helper function to get the session for a specific region
 func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
