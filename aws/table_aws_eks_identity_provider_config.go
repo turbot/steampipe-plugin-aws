@@ -146,6 +146,10 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// As per the API document input parameter MaxResults should support the value of 100.
 	// However with value of 100, API is throwing an error - InvalidParameterException: maxResults needs to be 1.
@@ -205,6 +209,10 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &eks.DescribeIdentityProviderConfigInput{

@@ -120,6 +120,10 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &eks.ListAddonsInput{
 		ClusterName: &clusterName,
@@ -175,6 +179,10 @@ func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &eks.DescribeAddonInput{

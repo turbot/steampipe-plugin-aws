@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 )
 
 //// TABLE DEFINITION
@@ -207,6 +207,10 @@ func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &eks.ListNodegroupsInput{
 		ClusterName: &clusterName,
@@ -272,6 +276,10 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &eks.DescribeNodegroupInput{

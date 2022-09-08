@@ -378,7 +378,7 @@ func FsxService(ctx context.Context, d *plugin.QueryData) (*fsx.FSx, error) {
 }
 
 func EksService(ctx context.Context, d *plugin.QueryData) (*eks.EKS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, eks.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

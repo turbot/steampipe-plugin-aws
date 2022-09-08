@@ -85,6 +85,10 @@ func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &eks.DescribeAddonVersionsInput{
 		MaxResults: aws.Int64(100),

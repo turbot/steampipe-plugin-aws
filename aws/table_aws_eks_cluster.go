@@ -143,6 +143,10 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &eks.ListClustersInput{
 		MaxResults: aws.Int64(100),
@@ -194,6 +198,10 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	svc, err := EksService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &eks.DescribeClusterInput{
