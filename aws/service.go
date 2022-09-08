@@ -762,7 +762,7 @@ func SSMService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
 }
 
 func SSOAdminService(ctx context.Context, d *plugin.QueryData) (*ssoadmin.SSOAdmin, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ssoadmin.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

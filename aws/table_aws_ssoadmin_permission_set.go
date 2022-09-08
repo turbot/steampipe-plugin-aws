@@ -115,6 +115,10 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	equalQuals := d.KeyColumnQuals
 	// Minimize the API call with the given layer name
@@ -188,6 +192,10 @@ func getSsoAdminPermissionSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	permissionSet := h.Item.(*PermissionSetItem)
 	arn := *permissionSet.PermissionSetArn
@@ -231,6 +239,10 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceA
 	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &ssoadmin.ListTagsForResourceInput{

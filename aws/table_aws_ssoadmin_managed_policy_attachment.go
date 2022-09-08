@@ -71,6 +71,10 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &ssoadmin.ListManagedPoliciesInPermissionSetInput{
 		InstanceArn:      aws.String(instanceArn),
