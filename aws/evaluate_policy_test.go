@@ -3139,6 +3139,9 @@ func TestPolicyPrincipalElementFederated(t *testing.T) {
 	t.Run("TestWhenPrincipalIsMulitpleSamlUserInDescendingOrder", testWhenPrincipalIsMulitpleSamlUserInDescendingOrder)
 	t.Run("TestWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements", testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements)
 	t.Run("TestWhenPrincipalHasAWildcardInSamlUserThenIgnorePrincipal", testWhenPrincipalHasAWildcardInSamlUserThenIgnorePrincipal)
+
+	t.Run("testWhenPrincipalIsMulitpleSamlProvidersWithAudienceConditions", testWhenPrincipalIsMulitpleSamlProvidersWithAudienceConditions)
+	t.Run("testWhenPrincipalIsMulitpleSamlProvidersWithoutAudienceConditions", testWhenPrincipalIsMulitpleSamlProvidersWithoutAudienceConditions)
 }
 
 func testWhenPrincipalIsAFederatedUser(t *testing.T) {
@@ -3161,18 +3164,18 @@ func testWhenPrincipalIsAFederatedUser(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
 		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels:                  []string{"Write"},
-		SharedAccessLevels:                  []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"Write"},
 		PrivateAccessLevels:                 []string{},
-		PublicStatementIds:                  []string{"Statement[1]"},
-		SharedStatementIds:                  []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -3204,6 +3207,7 @@ func testWhenPrincipalIsAFederatedUser(t *testing.T) {
 func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
+	// NOTE: This case is not legit in practice as you cannot have two open providers
 	policyContent := `
     {
       "Version": "2012-10-17",
@@ -3221,7 +3225,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -3230,12 +3234,12 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 			"graph.facebook.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels:       []string{"Write"},
-		SharedAccessLevels:       []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"Write"},
 		PrivateAccessLevels:      []string{},
-		PublicStatementIds:       []string{"Statement[1]"},
-		SharedStatementIds:       []string{},
+		PublicStatementIds:       []string{},
+		SharedStatementIds:       []string{"Statement[1]"},
 	}
 
 	// Test
@@ -3267,6 +3271,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInAscendingOrder(t *testing.T) {
 func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
+	// NOTE: This case is not legit in practice as you cannot have two open providers
 	policyContent := `
     {
       "Version": "2012-10-17",
@@ -3284,7 +3289,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -3293,12 +3298,12 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 			"graph.facebook.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels:       []string{"Write"},
-		SharedAccessLevels:       []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"Write"},
 		PrivateAccessLevels:      []string{},
-		PublicStatementIds:       []string{"Statement[1]"},
-		SharedStatementIds:       []string{},
+		PublicStatementIds:       []string{},
+		SharedStatementIds:       []string{"Statement[1]"},
 	}
 
 	// Test
@@ -3330,6 +3335,7 @@ func testWhenPrincipalIsMulitpleFederatedUserInDescendingOrder(t *testing.T) {
 func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
+	// NOTE: This case is not legit in practice as you cannot have two open providers
 	policyContent := `
     {
       "Version": "2012-10-17",
@@ -3371,7 +3377,7 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -3380,17 +3386,17 @@ func testWhenPrincipalIsMultipleFederatedUserPrincipalsAcrossMultipleStatements(
 			"graph.facebook.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels:       []string{"Write"},
-		SharedAccessLevels:       []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"Write"},
 		PrivateAccessLevels:      []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:       []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[2]",
 			"Statement[3]",
 			"Statement[4]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -3490,7 +3496,7 @@ func testWhenPrincipalIsASamlUser(t *testing.T) {
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": "arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name"
+            "Federated": "arn:aws:iam::111122223333:saml-provider-1/provider-name"
           },
           "Resource": "*"
         }
@@ -3503,7 +3509,7 @@ func testWhenPrincipalIsASamlUser(t *testing.T) {
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
-		AllowedPrincipalFederatedIdentities: []string{"arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name"},
+		AllowedPrincipalFederatedIdentities: []string{"arn:aws:iam::111122223333:saml-provider-1/provider-name"},
 		AllowedPrincipalServices:            []string{},
 		IsPublic:                            false,
 		PublicAccessLevels:                  []string{},
@@ -3550,7 +3556,7 @@ func testWhenPrincipalIsMulitpleSamlUserInAscendingOrder(t *testing.T) {
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name", "arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name", "arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
           "Resource": "*"
         }
@@ -3564,8 +3570,8 @@ func testWhenPrincipalIsMulitpleSamlUserInAscendingOrder(t *testing.T) {
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
-			"arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name",
-			"arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-1/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-2/provider-name",
 		},
 		AllowedPrincipalServices: []string{},
 		IsPublic:                 false,
@@ -3613,7 +3619,7 @@ func testWhenPrincipalIsMulitpleSamlUserInDescendingOrder(t *testing.T) {
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name", "arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name", "arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
           "Resource": "*"
         }
@@ -3627,8 +3633,8 @@ func testWhenPrincipalIsMulitpleSamlUserInDescendingOrder(t *testing.T) {
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
-			"arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name",
-			"arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-1/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-2/provider-name",
 		},
 		AllowedPrincipalServices: []string{},
 		IsPublic:                 false,
@@ -3676,7 +3682,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name"]
           },
           "Resource": "*"
         },
@@ -3684,7 +3690,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
           "Resource": "*"
         },
@@ -3692,7 +3698,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name"]
           },
           "Resource": "*"
         },
@@ -3700,7 +3706,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
           "Resource": "*"
         }
@@ -3714,8 +3720,8 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
 		AllowedPrincipalFederatedIdentities: []string{
-			"arn:aws:iam::AWS-account-ID:saml-provider-1/provider-name",
-			"arn:aws:iam::AWS-account-ID:saml-provider-2/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-1/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-2/provider-name",
 		},
 		AllowedPrincipalServices: []string{},
 		IsPublic:                 false,
@@ -3768,7 +3774,7 @@ func testWhenPrincipalHasAWildcardInSamlUserThenIgnorePrincipal(t *testing.T) {
           "Effect": "Allow",
           "Action": "sts:AssumeRole",
           "Principal": {
-            "Federated": ["arn:aws:iam::AWS-account-ID:saml-provider-1/*"]
+            "Federated": ["arn:aws:iam::111122223333:saml-provider-1/*"]
           },
           "Resource": "*"
         }
@@ -3789,6 +3795,159 @@ func testWhenPrincipalHasAWildcardInSamlUserThenIgnorePrincipal(t *testing.T) {
 		PrivateAccessLevels:                 []string{},
 		PublicStatementIds:                  []string{},
 		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testWhenPrincipalIsMulitpleSamlProvidersWithAudienceConditions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-1/provider-name" },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-2/provider-name" },
+          "Condition": { "StringEquals": { "SAML:iss": ["test"] } }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-3/provider-name" },
+          "Condition": { "StringEquals": { "SAML:sub": ["test"] } }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-4/provider-name" },
+          "Condition": { "StringEquals": { "SAML:sub_type": ["test"] } }
+        },
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-5/provider-name" },
+          "Condition": { "StringEquals": { "SAML:eduPersonOrgDN": ["test"] } }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                "shared",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"arn:aws:iam::111122223333:saml-provider-1/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-2/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-3/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-4/provider-name",
+			"arn:aws:iam::111122223333:saml-provider-5/provider-name",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"Write"},
+		PrivateAccessLevels:      []string{},
+		PublicStatementIds:       []string{},
+		SharedStatementIds: []string{
+			"Statement[1]",
+			"Statement[2]",
+			"Statement[3]",
+			"Statement[4]",
+			"Statement[5]",
+		},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Principal Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func testWhenPrincipalIsMulitpleSamlProvidersWithoutAudienceConditions(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "sts:AssumeRoleWithSAML",
+          "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider-1/provider-name" }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                "public",
+		AllowedOrganizationIds:     []string{},
+		AllowedPrincipals:          []string{},
+		AllowedPrincipalAccountIds: []string{},
+		AllowedPrincipalFederatedIdentities: []string{
+			"arn:aws:iam::111122223333:saml-provider-1/provider-name",
+		},
+		AllowedPrincipalServices: []string{},
+		IsPublic:                 true,
+		PublicAccessLevels:       []string{"Write"},
+		SharedAccessLevels:       []string{},
+		PrivateAccessLevels:      []string{},
+		PublicStatementIds:       []string{"Statement[1]"},
+		SharedStatementIds:       []string{},
 	}
 
 	// Test
@@ -17200,6 +17359,7 @@ func testPrincipalAccountConditionWhenValueIsACrossAccountWithStringLike(t *test
 	}
 }
 
+// NOTE: I think we should test this one, I believe this value is incorrect, should be private as there is no account with this number
 func testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStringLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -17265,6 +17425,7 @@ func testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooFewWithStri
 	}
 }
 
+// NOTE: I think we should test this one, I believe this value is incorrect, should be private as there is no account with this number
 func testPrincipalAccountConditionWhenValueIsAnAccountWithOneDigitTooManyWithStringLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -17590,6 +17751,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsSingleWildcardedUsingStr
 	}
 }
 
+// NOTE: I think we should test this one, I believe this value is incorrect, should be private as there is no account with this number
 func testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsingStringLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -17655,6 +17817,7 @@ func testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooFewUsing
 	}
 }
 
+// NOTE: I think we should test this one, I believe this value is incorrect, should be private as there is no account with this number
 func testPrincipalAccountConditionWhenValueWhenAccountIsWildcardedOneTooManyUsingStringLike(t *testing.T) {
 	// Set up
 	userAccountId := "012345678901"
@@ -23998,18 +24161,18 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalWithRespectiveDeny(t *
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"cognito-identity.amazonaws.com"},
 		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels:                  []string{"List"},
-		SharedAccessLevels:                  []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
 		PrivateAccessLevels:                 []string{},
-		PublicStatementIds:                  []string{"Statement[1]"},
-		SharedStatementIds:                  []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"Statement[1]"},
 	}
 
 	// Test
@@ -24166,24 +24329,24 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalsWhenDenyingMultiplePe
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"accounts.google.com"},
 		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels: []string{
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
 			"List",
 			"Read",
 		},
-		SharedAccessLevels:  []string{},
 		PrivateAccessLevels: []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[2]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -24248,24 +24411,24 @@ func testDenyPermissionsByFederatedRemovesCorrectPrincipalsWhenDenyWildcardPermi
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
+		AccessLevel:                         "shared",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
 		AllowedPrincipalAccountIds:          []string{},
 		AllowedPrincipalFederatedIdentities: []string{"accounts.google.com"},
 		AllowedPrincipalServices:            []string{},
-		IsPublic:                            true,
-		PublicAccessLevels: []string{
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels: []string{
 			"List",
 			"Read",
 		},
-		SharedAccessLevels:  []string{},
 		PrivateAccessLevels: []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[2]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -24406,7 +24569,7 @@ func testDenyPermissionsByFederatedMultiplePermissionsWithMultiplePrincipalsAndD
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -24415,18 +24578,18 @@ func testDenyPermissionsByFederatedMultiplePermissionsWithMultiplePrincipalsAndD
 			"cognito-identity.amazonaws.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels: []string{
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels: []string{
 			"List",
 			"Read",
 		},
-		SharedAccessLevels:  []string{},
 		PrivateAccessLevels: []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:  []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[2]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -24565,7 +24728,7 @@ func testDenyPermissionsByFederatedWhereDenyHasPartiallyWildcardedPrincipalsForA
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -24574,15 +24737,15 @@ func testDenyPermissionsByFederatedWhereDenyHasPartiallyWildcardedPrincipalsForA
 			"graph.facebook.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels:       []string{"List"},
-		SharedAccessLevels:       []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"List"},
 		PrivateAccessLevels:      []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:       []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[2]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test
@@ -24654,7 +24817,7 @@ func testDenyPermissionsByFederatedAllowPermissionsIsTheSupersetOfDenyResources(
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                "public",
+		AccessLevel:                "shared",
 		AllowedOrganizationIds:     []string{},
 		AllowedPrincipals:          []string{},
 		AllowedPrincipalAccountIds: []string{},
@@ -24663,15 +24826,15 @@ func testDenyPermissionsByFederatedAllowPermissionsIsTheSupersetOfDenyResources(
 			"graph.facebook.com",
 		},
 		AllowedPrincipalServices: []string{},
-		IsPublic:                 true,
-		PublicAccessLevels:       []string{"List"},
-		SharedAccessLevels:       []string{},
+		IsPublic:                 false,
+		PublicAccessLevels:       []string{},
+		SharedAccessLevels:       []string{"List"},
 		PrivateAccessLevels:      []string{},
-		PublicStatementIds: []string{
+		PublicStatementIds:       []string{},
+		SharedStatementIds: []string{
 			"Statement[1]",
 			"Statement[3]",
 		},
-		SharedStatementIds: []string{},
 	}
 
 	// Test

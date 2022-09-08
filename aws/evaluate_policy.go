@@ -178,7 +178,7 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		}
 
 		// Principals
-		evaluatedPrincipal, err := evaluatePrincipal(statement.Principal, userAccountId)
+		evaluatedPrincipal, err := evaluatePrincipal(statement.Principal, statement.Condition, userAccountId)
 		if err != nil {
 			return allowedEvaluatedStatements, deniedEvaluatedStatements, err
 		}
@@ -1332,7 +1332,7 @@ func (evaluatedPrincipal EvaluatedPrincipal) toEvaluatedCondition() EvaluatedCon
 	}
 }
 
-func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrincipal, error) {
+func evaluatePrincipal(principal Principal, conditions map[string]interface{}, userAccountId string) (EvaluatedPrincipal, error) {
 	evaluatedPrincipal := EvaluatedPrincipal{
 		allowedPrincipalFederatedIdentitiesSet: map[string]bool{},
 		allowedPrincipalServicesSet:            map[string]bool{},
@@ -1396,13 +1396,23 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 					continue
 				}
 
+				// NOTE: In AWS it is impossible to create an Identity without an audience of some sort, which makes identity providers work as shared.
+				// You can not assign more than one open identity provider in trusted access either.
+				// Safe for assuming that these cases are shared
 				if principalItem == "cognito-identity.amazonaws.com" ||
 					principalItem == "www.amazon.com" ||
 					principalItem == "graph.facebook.com" ||
 					principalItem == "accounts.google.com" {
-					evaluatedPrincipal.isFederatedPublic = true
-				} else {
 					evaluatedPrincipal.isFederatedShared = true
+				} else {
+					// See `Prerequisites for creating a role for SAML` at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_saml.html
+					// However, you can manipulate the UI to get rid of 'SAML:aud' or 'SAML:iss' or 'SAML:sub' or 'SAML:sub_type' or 'SAML:eduPersonOrgDN'
+					// If either of these are missing, we looking at public access since we are not limiting the audience.
+					if hasAudience(conditions) {
+						evaluatedPrincipal.isFederatedShared = true
+					} else {
+						evaluatedPrincipal.isFederatedPublic = true
+					}
 				}
 
 				evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet[principalItem] = true
@@ -1411,6 +1421,36 @@ func evaluatePrincipal(principal Principal, userAccountId string) (EvaluatedPrin
 	}
 
 	return evaluatedPrincipal, nil
+}
+
+func hasAudience(conditions map[string]interface{}) bool {
+	if _, exists := conditions["StringEquals"]; !exists {
+		return false
+	}
+
+	refinedConditions := conditions["StringEquals"].(map[string]interface{})
+
+	if _, exists := refinedConditions["saml:aud"]; exists {
+		return true
+	}
+
+	if _, exists := refinedConditions["saml:iss"]; exists {
+		return true
+	}
+
+	if _, exists := refinedConditions["saml:sub"]; exists {
+		return true
+	}
+
+	if _, exists := refinedConditions["saml:sub_type"]; exists {
+		return true
+	}
+
+	if _, exists := refinedConditions["saml:edupersonorgdn"]; exists {
+		return true
+	}
+
+	return false
 }
 
 func mergeSet(set1 map[string]bool, set2 map[string]bool) map[string]bool {
