@@ -126,6 +126,10 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &ecrpublic.DescribeRepositoriesInput{
 		MaxResults: aws.Int64(1000),
@@ -187,6 +191,10 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ecrpublic.DescribeRepositoriesInput{
@@ -217,6 +225,10 @@ func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &ecrpublic.ListTagsForResourceInput{
@@ -242,6 +254,10 @@ func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h
 	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -272,6 +288,10 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 	svc, err := EcrPublicService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
