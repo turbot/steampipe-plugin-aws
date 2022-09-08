@@ -136,6 +136,10 @@ func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -203,6 +207,10 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &glacier.DescribeVaultInput{
 		VaultName: aws.String(vaultName),
@@ -228,6 +236,10 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param
@@ -260,6 +272,10 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build param
 	param := &glacier.GetVaultLockInput{
@@ -290,6 +306,10 @@ func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param
@@ -322,6 +342,10 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := GlacierService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build param

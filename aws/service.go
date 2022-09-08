@@ -441,7 +441,7 @@ func FirehoseService(ctx context.Context, d *plugin.QueryData) (*firehose.Fireho
 }
 
 func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, glacier.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
