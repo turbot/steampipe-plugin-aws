@@ -518,7 +518,7 @@ func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kines
 }
 
 func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvideo.KinesisVideo, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, kinesisvideo.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
