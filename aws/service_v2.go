@@ -91,8 +91,8 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	return docdb.NewFromConfig(*cfg), nil
 }
 
-func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func DynamoDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*dynamodb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, DynamoDBServiceID)
 	if err != nil {
 		return nil, err
 	}

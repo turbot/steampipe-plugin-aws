@@ -2,14 +2,15 @@ package aws
 
 import (
 	"context"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
@@ -114,12 +115,16 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbClient(ctx, d)
+	svc, err := DynamoDBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "service_connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -175,15 +180,22 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
+	if strings.TrimSpace(arn) == "" {
+		return nil, nil
+	}
 
 	// Create Session
-	svc, err := DynamoDbClient(ctx, d)
+	svc, err := DynamoDBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "service_client_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &dynamodb.DescribeBackupInput{
