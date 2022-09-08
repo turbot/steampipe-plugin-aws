@@ -620,7 +620,7 @@ func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
 }
 
 func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, rds.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

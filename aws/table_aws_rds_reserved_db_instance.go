@@ -155,6 +155,10 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeReservedDBInstancesInput{
 		MaxRecords: aws.Int64(100),
@@ -234,6 +238,10 @@ func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugi
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.DescribeReservedDBInstancesInput{

@@ -109,6 +109,10 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeEventSubscriptionsInput{
 		MaxRecords: aws.Int64(100),
@@ -154,6 +158,10 @@ func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plug
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.DescribeEventSubscriptionsInput{

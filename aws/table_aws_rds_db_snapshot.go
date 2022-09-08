@@ -230,6 +230,10 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeDBSnapshotsInput{
 		MaxRecords: aws.Int64(100),
@@ -281,6 +285,10 @@ func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBSnapshotsInput{
 		DBSnapshotIdentifier: aws.String(dbSnapshotIdentifier),
@@ -306,6 +314,10 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.DescribeDBSnapshotAttributesInput{

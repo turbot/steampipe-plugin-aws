@@ -3,9 +3,9 @@ package aws
 import (
 	"context"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"github.com/turbot/go-kit/helpers"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -353,6 +353,10 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeDBClustersInput{
 		MaxRecords: aws.Int64(100),
@@ -421,6 +425,10 @@ func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBClustersInput{
 		DBClusterIdentifier: aws.String(dbClusterIdentifier),
@@ -444,6 +452,10 @@ func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.Quer
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	filter := &rds.Filter{

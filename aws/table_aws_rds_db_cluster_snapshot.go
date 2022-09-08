@@ -191,6 +191,10 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := rds.DescribeDBClusterSnapshotsInput{
 		MaxRecords: types.Int64(100),
@@ -244,6 +248,10 @@ func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBClusterSnapshotsInput{
 		DBClusterSnapshotIdentifier: aws.String(snapshotIdentifier),
@@ -269,6 +277,10 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.DescribeDBClusterSnapshotAttributesInput{

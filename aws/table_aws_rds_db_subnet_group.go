@@ -105,6 +105,10 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeDBSubnetGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -151,6 +155,10 @@ func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBSubnetGroupsInput{
 		DBSubnetGroupName: aws.String(name),
@@ -176,6 +184,10 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{

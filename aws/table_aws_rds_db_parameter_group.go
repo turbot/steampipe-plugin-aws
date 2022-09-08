@@ -101,6 +101,10 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeDBParameterGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -147,6 +151,10 @@ func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeDBParameterGroupsInput{
 		DBParameterGroupName: aws.String(name),
@@ -173,6 +181,10 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	var items []*rds.Parameter
 	err = svc.DescribeDBParametersPages(
@@ -197,6 +209,10 @@ func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{

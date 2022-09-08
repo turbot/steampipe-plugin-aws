@@ -118,6 +118,10 @@ func listRDSDBOptionGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &rds.DescribeOptionGroupsInput{
 		MaxRecords: aws.Int64(100),
@@ -174,6 +178,10 @@ func getRDSDBOptionGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	params := &rds.DescribeOptionGroupsInput{
 		OptionGroupName: aws.String(name),
@@ -199,6 +207,10 @@ func getAwsRDSOptionGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &rds.ListTagsForResourceInput{
