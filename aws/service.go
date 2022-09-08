@@ -738,7 +738,7 @@ func ServiceQuotasService(ctx context.Context, d *plugin.QueryData) (*servicequo
 }
 
 func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*servicequotas.ServiceQuotas, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, servicequotas.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

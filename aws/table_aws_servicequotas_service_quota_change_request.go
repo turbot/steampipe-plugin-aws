@@ -149,6 +149,10 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &servicequotas.ListRequestedServiceQuotaChangeHistoryInput{
 		MaxResults: aws.Int64(100),
@@ -213,6 +217,10 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &servicequotas.GetRequestedServiceQuotaChangeInput{
@@ -238,6 +246,10 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

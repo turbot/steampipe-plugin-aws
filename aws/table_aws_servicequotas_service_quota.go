@@ -137,6 +137,10 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
 	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
@@ -212,6 +216,10 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &servicequotas.GetServiceQuotaInput{
@@ -238,6 +246,10 @@ func getServiceQuotaTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

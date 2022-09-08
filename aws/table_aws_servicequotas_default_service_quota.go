@@ -122,6 +122,10 @@ func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	matrixServiceCode := d.KeyColumnQualString(matrixKeyServiceCode)
 	serviceCode := d.KeyColumnQuals["service_code"].GetStringValue()
@@ -196,6 +200,10 @@ func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.
 	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
