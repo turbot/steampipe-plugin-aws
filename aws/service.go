@@ -210,7 +210,7 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 }
 
 func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
