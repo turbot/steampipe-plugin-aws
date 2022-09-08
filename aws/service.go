@@ -402,7 +402,7 @@ func ElastiCacheService(ctx context.Context, d *plugin.QueryData) (*elasticache.
 }
 
 func ElasticsearchService(ctx context.Context, d *plugin.QueryData) (*elasticsearchservice.ElasticsearchService, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, elasticsearchservice.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

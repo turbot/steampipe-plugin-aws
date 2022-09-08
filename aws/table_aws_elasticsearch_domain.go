@@ -221,6 +221,10 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List call
 	params := &elasticsearchservice.ListDomainNamesInput{}
@@ -262,6 +266,10 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &elasticsearchservice.DescribeElasticsearchDomainInput{
@@ -294,6 +302,10 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	svc, err := ElasticsearchService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
