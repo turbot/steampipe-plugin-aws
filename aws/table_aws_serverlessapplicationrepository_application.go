@@ -125,12 +125,12 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 
 //// LIST FUNCTION
 
-func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listServerlessApplicationRepositoryApplications")
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d)
 	if err != nil {
 		logger.Error("listServerlessApplicationRepositoryApplications", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
@@ -199,7 +199,7 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplication", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
@@ -234,7 +234,7 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplicationPolicy", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err

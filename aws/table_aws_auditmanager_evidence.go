@@ -175,7 +175,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 
 	// Create Session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

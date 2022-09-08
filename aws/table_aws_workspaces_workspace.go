@@ -151,10 +151,10 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listWorkspaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d, h)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err
@@ -222,7 +222,7 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getWorkspace(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getWorkspace")
 
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
@@ -233,7 +233,7 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d, h)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getWorkspace", "connection_error", err)
 		return nil, err
@@ -268,7 +268,7 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	workspaceId := h.Item.(*workspaces.Workspace).WorkspaceId
 
 	// Create Session
-	svc, err := WorkspacesService(ctx, d, h)
+	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err

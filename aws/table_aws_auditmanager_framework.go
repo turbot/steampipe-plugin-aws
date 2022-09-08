@@ -138,7 +138,7 @@ func tableAwsAuditManagerFramework(_ context.Context) *plugin.Table {
 func listAuditManagerFrameworks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func getAuditManagerFramework(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

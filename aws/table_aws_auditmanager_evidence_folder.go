@@ -152,7 +152,7 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -182,7 +182,7 @@ type InspectorFindingInfo struct {
 func listInspectorFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

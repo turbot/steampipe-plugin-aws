@@ -170,10 +170,10 @@ func tableAwsAmplifyApp(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAmplifyApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := AmplifyService(ctx, d, h)
+	svc, err := AmplifyService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
@@ -230,7 +230,7 @@ func listAmplifyApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAmplifyApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	appId := d.KeyColumnQuals["app_id"].GetStringValue()
 	if appId == "" {
@@ -239,7 +239,7 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := AmplifyService(ctx, d, h)
+	svc, err := AmplifyService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listAmplifyApps", "connection_error", err)
 		return nil, err
@@ -263,5 +263,3 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	return data.App, nil
 }
-
-//// TRANSFORM FUNCTION

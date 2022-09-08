@@ -136,7 +136,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

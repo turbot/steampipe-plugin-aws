@@ -109,12 +109,12 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listMediaStoreContainers")
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d, h)
+	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listMediaStoreContainers", "connection_error", err)
 		return nil, err
@@ -167,7 +167,7 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getMediaStoreContainer")
 
@@ -179,7 +179,7 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d, h)
+	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainer", "connection_error", err)
 		return nil, err
@@ -214,7 +214,7 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d, h)
+	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainerPolicy", "connection_error", err)
 		return nil, err
@@ -254,7 +254,7 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Create Session
-	svc, err := MediaStoreService(ctx, d, h)
+	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getMediaStoreContainerTags", "connection_error", err)
 		return nil, err
