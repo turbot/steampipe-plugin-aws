@@ -746,7 +746,7 @@ func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*se
 }
 
 func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, sqs.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

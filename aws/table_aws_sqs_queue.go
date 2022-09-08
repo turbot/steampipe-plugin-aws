@@ -162,6 +162,10 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sqs.ListQueuesInput{
 		MaxResults: aws.Int64(1000),
@@ -219,6 +223,10 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &sqs.GetQueueAttributesInput{
 		QueueUrl:       aws.String(queueURL),
@@ -244,6 +252,10 @@ func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	svc, err := SQSService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
