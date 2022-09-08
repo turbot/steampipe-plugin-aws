@@ -158,12 +158,16 @@ func tableAwsEc2ApplicationLoadBalancer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBV2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.listEc2ApplicationLoadBalancers", "connection error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{}
@@ -223,7 +227,7 @@ func listEc2ApplicationLoadBalancers(ctx context.Context, d *plugin.QueryData, _
 
 //// HYDRATE FUNCTIONS
 
-func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// check if arn is empty
@@ -232,10 +236,14 @@ func getEc2ApplicationLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Create service
-	svc, err := ELBV2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getEc2ApplicationLoadBalancer", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancingv2.DescribeLoadBalancersInput{
@@ -259,10 +267,14 @@ func getAwsEc2ApplicationLoadBalancerAttributes(ctx context.Context, d *plugin.Q
 	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBV2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerAttributes", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancingv2.DescribeLoadBalancerAttributesInput{
@@ -283,10 +295,14 @@ func getAwsEc2ApplicationLoadBalancerTags(ctx context.Context, d *plugin.QueryDa
 	applicationLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBV2Client(ctx, d)
+	svc, err := ELBV2Client(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_application_load_balancer.getAwsEc2ApplicationLoadBalancerTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancingv2.DescribeTagsInput{

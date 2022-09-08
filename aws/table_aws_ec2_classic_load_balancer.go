@@ -264,12 +264,16 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBClient(ctx, d)
+	svc, err := ELBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.listEc2ClassicLoadBalancers", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -317,14 +321,18 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancerName := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := ELBClient(ctx, d)
+	svc, err := ELBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancer", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancing.DescribeLoadBalancersInput{
@@ -348,10 +356,14 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBClient(ctx, d)
+	svc, err := ELBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerAttributes", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancing.DescribeLoadBalancerAttributesInput{
@@ -372,10 +384,14 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBClient(ctx, d)
+	svc, err := ELBClient(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &elasticloadbalancing.DescribeTagsInput{

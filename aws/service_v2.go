@@ -108,16 +108,16 @@ func EC2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func ELBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ElasticLoadBalancingServiceID)
 	if err != nil {
 		return nil, err
 	}
 	return elb.NewFromConfig(*cfg), nil
 }
 
-func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+func ELBV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elbv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ElasticLoadBalancingV2ServiceID)
 	if err != nil {
 		return nil, err
 	}
