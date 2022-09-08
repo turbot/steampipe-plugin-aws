@@ -704,7 +704,7 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 }
 
 func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, ses.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

@@ -84,6 +84,10 @@ func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &ses.ListIdentitiesInput{
 		MaxItems:     aws.Int64(1000),

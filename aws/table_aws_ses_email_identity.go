@@ -82,6 +82,10 @@ func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// execute list call
 	input := &ses.ListIdentitiesInput{
@@ -133,6 +137,10 @@ func getSESIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryDa
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &ses.GetIdentityVerificationAttributesInput{
 		Identities: identities,
@@ -155,6 +163,10 @@ func getSESIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryDa
 	svc, err := SESService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &ses.GetIdentityNotificationAttributesInput{
