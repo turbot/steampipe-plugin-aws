@@ -225,6 +225,10 @@ func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugi
 		logger.Error("aws_msk_cluster.getKafkaClusterOperation", "service_creation_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &kafka.DescribeClusterOperationInput{
@@ -260,6 +264,10 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		logger.Error("aws_msk_cluster.getKafkaClusterConfiguration", "service_creation_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
