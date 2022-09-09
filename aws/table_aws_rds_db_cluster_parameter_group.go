@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -20,7 +21,7 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBParameterGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBParameterGroupNotFound"}),
 			},
 			Hydrate: getRDSDBClusterParameterGroup,
 		},
@@ -94,45 +95,54 @@ func tableAwsRDSDBClusterParameterGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBClusterParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBClusterParameterGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.listRDSDBClusterParameterGroups", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBClusterParameterGroupsInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeDBClusterParameterGroupsPages(
-		input,
-		func(page *rds.DescribeDBClusterParameterGroupsOutput, isLast bool) bool {
-			for _, dbClusterParameterGroup := range page.DBClusterParameterGroups {
-				d.StreamListItem(ctx, dbClusterParameterGroup)
+	input := &rds.DescribeDBClusterParameterGroupsInput{
+		MaxRecords: aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := rds.NewDescribeDBClusterParameterGroupsPaginator(svc, input, func(o *rds.DescribeDBClusterParameterGroupsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.listRDSDBClusterParameterGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBClusterParameterGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -142,8 +152,9 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getRDSDBClusterParameterGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -151,8 +162,9 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 		DBClusterParameterGroupName: aws.String(name),
 	}
 
-	op, err := svc.DescribeDBClusterParameterGroups(params)
+	op, err := svc.DescribeDBClusterParameterGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getRDSDBClusterParameterGroup", "api_error", err)
 		return nil, err
 	}
 
@@ -163,38 +175,48 @@ func getRDSDBClusterParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 }
 
 func getAwsRDSClusterParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRDSClusterParameterGroupParameters")
 
-	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
+	dbClusterParameterGroup := h.Item.(types.DBClusterParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getAwsRDSClusterParameterGroupParameters", "connection_error", err)
 		return nil, err
 	}
 
-	var items []*rds.Parameter
-	err = svc.DescribeDBClusterParametersPages(
-		&rds.DescribeDBClusterParametersInput{
-			DBClusterParameterGroupName: dbClusterParameterGroup.DBClusterParameterGroupName,
-		},
-		func(page *rds.DescribeDBClusterParametersOutput, isLast bool) bool {
-			items = append(items, page.Parameters...)
-			return !isLast
-		},
-	)
+	input := &rds.DescribeDBClusterParametersInput{
+		DBClusterParameterGroupName: dbClusterParameterGroup.DBClusterParameterGroupName,
+	}
 
-	return items, err
+	paginator := rds.NewDescribeDBClusterParametersPaginator(svc, input, func(o *rds.DescribeDBClusterParametersPaginatorOptions) {
+		o.Limit = int32(100)
+		o.StopOnDuplicateToken = true
+	})
+
+	var parameters []types.Parameter
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getAwsRDSClusterParameterGroupParameters", "api_error", err)
+			return nil, err
+		}
+		parameters = append(parameters, output.Parameters...)
+	}
+
+	return parameters, err
 }
 
 func getAwsRDSClusterParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRDSClusterParameterGroupTags")
 
-	dbClusterParameterGroup := h.Item.(*rds.DBClusterParameterGroup)
+	dbClusterParameterGroup := h.Item.(types.DBClusterParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getAwsRDSClusterParameterGroupTags", "connection_error", err)
 		return nil, err
 	}
 
@@ -202,12 +224,16 @@ func getAwsRDSClusterParameterGroupTags(ctx context.Context, d *plugin.QueryData
 		ResourceName: dbClusterParameterGroup.DBClusterParameterGroupArn,
 	}
 
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_cluster_parameter_group.getAwsRDSClusterParameterGroupTags", "api_error", err)
 		return nil, err
 	}
+	if len(op.TagList) > 0 {
+		return op, nil
+	}
 
-	return op, nil
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS ////
