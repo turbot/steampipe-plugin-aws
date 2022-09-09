@@ -3498,6 +3498,7 @@ func testWhenPrincipalIsASamlUser(t *testing.T) {
           "Principal": {
             "Federated": "arn:aws:iam::111122223333:saml-provider-1/provider-name"
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         }
       ]
@@ -3558,6 +3559,7 @@ func testWhenPrincipalIsMulitpleSamlUserInAscendingOrder(t *testing.T) {
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name", "arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         }
       ]
@@ -3621,6 +3623,7 @@ func testWhenPrincipalIsMulitpleSamlUserInDescendingOrder(t *testing.T) {
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name", "arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         }
       ]
@@ -3684,6 +3687,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         },
         {
@@ -3692,6 +3696,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         },
         {
@@ -3700,6 +3705,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-1/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         },
         {
@@ -3708,6 +3714,7 @@ func testWhenPrincipalIsMultipleSamlUserPrincipalsAcrossMultipleStatements(t *te
           "Principal": {
             "Federated": ["arn:aws:iam::111122223333:saml-provider-2/provider-name"]
           },
+          "Condition": { "StringEquals": { "SAML:aud": ["test"] } },
           "Resource": "*"
         }
       ]
