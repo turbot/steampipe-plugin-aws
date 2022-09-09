@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -54,14 +54,28 @@ type ServiceDetail struct {
 
 func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := PricingService(ctx, d)
+	svc, err := PricingServiceClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listPricingServiceAttributes", "connection_error", err)
 		return nil, err
+	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	input := &pricing.DescribeServicesInput{
 		FormatVersion: aws.String("aws_v1"),
-		MaxResults:    aws.Int64(100),
+		MaxResults:    *aws.Int32(maxLimit),
 	}
 
 	equalQual := d.KeyColumnQuals
@@ -69,38 +83,30 @@ func listPricingServiceAttributes(ctx context.Context, d *plugin.QueryData, _ *p
 		input.ServiceCode = aws.String(equalQual["service_code"].GetStringValue())
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := pricing.NewDescribeServicesPaginator(svc, input, func(o *pricing.DescribeServicesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeServicesPages(
-		input,
-		func(page *pricing.DescribeServicesOutput, isLast bool) bool {
-			for _, service := range page.Services {
-				for _, attributeName := range service.AttributeNames {
-					d.StreamListItem(ctx, ServiceDetail{attributeName, service.ServiceCode})
-				}
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_pricing_service_attribute.listPricingServiceAttributes", "api_error", err)
+			return nil, err
+		}
 
-	if err != nil {
-		plugin.Logger(ctx).Error("listPricingServiceAttributes", "err", err)
-		return nil, err
+		for _, items := range output.Services {
+			for _, attributeName := range items.AttributeNames {
+				d.StreamListItem(ctx, ServiceDetail{&attributeName, items.ServiceCode})
+			}
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
 	}
 
 	return nil, nil
@@ -113,37 +119,52 @@ func listAttributeValues(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	attributeName := h.Item.(ServiceDetail).AttributeName
 
 	// Create Session
-	svc, err := PricingService(ctx, d)
+	svc, err := PricingServiceClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_pricing_service_attribute.listAttributeValues", "connection_error", err)
 		return nil, err
 	}
+
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &pricing.GetAttributeValuesInput{
 		AttributeName: attributeName,
 		ServiceCode:   serviceCode,
-		MaxResults:    aws.Int64(100),
+		MaxResults:    maxLimit,
 	}
 
 	attributeValues := []string{}
 
+	paginator := pricing.NewGetAttributeValuesPaginator(svc, input, func(o *pricing.GetAttributeValuesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
 	// List call
-	err = svc.GetAttributeValuesPages(
-		input,
-		func(page *pricing.GetAttributeValuesOutput, isLast bool) bool {
-			for _, attributeValue := range page.AttributeValues {
-				attributeValues = append(attributeValues, *attributeValue.Value)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_pricing_service_attribute.listAttributeValues", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.AttributeValues {
+			attributeValues = append(attributeValues, *items.Value)
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listAttributeValues", "err", err)
-		return nil, err
+		}
 	}
 
 	return attributeValues, nil
