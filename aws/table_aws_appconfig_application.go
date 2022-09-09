@@ -80,7 +80,7 @@ func listAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugi
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := AppConfigService(ctx, d)
+	svc, err := AppConfigClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_appconfig_application.listAppConfigApplication", "service_creation_error", err)
 		return nil, err
@@ -131,7 +131,7 @@ func getAppConfigApplication(ctx context.Context, d *plugin.QueryData, _ *plugin
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := AppConfigService(ctx, d)
+	svc, err := AppConfigClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_appconfig_application.getAppConfigApplication", "service_creation_error", err)
 		return nil, err
@@ -164,7 +164,7 @@ func getAppConfigTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := AppConfigService(ctx, d)
+	svc, err := AppConfigClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_appconfig_application.getAppConfigTags", "service_creation_error", err)
 		return nil, err

@@ -65,7 +65,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-func AppConfigService(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
