@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -21,6 +20,9 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 		Description: "AWS DAX Subnet Group",
 		List: &plugin.ListConfig{
 			Hydrate: listDaxSubnetGroups,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SubnetGroupNotFoundFault"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "subnet_group_name",
@@ -51,7 +53,7 @@ func tableAwsDaxSubnetGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 
-			// Standard columns
+			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -112,9 +114,6 @@ func listDaxSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	for pagesLeft {
 		result, err := svc.DescribeSubnetGroups(ctx, params)
 		if err != nil {
-			if strings.Contains(err.Error(), "SubnetGroupNotFoundFault") {
-				return nil, nil
-			}
 			logger.Error("aws_dax_subnet_group.listSubnetGroups", "api_error", err)
 			return nil, err
 		}
