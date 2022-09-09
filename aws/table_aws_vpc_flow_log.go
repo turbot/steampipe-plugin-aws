@@ -286,6 +286,9 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(types.FlowLog)
+	if data.LogDestination == nil {
+		return nil, nil
+	}
 	logDestination := *data.LogDestination
 	if logDestination == "" {
 		return nil, nil
