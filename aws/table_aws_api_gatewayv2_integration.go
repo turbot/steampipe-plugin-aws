@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type integrationInfo = struct {
@@ -195,7 +196,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 	pagesLeft := true
 	params := &apigatewayv2.GetIntegrationsInput{
-		ApiId: api.ApiId,
+		ApiId:      api.ApiId,
 		MaxResults: aws.String(fmt.Sprint(maxLimit)),
 	}
 

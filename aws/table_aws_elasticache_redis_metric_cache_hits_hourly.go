@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsElasticacheRedisMetricCacheHitsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_cache_hits_hourly",

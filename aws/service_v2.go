@@ -18,14 +18,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
 	"github.com/turbot/go-kit/helpers"
@@ -82,6 +91,22 @@ func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager
 	return auditmanager.NewFromConfig(*cfg), nil
 }
 
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return backup.NewFromConfig(*cfg), nil
+}
+
 func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -122,12 +147,72 @@ func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch
 	return cloudwatchlogs.NewFromConfig(*cfg), nil
 }
 
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codebuild.NewFromConfig(*cfg), nil
+}
+
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return docdb.NewFromConfig(*cfg), nil
+}
+
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return dynamodb.NewFromConfig(*cfg), nil
+}
+
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	// We can query EC2 for the list of supported regions. But, if credentials
+	// are insufficient this query will retry many times, so we create a special
+	// client with a small number of retries to prevent hangs.
+	// Note - This is not cached, but usually the result of using this service will be.
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
+func ELBClient(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancing.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return elasticloadbalancing.NewFromConfig(*cfg), nil
+}
+
+func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancingv2.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
@@ -151,7 +236,27 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 	if err != nil {
 		return nil, err
 	}
-	return s3.NewFromConfig(*cfg), nil
+
+	var svc *s3.Client
+
+	awsConfig := GetConfig(d.Connection)
+	if awsConfig.S3ForcePathStyle != nil {
+		svc = s3.NewFromConfig(*cfg, func(o *s3.Options) {
+			o.UsePathStyle = *awsConfig.S3ForcePathStyle
+		})
+	} else {
+		svc = s3.NewFromConfig(*cfg)
+	}
+
+	return svc, nil
+}
+
+func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return s3control.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
@@ -201,15 +306,18 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 	}
 
 	sess, err := getClientWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-
-	// Caching sessions saves about 10ms, which is significant when there are
-	// multiple instantiations (per account region) and when doing queries that
-	// often take <100ms total. But, it's not that important compared to having
-	// fresh credentials all the time. So, set a short cache length to ensure
-	// we don't get tripped up by credential rotation on short lived roles etc.
-	// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-	// reasonable balance - I certainly wouldn't do longer.
-	d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	if err != nil {
+		plugin.Logger(ctx).Error("getService.getClientWithMaxRetries", "region", region, "err", err)
+	} else {
+		// Caching sessions saves about 10ms, which is significant when there are
+		// multiple instantiations (per account region) and when doing queries that
+		// often take <100ms total. But, it's not that important compared to having
+		// fresh credentials all the time. So, set a short cache length to ensure
+		// we don't get tripped up by credential rotation on short lived roles etc.
+		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
+		// reasonable balance - I certainly wouldn't do longer.
+		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	}
 
 	return sess, err
 }

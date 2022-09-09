@@ -1,8 +1,8 @@
 # Table: aws_route53_record
 
-A Route 53 record contains authoritative DNS information for a specified DNS name.  DNS records are most commonly used to map a name to an IP Address
+A Route 53 record contains authoritative DNS information for a specified DNS name. DNS records are most commonly used to map a name to an IP Address
 
-You ***must*** specify a single `zone_id` in a where or join clause in order to use this table.
+You **_must_** specify a single `zone_id` in a where or join clause in order to use this table.
 
 We recommend specifying the `name` and `type` columns when querying zones with a large number of records to reduce the query time.
 
@@ -67,7 +67,6 @@ where
   and name = 'test.com.'
   and type = 'NS';
 ```
-
 
 ### Count records by type
 

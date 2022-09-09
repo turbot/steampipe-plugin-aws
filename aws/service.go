@@ -58,6 +58,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -207,9 +208,12 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
@@ -462,6 +466,16 @@ func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier,
 	return glacier.New(sess), nil
 }
 
+func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	sess, err := getSession(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.New(sess), nil
+}
+
 func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -689,9 +703,12 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return serverlessapplicationrepository.New(sess), nil
 }
@@ -869,15 +886,18 @@ func getSession(ctx context.Context, d *plugin.QueryData, region string) (*sessi
 	}
 
 	sess, err := getSessionWithMaxRetries(ctx, d, region, maxRetries, minRetryDelay)
-
-	// Caching sessions saves about 10ms, which is significant when there are
-	// multiple instantiations (per account region) and when doing queries that
-	// often take <100ms total. But, it's not that important compared to having
-	// fresh credentials all the time. So, set a short cache length to ensure
-	// we don't get tripped up by credential rotation on short lived roles etc.
-	// The minimum assume role time is 15 minutes, so 5 minutes feels like a
-	// reasonable balance - I certainly wouldn't do longer.
-	d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	if err != nil {
+		plugin.Logger(ctx).Error("getClient.getSessionWithMaxRetries", "region", region, "err", err)
+	} else {
+		// Caching sessions saves about 10ms, which is significant when there are
+		// multiple instantiations (per account region) and when doing queries that
+		// often take <100ms total. But, it's not that important compared to having
+		// fresh credentials all the time. So, set a short cache length to ensure
+		// we don't get tripped up by credential rotation on short lived roles etc.
+		// The minimum assume role time is 15 minutes, so 5 minutes feels like a
+		// reasonable balance - I certainly wouldn't do longer.
+		d.ConnectionManager.Cache.SetWithTTL(sessionCacheKey, sess, 5*time.Minute)
+	}
 
 	return sess, err
 }
@@ -937,7 +957,7 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 
 	sess, err := session.NewSessionWithOptions(sessionOptions)
 	if err != nil {
-		plugin.Logger(ctx).Error("getSessionWithMaxRetries", "new_session_with_options", err)
+		plugin.Logger(ctx).Error("getSessionWithMaxRetries.NewSessionWithOptions", "sessionOptions", sessionOptions, "err", err)
 		return nil, err
 	}
 
@@ -982,8 +1002,7 @@ func getSessionForRegion(ctx context.Context, d *plugin.QueryData, region string
 // GetDefaultAwsRegion returns the default region for AWS partiton
 // if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1", "us-iso-east-1", "us-iso-west-1", "us-isob-east-1"}
+	allAwsRegions := getAllAwsRegions()
 
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
@@ -1024,7 +1043,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 				validRegions = append(validRegions, validRegion)
 			}
 		}
-		if len(validRegions) == 0 {
+
+		// Region items with wildcards that match on 0 regions should not be
+		// considered invalid
+		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
 			invalidPatterns = append(invalidPatterns, namePattern)
 		}
 	}

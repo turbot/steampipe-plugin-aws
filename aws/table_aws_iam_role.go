@@ -7,14 +7,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	goTypes "github.com/turbot/go-kit/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -251,7 +250,7 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	var name string
 	if h.Item != nil {
 		data := h.Item.(types.Role)
-		name = goTypes.SafeString(data.RoleName)
+		name = *data.RoleName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		arn := d.KeyColumnQuals["arn"].GetStringValue()

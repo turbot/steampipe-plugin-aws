@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricCpuUtilizationHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_cpu_utilization_hourly",

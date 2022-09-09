@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsEbsVolumeMetricWriteOpsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume_metric_write_ops_daily",

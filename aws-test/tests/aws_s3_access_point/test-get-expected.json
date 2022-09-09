@@ -3,14 +3,14 @@
 		"access_point_arn": "{{ output.arn.value }}",
 		"account_id": "{{ output.account_id.value }}",
 		"block_public_acls": true,
-		"block_public_policy": true,
+		"block_public_policy": false,
 		"bucket_name": "{{ resourceName }}",
 		"ignore_public_acls": true,
 		"name": "{{ resourceName}}",
 		"network_origin": "VPC",
 		"partition": "{{ output.aws_partition.value }}",
 		"region": "{{ output.arn.value.split(':')[3] }}",
-		"restrict_public_buckets": true,
+		"restrict_public_buckets": false,
 		"vpc_id": "{{ output.vpc_id.value }}"
 	}
 ]

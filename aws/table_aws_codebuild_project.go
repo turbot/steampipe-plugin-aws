@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,7 +21,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidInputException"}),
 			},
 			Hydrate: getCodeBuildProject,
 		},
@@ -98,6 +100,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Description: "Information about the build output artifacts for the build project.",
 				Hydrate:     getCodeBuildProject,
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleArtifactsEmptyData),
 			},
 			{
 				Name:        "badge",
@@ -134,6 +137,7 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Description: "Information about logs for the build project. A project can create logs in Amazon CloudWatch Logs, an S3 bucket or both.",
 				Hydrate:     getCodeBuildProject,
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleLogConfigEmptyData),
 			},
 			{
 				Name:        "project_visibility",
@@ -210,32 +214,70 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 	}
 }
 
+type ProjectArtifacts struct {
+	ArtifactIdentifier   *string
+	BucketOwnerAccess    *string
+	EncryptionDisabled   *bool
+	Location             *string
+	Name                 *string
+	NamespaceType        *string
+	OverrideArtifactName *bool
+	Packaging            *string
+	Path                 *string
+	Type                 *string
+}
+
+type ProjectLogConfig struct {
+	CloudWatchLogs *types.CloudWatchLogsConfig
+	S3Logs         *ProjectS3Logs
+}
+
+type ProjectS3Logs struct {
+	BucketOwnerAccess  *string
+	EncryptionDisabled *bool
+	Location           *string
+	Status             *string
+}
+
 //// LIST FUNCTION
 
 func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "connection_error", err)
 		return nil, err
 	}
+  if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	input := &codebuild.ListProjectsInput{}
+
+	paginator := codebuild.NewListProjectsPaginator(svc, input, func(o *codebuild.ListProjectsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.ListProjectsPages(
-		&codebuild.ListProjectsInput{},
-		func(page *codebuild.ListProjectsOutput, isLast bool) bool {
-			for _, result := range page.Projects {
-				d.StreamListItem(ctx, &codebuild.Project{
-					Name: result,
-				})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "api_error", err)
+			return nil, err
+		}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.Projects {
+			d.StreamListItem(ctx, types.Project{
+				Name: aws.String(items),
+			})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -243,31 +285,36 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCodeBuildProject")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*codebuild.Project).Name
+		name = *h.Item.(types.Project).Name
 	} else {
 		quals := d.KeyColumnQuals
 		name = quals["name"].GetStringValue()
 	}
 
 	// get service
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
 	params := &codebuild.BatchGetProjectsInput{
-		Names: []*string{aws.String(name)},
+		Names: []string{name},
 	}
 
 	// Get call
-	op, err := svc.BatchGetProjects(params)
+	op, err := svc.BatchGetProjects(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCodeBuildProject__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "api_error", err)
 		return nil, err
 	}
 
@@ -281,7 +328,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.(*codebuild.Project)
+	data := d.HydrateItem.(types.Project)
 
 	if data.Tags == nil {
 		return nil, nil
@@ -297,4 +344,61 @@ func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (
 
 	}
 	return turbotTagsMap, nil
+}
+
+func handleArtifactsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	artifact := d.HydrateItem.(types.Project).Artifacts
+	if artifact == nil {
+		return nil, nil
+	}
+	data := &ProjectArtifacts{
+		ArtifactIdentifier:   artifact.ArtifactIdentifier,
+		EncryptionDisabled:   artifact.EncryptionDisabled,
+		Name:                 artifact.Name,
+		Location:             artifact.Location,
+		OverrideArtifactName: artifact.OverrideArtifactName,
+		Path:                 artifact.Path,
+		BucketOwnerAccess:    (*string)(&artifact.BucketOwnerAccess),
+		NamespaceType:        (*string)(&artifact.NamespaceType),
+		Packaging:            (*string)(&artifact.Packaging),
+		Type:                 (*string)(&artifact.Type),
+	}
+	if artifact.BucketOwnerAccess == "" {
+		data.BucketOwnerAccess = nil
+	}
+	if artifact.NamespaceType == "" {
+		data.NamespaceType = nil
+	}
+	if artifact.Packaging == "" {
+		data.Packaging = nil
+	}
+	if artifact.Type == "" {
+		data.Type = nil
+	}
+
+	return data, nil
+}
+
+func handleLogConfigEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	logConfig := d.HydrateItem.(types.Project).LogsConfig
+	data := &ProjectLogConfig{}
+	if logConfig.CloudWatchLogs != nil {
+		data.CloudWatchLogs = logConfig.CloudWatchLogs
+	}
+	if logConfig.S3Logs != nil {
+		s3Logs := &ProjectS3Logs{
+			EncryptionDisabled: logConfig.S3Logs.EncryptionDisabled,
+			Location:           logConfig.S3Logs.Location,
+			BucketOwnerAccess:  (*string)(&logConfig.S3Logs.BucketOwnerAccess),
+			Status:             (*string)(&logConfig.S3Logs.Status),
+		}
+		if logConfig.S3Logs.Status == "" {
+			s3Logs.Status = nil
+		}
+		if logConfig.S3Logs.BucketOwnerAccess == "" {
+			s3Logs.BucketOwnerAccess = nil
+		}
+		data.S3Logs = s3Logs
+	}
+	return data, nil
 }
