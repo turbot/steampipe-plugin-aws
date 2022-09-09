@@ -396,7 +396,10 @@ func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 		for _, policy := range output.ScalingPolicies {
 			data, _ := json.Marshal(policy)
 			var result map[string]interface{}
-			json.Unmarshal(data, &result)
+			err = json.Unmarshal(data, &result)
+			if err != nil {
+				continue
+			}
 			if len(result["Alarms"].([]interface{})) == 0 {
 				result["Alarms"] = nil
 			}

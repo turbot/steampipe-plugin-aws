@@ -13,12 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -27,10 +32,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -42,6 +49,15 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 	return noOpToken, nil
 }
 func noOpToken() error { return nil }
+
+// AccessAnalyzerClient returns the service connection for AWS IAM Access Analyzer service
+func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return accessanalyzer.NewFromConfig(*cfg), nil
+}
 
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
@@ -67,21 +83,20 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
+func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "auditmanager")
+	if err != nil {
+		return nil, err
+	}
+	return auditmanager.NewFromConfig(*cfg), nil
+}
+
 func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
-}
-
-func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
-	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-
-	return costexplorer.NewFromConfig(*cfg), nil
 }
 
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
@@ -92,13 +107,52 @@ func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, err
 	return backup.NewFromConfig(*cfg), nil
 }
 
+func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return cloudfront.NewFromConfig(*cfg), nil
+}
+
+func CloudTrailClient(ctx context.Context, d *plugin.QueryData) (*cloudtrail.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudTrailRegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
 func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
 	return cloudwatch.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudwatchlogs.NewFromConfig(*cfg), nil
+}
+
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return costexplorer.NewFromConfig(*cfg), nil
 }
 
 func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
@@ -106,7 +160,6 @@ func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Clien
 	if err != nil {
 		return nil, err
 	}
-
 	return codebuild.NewFromConfig(*cfg), nil
 }
 
@@ -168,6 +221,14 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return organizations.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
@@ -263,21 +324,21 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-// func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	if region == "" {
-// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-// 	}
-// 	validRegions := SupportedRegionsForService(ctx, d, serviceID)
-// 	if !helpers.StringSliceContains(validRegions, region) {
-// 		// We choose to ignore unsupported regions rather than returning an error
-// 		// for them - it's a better user experience. So, return a nil session rather
-// 		// than an error. The caller must handle this case.
-// 		return nil, nil
-// 	}
-// 	// Supported region, so get and return the session
-// 	return getClient(ctx, d, region)
-// }
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+	}
+	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
+	}
+	// Supported region, so get and return the session
+	return getClient(ctx, d, region)
+}
 
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {

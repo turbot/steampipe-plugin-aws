@@ -1,0 +1,10 @@
+-- Fails because of good number resources with TooManyRequestsException
+select
+  name,
+  id,
+  control_sources
+from
+  aws.aws_auditmanager_control
+where
+  name = '{{ resourceName }}';
+

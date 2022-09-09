@@ -2,9 +2,10 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -19,7 +20,7 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchFunctionExists"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchFunctionExists"}),
 			},
 			Hydrate: getCloudFrontFunction,
 		},
@@ -87,38 +88,38 @@ func tableAwsCloudFrontFunction(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudWatchFunctions")
-
-	// Create Session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_function.listCloudWatchFunctions", "client_error", err)
 		return nil, err
 	}
 
-	// Set up the limit
-	input := cloudfront.ListFunctionsInput{
-		MaxItems: aws.Int64(100),
-	}
+	maxItems := int32(100)
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// Prepare for the slice of functions
+	input := &cloudfront.ListFunctionsInput{
+		MaxItems: &maxItems,
+	}
+
+	// Paginator not available for the API
 	pagesLeft := true
 	for pagesLeft {
 		// List CloudFront functions
-		data, err := svc.ListFunctions(&input)
+		data, err := svc.ListFunctions(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListFunctions", "ERROR", err)
+			plugin.Logger(ctx).Error("aws_cloudfront_function.listCloudWatchFunctions", "api_error", err)
 			return nil, err
 		}
 
@@ -140,42 +141,41 @@ func listCloudWatchFunctions(ctx context.Context, d *plugin.QueryData, h *plugin
 //// HYDRATE FUNCTIONS
 
 func getCloudFrontFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getCloudFrontFunction")
 
 	var name string
 
 	if h.Item != nil {
-		function_summary := h.Item.(*cloudfront.FunctionSummary)
+		function_summary := h.Item.(types.FunctionSummary)
 		name = *function_summary.Name
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
-	if name == "" {
-		plugin.Logger(ctx).Trace("Name is null, ignoring")
+	if strings.TrimSpace(name) == "" {
 		return nil, nil
 	}
 
 	// Create service
-	svc, err := CloudFrontService(ctx, d)
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_function.getCloudFrontFunction", "client_error", err)
 		return nil, err
 	}
 
 	// Build the params
-	params := cloudfront.DescribeFunctionInput{
-		Name: aws.String(name),
+	params := &cloudfront.DescribeFunctionInput{
+		Name: &name,
 	}
 
 	// Get call
-	data, err := svc.DescribeFunction(&params)
+	data, err := svc.DescribeFunction(ctx, params)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("DescribeFunction", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_cloudfront_function.getCloudFrontFunction", "api_error", err)
 		return nil, err
 	}
 
-	return data, nil
+	return *data, nil
 }
 
 //// TRANSFORM FUNCTION

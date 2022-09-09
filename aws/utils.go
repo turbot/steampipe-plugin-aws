@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -206,4 +207,25 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
+}
+
+// handleNullIfZero :: handles empty slices and map convert them to null instead of the zero type
+func handleEmptySliceAndMap(ctx context.Context, d *transform.TransformData) (any, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+
+	reflectVal := reflect.ValueOf(d.Value)
+	switch reflectVal.Kind() {
+	case reflect.Slice, reflect.Map:
+		if reflectVal.Len() == 0 {
+			return nil, nil
+		}
+	case reflect.Struct:
+		if reflectVal == reflect.Zero(reflectVal.Type()) {
+			return nil, nil
+		}
+	}
+
+	return d.Value, nil
 }

@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -62,7 +62,7 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 				Description: "The version identifier for the current version of the response headers policy.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getETagValue,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("ETag"),
 			},
 			{
 				Name:        "response_headers_policy_config",
@@ -91,40 +91,45 @@ func tableAwsCloudFrontResponseHeadersPolicy(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.listCloudFrontResponseHeadersPolicies")
-
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.listCloudFrontResponseHeadersPolicies", "client_error", err)
 		return nil, err
 	}
 
-	input := cloudfront.ListResponseHeadersPoliciesInput{
-		MaxItems: aws.Int64(100),
-	}
+	// The maximum number for MaxItems parameter is not defined by the API
+	// We have set the MaxItems to 1000 based on our test
+	maxItems := int32(1000)
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
+	}
+
+	input := &cloudfront.ListResponseHeadersPoliciesInput{
+		MaxItems: &maxItems,
 	}
 
 	// Additonal Filter
 	policyTypeColumn := d.KeyColumnQuals["type"]
 	if policyTypeColumn != nil {
-		input.Type = aws.String(policyTypeColumn.GetStringValue())
+		input.Type = types.ResponseHeadersPolicyType(policyTypeColumn.GetStringValue())
 	}
 
+	// Paginator not avilable for the API
 	pagesLeft := true
 	for pagesLeft {
-		data, err := svc.ListResponseHeadersPolicies(&input)
+		data, err := svc.ListResponseHeadersPolicies(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("ListResponseHeadersPolicies", "ERROR", err)
+			plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.listCloudFrontResponseHeadersPolicies", "api_error", err)
 			return nil, err
 		}
 
@@ -146,40 +151,36 @@ func listCloudFrontResponseHeadersPolicies(ctx context.Context, d *plugin.QueryD
 //// HYDRATE FUNCTIONS
 
 func getETagValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getETagValue")
-
-	item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
+	item := h.Item.(types.ResponseHeadersPolicySummary)
 	id := *item.ResponseHeadersPolicy.Id
 
-	// Create service
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.getETagValue", "client_error", err)
 		return nil, err
 	}
 
 	// Build the params
-	params := cloudfront.GetResponseHeadersPolicyInput{
-		Id: aws.String(id),
-	}
+	params := &cloudfront.GetResponseHeadersPolicyInput{Id: &id}
 
 	// Get call
-	data, err := svc.GetResponseHeadersPolicy(&params)
+	data, err := svc.GetResponseHeadersPolicy(ctx, params)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("GetResponseHeadersPolicy", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.getETagValue", "api_error", err)
 		return nil, err
 	}
 
-	return data.ETag, nil
+	return data, nil
 }
 
 func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tableAwsCloudFrontFunction.getAccountARN")
-
 	// Get common columns which will be used to create the ARN
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	response, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_response_headers_policy.getAccountARN", "common_data_error", err)
 		return nil, err
 	}
 
@@ -187,7 +188,7 @@ func getAccountARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	var id string
 
-	item := h.Item.(*cloudfront.ResponseHeadersPolicySummary)
+	item := h.Item.(types.ResponseHeadersPolicySummary)
 	id = *item.ResponseHeadersPolicy.Id
 
 	arn := "arn:" + commonColumnData.Partition + ":cloudfront::" + commonColumnData.AccountId + ":response-headers-policy/" + id
