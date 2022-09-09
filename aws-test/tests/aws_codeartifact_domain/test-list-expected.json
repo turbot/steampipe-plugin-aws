@@ -6,7 +6,7 @@
     "owner": "{{ output.owner.value }}",
     "repository_count": "{{ output.repository_count.value }}",
     "tags": {
-      "name": "{{resourceName}}"
+      "name": "{{ resourceName }}"
     }
   }
 ]

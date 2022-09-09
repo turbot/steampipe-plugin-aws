@@ -146,7 +146,7 @@ func listCodeArtifactDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// Create session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.listCodeArtifactDomains", "service_creation_error", err)
 		return nil, err
@@ -235,7 +235,7 @@ func getCodeArtifactDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomain", "service_creation_error", err)
 		return nil, err
@@ -261,7 +261,7 @@ func getCodeArtifactDomainTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create Session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainTags", "service_creation_error", err)
 		return nil, err
@@ -292,7 +292,7 @@ func getCodeArtifactDomainPermissionsPolicy(ctx context.Context, d *plugin.Query
 	}
 
 	// Create Session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_domain.getCodeArtifactDomainPermissionsPolicy", "service_creation_error", err)
 		return nil, err
