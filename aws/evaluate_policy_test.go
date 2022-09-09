@@ -19983,9 +19983,9 @@ func testSourceOwnerConditionWhenConditionIsSameAccountAsPrincipal(t *testing.T)
               "aws:SourceOwner": ["012345678901"]
             }
           },
-		  "Principal": {
-			"Service": ["ecs.amazonaws.com"]
-		  }
+          "Principal": {
+            "Service": ["ecs.amazonaws.com"]
+          }
         }
       ]
     }
@@ -28559,6 +28559,94 @@ func testDenyPermissionsByGlobalConditionPrincipalArnWithTheSameWildcard(t *test
         }
       ]
     }
+	`
+
+	expected := PolicySummary{
+		AccessLevel:                         "private",
+		AllowedOrganizationIds:              []string{},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+}
+
+func TestOmero(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+	{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"AWS": "*"
+				},
+				"Action": "sts:AssumeRole",
+				"Condition": {
+					"StringEquals": {
+						"sts:ExternalId": "DeniedForTesting"
+					}
+				}
+			},
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": [
+						"ec2.amazonaws.com",
+						"ecs.amazonaws.com"
+					]
+				},
+				"Action": "sts:AssumeRole"
+			},
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "cloudwatch.amazonaws.com"
+				},
+				"Action": "sts:AssumeRole"
+			},
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "fsx.amazonaws.com"
+				},
+				"Action": "sts:AssumeRole"
+			}
+		]
+	}
 	`
 
 	expected := PolicySummary{
