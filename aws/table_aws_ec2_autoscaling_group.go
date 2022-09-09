@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
@@ -199,22 +200,25 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "load_balancer_names",
 				Description: "One or more load balancers associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleASGLoadbalancerNamesEmptyData),
 			},
 			{
 				Name:        "target_group_arns",
 				Description: "The Amazon Resource Names (ARN) of the target groups for your load balancer.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TargetGroupARNs"),
+				Transform:   transform.FromField("TargetGroupARNs").Transform(handleASGTargetGroupArnsEmptyData),
 			},
 			{
 				Name:        "instances",
 				Description: "The EC2 instances associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleASGInstancesEmptyData),
 			},
 			{
 				Name:        "enabled_metrics",
 				Description: "The metrics enabled for the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleADGEnabledMetricsEmptyData),
 			},
 			{
 				Name:        "policies",
@@ -232,6 +236,7 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "suspended_processes",
 				Description: "The suspended processes associated with the group.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(handleASGSuspendedProcessesEmptyData),
 			},
 			{
 				Name:        "tags_src",
@@ -356,7 +361,7 @@ func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 		return nil, err
 	}
 
-	var policies []types.ScalingPolicy
+	var policies = make([]map[string]interface{}, 0)
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -388,8 +393,18 @@ func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 			return nil, err
 		}
 
-		policies = append(policies, output.ScalingPolicies...)
-
+		for _, policy := range output.ScalingPolicies {
+			data, _ := json.Marshal(policy)
+			var result map[string]interface{}
+			json.Unmarshal(data, &result)
+			if len(result["Alarms"].([]interface{})) == 0 {
+				result["Alarms"] = nil
+			}
+			if len(result["StepAdjustments"].([]interface{})) == 0 {
+				result["StepAdjustments"] = nil
+			}
+			policies = append(policies, result)
+		}
 	}
 
 	return policies, nil
@@ -410,4 +425,54 @@ func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	}
 
 	return &turbotTagsMap, nil
+}
+
+func handleADGEnabledMetricsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.EnabledMetrics) > 0 {
+		return asg.EnabledMetrics, nil
+	}
+
+	return nil, nil
+}
+
+func handleASGInstancesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.Instances) > 0 {
+		return asg.Instances, nil
+	}
+
+	return nil, nil
+}
+
+func handleASGLoadbalancerNamesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.LoadBalancerNames) > 0 {
+		return asg.LoadBalancerNames, nil
+	}
+
+	return nil, nil
+}
+
+func handleASGSuspendedProcessesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.SuspendedProcesses) > 0 {
+		return asg.SuspendedProcesses, nil
+	}
+
+	return nil, nil
+}
+
+func handleASGTargetGroupArnsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	asg := d.HydrateItem.(types.AutoScalingGroup)
+
+	if len(asg.TargetGroupARNs) > 0 {
+		return asg.TargetGroupARNs, nil
+	}
+
+	return nil, nil
 }
