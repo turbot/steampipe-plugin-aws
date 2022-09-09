@@ -36,8 +36,6 @@ Principals are organized by the table and returned in their own columns.
 
 The table will sort statement IDs into three different categories, public for statements that grant public access, shared and private for shared and private access respectively.
 
-Action
-
 ## Limitations
 
 The table evaulates a subset of conditions at present:
