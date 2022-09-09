@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -223,6 +224,14 @@ func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
 		return nil, err
 	}
 	return ram.NewFromConfig(*cfg), nil
+}
+
+func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rds.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
