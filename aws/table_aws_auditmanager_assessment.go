@@ -4,10 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
-	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/auditmanager"
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -22,7 +21,7 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException", "InvalidParameter"}),
 			},
 			Hydrate: getAwsAuditManagerAssessment,
 		},
@@ -153,54 +152,57 @@ func tableAwsAuditManagerAssessment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	svc, err := AuditManagerClient(ctx, d)
+
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_auditmanager_assessment.listAwsAuditManagerAssessments", "client_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
-	maxItems := int32(100)
-	input := &auditmanager.ListAssessmentsInput{}
+	input := &auditmanager.ListAssessmentsInput{
+		MaxResults: aws.Int64(1000),
+	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
+	// Limiting the results
+	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
+		if *limit < *input.MaxResults {
+			if *limit < 1 {
+				input.MaxResults = types.Int64(1)
 			} else {
-				maxItems = int32(limit)
+				input.MaxResults = limit
 			}
 		}
 	}
 
-	input.MaxResults = &maxItems
+	// List call
+	err = svc.ListAssessmentsPages(
+		input,
+		func(page *auditmanager.ListAssessmentsOutput, isLast bool) bool {
+			for _, assessment := range page.AssessmentMetadata {
+				d.StreamListItem(ctx, assessment)
 
-	paginator := auditmanager.NewListAssessmentsPaginator(svc, input, func(o *auditmanager.ListAssessmentsPaginatorOptions) {
-		o.Limit = maxItems
-		o.StopOnDuplicateToken = true
-	})
-
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
-			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
-			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
-				return nil, nil
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return false
+				}
 			}
-			plugin.Logger(ctx).Error("aws_auditmanager_assessment.listAwsAuditManagerAssessments", "api_error", err)
-			return nil, err
-		}
+			return !isLast
+		},
+	)
 
-		for _, assessment := range output.AssessmentMetadata {
-			d.StreamListItem(ctx, assessment)
-
-			// Context may get cancelled due to manual cancellation or if the limit has been reached
-			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
 		}
+		plugin.Logger(ctx).Error("listAwsAuditManagerAssessments", "err", err)
+		return nil, err
 	}
 
 	return nil, nil
@@ -209,21 +211,17 @@ func listAwsAuditManagerAssessments(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
 	var id string
 	if h.Item != nil {
-		id = *h.Item.(types.AssessmentMetadataItem).Id
+		id = *h.Item.(*auditmanager.AssessmentMetadataItem).Id
 	} else {
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	if strings.TrimSpace(id) == "" {
-		return nil, nil
-	}
-
-	// Get client
-	svc, err := AuditManagerClient(ctx, d)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_auditmanager_assessment.getAwsAuditManagerAssessment", "client_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -237,7 +235,7 @@ func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Get call
-	data, err := svc.GetAssessment(ctx, params)
+	data, err := svc.GetAssessment(params)
 
 	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
 	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
@@ -245,7 +243,7 @@ func getAwsAuditManagerAssessment(ctx context.Context, d *plugin.QueryData, h *p
 		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("aws_auditmanager_assessment.getAwsAuditManagerAssessment", "api_error", err)
+		plugin.Logger(ctx).Error("getAwsAuditManagerAssessment", "err", err)
 		return nil, err
 	}
 
