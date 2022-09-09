@@ -87,6 +87,9 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		return nil, nil
+	}
 
 	// List call
 	params := &waf.ListRulesInput{
