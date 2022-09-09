@@ -60,6 +60,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -218,9 +219,12 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
@@ -481,6 +485,16 @@ func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier,
 	return glacier.New(sess), nil
 }
 
+func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	sess, err := getSession(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.New(sess), nil
+}
+
 func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -716,9 +730,12 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return serverlessapplicationrepository.New(sess), nil
 }

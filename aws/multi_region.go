@@ -75,7 +75,7 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 	// If regions are not mentioned in the plugin steampipe connection config
 	// get the default aws region and prepare the matrix
 	if awsConfig.Regions == nil {
-		plugin.Logger(ctx).Info("BuildRegionList", "connection_name", d.Connection.Name, "region", defaultAwsRegion)
+		plugin.Logger(ctx).Debug("BuildRegionList", "connection_name", d.Connection.Name, "region", defaultAwsRegion)
 		matrix := []map[string]interface{}{
 			{matrixKeyRegion: defaultAwsRegion},
 		}
@@ -113,7 +113,7 @@ func BuildRegionList(ctx context.Context, d *plugin.QueryData) []map[string]inte
 		finalRegions = helpers.StringSliceDistinct(finalRegions)
 	}
 
-	plugin.Logger(ctx).Info("BuildRegionList", "connection_name", d.Connection.Name, "regions", strings.Join(finalRegions, ", "))
+	plugin.Logger(ctx).Debug("BuildRegionList", "connection_name", d.Connection.Name, "regions", strings.Join(finalRegions, ", "))
 	matrix := make([]map[string]interface{}, len(finalRegions))
 	for i, region := range finalRegions {
 		matrix[i] = map[string]interface{}{matrixKeyRegion: region}

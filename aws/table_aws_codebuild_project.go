@@ -248,6 +248,10 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "connection_error", err)
 		return nil, err
 	}
+  if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &codebuild.ListProjectsInput{}
 
@@ -295,6 +299,11 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

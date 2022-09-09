@@ -67,6 +67,11 @@ func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	// List call
 	resp, err := svc.ListSourceCredentials(ctx, &codebuild.ListSourceCredentialsInput{})
 	if err != nil {
