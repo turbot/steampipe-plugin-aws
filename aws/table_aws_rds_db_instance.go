@@ -6,8 +6,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -297,6 +298,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "replica_mode",
 				Description: "The mode of an Oracle read replica.",
 				Type:        proto.ColumnType_STRING,
+				Transform: transform.From(handleRDSDBInstanceReplicaModeEmptyData),
 			},
 			{
 				Name:        "secondary_availability_zone",
@@ -334,6 +336,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "associated_roles",
 				Description: "A list of AWS IAM roles that are associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
+				Transform: transform.From(handleRDSDBInstanceAssociatedRolesEmptyData),
 			},
 			{
 				Name:        "certificate",
@@ -352,12 +355,13 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "db_security_groups",
 				Description: "A list of DB security group associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBSecurityGroups"),
+				Transform:   transform.FromField("DBSecurityGroups").Transform(handleRDSDBInstanceDBSecurityGroupsEmptyData),
 			},
 			{
 				Name:        "domain_memberships",
 				Description: "A list of Active Directory Domain membership records associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
+				Transform: transform.From(handleRDSDBInstanceDomainMembershipsEmptyData),
 			},
 			{
 				Name:        "enabled_cloudwatch_logs_exports",
@@ -391,7 +395,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "read_replica_db_instance_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ReadReplicaDBInstanceIdentifiers"),
+				Transform:   transform.FromField("ReadReplicaDBInstanceIdentifiers").Transform(handleRDSDBInstanceReadReplicaDBInstanceIdentifiersEmptyData),
 			},
 			{
 				Name:        "status_infos",
@@ -442,28 +446,29 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRDSDBInstances")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "connection_error", err)
 		return nil, err
 	}
 
-	input := &rds.DescribeDBInstancesInput{
-		MaxRecords: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+		// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
 			} else {
-				input.MaxRecords = limit
+				maxLimit = limit
 			}
 		}
+	}
+
+	input := &rds.DescribeDBInstancesInput{
+		MaxRecords: aws.Int32(maxLimit),
 	}
 
 	filters := buildRdsDbInstanceFilter(d.Quals)
@@ -471,22 +476,29 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		input.Filters = filters
 	}
 
-	// List call
-	err = svc.DescribeDBInstancesPages(
-		input,
-		func(page *rds.DescribeDBInstancesOutput, isLast bool) bool {
-			for _, dbInstance := range page.DBInstances {
-				d.StreamListItem(ctx, dbInstance)
+	paginator := rds.NewDescribeDBInstancesPaginator(svc, input, func(o *rds.DescribeDBInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Check if context has been cancelled or if the limit has been hit (if specified)
-				// if there is a limit, it will return the number of rows required to reach this limit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_rds_db_instance.listRDSDBInstances", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.DBInstances {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
@@ -496,8 +508,9 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	dbInstanceIdentifier := d.KeyColumnQuals["db_instance_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstance", "connection_error", err)
 		return nil, err
 	}
 
@@ -505,8 +518,9 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		DBInstanceIdentifier: aws.String(dbInstanceIdentifier),
 	}
 
-	op, err := svc.DescribeDBInstances(params)
+	op, err := svc.DescribeDBInstances(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstance", "api_error", err)
 		return nil, err
 	}
 
@@ -517,25 +531,26 @@ func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	dbInstanceIdentifier := *h.Item.(*rds.DBInstance).DBInstanceIdentifier
+	dbInstanceIdentifier := *h.Item.(types.DBInstance).DBInstanceIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstancePendingMaintenanceAction", "connection_error", err)
 		return nil, err
 	}
 
-	filter := &rds.Filter{
+	filter := &types.Filter{
 		Name:   aws.String("db-instance-id"),
-		Values: aws.StringSlice([]string{dbInstanceIdentifier}),
+		Values: []string{dbInstanceIdentifier},
 	}
 	params := &rds.DescribePendingMaintenanceActionsInput{
-		Filters: []*rds.Filter{filter},
+		Filters: []types.Filter{*filter},
 	}
 
-	op, err := svc.DescribePendingMaintenanceActions(params)
+	op, err := svc.DescribePendingMaintenanceActions(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRDSDBInstancePendingMaintenanceAction", "DescribePendingMaintenanceActions", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstancePendingMaintenanceAction", "api_error", err)
 		return nil, err
 	}
 
@@ -546,11 +561,12 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 }
 
 func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	caCertificateIdentifier := *h.Item.(*rds.DBInstance).CACertificateIdentifier
+	caCertificateIdentifier := *h.Item.(types.DBInstance).CACertificateIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "connection_error", err)
 		return nil, err
 	}
 
@@ -558,9 +574,9 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 		CertificateIdentifier: aws.String(caCertificateIdentifier),
 	}
 
-	op, err := svc.DescribeCertificates(params)
+	op, err := svc.DescribeCertificates(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getRDSDBInstanceCertificate", "DescribeCertificates", err)
+		plugin.Logger(ctx).Error("aws_rds_db_instance.getRDSDBInstanceCertificate", "api_error", err)
 		return nil, err
 	}
 
@@ -573,7 +589,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 //// TRANSFORM FUNCTIONS
 
 func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(*rds.DBInstance)
+	dbInstance := d.HydrateItem.(types.DBInstance)
 
 	if dbInstance.TagList != nil {
 		turbotTagsMap := map[string]string{}
@@ -585,11 +601,56 @@ func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (
 	return nil, nil
 }
 
+func handleRDSDBInstanceAssociatedRolesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	dbInstance := d.HydrateItem.(types.DBInstance)
+
+	if len(dbInstance.AssociatedRoles) > 0 {
+		return dbInstance.AssociatedRoles, nil
+	}
+	return nil, nil
+}
+
+func handleRDSDBInstanceDBSecurityGroupsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	dbInstance := d.HydrateItem.(types.DBInstance)
+
+	if len(dbInstance.DBSecurityGroups) > 0 {
+		return dbInstance.DBSecurityGroups, nil
+	}
+	return nil, nil
+}
+
+func handleRDSDBInstanceDomainMembershipsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	dbInstance := d.HydrateItem.(types.DBInstance)
+
+	if len(dbInstance.DomainMemberships) > 0 {
+		return dbInstance.DomainMemberships, nil
+	}
+	return nil, nil
+}
+
+func handleRDSDBInstanceReadReplicaDBInstanceIdentifiersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	dbInstance := d.HydrateItem.(types.DBInstance)
+
+	if len(dbInstance.ReadReplicaDBInstanceIdentifiers) > 0 {
+		return dbInstance.ReadReplicaDBInstanceIdentifiers, nil
+	}
+	return nil, nil
+}
+
+func handleRDSDBInstanceReplicaModeEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	dbInstance := d.HydrateItem.(types.DBInstance)
+
+	if len(dbInstance.ReplicaMode) > 0 {
+		return dbInstance.ReplicaMode, nil
+	}
+	return nil, nil
+}
+
 //// UTILITY FUNCTIONS
 
 // build rds db instance list call input filter
-func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
-	filters := make([]*rds.Filter, 0)
+func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 	filterQuals := map[string]string{
 		"db_cluster_identifier": "db-cluster-id",
 		"resource_id":           "dbi-resource-id",
@@ -598,18 +659,15 @@ func buildRdsDbInstanceFilter(quals plugin.KeyColumnQualMap) []*rds.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := rds.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters
