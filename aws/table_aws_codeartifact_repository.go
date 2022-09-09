@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -149,15 +148,8 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	// Create session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.listCodeArtifactRepositories", "service_creation_error", err)
 		return nil, err
@@ -217,12 +209,6 @@ func listCodeArtifactRepositories(ctx context.Context, d *plugin.QueryData, h *p
 
 func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	var domainName, name, owner string
 	if h.Item != nil {
@@ -250,7 +236,7 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepository", "service_creation_error", err)
 		return nil, err
@@ -267,12 +253,6 @@ func getCodeArtifactRepository(ctx context.Context, d *plugin.QueryData, h *plug
 
 func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	resultData := []string{}
 	repository := h.HydrateResults["getCodeArtifactRepository"].(*types.RepositoryDescription)
@@ -292,7 +272,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 		}
 
 		// Create session
-		svc, err := CodeArtifactService(ctx, d)
+		svc, err := CodeArtifactClient(ctx, d)
 		if err != nil {
 			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoint", "service_creation_error", err)
 			return nil, err
@@ -314,15 +294,9 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	data := h.Item.(*types.RepositoryDescription)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryTags", "service_creation_error", err)
 		return nil, err
@@ -345,15 +319,9 @@ func getCodeArtifactRepositoryTags(ctx context.Context, d *plugin.QueryData, h *
 func getCodeArtifactRepositoryPermissionsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	data := h.Item.(*types.RepositoryDescription)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	serviceId := "codeartifact"
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
-	svc, err := CodeArtifactService(ctx, d)
+	svc, err := CodeArtifactClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryPermissionsPolicy", "service_creation_error", err)
 		return nil, err

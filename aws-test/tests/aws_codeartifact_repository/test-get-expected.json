@@ -6,7 +6,7 @@
     "domain_owner": "{{ output.domain_owner.value }}",
     "region": "{{ output.region_name.value }}",
     "tags": {
-      "name": "{{resourceName}}"
+      "name": "{{ resourceName }}"
     }
   }
 ]
