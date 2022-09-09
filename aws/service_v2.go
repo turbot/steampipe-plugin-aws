@@ -157,13 +157,12 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
-
 func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
 	if err != nil {
 		return nil, err
 	}
-  if cfg == nil {
+	if cfg == nil {
 		return nil, nil
 	}
 	return codebuild.NewFromConfig(*cfg), nil

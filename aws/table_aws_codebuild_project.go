@@ -248,7 +248,7 @@ func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_codebuild_project.listCodeBuildProjects", "connection_error", err)
 		return nil, err
 	}
-  if svc == nil {
+	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}
