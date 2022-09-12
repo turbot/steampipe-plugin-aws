@@ -244,6 +244,7 @@ func unique(stringSlice []string) []string {
 
 func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
 	var partitionName string
+	var partition endpoints.Partition
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
@@ -254,8 +255,7 @@ func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Set default partition to AWS
-	partition := endpoints.AwsPartition()
-	if partitionName != "" {
+	if partitionName == "" {
 		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
 		partitionData, _ := getCachedAccountPartition(ctx, d, h)
 		partitionName, _ = partitionData.(string)
