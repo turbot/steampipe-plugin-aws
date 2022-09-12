@@ -21,12 +21,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+
+	// For service endpoints
+	acmv1 "github.com/aws/aws-sdk-go/service/acm"
+	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
+	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
+	autoscalingv1 "github.com/aws/aws-sdk-go/service/autoscaling"
+	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
+	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
+	elb "github.com/aws/aws-sdk-go/service/elb"
+	elbv2 "github.com/aws/aws-sdk-go/service/elbv2"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -42,7 +53,7 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 func noOpToken() error { return nil }
 
 func ACMClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*acm.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ACMServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, acmv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +61,7 @@ func ACMClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) 
 }
 
 func APIGatewayClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*apigateway.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, APIGatewayServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, apigatewayv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +69,7 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*apigatewayv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, APIGatewayServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, apigatewayv2v1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +77,7 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func AutoScalingClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*autoscaling.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, AutoScalingServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, autoscalingv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +95,7 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 }
 
 func DocDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*docdb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, DocDBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, docdbv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +103,7 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, DynamoDBServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, dynamodbv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,27 +111,27 @@ func DynamoDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 }
 
 func EC2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*ec2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, EC2ServiceID)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ec2v1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func ELBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ElasticLoadBalancingServiceID)
+func ELBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elasticloadbalancing.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, elb.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	return elb.NewFromConfig(*cfg), nil
+	return elasticloadbalancing.NewFromConfig(*cfg), nil
 }
 
-func ELBV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elbv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ElasticLoadBalancingV2ServiceID)
+func ELBV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elasticloadbalancingv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, elbv2.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
-	return elbv2.NewFromConfig(*cfg), nil
+	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
@@ -229,7 +240,7 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForClient(ctx, d, h, serviceID)
+	validRegions := SupportedRegionsForService(ctx, d, h, serviceID)
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
