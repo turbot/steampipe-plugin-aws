@@ -141,6 +141,9 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		return nil, nil
+	}
 
 	var id string
 	if h.Item != nil {
