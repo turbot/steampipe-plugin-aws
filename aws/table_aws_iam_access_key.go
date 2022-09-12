@@ -167,7 +167,7 @@ func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	op, err := svc.GetAccessKeyLastUsed(ctx, &params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_role.getIamAccessKeyLastUsed", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "api_error", err)
 		return nil, err
 	}
 
