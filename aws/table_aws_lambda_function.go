@@ -183,6 +183,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "code",
+				Description: "The deployment package of the function or version.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+			},
+			{
 				Name:        "environment_variables",
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
