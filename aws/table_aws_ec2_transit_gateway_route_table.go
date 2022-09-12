@@ -101,7 +101,7 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ 
 	routeTableID := d.KeyColumnQuals["transit_gateway_route_table_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

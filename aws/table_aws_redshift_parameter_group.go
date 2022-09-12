@@ -84,11 +84,11 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsRedshiftParameterGroups")
 
 	// Create session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +134,12 @@ func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRedshiftParameterGroup")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugi
 	logger.Trace("getAwsRedshiftParameters")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

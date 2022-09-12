@@ -169,9 +169,9 @@ func tableAwsEc2LaunchConfiguration(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -216,13 +216,13 @@ func listAwsEc2LaunchConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsEc2LaunchConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEc2LaunchConfiguration")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := AutoScalingService(ctx, d)
+	svc, err := AutoScalingService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

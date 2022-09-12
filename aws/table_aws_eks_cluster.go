@@ -137,9 +137,9 @@ func tableAwsEksCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEksClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func getEksCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

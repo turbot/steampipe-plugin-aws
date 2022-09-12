@@ -109,11 +109,11 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDLMLifecyclePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.listDLMLifecyclePolicies", "service_connection_error", err)
 		return nil, err
@@ -164,7 +164,7 @@ func getDLMLifecyclePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := DLMService(ctx, d)
+	svc, err := DLMService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_dlm_lifecycle_policy.getDLMLifecyclePolicy", "service_connection_error", err)
 		return nil, err

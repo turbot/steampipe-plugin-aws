@@ -91,9 +91,9 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -131,14 +131,14 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 
 //// HYDRATE FUNCTIONS
 
-func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getConfigConfigurationRecorder")
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 	configurationRecorder := h.Item.(*configservice.ConfigurationRecorder)
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

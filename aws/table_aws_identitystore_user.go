@@ -61,14 +61,14 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listIdentityStoreUsers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listIdentityStoreUsers")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
 	// Create session
-	svc, err := IdentityStoreService(ctx, d)
+	svc, err := IdentityStoreService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -132,14 +132,14 @@ type IdentityStoreUser struct {
 
 //// HYDRATE FUNCTIONS
 
-func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIdentityStoreUser")
 
 	userId := d.KeyColumnQuals["id"].GetStringValue()
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
 	// Create session
-	svc, err := IdentityStoreService(ctx, d)
+	svc, err := IdentityStoreService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

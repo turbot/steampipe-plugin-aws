@@ -106,7 +106,7 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger.Trace("getAwsGuardDutyFilter")
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

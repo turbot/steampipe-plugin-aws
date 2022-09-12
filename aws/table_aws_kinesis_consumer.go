@@ -93,7 +93,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
 
 	// Create session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

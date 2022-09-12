@@ -144,11 +144,11 @@ func tableAwsSSMParameter(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSSMParameters")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -199,14 +199,14 @@ func listAwsSSMParameters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsSSMParameter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func getAwsSSMParameterDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func getAwsSSMParameterTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	parameterData := h.Item.(*ssm.ParameterMetadata)
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

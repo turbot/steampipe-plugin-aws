@@ -145,7 +145,7 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 	plugin.Logger(ctx).Trace("listServiceQuotaChangeRequests")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 	quota := h.Item.(*servicequotas.RequestedServiceQuotaChange)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

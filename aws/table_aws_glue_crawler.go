@@ -154,9 +154,9 @@ func tableAwsGlueCrawler(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueCrawler(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// check if name is empty
@@ -216,7 +216,7 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

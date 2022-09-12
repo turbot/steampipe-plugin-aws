@@ -13,7 +13,7 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsEcsService(_ context.Context) *plugin.Table {
+func tableAwsECSService(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ecs_service",
 		Description: "AWS ECS Service",
@@ -209,7 +209,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 
 func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 func getServiceDataAsync(serviceData []*string, clusterARN *string, svc *ecs.ECS, wg *sync.WaitGroup, serviceCh chan *ecs.DescribeServicesOutput, errorCh chan error) {
 	defer wg.Done()
-	rowData, err := getEcsService(serviceData, clusterARN, svc)
+	rowData, err := getECSService(serviceData, clusterARN, svc)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -302,7 +302,7 @@ func getServiceDataAsync(serviceData []*string, clusterARN *string, svc *ecs.ECS
 
 // Describes the specified services running in your cluster.
 // Below API can describe up to 10 services in a single operation.
-func getEcsService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ecs.DescribeServicesOutput, error) {
+func getECSService(serviceData []*string, clusterARN *string, svc *ecs.ECS) (*ecs.DescribeServicesOutput, error) {
 	params := &ecs.DescribeServicesInput{
 		Services: serviceData,
 		Cluster:  clusterARN,
@@ -323,7 +323,7 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getEcsServiceTags", "connection_error", err)
 		return nil, err

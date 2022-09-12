@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricReadIopsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_read_iops_daily",
@@ -33,5 +34,5 @@ func tableAwsRdsInstanceMetricReadIopsDaily(_ context.Context) *plugin.Table {
 
 func listRdsInstanceMetricReadIopsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*rds.DBInstance)
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/RDS", "ReadIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
+	return listCWMetricStatistics(ctx, d, h, "DAILY", "AWS/RDS", "ReadIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
 }

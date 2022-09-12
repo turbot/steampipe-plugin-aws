@@ -180,9 +180,9 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listKmsKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -227,13 +227,13 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getKmsKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getKmsKey")
 
 	keyID := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	key := h.Item.(*kms.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 	key := h.Item.(*kms.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	key := h.Item.(*kms.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	key := h.Item.(*kms.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -425,7 +425,7 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	key := h.Item.(*kms.KeyListEntry)
 
 	// Create Session
-	svc, err := KMSService(ctx, d)
+	svc, err := KMSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

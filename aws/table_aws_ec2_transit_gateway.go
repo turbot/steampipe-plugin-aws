@@ -168,7 +168,7 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformDa
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway list call input filter
 func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

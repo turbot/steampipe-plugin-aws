@@ -90,9 +90,9 @@ func tableAwsGlueCatalogDatabase(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -138,13 +138,13 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlueCatalogDatabase")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

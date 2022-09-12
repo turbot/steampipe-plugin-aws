@@ -170,7 +170,7 @@ func listEBSVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	plugin.Logger(ctx).Trace("listEBSVolume", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func getEBSVolume(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	volumeID := d.KeyColumnQuals["volume_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -254,12 +254,12 @@ func getVolumeAutoEnableIOData(ctx context.Context, d *plugin.QueryData, h *plug
 	plugin.Logger(ctx).Trace("getVolumeAutoEnableIOData")
 	volume := h.Item.(*ec2.Volume)
 
-	// Table is currently failing with error `Error: region must be passed Ec2Service`
+	// Table is currently failing with error `Error: region must be passed EC2Service`
 	// While `LIST` and `GET` function are working
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +284,7 @@ func getVolumeProductCodes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ebs volume list call input filter
 func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

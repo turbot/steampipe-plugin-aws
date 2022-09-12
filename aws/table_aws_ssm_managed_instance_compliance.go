@@ -96,11 +96,11 @@ func tableAwsSSMManagedInstanceCompliance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSsmManagedInstanceCompliances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSsmManagedInstanceCompliances")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

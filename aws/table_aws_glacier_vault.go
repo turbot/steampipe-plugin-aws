@@ -132,7 +132,7 @@ func tableAwsGlacierVault(_ context.Context) *plugin.Table {
 
 func listGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func getGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	accountID := commonColumnData.AccountId
 
 	// create service
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func getGlacierVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func getGlacierVaultLockPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func getGlacierVaultNotifications(ctx context.Context, d *plugin.QueryData, h *p
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_glacier_vault.getGlacierVaultNotifications", "service_creation_error", err)
 		return nil, err
@@ -339,7 +339,7 @@ func listTagsForGlacierVault(ctx context.Context, d *plugin.QueryData, h *plugin
 	accountID := strings.Split(*data.VaultARN, ":")[4]
 
 	// Create session
-	svc, err := GlacierService(ctx, d)
+	svc, err := GlacierService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

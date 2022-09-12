@@ -128,7 +128,7 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
@@ -138,7 +138,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}

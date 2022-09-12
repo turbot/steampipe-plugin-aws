@@ -84,12 +84,12 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listAwsEventBridgeBuses")
 
 	// Create session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		logger.Error("listAwsEventBridgeBuses", "error_EventBridgeService", err)
 		return nil, err
@@ -164,7 +164,7 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		logger.Error("getAwsEventBridgeBus", "error_EventBridgeService", err)
 		return nil, err
@@ -196,7 +196,7 @@ func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	arn := h.Item.(*eventbridge.DescribeEventBusOutput).Arn
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		logger.Error("getAwsEventBridgeBusTags", "error_EventBridgeService", err)
 		return nil, err

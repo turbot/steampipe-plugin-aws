@@ -126,7 +126,7 @@ func listEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData
 	plugin.Logger(ctx).Trace("listEc2TransitGatewayVpcAttachment", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getEc2TransitGatewayVpcAttachment(ctx context.Context, d *plugin.QueryData,
 	transitGatewayAttachmentID := d.KeyColumnQuals["transit_gateway_attachment_id"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func getEc2TransitGatewayAttachmentTitle(_ context.Context, d *transform.Transfo
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway VPC attachment list call input filter
 func buildEc2TransitGatewayVpcAttachmentFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

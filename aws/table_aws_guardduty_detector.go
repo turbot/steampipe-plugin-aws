@@ -116,11 +116,11 @@ func tableAwsGuardDutyDetector(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGuardDutyDetectors(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_guardduty_detector.listGuardDutyDetectors", "service_connection_error", err)
 		return nil, err
@@ -179,7 +179,7 @@ func getGuardDutyDetector(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_guardduty_detector.getGuardDutyDetector", "service_connection_error", err)
 		return nil, err
@@ -208,7 +208,7 @@ func getGuardDutyDetectorMasterAccount(ctx context.Context, d *plugin.QueryData,
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_guardduty_detector.getGuardDutyDetectorMasterAccount", "service_connection_error", err)
 		return nil, err

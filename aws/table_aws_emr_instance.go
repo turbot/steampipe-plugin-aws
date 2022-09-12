@@ -145,7 +145,7 @@ type emrInstanceInfo struct {
 
 func listEmrInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

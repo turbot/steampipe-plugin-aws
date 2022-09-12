@@ -82,9 +82,9 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func getDynamboDbGlobalTable(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

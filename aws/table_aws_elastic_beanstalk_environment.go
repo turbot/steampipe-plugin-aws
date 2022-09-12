@@ -174,9 +174,9 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Trace("getAwsElasticBeanstalkEnvironment")
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	resourceArn := h.Item.(*elasticbeanstalk.EnvironmentDescription).EnvironmentArn
 
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

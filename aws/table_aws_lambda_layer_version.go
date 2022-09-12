@@ -135,7 +135,7 @@ func listLambdaLayerVersions(ctx context.Context, d *plugin.QueryData, h *plugin
 	logger.Trace("listLambdaLayerVersions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		logger.Error("listLambdaLayerVersions", "error_LambdaService", err)
 		return nil, err
@@ -228,7 +228,7 @@ func getLambdaLayerVersion(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		logger.Error("getLambdaLayerVersion", "error_LambdaService", err)
 		return nil, err
@@ -269,7 +269,7 @@ func getLambdaLayerVersionPolicy(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		logger.Error("getLambdaLayerVersionPolicy", "error_LambdaService", err)
 		return nil, err

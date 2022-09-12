@@ -167,11 +167,11 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSageMakerDomains")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func getAwsSageMakerDomain(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func listAwsSageMakerDomainTags(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -183,12 +183,12 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listWellArchitectedWorkloads(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listWellArchitectedWorkloads")
 
 	// Create session
-	svc, err := WellArchitectedService(ctx, d)
+	svc, err := WellArchitectedService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func getWellArchitectedWorkload(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := WellArchitectedService(ctx, d)
+	svc, err := WellArchitectedService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

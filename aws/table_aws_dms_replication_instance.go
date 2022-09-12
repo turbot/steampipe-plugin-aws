@@ -198,9 +198,9 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -281,9 +281,9 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDmsReplicationInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func getDmsReplicationInstanceTags(ctx context.Context, d *plugin.QueryData, h *
 	replicationInstanceArn := h.Item.(*databasemigrationservice.ReplicationInstance).ReplicationInstanceArn
 
 	// Create service
-	svc, err := DatabaseMigrationService(ctx, d)
+	svc, err := DatabaseMigrationService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

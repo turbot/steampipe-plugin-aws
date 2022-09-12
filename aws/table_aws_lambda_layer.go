@@ -97,7 +97,7 @@ func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	logger.Trace("listLambdaLayers")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		logger.Error("listLambdaLayers", "error_LambdaService", err)
 		return nil, err

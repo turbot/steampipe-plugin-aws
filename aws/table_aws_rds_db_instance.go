@@ -441,11 +441,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBInstances")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -496,11 +496,11 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRDSDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dbInstanceIdentifier := d.KeyColumnQuals["db_instance_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +528,7 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 	dbInstanceIdentifier := *h.Item.(*rds.DBInstance).DBInstanceIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -561,7 +561,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 	caCertificateIdentifier := *h.Item.(*rds.DBInstance).CACertificateIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

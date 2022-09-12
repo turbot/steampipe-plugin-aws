@@ -75,9 +75,9 @@ func tableAwsElastiCacheParameterGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -122,11 +122,11 @@ func listElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *
 
 //// HYDRATE FUNCTIONS
 
-func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getElastiCacheParameterGroup")
 
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

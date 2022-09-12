@@ -154,11 +154,11 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSqsQueues")
 
 	// Create session
-	svc, err := SQSService(ctx, d)
+	svc, err := SQSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create session
-	svc, err := SQSService(ctx, d)
+	svc, err := SQSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
 
 	// Create session
-	svc, err := SQSService(ctx, d)
+	svc, err := SQSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

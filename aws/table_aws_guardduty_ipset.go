@@ -108,7 +108,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	logger.Trace("getAwsGuardDutyIPSet")
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

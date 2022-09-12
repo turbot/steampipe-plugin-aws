@@ -181,7 +181,7 @@ func listEc2ReservedInstances(ctx context.Context, d *plugin.QueryData, _ *plugi
 	plugin.Logger(ctx).Trace("listEc2ReservedInstances", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func getEc2ReservedInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	instanceID := d.KeyColumnQuals["reserved_instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func getEc2ReservedInstanceModificationDetails(ctx context.Context, d *plugin.Qu
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +308,7 @@ func getEc2ReservedInstanceTurbotTags(_ context.Context, d *transform.TransformD
 	return ec2TagsToMap(instance.Tags)
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 reserved instance list call input filter
 func buildEc2ReservedInstanceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

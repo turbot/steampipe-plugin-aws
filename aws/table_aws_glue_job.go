@@ -164,9 +164,9 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueJobs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "service_creation_error", err)
 		return nil, err
@@ -218,7 +218,7 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 //// HYDRATE FUNCTIONS
 
-func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// check if name is empty
@@ -227,7 +227,7 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "service_creation_error", err)
 		return nil, err
@@ -255,7 +255,7 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	name := h.Item.(*glue.Job).Name
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "service_creation_error", err)
 		return nil, err

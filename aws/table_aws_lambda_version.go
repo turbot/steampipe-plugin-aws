@@ -181,7 +181,7 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("listLambdaVersions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -245,11 +245,11 @@ func listLambdaVersions(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 // do not have a get call
 // using list api call to create get function
-func getFunctionVersion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getFunctionVersion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getFunctionVersion")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func getFunctionVersionPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	alias := h.Item.(*lambda.FunctionConfiguration)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getFunctionVersionPolicy", "error_LambdaService", err)
 		return nil, err

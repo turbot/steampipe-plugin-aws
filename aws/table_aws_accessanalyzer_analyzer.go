@@ -110,11 +110,11 @@ func tableAwsAccessAnalyzer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_accessanalyzer_analyzer.listAccessAnalyzers", "connection_error", err)
 		return nil, err
@@ -170,14 +170,14 @@ func listAccessAnalyzers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAccessAnalyzer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	if strings.TrimSpace(name) == "" {
 		return nil, nil
 	}
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.getAccessAnalyzer", "connection_error", err)
 		return nil, err
@@ -206,7 +206,7 @@ func listAccessAnalyzerFindings(ctx context.Context, d *plugin.QueryData, h *plu
 	data := h.Item.(*accessanalyzer.AnalyzerSummary)
 
 	// Create Session
-	svc, err := AccessAnalyzerService(ctx, d)
+	svc, err := AccessAnalyzerService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_accessanalyzer_analyzer.listAccessAnalyzerFindings", "connection_error", err)
 		return nil, err

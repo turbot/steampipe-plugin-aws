@@ -116,7 +116,7 @@ func getNumberOfControls(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// LIST FUNCTION
 
-func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// AWS Backup service is available in all regions. However, the AWS Backup audit manager, which is newly introduced under the Backup service, is not supported in all regions.
 	// Due to this reason, we could not put a check based on the service endpoint and had to check the region code directly.
 	// https://aws.amazon.com/about-aws/whats-new/2022/05/aws-backup-audit-manager-adds-amazon-s3-storage-gateway/#:~:text=AWS%20Backup%20Audit%20Manager%20is,Middle%20East%20(Bahrain)%20Regions.
@@ -126,7 +126,7 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	// Create session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d)
+	svc, err := BackupService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

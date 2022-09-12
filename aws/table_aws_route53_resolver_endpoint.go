@@ -138,11 +138,11 @@ func tableAwsRoute53ResolverEndpoint(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -193,14 +193,14 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsSSMParameter")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	resolverEndpintData := h.Item.(*route53resolver.ResolverEndpoint)
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -94,9 +94,9 @@ func tableAwsRoute53TrafficPolicyInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listTrafficPolicyInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.listTrafficPolicyInstances", "service_creation_error", err)
 		return nil, err
@@ -162,7 +162,7 @@ func getTrafficPolicyInstance(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_traffic_policy_instance.getTrafficPolicyInstance", "service_creation_error", err)
 		return nil, err

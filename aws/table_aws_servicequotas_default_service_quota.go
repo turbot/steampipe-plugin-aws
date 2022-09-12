@@ -118,7 +118,7 @@ func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugi
 	plugin.Logger(ctx).Trace("listDefaultServiceQuotas")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

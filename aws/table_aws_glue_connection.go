@@ -107,9 +107,9 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueConnections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "service_creation_error", err)
 		return nil, err
@@ -171,7 +171,7 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueConnection(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// check if name is empty
@@ -180,7 +180,7 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "service_creation_error", err)
 		return nil, err

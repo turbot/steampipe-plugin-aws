@@ -214,9 +214,9 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listOpenSearchDomains(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Create Session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	arn := h.HydrateResults["getOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
 
 	// Create Session
-	svc, err := OpenSearchService(ctx, d)
+	svc, err := OpenSearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

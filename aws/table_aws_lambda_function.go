@@ -255,11 +255,11 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsLambdaFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsLambdaFunctions")
 
 	// Create service
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +315,7 @@ func getAwsLambdaFunction(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	functionName := functionName(h.Item)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +388,7 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d)
+	svc, err := LambdaService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

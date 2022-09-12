@@ -145,11 +145,11 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsRoute53ResolverRules")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -200,14 +200,14 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsRoute53ResolverRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsRoute53ResolverRule")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func listResolverRuleAssociation(ctx context.Context, d *plugin.QueryData, h *pl
 	resolverRuleData := h.Item.(*route53resolver.ResolverRule)
 	id := resolverRuleData.Id
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ func getAwsRoute53ResolverRuleTags(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

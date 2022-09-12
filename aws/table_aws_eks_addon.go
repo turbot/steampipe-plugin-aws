@@ -116,7 +116,7 @@ func listEksAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	clusterName := *h.Item.(*eks.Cluster).Name
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func getEksAddon(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

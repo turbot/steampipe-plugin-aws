@@ -36,5 +36,5 @@ func tableAwsEcsClusterMetricCpuUtilizationHourly(_ context.Context) *plugin.Tab
 func listEcsClusterMetricCpuUtilizationHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*ecs.Cluster)
 	clusterName := strings.Split(*data.ClusterArn, "/")[1]
-	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/ECS", "CPUUtilization", "ClusterName", clusterName)
+	return listCWMetricStatistics(ctx, d, h, "HOURLY", "AWS/ECS", "CPUUtilization", "ClusterName", clusterName)
 }

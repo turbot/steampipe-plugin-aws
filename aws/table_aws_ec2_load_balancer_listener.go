@@ -92,9 +92,9 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 
 //// PARENT LIST FUNCTION
 
-func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 	loadBalancerDetails := h.Item.(*elbv2.LoadBalancer)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -168,11 +168,11 @@ func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	listenerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

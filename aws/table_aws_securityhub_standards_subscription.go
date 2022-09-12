@@ -88,11 +88,11 @@ func tableAwsSecurityHubStandardsSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubStandardsSubcriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubStandardsSubcriptions")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func GetEnabledStandards(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	standardArn := *h.Item.(*securityhub.Standard).StandardsArn
 	// get service
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

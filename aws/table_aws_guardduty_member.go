@@ -109,7 +109,7 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func getGuardDutyMember(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

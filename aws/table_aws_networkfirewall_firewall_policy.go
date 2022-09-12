@@ -135,14 +135,14 @@ func tableAwsNetworkFirewallPolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listNetworkFirewallPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_networkfirewall_firewall_policy.listNetworkFirewallPolicies", "service_creation_error", err)
 		return nil, err
 	}
-		if svc == nil {
+	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}
@@ -206,12 +206,12 @@ func getNetworkFirewallPolicy(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d)
+	svc, err := NetworkFirewallService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_networkfirewall_firewall_policy.getNetworkFirewallPolicy", "service_creation_error", err)
 		return nil, err
 	}
-		if svc == nil {
+	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}

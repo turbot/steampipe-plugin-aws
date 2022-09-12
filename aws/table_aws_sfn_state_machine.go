@@ -112,9 +112,9 @@ func tableAwsStepFunctionsStateMachine(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listStepFunctionsStateManchines(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateManchines", "connection_error", err)
 		return nil, err
@@ -177,7 +177,7 @@ func getStepFunctionsStateMachine(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create Session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d, h)
 	if err != nil {
 		logger.Error("getStepFunctionsStateMachine", "connection_error", err)
 		return nil, err
@@ -212,7 +212,7 @@ func getStepFunctionStateMachineTags(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Create Session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getStepFunctionStateMachineTags", "connection_error", err)
 		return nil, err

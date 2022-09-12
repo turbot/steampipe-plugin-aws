@@ -101,11 +101,11 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBEventSubscriptions")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -151,11 +151,11 @@ func listRDSDBEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRDSDBEventSubscription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	subscriptionId := d.KeyColumnQuals["cust_subscription_id"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

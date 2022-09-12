@@ -215,9 +215,9 @@ func tableAwsElasticsearchDomain(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +299,7 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*elasticsearchservice.ElasticsearchDomainStatus).ARN
 
 	// Create Session
-	svc, err := ElasticsearchService(ctx, d)
+	svc, err := ElasticsearchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

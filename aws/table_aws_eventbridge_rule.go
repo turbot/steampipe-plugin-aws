@@ -127,7 +127,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 	name := h.Item.(*eventbridge.DescribeRuleOutput).Name
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	arn := h.Item.(*eventbridge.DescribeRuleOutput).Arn
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

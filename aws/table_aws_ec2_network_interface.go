@@ -268,7 +268,7 @@ func listEc2NetworkInterfaces(ctx context.Context, d *plugin.QueryData, _ *plugi
 	plugin.Logger(ctx).Trace("listEc2NetworkInterfaces", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func getEc2NetworkInterface(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	networkInterfaceID := d.KeyColumnQuals["network_interface_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func handleIpv6AddressesEmptyData(_ context.Context, d *transform.TransformData)
 	return nil, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 network interface list call input filter
 func buildec2NetworkInterfaceFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

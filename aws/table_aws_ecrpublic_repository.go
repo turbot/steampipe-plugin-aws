@@ -112,7 +112,7 @@ func tableAwsEcrpublicRepository(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// https://docs.aws.amazon.com/AmazonECR/latest/public/getting-started-cli.html
 	// DescribeRepositories command is only supported in us-east-1
 	region := d.KeyColumnQualString(matrixKeyRegion)
@@ -122,7 +122,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := EcrPublicService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func listAwsEcrpublicRepositories(ctx context.Context, d *plugin.QueryData, _ *p
 
 ////  HYDRATE FUNCTIONS
 
-func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsEcrpublicRepository")
 
@@ -187,7 +187,7 @@ func getAwsEcrpublicRepository(ctx context.Context, d *plugin.QueryData, _ *plug
 	name := d.KeyColumnQuals["repository_name"].GetStringValue()
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := EcrPublicService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func listAwsEcrpublicRepositoryTags(ctx context.Context, d *plugin.QueryData, h 
 	resourceArn := h.Item.(*ecrpublic.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := EcrPublicService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func getAwsEcrpublicRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := EcrPublicService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func getAwsEcrpublicDescribeImages(ctx context.Context, d *plugin.QueryData, h *
 	repositoryName := h.Item.(*ecrpublic.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrPublicService(ctx, d)
+	svc, err := EcrPublicService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

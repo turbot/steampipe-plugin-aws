@@ -166,9 +166,9 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -213,11 +213,11 @@ func listElastiCacheReplicationGroups(ctx context.Context, d *plugin.QueryData, 
 
 //// HYDRATE FUNCTION
 
-func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheReplicationGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getElastiCacheReplicationGroup")
 
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

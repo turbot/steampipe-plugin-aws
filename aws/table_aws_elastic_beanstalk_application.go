@@ -103,9 +103,9 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -136,14 +136,14 @@ func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryDat
 
 //// HYDRATE FUNCTIONS
 
-func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsElasticBeanstalkApplication")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 	arn := *h.Item.(*elasticbeanstalk.ApplicationDescription).ApplicationArn
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

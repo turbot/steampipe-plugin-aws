@@ -211,7 +211,7 @@ func listSecurityGroupRules(ctx context.Context, d *plugin.QueryData, h *plugin.
 	plugin.Logger(ctx).Trace("listSecurityGroupRules", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ func getSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func getSecurityGroupDetails(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +355,7 @@ func getReferencedSecurityGroupDetails(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

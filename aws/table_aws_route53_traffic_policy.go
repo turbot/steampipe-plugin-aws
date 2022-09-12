@@ -84,11 +84,11 @@ func tableAwsRoute53TrafficPolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTrafficPolicies")
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	return nil, nil
 }
 
-//To fetch all available versions for a traffic policy
+// To fetch all available versions for a traffic policy
 func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, svc *route53.Route53, id *string, wg *sync.WaitGroup, errorCh chan error) {
 	plugin.Logger(ctx).Trace("listTrafficPolicyVersionsAsync")
 
@@ -211,7 +211,7 @@ func getTrafficPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

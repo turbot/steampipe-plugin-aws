@@ -96,7 +96,7 @@ func tableAwsRAMResourceAssociation(_ context.Context) *plugin.Table {
 func listResourceShareAssociations(associationType string) func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 		// Create session
-		svc, err := RAMService(ctx, d)
+		svc, err := RAMService(ctx, d, h)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +151,7 @@ func getResourceSharePermissions(ctx context.Context, d *plugin.QueryData, h *pl
 	arn := *h.Item.(*ram.ResourceShareAssociation).ResourceShareArn
 
 	// Create Session
-	svc, err := RAMService(ctx, d)
+	svc, err := RAMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

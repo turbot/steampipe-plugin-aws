@@ -137,7 +137,7 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func getSageMakerApp(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -95,9 +95,9 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -147,14 +147,14 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 //// HYDRATE FUNCTIONS
 
-func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getConfigConformancePack")
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

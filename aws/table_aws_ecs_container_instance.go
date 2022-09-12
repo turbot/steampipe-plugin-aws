@@ -146,7 +146,7 @@ func listEcsContainerInstances(ctx context.Context, d *plugin.QueryData, h *plug
 	plugin.Logger(ctx).Trace("listEcsContainerInstances")
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

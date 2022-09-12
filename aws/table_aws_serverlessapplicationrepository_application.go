@@ -130,7 +130,7 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 	logger.Trace("listServerlessApplicationRepositoryApplications")
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
 	if err != nil {
 		logger.Error("listServerlessApplicationRepositoryApplications", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
@@ -199,7 +199,7 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplication", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
@@ -234,7 +234,7 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	}
 
 	// Create service
-	svc, err := ServerlessApplicationRepositoryService(ctx, d)
+	svc, err := ServerlessApplicationRepositoryService(ctx, d, h)
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplicationPolicy", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err

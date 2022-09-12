@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lambda_function_metric_invocations_daily",
@@ -33,5 +34,5 @@ func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Tab
 
 func listLambdaFunctionMetricInvocationsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	lambdaFunctionConfiguration := h.Item.(*lambda.FunctionConfiguration)
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Lambda", "Invocations", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
+	return listCWMetricStatistics(ctx, d, h, "DAILY", "AWS/Lambda", "Invocations", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
 }

@@ -203,7 +203,7 @@ func listEksNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func getEksNodeGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

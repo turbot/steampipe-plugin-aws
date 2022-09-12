@@ -129,9 +129,9 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -168,11 +168,11 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getConfigRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getConfigRule")
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	plugin.Logger(ctx).Trace("getConfigRuleTags")
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plu
 	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
 
 	// Create Session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getComplianceByConfigRules", "connection", err)
 		return nil, err

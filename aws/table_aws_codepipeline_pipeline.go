@@ -122,9 +122,9 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	pipelineArn := pipelineARN(ctx, d, h)
 
 	// Create session
-	svc, err := CodePipelineService(ctx, d)
+	svc, err := CodePipelineService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

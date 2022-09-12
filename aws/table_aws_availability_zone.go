@@ -115,7 +115,7 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, *region.RegionName)
+	svc, err := EC2Service(ctx, d, *region.RegionName)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	regionName := d.KeyColumnQuals["region_name"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, regionName)
+	svc, err := EC2Service(ctx, d, regionName)
 	if err != nil {
 		return nil, err
 	}

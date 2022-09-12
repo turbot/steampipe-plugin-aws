@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricWriteIopsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_write_iops_hourly",
@@ -33,5 +34,5 @@ func tableAwsRdsInstanceMetricWriteIopsHourly(_ context.Context) *plugin.Table {
 
 func listRdsInstanceMetricWriteIopsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*rds.DBInstance)
-	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/RDS", "WriteIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
+	return listCWMetricStatistics(ctx, d, h, "HOURLY", "AWS/RDS", "WriteIOPS", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
 }

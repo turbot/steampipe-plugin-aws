@@ -216,9 +216,9 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEcsTaskDefinitions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func getEcsTaskDefinition(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

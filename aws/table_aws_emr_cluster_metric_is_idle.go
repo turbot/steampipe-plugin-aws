@@ -34,5 +34,5 @@ func tableAwsEmrClusterMetricIsIdle(_ context.Context) *plugin.Table {
 
 func listEmrClusterMetricIsIdle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := h.Item.(*emr.ClusterSummary)
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ElasticMapReduce", "IsIdle", "JobFlowId", *data.Id)
+	return listCWMetricStatistics(ctx, d, h, "5_MIN", "AWS/ElasticMapReduce", "IsIdle", "JobFlowId", *data.Id)
 }

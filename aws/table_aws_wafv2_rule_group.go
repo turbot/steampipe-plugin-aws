@@ -140,7 +140,7 @@ func tableAwsWafv2RuleGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
@@ -150,7 +150,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}

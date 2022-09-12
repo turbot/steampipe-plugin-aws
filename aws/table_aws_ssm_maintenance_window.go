@@ -164,11 +164,11 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSSMMaintenanceWindow")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func getAwsSSMMaintenanceWindow(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func getAwsSSMMaintenanceWindowTags(ctx context.Context, d *plugin.QueryData, h 
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func getMaintenanceWindowTargets(ctx context.Context, d *plugin.QueryData, h *pl
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func getMaintenanceWindowTasks(ctx context.Context, d *plugin.QueryData, h *plug
 	id := maintenanceWindowID(h.Item)
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

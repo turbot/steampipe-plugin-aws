@@ -235,7 +235,7 @@ type historyInfo struct {
 
 func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
@@ -285,7 +285,7 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	// Iterating all the available executions
 	for _, item := range executions {
 		wg.Add(1)
-		go getRowDataForExecutionHistoryAsync(ctx, d, *item.ExecutionArn, &wg, executionCh, errorCh)
+		go getRowDataForExecutionHistoryAsync(ctx, d, h, *item.ExecutionArn, &wg, executionCh, errorCh)
 	}
 
 	// wait for all executions to be processed
@@ -312,10 +312,10 @@ func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plu
 	return nil, nil
 }
 
-func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData, arn string, wg *sync.WaitGroup, executionCh chan []historyInfo, errorCh chan error) {
+func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, arn string, wg *sync.WaitGroup, executionCh chan []historyInfo, errorCh chan error) {
 	defer wg.Done()
 
-	rowData, err := getRowDataForExecutionHistory(ctx, d, arn)
+	rowData, err := getRowDataForExecutionHistory(ctx, d, h, arn)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -323,9 +323,9 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 	}
 }
 
-func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn string) ([]historyInfo, error) {
+func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, arn string) ([]historyInfo, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err

@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricConnectionsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_connections_daily",
@@ -33,5 +34,5 @@ func tableAwsRdsInstanceMetricConnectionsDaily(_ context.Context) *plugin.Table 
 
 func listRdsInstanceMetricConnectionsDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*rds.DBInstance)
-	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
+	return listCWMetricStatistics(ctx, d, h, "DAILY", "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", *instance.DBInstanceIdentifier)
 }

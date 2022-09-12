@@ -177,9 +177,9 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "service_creation_error", err)
 		return nil, err
@@ -231,7 +231,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["endpoint_name"].GetStringValue()
 
 	// check if name is empty
@@ -240,7 +240,7 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpoint", "service_creation_error", err)
 		return nil, err

@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
+// // TABLE DEFINITION
 func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_application_load_balancer_metric_request_count",
@@ -35,5 +35,5 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCount(_ context.Context) *pl
 func listEc2ApplicationLoadBalancerMetricRequestCount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancer := h.Item.(*elbv2.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
+	return listCWMetricStatistics(ctx, d, h, "5_MIN", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
 }

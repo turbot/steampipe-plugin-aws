@@ -109,7 +109,7 @@ func tableAwsEfsMountTarget(_ context.Context) *plugin.Table {
 
 func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
 
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 	plugin.Logger(ctx).Trace("getAwsEfsMountTargetSecurityGroup")
 
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

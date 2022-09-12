@@ -78,11 +78,11 @@ type InventoryInfo struct {
 
 //// LIST FUNCTION
 
-func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSSMInventories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSSMInventories")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func getAwsSSMInventorySchema(ctx context.Context, d *plugin.QueryData, h *plugi
 	plugin.Logger(ctx).Trace("getAwsSSMInventorySchema")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getAwsSSMInventorySchema", "connection_error", err)
 		return nil, err

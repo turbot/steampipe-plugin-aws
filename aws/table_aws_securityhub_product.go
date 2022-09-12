@@ -95,11 +95,11 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubProducts")
 
 	// Create Session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -149,11 +149,11 @@ func listSecurityHubProducts(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getSecurityHubProduct(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	productArn := d.KeyColumnQuals["product_arn"].GetStringValue()
 
 	// Create service
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

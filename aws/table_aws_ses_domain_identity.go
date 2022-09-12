@@ -75,12 +75,12 @@ func tableAwsSESDomainIdentity(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSESDomainIdentities(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listSESDomainIdentities")
 
 	// Create Session
-	svc, err := SESService(ctx, d)
+	svc, err := SESService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

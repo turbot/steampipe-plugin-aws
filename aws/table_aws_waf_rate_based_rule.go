@@ -10,7 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
+// // TABLE DEFINITION
 func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_waf_rate_based_rule",
@@ -96,7 +96,7 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWafRateBasedRules")
 	// Create session
 	svc, err := WAFService(ctx, d)

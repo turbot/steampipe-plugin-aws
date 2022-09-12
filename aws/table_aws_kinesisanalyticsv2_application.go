@@ -125,9 +125,9 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	arn := applicationArn(h.Item)
 
 	// Create Session
-	svc, err := KinesisAnalyticsV2Service(ctx, d)
+	svc, err := KinesisAnalyticsV2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

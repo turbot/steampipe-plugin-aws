@@ -79,9 +79,9 @@ type addonVersion struct {
 
 //// LIST FUNCTION
 
-func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEksAddonVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

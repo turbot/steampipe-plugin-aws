@@ -215,7 +215,7 @@ func listAmisByOwner(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	owner_id := d.KeyColumnQuals["owner_id"].GetStringValue()
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func getImageOwnerAlias(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build AMI's list call input filter
 func buildAmisWithOwnerFilter(quals plugin.KeyColumnQualMap, amiType string, ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

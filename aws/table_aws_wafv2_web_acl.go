@@ -171,7 +171,7 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
@@ -181,7 +181,7 @@ func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}

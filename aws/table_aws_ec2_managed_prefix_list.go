@@ -119,9 +119,9 @@ func listManagedPrefixList(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	filters := []*ec2.Filter{}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
-		logger.Error("listManagedPrefixList", "Ec2Service_error", err)
+		logger.Error("listManagedPrefixList", "EC2Service_error", err)
 		return nil, err
 	}
 
@@ -218,7 +218,7 @@ func prefixListTags(_ context.Context, d *transform.TransformData) (interface{},
 
 func handlePrefixListTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	prefixList := d.HydrateItem.(*ec2.ManagedPrefixList)
-	if len(prefixList.Tags) > 0  {
+	if len(prefixList.Tags) > 0 {
 		return prefixList.Tags, nil
 	}
 	return nil, nil

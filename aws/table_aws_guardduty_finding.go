@@ -122,7 +122,7 @@ func tableAwsGuardDutyFinding(_ context.Context) *plugin.Table {
 // listGuardDutyFindings handles both listing and get the details of the findings.
 func listGuardDutyFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

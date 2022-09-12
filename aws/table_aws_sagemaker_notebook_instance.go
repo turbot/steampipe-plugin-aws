@@ -180,11 +180,11 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSageMakerNotebookInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSageMakerNotebookInstances")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func getAwsSageMakerNotebookInstance(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func listAwsSageMakerNotebookInstanceTags(ctx context.Context, d *plugin.QueryDa
 	resourceArn := notebookInstanceARN(h.Item)
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

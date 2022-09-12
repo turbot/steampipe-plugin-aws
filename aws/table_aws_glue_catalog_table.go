@@ -156,7 +156,7 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	database := h.Item.(*glue.Database)
 
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		logger.Error("aws_glue_catalog_table.listGlueCatalogTables", "connection_error", err)
 		return nil, err
@@ -211,7 +211,7 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getGlueCatalogTable")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
@@ -223,7 +223,7 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

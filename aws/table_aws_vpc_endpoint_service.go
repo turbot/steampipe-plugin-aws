@@ -125,7 +125,7 @@ func listVpcEndpointServices(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("listVpcEndpointServices", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	serviceName := d.KeyColumnQuals["service_name"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData,
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	serviceId := h.Item.(*ec2.ServiceDetail).ServiceId
 
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

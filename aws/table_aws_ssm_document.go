@@ -221,11 +221,11 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSSMDocuments(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSSMDocuments")
 
 	// Create session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func getAwsSSMDocument(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func getAwsSSMDocumentPermissionDetail(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Create Session
-	svc, err := SSMService(ctx, d)
+	svc, err := SSMService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

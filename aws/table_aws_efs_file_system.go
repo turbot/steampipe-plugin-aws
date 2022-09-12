@@ -156,9 +156,9 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -208,9 +208,9 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	fileSystem := h.Item.(*efs.FileSystemDescription)
 
 	// Create session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

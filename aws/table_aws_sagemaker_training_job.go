@@ -295,11 +295,11 @@ func tableAwsSageMakerTrainingJob(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsSageMakerTrainingJobs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSageMakerTrainingJobs")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +383,7 @@ func getAwsSageMakerTrainingJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +411,7 @@ func getAwsSageMakerTrainingJobTags(ctx context.Context, d *plugin.QueryData, h 
 
 	arn := trainingJobArn(h.Item)
 	// Create Session
-	svc, err := SageMakerService(ctx, d)
+	svc, err := SageMakerService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

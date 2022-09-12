@@ -161,9 +161,9 @@ func tableAwsEc2TargetGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -215,13 +215,13 @@ func listEc2TargetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2TargetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2TargetGroup")
 
 	targetGroupArn := d.KeyColumnQuals["target_group_arn"].GetStringValue()
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func getAwsEc2TargetGroupTargetHealthDescription(ctx context.Context, d *plugin.
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func getAwsEc2TargetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	targetGroup := h.Item.(*elbv2.TargetGroup)
 
 	// create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

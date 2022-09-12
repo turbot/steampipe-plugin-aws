@@ -113,7 +113,7 @@ func listGuardDutyPublishingDestinations(ctx context.Context, d *plugin.QueryDat
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func getGuardDutyPublishingDestination(ctx context.Context, d *plugin.QueryData,
 	logger.Trace("getGuardDutyPublishingDestination")
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

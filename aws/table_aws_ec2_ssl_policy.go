@@ -65,15 +65,15 @@ func tableAwsEc2SslPolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listEc2SslPolicies")
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-		if svc == nil {
+	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}
@@ -124,7 +124,7 @@ func listEc2SslPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getEc2SslPolicy")
 
 	matrixKeyRegion := d.KeyColumnQualString(matrixKeyRegion)
@@ -137,11 +137,11 @@ func getEc2SslPolicy(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
-		if svc == nil {
+	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
 	}

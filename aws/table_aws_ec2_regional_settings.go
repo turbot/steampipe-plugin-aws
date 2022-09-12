@@ -67,7 +67,7 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, _ *
 	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func getDefaultEBSVolumeEncryptionKey(ctx context.Context, d *plugin.QueryData, 
 	plugin.Logger(ctx).Trace("listEc2RegionalSettings", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}

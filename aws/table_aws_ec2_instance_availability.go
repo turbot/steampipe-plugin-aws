@@ -73,7 +73,7 @@ func listAwsAvailableInstanceTypes(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, *region.RegionName)
+	svc, err := EC2Service(ctx, d, *region.RegionName)
 	if err != nil {
 		return nil, err
 	}

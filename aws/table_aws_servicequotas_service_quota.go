@@ -133,7 +133,7 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	plugin.Logger(ctx).Trace("listServiceQuotas")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func getServiceQuotaTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	quota := h.Item.(*servicequotas.ServiceQuota)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d)
+	svc, err := ServiceQuotasRegionalService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

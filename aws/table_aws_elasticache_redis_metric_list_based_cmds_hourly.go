@@ -9,7 +9,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
+// // TABLE DEFINITION
 func tableAwsElasticacheRedisMetricListBasedCmdsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_list_based_cmds_hourly",
@@ -33,5 +33,5 @@ func tableAwsElasticacheRedisMetricListBasedCmdsHourly(_ context.Context) *plugi
 
 func listElastiCacheMetricListBasedCmdsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	cacheClusterConfiguration := h.Item.(*elasticache.CacheCluster)
-	return listCWMetricStatistics(ctx, d, "Hourly", "AWS/ElastiCache", "ListBasedCmds", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
+	return listCWMetricStatistics(ctx, d, h, "Hourly", "AWS/ElastiCache", "ListBasedCmds", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
 }

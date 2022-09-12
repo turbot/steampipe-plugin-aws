@@ -151,11 +151,11 @@ func tableAwsMacie2ClassificationJob(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listMacie2ClassificationJobs")
 
 	// Create Session
-	svc, err := Macie2Service(ctx, d)
+	svc, err := Macie2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create service
-	svc, err := Macie2Service(ctx, d)
+	svc, err := Macie2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

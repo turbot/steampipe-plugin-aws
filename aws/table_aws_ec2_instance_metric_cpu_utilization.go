@@ -9,7 +9,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-//// TABLE DEFINITION
+// // TABLE DEFINITION
 func tableAwsEc2InstanceMetricCpuUtilization(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_instance_metric_cpu_utilization",
@@ -33,5 +33,5 @@ func tableAwsEc2InstanceMetricCpuUtilization(_ context.Context) *plugin.Table {
 
 func listEc2InstanceMetricCpuUtilization(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*ec2.Instance)
-	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
+	return listCWMetricStatistics(ctx, d, h, "5_MIN", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
 }

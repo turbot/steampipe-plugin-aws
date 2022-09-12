@@ -241,9 +241,9 @@ func tableAwsEmrCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEmrClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEmrClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func getEmrCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EmrService(ctx, d)
+	svc, err := EMRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -319,11 +319,11 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listUsagePlans")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -368,9 +368,9 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 	name := h.Item.(*redshift.Cluster).ClusterIdentifier
 
 	// Create service
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +430,7 @@ func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plu
 	plugin.Logger(ctx).Trace("getClusterScheduledActions")
 
 	// Create service
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

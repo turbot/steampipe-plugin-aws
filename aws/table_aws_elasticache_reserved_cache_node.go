@@ -122,9 +122,9 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 
 //// HYDRATE FUNCTIONS
 
-func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	reservedCacheNodeId := quals["reserved_cache_node_id"].GetStringValue()
 
@@ -199,7 +199,7 @@ func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

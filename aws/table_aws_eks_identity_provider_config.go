@@ -142,7 +142,7 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 	cluster := h.Item.(*eks.Cluster)
 
 	// Create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func getEksIdentityProviderConfig(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// create service
-	svc, err := EksService(ctx, d)
+	svc, err := EKSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

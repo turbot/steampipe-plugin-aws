@@ -207,9 +207,9 @@ func tableAwsCloudWatchAlarm(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -265,14 +265,14 @@ func listCloudWatchAlarms(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCloudWatchAlarm(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getCloudWatchAlarm")
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
 	// Create Session
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func getAwsCloudWatchAlarmTags(ctx context.Context, d *plugin.QueryData, h *plug
 	alarm := h.Item.(*cloudwatch.MetricAlarm)
 
 	// Create service
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

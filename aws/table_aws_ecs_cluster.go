@@ -140,9 +140,9 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEcsClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	clusterArn := *h.Item.(*ecs.Cluster).ClusterArn
 
 	// Create service
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

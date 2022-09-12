@@ -94,10 +94,10 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listPinpointApps(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getPinpointApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	appId := d.KeyColumnQuals["id"].GetStringValue()
 	// Empty check
@@ -165,7 +165,7 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	// Create Session
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getPinpointApp", "connection_error", err)
 		return nil, err
@@ -196,7 +196,7 @@ func getPinpointApplicationSettings(ctx context.Context, d *plugin.QueryData, h 
 	application := h.Item.(*pinpoint.ApplicationResponse)
 
 	// Create Session
-	svc, err := PinpointService(ctx, d)
+	svc, err := PinpointService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("getPinpointApplicationSettings", "connection_error", err)
 		return nil, err

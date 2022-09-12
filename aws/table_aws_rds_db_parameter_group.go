@@ -93,11 +93,11 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBParameterGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +143,11 @@ func listRDSDBParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRDSDBParameterGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func getRDSParameterGroupParameters(ctx context.Context, d *plugin.QueryData, h 
 	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func getRDSParameterGroupTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	dbParameterGroup := h.Item.(*rds.DBParameterGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -82,7 +82,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := EC2Service(ctx, d, defaultRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -112,7 +112,7 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create service
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := EC2Service(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}

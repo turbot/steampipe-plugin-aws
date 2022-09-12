@@ -155,9 +155,9 @@ func tableAwsEc2NetworkLoadBalancer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -211,11 +211,11 @@ func listEc2NetworkLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEc2NetworkLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func getAwsEc2NetworkLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func getAwsEc2NetworkLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	networkLoadBalancer := h.Item.(*elbv2.LoadBalancer)
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBv2Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

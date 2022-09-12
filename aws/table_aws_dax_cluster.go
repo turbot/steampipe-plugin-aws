@@ -157,10 +157,10 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listDaxClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -224,10 +224,10 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getDaxCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	clusterArn := *h.Item.(*dax.Cluster).ClusterArn
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

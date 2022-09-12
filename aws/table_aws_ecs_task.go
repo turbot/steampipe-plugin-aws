@@ -260,7 +260,7 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	equalQuals := d.KeyColumnQuals
 
 	// Create session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

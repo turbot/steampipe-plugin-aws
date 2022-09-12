@@ -139,9 +139,9 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// get service
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	streamName := *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
 
 	// Create Session
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

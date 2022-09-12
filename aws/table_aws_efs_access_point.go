@@ -111,9 +111,9 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -163,12 +163,12 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	quals := d.KeyColumnQuals
 	accessPointID := quals["access_point_id"].GetStringValue()
 
 	// create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

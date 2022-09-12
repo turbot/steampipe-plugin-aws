@@ -242,14 +242,43 @@ func unique(stringSlice []string) []string {
 	return list
 }
 
-func SupportedRegionsForService(_ context.Context, d *plugin.QueryData, serviceId string) []string {
+func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
+	var partitionName string
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
 	}
 
+	if cachedData, ok := d.ConnectionManager.Cache.Get("getAccountPartition"); ok {
+		partitionName = cachedData.(string)
+	}
+
+	// Set default partition to AWS
+	partition := endpoints.AwsPartition()
+	if partitionName != "" {
+		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
+		partitionData, _ := getCachedAccountPartition(ctx, d, h)
+		partitionName, _ = partitionData.(string)
+	}
+
+	// Get patrition based on the partion name
+	switch partitionName {
+	case endpoints.AwsPartitionID:
+		partition = endpoints.AwsPartition()
+	case endpoints.AwsCnPartitionID:
+		partition = endpoints.AwsCnPartition()
+	case endpoints.AwsIsoPartitionID:
+		partition = endpoints.AwsIsoPartition()
+	case endpoints.AwsUsGovPartitionID:
+		partition = endpoints.AwsUsGovPartition()
+	case endpoints.AwsIsoBPartitionID:
+		partition = endpoints.AwsCnPartition()
+	default:
+		partition = endpoints.AwsPartition()
+	}
+
 	var validRegions []string
-	regions := endpoints.AwsPartition().Services()[serviceId].Regions()
+	regions := partition.Services()[serviceId].Regions()
 	for rs := range regions {
 		validRegions = append(validRegions, rs)
 	}

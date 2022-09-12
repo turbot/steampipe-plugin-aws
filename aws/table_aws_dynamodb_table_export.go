@@ -169,7 +169,7 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	tableArn := "arn:" + commonColumnData.Partition + ":dynamodb:" + region + ":" + commonColumnData.AccountId + ":table/" + *tableName
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	export := h.Item.(*dynamodb.ExportSummary)
 
 	// Create Session
-	svc, err := DynamoDbService(ctx, d)
+	svc, err := DynamoDBService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -107,9 +107,9 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listHealthChecks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_health_check.listHealthChecks", "service_creation_error", err)
 		return nil, err
@@ -151,9 +151,9 @@ func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getHealthCheck(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getHealthCheck(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheck", "service_creation_error", err)
 		return nil, err
@@ -183,7 +183,7 @@ func getHealthCheckStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	healthCheck := h.Item.(*route53.HealthCheck)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckStatus", "service_creation_error", err)
 		return nil, err
@@ -207,7 +207,7 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	healthCheck := h.Item.(*route53.HealthCheck)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckTags", "service_creation_error", err)
 		return nil, err

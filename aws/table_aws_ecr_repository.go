@@ -155,9 +155,9 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	resourceArn := h.Item.(*ecr.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	repositoryName := h.Item.(*ecr.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	repositoryName := h.Item.(*ecr.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 	}
 	images := imageDetails.(*ecr.DescribeImagesOutput)
 
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		logger.Error("getAwsEcrDescribeImageScanningFindings", "connection_error", err)
 		return nil, err
@@ -419,7 +419,7 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 	repositoryName := h.Item.(*ecr.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

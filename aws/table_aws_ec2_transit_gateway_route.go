@@ -93,7 +93,7 @@ func listEc2TransitGatewayRoute(ctx context.Context, d *plugin.QueryData, h *plu
 	routeTableId := h.Item.(*ec2.TransitGatewayRouteTable).TransitGatewayRouteTableId
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 	return akas, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway route list call input filter
 func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

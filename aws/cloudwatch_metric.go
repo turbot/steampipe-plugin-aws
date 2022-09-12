@@ -131,12 +131,12 @@ func getCWPeriodForGranularity(granularity string) int64 {
 	return 300
 }
 
-func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
+func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
 
 	plugin.Logger(ctx).Trace("getCWMetricStatistics")
 
 	// Create Session
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

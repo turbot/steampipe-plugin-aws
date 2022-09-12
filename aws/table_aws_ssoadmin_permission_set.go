@@ -111,7 +111,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 	instanceArn := *instance.InstanceArn
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d)
+	svc, err := SSOAdminService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func getSsoAdminPermissionSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	plugin.Logger(ctx).Trace("getSsoAdminPermissionSet")
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d)
+	svc, err := SSOAdminService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -228,15 +228,15 @@ func getSsoAdminPermissionSetTags(ctx context.Context, d *plugin.QueryData, h *p
 	resourceArn := *permissionSet.PermissionSetArn
 	instanceArn := *permissionSet.InstanceArn
 
-	tags, err := getSsoAdminResourceTags(ctx, d, instanceArn, resourceArn)
+	tags, err := getSsoAdminResourceTags(ctx, d, h, instanceArn, resourceArn)
 	return tags, err
 }
 
-func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceArn, resourceArn string) (interface{}, error) {
+func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, instanceArn, resourceArn string) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSsoAdminResourceTags")
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d)
+	svc, err := SSOAdminService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

@@ -84,9 +84,9 @@ type MetricDetails struct {
 
 //// LIST FUNCTION
 
-func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCloudWatchMetrics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudWatchService(ctx, d)
+	svc, err := CloudWatchService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

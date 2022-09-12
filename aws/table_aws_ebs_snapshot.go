@@ -182,7 +182,7 @@ func listAwsEBSSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Trace("listAwsEBSSnapshots", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func getAwsEBSSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	snapshotID := d.KeyColumnQuals["snapshot_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 		return nil, nil
 	}
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Service(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func ec2SnapshotTurbotTags(_ context.Context, d *transform.TransformData) (inter
 	return ec2TagsToMap(snapshot.Tags)
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // build ebs snapshot list call input filter
 func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

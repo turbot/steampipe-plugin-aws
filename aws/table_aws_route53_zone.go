@@ -142,11 +142,11 @@ type HostedZoneResult struct {
 
 //// LIST FUNCTION
 
-func listHostedZones(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listHostedZones(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listhostedZone")
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func getHostedZone(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	plugin.Logger(ctx).Trace("getHostedZone")
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	hostedZone := h.Item.(*HostedZoneResult)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, 
 	hostedZone := h.Item.(*HostedZoneResult)
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func getHostedZoneDNSSEC(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// Create session
-	svc, err := Route53Service(ctx, d)
+	svc, err := Route53Service(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

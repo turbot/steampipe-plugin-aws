@@ -183,11 +183,11 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBClusterSnapshots")
 
 	// Create Session
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -240,11 +240,11 @@ func listRDSDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getRDSDBClusterSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	snapshotIdentifier := d.KeyColumnQuals["db_cluster_snapshot_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 	dbClusterSnapshot := h.Item.(*rds.DBClusterSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d)
+	svc, err := RDSService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}

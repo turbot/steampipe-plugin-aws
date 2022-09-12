@@ -126,7 +126,7 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	scope := aws.String("REGIONAL")
 
@@ -136,7 +136,7 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFv2Service(ctx, d, h, region)
 	if err != nil {
 		return nil, err
 	}

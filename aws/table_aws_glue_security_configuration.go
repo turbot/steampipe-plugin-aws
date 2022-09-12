@@ -78,9 +78,9 @@ func tableAwsGlueSecurityConfiguration(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "service_creation_error", err)
 		return nil, err
@@ -132,7 +132,7 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 
 //// HYDRATE FUNCTIONS
 
-func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// check if name is empty
@@ -141,7 +141,7 @@ func getGlueSecurityConfiguration(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueService(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfiguration", "service_creation_error", err)
 		return nil, err

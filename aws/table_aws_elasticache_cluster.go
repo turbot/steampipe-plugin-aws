@@ -185,9 +185,9 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -232,9 +232,9 @@ func listElastiCacheClusters(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	cluster := h.Item.(*elasticache.CacheCluster)
 
 	// Create session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheService(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
