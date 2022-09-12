@@ -208,18 +208,15 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codebuild.EndpointsID)
 	if err != nil {
 		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
 
 func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +224,7 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 }
 
 func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
 	if err != nil {
 		return nil, err
 	}

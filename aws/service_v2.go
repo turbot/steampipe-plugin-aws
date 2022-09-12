@@ -162,9 +162,6 @@ func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Clien
 	if err != nil {
 		return nil, err
 	}
-	if cfg == nil {
-		return nil, nil
-	}
 	return codebuild.NewFromConfig(*cfg), nil
 }
 

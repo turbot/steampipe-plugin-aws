@@ -300,7 +300,6 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_codebuild_project.getCodeBuildProject", "connection_error", err)
 		return nil, err
 	}
-
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
