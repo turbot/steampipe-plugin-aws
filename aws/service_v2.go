@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -361,11 +360,8 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		plugin.Logger(ctx).Info("SupportedRegionsForClient FROM CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(cachedData.([]string), ", "))
 		return cachedData.([]string)
 	}
-	// SupportedRegionsForClientCount++
-	// plugin.Logger(ctx).Info(d.Connection.Name, "SupportedRegionsForClient.Count", SupportedRegionsForClientCount)
 
 	var endpoints *Endpoints
 	getCachedEndpoints := plugin.HydrateFunc(GetAwsEndpoints).WithCache()
@@ -382,6 +378,5 @@ func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, h *plug
 
 	// set cache
 	d.ConnectionManager.Cache.Set(cacheKey, regions)
-	plugin.Logger(ctx).Info("SupportedRegionsForClient WITHOUT CACHE", fmt.Sprintf("SupportedRegions-%s", serviceId), strings.Join(regions, ", "))
 	return regions
 }
