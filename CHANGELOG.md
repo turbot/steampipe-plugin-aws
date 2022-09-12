@@ -1,3 +1,30 @@
+## v0.76.0 [2022-09-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_log_subscription_filter](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_log_subscription_filter) ([#1243](https://github.com/turbot/steampipe-plugin-aws/pull/1243))
+  - [aws_dax_subnet_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_subnet_group) ([#1298](https://github.com/turbot/steampipe-plugin-aws/pull/1298))
+  - [aws_docdb_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_docdb_cluster) ([#1019](https://github.com/turbot/steampipe-plugin-aws/pull/1019))
+  - [aws_globalaccelerator_accelerator](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_accelerator) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091)) (Thanks to [@nmische](https://github.com/nmische) for the contribution!)
+  - [aws_globalaccelerator_endpoint_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_endpoint_group) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091))
+  - [aws_globalaccelerator_listener](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_listener) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091))
+
+_Enhancements_
+
+- Added column `code` to `aws_lambda_function` table. ([#1293](https://github.com/turbot/steampipe-plugin-aws/pull/1293))
+- Updated the `title` column of `aws_kms_key` table to first use the key alias if available, else fall back to the key ID. ([#1246](https://github.com/turbot/steampipe-plugin-aws/pull/1246))
+
+_Bug fixes_
+
+- Fixed the `url_config` column in `aws_lambda_function` table to return `null` instead of an access denied exception errors for US Government cloud regions. ([#1285](https://github.com/turbot/steampipe-plugin-aws/pull/1285))
+- Fixed the `sns_topic_arn` column in `aws_backup_vault` table to correctly return a value instead of `null`. ([#1280](https://github.com/turbot/steampipe-plugin-aws/pull/1280))
+- Fixed all the tables of CodeBuild and Serverless Application Repository services to return empty rows instead of an error for unsupported regions. ([#1289](https://github.com/turbot/steampipe-plugin-aws/pull/1289))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.7](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v417-2022-09-08) which fixes incorrect cache hits in multi-region queries which use the `region` column in the where clause. ([#387](https://github.com/turbot/steampipe-plugin-gcp/pull/387))
+
 ## v0.75.1 [2022-08-31]
 
 _Dependencies_
