@@ -152,7 +152,6 @@ func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	// Create Session
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
@@ -168,7 +167,7 @@ func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	op, err := svc.GetAccessKeyLastUsed(ctx, &params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_iam_role.getIamRole", "api_error", err)
+		plugin.Logger(ctx).Error("aws_iam_role.getIamAccessKeyLastUsed", "api_error", err)
 		return nil, err
 	}
 
