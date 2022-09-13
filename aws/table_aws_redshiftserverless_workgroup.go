@@ -27,7 +27,7 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 			Hydrate: getRedshiftServerlessWorkgroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listRedshiftServerlessWorkgroup,
+			Hydrate: listRedshiftServerlessWorkgroups,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -47,6 +47,11 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "status",
+				Description: "The status of the workgroup.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "base_capacity",
 				Description: "The base data warehouse capacity of the workgroup in Redshift Processing Units (RPUs).",
 				Type:        proto.ColumnType_INT,
@@ -63,18 +68,13 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "namespace_name",
-				Description: "The value that specifies whether to enable enhanced virtual private cloud (VPC) routing, which forces Amazon Redshift Serverless to route traffic through your VPC.",
+				Description: "The namespace the workgroup is associated with.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "publicly_accessible",
 				Description: "A value that specifies whether the workgroup can be accessible from a public network.",
 				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "status",
-				Description: "The status of the workgroup.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "config_parameters",
@@ -98,7 +98,7 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "The list of tags for the cluster.",
+				Description: "The list of tags for the workgroup.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getWorkgroupTags,
 				Transform:   transform.FromField("Tags"),
@@ -130,13 +130,13 @@ func tableAwsRedshiftServerlessWorkgroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRedshiftServerlessWorkgroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := RedshiftServerlessClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroup", "service_creation_error", err)
+		logger.Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroups", "service_creation_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -171,7 +171,7 @@ func listRedshiftServerlessWorkgroup(ctx context.Context, d *plugin.QueryData, _
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
-			plugin.Logger(ctx).Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroup", "api_error", err)
+			plugin.Logger(ctx).Error("aws_redshiftserverless_workgroup.listRedshiftServerlessWorkgroups", "api_error", err)
 			return nil, err
 		}
 
@@ -231,7 +231,7 @@ func getWorkgroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Create service
 	svc, err := RedshiftServerlessClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_workgroup.getWorkgroupResourcePolicy", "service_creation_error", err)
+		logger.Error("aws_redshiftserverless_workgroup.getWorkgroupTags", "service_creation_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -245,7 +245,7 @@ func getWorkgroupTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_workgroup.getRedshiftServerlessWorkgroup", "api_error", err)
+		logger.Error("aws_redshiftserverless_workgroup.getWorkgroupTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
