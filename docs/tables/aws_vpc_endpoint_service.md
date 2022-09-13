@@ -64,3 +64,19 @@ select
 from
   aws_vpc_endpoint_service;
 ```
+
+
+### List VPC endpoint connections for VPC endpoint services
+
+```sql
+select
+  service_name,
+  service_id,
+  c ->> 'VpcEndpointId' as vpc_endpoint_id,
+  c ->> 'VpcEndpointOwner' as vpc_endpoint_owner,
+  c ->> 'VpcEndpointState' as vpc_endpoint_state,
+  jsonb_array_elements_text( c -> 'NetworkLoadBalancerArns') as network_loadBalancer_arns
+from
+  aws_vpc_endpoint_service,
+  jsonb_array_elements(vpc_endpoint_connections) as c
+```
