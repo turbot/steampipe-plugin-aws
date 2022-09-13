@@ -1,4 +1,3 @@
-
 variable "resource_name" {
   type        = string
   default     = "turbot-test-20200125"
@@ -7,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "aab"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 

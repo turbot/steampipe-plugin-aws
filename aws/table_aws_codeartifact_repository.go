@@ -18,7 +18,7 @@ import (
 func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_codeartifact_repository",
-		Description: "AWS Code Artifact Repository",
+		Description: "AWS CodeArtifact Repository",
 		Get: &plugin.GetConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -53,6 +53,11 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) specifying the repository.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "domain_name",
 				Description: "The name of the domain that contains the repository.",
 				Type:        proto.ColumnType_STRING,
@@ -60,11 +65,6 @@ func tableAwsCodeArtifactRepository(_ context.Context) *plugin.Table {
 			{
 				Name:        "administrator_account",
 				Description: "The Amazon Web Services account ID that manages the repository.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "arn",
-				Description: "The Amazon Resource Name (ARN) specifying the repository.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -274,7 +274,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 		// Create session
 		svc, err := CodeArtifactClient(ctx, d)
 		if err != nil {
-			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoint", "service_creation_error", err)
+			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoints", "service_creation_error", err)
 			return nil, err
 		}
 
@@ -282,7 +282,7 @@ func getCodeArtifactRepositoryEndpoints(ctx context.Context, d *plugin.QueryData
 		data, err := svc.GetRepositoryEndpoint(ctx, params)
 
 		if err != nil {
-			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoint", "api_error", err)
+			logger.Error("aws_codeartifact_repository.getCodeArtifactRepositoryEndpoints", "api_error", err)
 			return nil, err
 		}
 		resultData = append(resultData, *data.RepositoryEndpoint)

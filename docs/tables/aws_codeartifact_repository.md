@@ -1,6 +1,6 @@
 # Table: aws_codeartifact_repository
 
-An AWS CodeBuild project configures how CodeBuild builds your source code. For example, it tells CodeBuild where to get the source code and which build environment to use.
+AWS CodeArtifact is a fully managed artifact repository service that makes it easy for organizations of any size to securely store, publish, and share software packages used in their software development process.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   aws_codeartifact_repository;
 ```
 
-### List all upstream repositories
+### Get endpoint of to each repository
 
 ```sql
 select

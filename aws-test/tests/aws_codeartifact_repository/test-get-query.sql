@@ -1,11 +1,12 @@
-select 
+select
   arn,
-  administrator_account, 
+  administrator_account,
   description,
   domain_owner,
   region,
   tags
-from 
-  aws.aws_codeartifact_repository
+from
+  aws_codeartifact_repository
 where
-  name = '{{ resourceName }}';
+  name = '{{ resourceName }}'
+  and domain_name = '{{ resourceName }}';
