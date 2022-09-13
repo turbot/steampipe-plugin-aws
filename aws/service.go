@@ -840,9 +840,12 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 }
 
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WafRegionalServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return wafregional.New(sess), nil
 }
