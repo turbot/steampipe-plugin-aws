@@ -57,18 +57,18 @@ func tableAwsAppConfigApplication(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Name"),
 			},
 			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAppConfigApplicationArn,
-				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
-			},
-			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAppConfigTags,
 				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAppConfigApplicationArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
