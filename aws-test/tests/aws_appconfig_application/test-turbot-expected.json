@@ -5,5 +5,5 @@
       "Type": "AppConfig Application"
     },
     "title": "{{ output.resource_name.value }}"
-	}
+  }
 ]
