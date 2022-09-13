@@ -6,4 +6,5 @@ select
   tags
 from
   aws_appconfig_application
-where arn = '{{ output.resource_aka.value }}';
+where
+  arn = '{{ output.resource_aka.value }}';

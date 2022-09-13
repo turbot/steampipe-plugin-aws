@@ -4,4 +4,5 @@ select
   akas
 from
   aws_appconfig_application
-where id = '{{ output.id.value }}';
+where
+  id = '{{ output.id.value }}';

@@ -1,4 +1,4 @@
-# Table: aws_appautoscaling_target
+# Table: aws_appconfig_application
 
 In AWS AppConfig, an application is simply an organizational construct like a folder. This organizational construct has a relationship with some unit of executable code.
 

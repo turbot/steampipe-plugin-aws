@@ -55,7 +55,6 @@ resource "aws_appconfig_application" "named_test_resource" {
   }
 }
 
-
 output "id" {
   value = aws_appconfig_application.named_test_resource.id
 }
