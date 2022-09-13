@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-  
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -127,7 +127,8 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AllocationId"),
+				// Fallback to public IP for EIPs in EC2-Classic
+				Transform: transform.FromField("AllocationId", "PublicIp"),
 			},
 			{
 				Name:        "akas",
@@ -228,7 +229,12 @@ func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get resource arn
+	// EIPs in EC2-Classic do not have an allocation ID, therefore no valid ARN
+	if *eip.AllocationId == "" {
+		return nil, nil
+	}
+
+	// Get resource ARN
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":eip/" + *eip.AllocationId
 
 	return arn, nil
