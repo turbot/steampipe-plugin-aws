@@ -2,12 +2,13 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -26,7 +27,7 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAuditManagerControls,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -133,13 +134,15 @@ func tableAwsAuditManagerControl(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listAuditManagerControls", "AWS_REGION", region)
 
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// List all standard controls
@@ -160,7 +163,13 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		},
 	)
 
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listAuditManagerControls_standard", "err", err)
 		return nil, err
 	}
 
@@ -177,21 +186,22 @@ func listAuditManagerControls(ctx context.Context, d *plugin.QueryData, _ *plugi
 		},
 	)
 
-	return nil, err
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+	if err != nil {
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listAuditManagerControls_custom", "err", err)
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerControl")
-
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// Create Session
-	svc, err := AuditManagerService(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
 
 	var id string
 	if h.Item != nil {
@@ -200,13 +210,29 @@ func getAuditManagerControl(ctx context.Context, d *plugin.QueryData, h *plugin.
 		id = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
+	// Create session
+	svc, err := AuditManagerService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	params := &auditmanager.GetControlInput{
 		ControlId: aws.String(id),
 	}
 
 	op, err := svc.GetControl(params)
+
+	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+	// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAuditManagerControl", "ERROR", err)
+		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getAuditManagerControl", "err", err)
 		return nil, err
 	}
 

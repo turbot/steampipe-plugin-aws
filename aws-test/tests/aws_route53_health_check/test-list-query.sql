@@ -1,7 +1,6 @@
 select
   akas,
-  id,
-  tags
+  id
 from 
   aws_route53_health_check
-where name = '{{ resourceName }}';
+where title = '{{ output.health_check_id.value }}';

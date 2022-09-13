@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -204,6 +204,10 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		region = "us-gov-east-1"
 	} else if commonColumnData.Partition == "aws-cn" {
 		region = "cn-north-1"
+	} else if commonColumnData.Partition == "aws-iso" {
+		region = "us-iso-east-1"
+	} else if commonColumnData.Partition == "aws-iso-b" {
+		region = "us-isob-east-1"
 	}
 
 	// Create Session

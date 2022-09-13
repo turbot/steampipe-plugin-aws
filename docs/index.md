@@ -102,6 +102,11 @@ connection "aws" {
   # If not set, the default AWS generated endpoint will be used.
   # Can also be set with the AWS_ENDPOINT_URL environment variable.
   #endpoint_url = "http://localhost:4566"
+  
+  # Set to `true` to force S3 requests to use path-style addressing,
+  # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
+  # will use virtual hosted bucket addressing when possible (`http://BUCKET.s3.amazonaws.com/KEY`).
+  #s3_force_path_style = false
 }
 ```
 
@@ -114,6 +119,7 @@ connection "aws" {
 - `regions` - (Optional) List of AWS regions Steampipe will connect to. Can also be set with the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables, or the region specified in the active profile.
 - `secret_key` - (Optional) AWS secret key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
 - `session_token` - (Optional) Session token for validating temporary credentials. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
+- `s3_force_path_style`- (Optional) Specifies whether to use path-style addressing, i.e., `https://s3.amazonaws.com/BUCKET/KEY`, or virtual hosted bucket addressing, i.e., `https://BUCKET.s3.amazonaws.com/KEY`. By default, the S3 client will use virtual hosted bucket addressing when possible.
 
 By default, all options are commented out in the default connection, thus Steampipe will resolve your region and credentials using the same mechanism as the AWS CLI (AWS environment variables, default profile, etc).  This provides a quick way to get started with Steampipe, but you will probably want to customize your experience using configuration options for [querying multiple regions](#multi-region-connections), [configuring credentials](#configuring-aws-credentials) from your [AWS Profiles](#aws-profile-credentials), [SSO](#aws-sso-credentials), [aws-vault](#aws-vault-credentials) etc.
 
@@ -338,13 +344,16 @@ connection "aws_account_123456789012" {
 
 ### AWS-Vault Credentials
 
-Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (You must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA):
+Steampipe can use profiles that use [aws-vault](https://github.com/99designs/aws-vault) via the `credential_process`.  aws-vault can even be used when using AssumeRole Credentials with MFA (you must authenticate/re-authenticate outside of Steampipe whenever your credentials expire if you are using MFA).
+
+When authenticating with temporary credentials, like using an access key pair with aws-vault, some IAM and STS APIs may be restricted. You can avoid creating a temporary session with the `--no-session` option (e.g., `aws-vault exec my_profile --no-session -- steampipe query "select name from aws_iam_user;"`). For more information, please see [aws-vault Temporary credentials limitations with STS, IAM
+](https://github.com/99designs/aws-vault/blob/master/USAGE.md#temporary-credentials-limitations-with-sts-iam).
 
 #### aws credential file:
 
 ```bash
 [vault_user_account]
-credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile IN AWS_VAULT...
+credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile in AWS_VAULT...
 
 [aws_account_123456789012]
 source_profile = vault_user_account

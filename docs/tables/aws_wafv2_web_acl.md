@@ -99,3 +99,20 @@ from
 where
   logging_configuration is null;
 ```
+
+### Get details for ALBs associated with each web ACL
+
+```sql
+select
+  lb.name as application_load_balancer_name,
+  w.name as web_acl_name,
+  w.id as web_acl_id,
+  w.scope as web_acl_scope,
+  lb.type as application_load_balancer_type
+from
+  aws_ec2_application_load_balancer as lb,
+  aws_wafv2_web_acl as w,
+  jsonb_array_elements_text(associated_resources) as arns
+where
+  lb.arn = arns;
+```

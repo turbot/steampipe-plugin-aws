@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -31,7 +30,7 @@ func tableAwsEksIdentityProviderConfig(_ context.Context) *plugin.Table {
 			ParentHydrate: listEksClusters,
 			Hydrate:       listEksIdentityProviderConfigs,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -148,21 +147,24 @@ func listEksIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 		return nil, err
 	}
 
+	// As per the API document input parameter MaxResults should support the value of 100.
+	// However with value of 100, API is throwing an error - InvalidParameterException: maxResults needs to be 1.
+	// Raised an issue with AWS SDK - https://github.com/aws/aws-sdk-go/issues/4457
 	param := &eks.ListIdentityProviderConfigsInput{
 		ClusterName: cluster.Name,
-		MaxResults:  aws.Int64(100),
+		//MaxResults:  aws.Int64(100),
 	}
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *param.MaxResults {
-			if *limit < 1 {
-				param.MaxResults = aws.Int64(1)
-			} else {
-				param.MaxResults = limit
-			}
-		}
-	}
+	// limit := d.QueryContext.Limit
+	// if d.QueryContext.Limit != nil {
+	// 	if *limit < *param.MaxResults {
+	// 		if *limit < 1 {
+	// 			param.MaxResults = aws.Int64(1)
+	// 		} else {
+	// 			param.MaxResults = limit
+	// 		}
+	// 	}
+	// }
 
 	err = svc.ListIdentityProviderConfigsPages(
 		param,

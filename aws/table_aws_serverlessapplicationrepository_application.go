@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plugin.Table {
@@ -25,7 +25,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 		List: &plugin.ListConfig{
 			Hydrate: listServerlessApplicationRepositoryApplications,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -135,6 +135,10 @@ func listServerlessApplicationRepositoryApplications(ctx context.Context, d *plu
 		logger.Error("listServerlessApplicationRepositoryApplications", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Set MaxItems to the maximum number allowed
 	input := serverlessapplicationrepository.ListApplicationsInput{
@@ -200,6 +204,10 @@ func getServerlessApplicationRepositoryApplication(ctx context.Context, d *plugi
 		logger.Error("getServerlessApplicationRepositoryApplication", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &serverlessapplicationrepository.GetApplicationInput{
@@ -230,6 +238,10 @@ func getServerlessApplicationRepositoryApplicationPolicy(ctx context.Context, d 
 	if err != nil {
 		logger.Error("getServerlessApplicationRepositoryApplicationPolicy", "error_ServerlessApplicationRepositoryService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

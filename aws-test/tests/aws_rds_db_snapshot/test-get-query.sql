@@ -6,7 +6,6 @@ SELECT
   db_instance_identifier,
   encrypted,
   engine,
-  engine_version,
   iam_database_authentication_enabled,
   license_model,
   master_user_name,

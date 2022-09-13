@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
@@ -28,7 +28,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ContainerInUseException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -113,11 +113,15 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 	logger := plugin.Logger(ctx)
 	logger.Trace("listMediaStoreContainers")
 
-	// Create service
+	// Create Session
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
-		logger.Error("listMediaStoreContainers", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("listMediaStoreContainers", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Set MaxResults to the maximum number allowed
@@ -169,11 +173,20 @@ func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
 
-	// Create service
+	// check if name is empty
+	if containerName == "" {
+		return nil, nil
+	}
+
+	// Create Session
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
-		logger.Error("getMediaStoreContainer", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("getMediaStoreContainer", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -203,8 +216,12 @@ func getMediaStoreContainerPolicy(ctx context.Context, d *plugin.QueryData, h *p
 	// Create Session
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
-		logger.Error("getMediaStoreContainerPolicy", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("getMediaStoreContainerPolicy", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -239,8 +256,12 @@ func listMediaStoreContainerTags(ctx context.Context, d *plugin.QueryData, h *pl
 	// Create Session
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
-		logger.Error("listMediaStoreContainerTags", "error_MediaStoreService", err)
+		plugin.Logger(ctx).Error("getMediaStoreContainerTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

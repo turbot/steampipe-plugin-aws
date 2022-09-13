@@ -1,5 +1,5 @@
 [
   {
-    "account_mfa_enabled": "{{ output.account_mfa_enabled.value }}"
+    "account_mfa_enabled": {{ output.account_mfa_enabled.value }}
   }
  ]

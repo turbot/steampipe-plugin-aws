@@ -6,10 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 //// TABLE DEFINITION
@@ -19,19 +19,19 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_insight",
 		Description: "AWS Securityhub Insight",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			Hydrate:           getSecurityHubInsight,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getSecurityHubInsight,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listSecurityHubInsights,
+			Hydrate: listSecurityHubInsights,
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -152,8 +152,11 @@ func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.GetInsights(params)
 	if err != nil {
-		logger.Error("getInsights", "ERROR", err)
-		return nil, err
+		// Handle error for accounts that are not subscribed to AWS Security Hub
+		if strings.Contains(err.Error(), "not subscribed") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getSecurityHubInsight", "get", err)
 	}
 	if len(data.Insights) > 0 {
 		return data.Insights[0], nil

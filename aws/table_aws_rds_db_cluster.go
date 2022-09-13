@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/go-kit/helpers"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -31,7 +32,7 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				{Name: "engine", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -380,7 +381,23 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		input,
 		func(page *rds.DescribeDBClustersOutput, isLast bool) bool {
 			for _, dbCluster := range page.DBClusters {
-				d.StreamListItem(ctx, dbCluster)
+				// The DescribeDBClusters API returns non-RDS DB clusters as well,
+				// but we only want RDS clusters here, even if the 'engine' qual
+				// isn't passed in.
+				// Current supported RDS engine values as of 2022/08/15 are
+				// "aurora", "aurora-mysql", "aurora-postgresql", "mysql", and "postgres".
+				// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/RDS.html#createDBCluster-property
+				if helpers.StringSliceContains(
+					[]string{
+						"aurora",
+						"aurora-mysql",
+						"aurora-postgresql",
+						"mysql",
+						"postgres",
+					},
+					*dbCluster.Engine) {
+					d.StreamListItem(ctx, dbCluster)
+				}
 
 				// Check if context has been cancelled or if the limit has been reached (if specified)
 				// if there is a limit, it will return the number of rows required to reach this limit

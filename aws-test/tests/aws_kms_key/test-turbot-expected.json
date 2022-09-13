@@ -6,6 +6,6 @@
     "tags": {
       "Name": "{{ resourceName }}"
     },
-    "title": "{{ output.resource_id.value }}"
+    "title": "{{ output.key_title.value }}"
   }
 ]

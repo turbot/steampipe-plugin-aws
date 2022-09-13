@@ -1,0 +1,11 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "metric_name": "{{ resourceName }}",
+    "name": "{{ resourceName }}",
+    "rule_group_id": "{{ output.rule_group_id.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

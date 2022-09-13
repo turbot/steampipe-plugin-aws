@@ -6,7 +6,6 @@
     "db_snapshot_identifier": "{{resourceName}}",
     "encrypted": false,
     "engine": "mysql",
-    "engine_version": "8.0.20",
     "iam_database_authentication_enabled": false,
     "license_model": "general-public-license",
     "master_user_name": "turbottest",
