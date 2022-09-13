@@ -21,13 +21,10 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 		Description: "AWS Redshift Serverless Namespace",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("namespace_name"),
-			// IgnoreConfig: &plugin.IgnoreConfig{
-			// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFound"}),
-			// },
 			Hydrate: getRedshiftServerlessNamespace,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listRedshiftServerlessNamespace,
+			Hydrate: listRedshiftServerlessNamespaces,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -44,6 +41,11 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 			{
 				Name:        "namespace_arn",
 				Description: "The Amazon Resource Name (ARN) that links to the namespace.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "The status of the namespace.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -72,11 +74,6 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "status",
-				Description: "The status of the namespace.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "iam_roles",
 				Description: "A list of IAM roles to associate with the namespace.",
 				Type:        proto.ColumnType_JSON,
@@ -88,7 +85,7 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: "The list of tags for the cluster.",
+				Description: "The list of tags for the namespace.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getNamespaceTags,
 				Transform:   transform.FromField("Tags"),
@@ -120,13 +117,13 @@ func tableAwsRedshiftServerlessNamespace(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRedshiftServerlessNamespace(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listRedshiftServerlessNamespaces(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := RedshiftServerlessClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespace", "service_creation_error", err)
+		logger.Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespaces", "service_creation_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -161,7 +158,7 @@ func listRedshiftServerlessNamespace(ctx context.Context, d *plugin.QueryData, _
 			if strings.Contains(err.Error(), "no such host") {
 				return nil, nil
 			}
-			plugin.Logger(ctx).Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespace", "api_error", err)
+			plugin.Logger(ctx).Error("aws_redshiftserverless_namespace.listRedshiftServerlessNamespaces", "api_error", err)
 			return nil, err
 		}
 
@@ -221,7 +218,7 @@ func getNamespaceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Create service
 	svc, err := RedshiftServerlessClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_namespace.getNamespaceResourcePolicy", "service_creation_error", err)
+		logger.Error("aws_redshiftserverless_namespace.getNamespaceTags", "service_creation_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -235,7 +232,7 @@ func getNamespaceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("aws_redshiftserverless_namespace.getRedshiftServerlessNamespace", "api_error", err)
+		logger.Error("aws_redshiftserverless_namespace.getNamespaceTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
