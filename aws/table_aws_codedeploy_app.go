@@ -17,7 +17,7 @@ import (
 func tableAwsCodeDeployApplication(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_codedeploy_app",
-		Description: "AWS Code Deploy Application",
+		Description: "AWS CodeDeploy Application",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("application_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -76,7 +76,7 @@ func tableAwsCodeDeployApplication(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags_src",
-				Description: resourceInterfaceDescription("tags"),
+				Description: "A list of tag key and value pairs associated with this application.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getCodeDeployApplicationTags,
 				Transform:   transform.FromField("Tags"),
@@ -115,7 +115,7 @@ func listCodeDeployApplications(ctx context.Context, d *plugin.QueryData, _ *plu
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_application.listCodeDeployApplications", "service_creation_error", err)
+		logger.Error("aws_codedeploy_app.listCodeDeployApplications", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -128,7 +128,7 @@ func listCodeDeployApplications(ctx context.Context, d *plugin.QueryData, _ *plu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_codedeploy_application.listCodeDeployApplications", "api_error", err)
+			plugin.Logger(ctx).Error("aws_codedeploy_app.listCodeDeployApplications", "api_error", err)
 			return nil, err
 		}
 
@@ -172,14 +172,14 @@ func getCodeDeployApplication(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_application.getCodeDeployApplication", "service_creation_error", err)
+		logger.Error("aws_codedeploy_app.getCodeDeployApplication", "service_creation_error", err)
 		return nil, err
 	}
 
 	// Get call
 	data, err := svc.GetApplication(ctx, params)
 	if err != nil {
-		logger.Error("aws_codedeploy_application.getCodeDeployApplication", "api_error", err)
+		logger.Error("aws_codedeploy_app.getCodeDeployApplication", "api_error", err)
 		return nil, err
 	}
 	return data.Application, nil
@@ -207,14 +207,14 @@ func getCodeDeployApplicationTags(ctx context.Context, d *plugin.QueryData, h *p
 	// Create session
 	svc, err := CodeDeployClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_codedeploy_application.getCodeDeployApplication", "service_creation_error", err)
+		logger.Error("aws_codedeploy_app.getCodeDeployApplicationTags", "service_creation_error", err)
 		return nil, err
 	}
 
 	// Get call
 	data, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("aws_codedeploy_application.getCodeDeployApplication", "api_error", err)
+		logger.Error("aws_codedeploy_app.getCodeDeployApplicationTags", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -231,7 +231,7 @@ func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		logger.Error("applicatioaws_codedeploy_application.getCodeDeployApplicationArn", "caching_error", err)
+		logger.Error("aws_codedeploy_app.getCodeDeployApplicationArn", "caching_error", err)
 		return ""
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
