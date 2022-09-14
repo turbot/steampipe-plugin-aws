@@ -17,7 +17,7 @@ from
   aws_codeartifact_repository;
 ```
 
-### Get endpoint of to each repository
+### List repositories with endpoints
 
 ```sql
 select
@@ -32,7 +32,7 @@ where
   repository_endpoint is not null;
 ```
 
-### List of repository policy statements that grant external access
+### List repository policy statements that grant external access
 
 ```sql
 select
@@ -54,7 +54,7 @@ where
   );
 ```
 
-### Get upstream package details associated to each repository
+### Get upstream package details associated with each repository
 
 ```sql
 select
