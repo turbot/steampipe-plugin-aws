@@ -19,15 +19,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -76,9 +79,12 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
 	serviceId := "codeartifact"
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, serviceId)
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return codeartifact.NewFromConfig(*cfg), nil
 }
@@ -91,6 +97,17 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 
 	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.DaxServiceID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return dax.NewFromConfig(*cfg), nil
 }
 
 func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
@@ -139,6 +156,17 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {

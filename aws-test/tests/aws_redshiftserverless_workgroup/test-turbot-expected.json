@@ -1,0 +1,12 @@
+[
+  {
+    "akas": [
+      "{{ output.resource_aka.value }}"
+    ],
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "title": "{{ resourceName }}",
+    "workgroup_id": "{{ output.resource_id.value }}"
+  }
+]
