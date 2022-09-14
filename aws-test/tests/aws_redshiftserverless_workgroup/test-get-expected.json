@@ -1,0 +1,12 @@
+[
+  {
+    "region": "{{ output.region_name.value }}",
+    "status": "AVAILABLE",
+    "tags": {
+      "name": "{{ resourceName }}"
+    },
+    "workgroup_arn": "{{ output.resource_aka.value }}",
+    "workgroup_id": "{{ output.resource_id.value }}",
+    "workgroup_name": "{{ resourceName }}"
+  }
+]
