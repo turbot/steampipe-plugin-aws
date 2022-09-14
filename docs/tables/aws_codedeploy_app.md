@@ -30,7 +30,7 @@ group by
   compute_platform;
 ```
 
-### List applications linked ot github
+### List applications linked to GitHub
 
 ```sql
 select
