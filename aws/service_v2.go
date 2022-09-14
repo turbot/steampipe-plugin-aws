@@ -78,9 +78,13 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	serviceId := "codeartifact"
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return codeartifact.NewFromConfig(*cfg), nil
 }
