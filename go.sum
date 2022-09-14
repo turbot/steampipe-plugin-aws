@@ -95,8 +95,12 @@ github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8 h1:OQZODVKX58BBVtiGHdQ
 github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8/go.mod h1:YXBCG4l+2VBAd1a634Pz/iJvlTwKaTkdkj/BmtdS4X4=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10 h1:D6U34TKBxZ2rtP9QO0gqMmy0yU2zfXzkgmFcwr64Fv0=
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10/go.mod h1:9XhGxXdcX9/pZwXc3BzvVQtSBVJCwL2IH2AtrfsUGBY=
+github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6 h1:4AB11CB9ev6SoFHOVmM6/DBLQiN+Ce+n8ThM+j5adEI=
+github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6/go.mod h1:+QotzCrktvb0Me4GKM1tXzM5gH7GvTwYXt8YBi9jenI=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2 h1:nJaGBmIqOTCjTchh2O8BAAOW8bbKqlJNtYw+ZA3yyq4=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2/go.mod h1:ZMw6d2oE+YYAAoSmoLO1BhW7jIUcKvtLyiLlwHWpG1o=
+github.com/aws/aws-sdk-go-v2/service/dax v1.11.15 h1:F9hC84YW7BGYKJXOQlZ8LGjo7HXd2KSqQi6ikW59grw=
+github.com/aws/aws-sdk-go-v2/service/dax v1.11.15/go.mod h1:mC1sbqums94At6mRexn7hbYIgmISAMiYgHfXvD+ma5A=
 github.com/aws/aws-sdk-go-v2/service/docdb v1.19.8 h1:UtrjkfBjPHOgojQnjIWnTj7ZDfB25u99y2tsO48XcQI=
 github.com/aws/aws-sdk-go-v2/service/docdb v1.19.8/go.mod h1:yWgTQNauuNA1dYkrgXW0VUkgn7xzvTCGI/hGsF8BGQc=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9 h1:QTPDno4J5TyfpPi3dqCZpD+y7wbHtHhUQwnNGUHUGvg=
@@ -324,8 +328,8 @@ github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 h1:BZHcxBETFHIdVyhyEfOvn/RdU/QGdLI4y34qQGjGWO0=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0/go.mod h1:hgWBS7lorOAVIJEQMi4ZsPv9hVvWI6+ch50m39Pf2Ks=
-github.com/hashicorp/go-hclog v1.2.1 h1:YQsLlGDJgwhXFpucSPyVbCBviQtjlHv3jLTlp8YmtEw=
-github.com/hashicorp/go-hclog v1.2.1/go.mod h1:W4Qnvbt70Wk/zYJryRzDRU/4r0kIg0PVHBcfoyhpF5M=
+github.com/hashicorp/go-hclog v1.2.2 h1:ihRI7YFwcZdiSD7SIenIhHfQH3OuDvWerAUBZbeQS3M=
+github.com/hashicorp/go-hclog v1.2.2/go.mod h1:W4Qnvbt70Wk/zYJryRzDRU/4r0kIg0PVHBcfoyhpF5M=
 github.com/hashicorp/go-plugin v1.4.4 h1:NVdrSdFRt3SkZtNckJ6tog7gbpRrcbOjQi/rgF7JYWQ=
 github.com/hashicorp/go-plugin v1.4.4/go.mod h1:viDMjcLJuDui6pXb8U4HVfb8AamCWhHGUjr2IrTF67s=
 github.com/hashicorp/go-version v1.6.0 h1:feTTfFNnjP967rlCxM/I9g701jU+RN74YKx2mOkIeek=
@@ -497,8 +501,8 @@ github.com/tkrajina/go-reflector v0.5.4 h1:dS9aJEa/eYNQU/fwsb5CSiATOxcNyA/gG/A7a
 github.com/tkrajina/go-reflector v0.5.4/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
 github.com/turbot/go-kit v0.4.0 h1:EdD7Bf2EGAjvHRGQxRiWpDawzZSk3T+eghqbj74qiSc=
 github.com/turbot/go-kit v0.4.0/go.mod h1:SBdPRngbEfYubiR81iAVtO43oPkg1+ASr+XxvgbH7/k=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.5 h1:qbIgJXXhhLyMeKOyjG4HnERn+ZHg9KMyEETBLgcbLi0=
-github.com/turbot/steampipe-plugin-sdk/v4 v4.1.5/go.mod h1:W6QjUrkeWyDgfnAt1qzckI7YEEY4x8WOevxKsVSWLM4=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.7 h1:8DPSro6w7FKMig8d/jHF0rChN4tzEwnEKEZZLNp5DGA=
+github.com/turbot/steampipe-plugin-sdk/v4 v4.1.7/go.mod h1:t1uwq6KylUr2CzIinxeTafoktJvX8yWmhaoWCJJc4YI=
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
