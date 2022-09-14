@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -73,6 +74,14 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
 }
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
