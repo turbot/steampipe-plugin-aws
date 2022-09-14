@@ -226,7 +226,7 @@ func getCodeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *pl
 
 func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) string {
 	name := *h.Item.(*types.ApplicationInfo).ApplicationName
-
+	region := d.KeyColumnQualString(matrixKeyRegion)
 	logger := plugin.Logger(ctx)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -237,7 +237,7 @@ func codeDeployApplicationArn(ctx context.Context, d *plugin.QueryData, h *plugi
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	//arn:aws:codedeploy:region:account-id:application:application-name
-	tableArn := "arn:" + commonColumnData.Partition + ":codedeploy:" + commonColumnData.Region + ":" + commonColumnData.AccountId + ":application:" + name
+	tableArn := "arn:" + commonColumnData.Partition + ":codedeploy:" + region + ":" + commonColumnData.AccountId + ":application:" + name
 	return tableArn
 }
 
