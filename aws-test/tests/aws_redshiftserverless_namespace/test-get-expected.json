@@ -1,0 +1,11 @@
+[
+  {
+    "namespace_arn": "{{ output.resource_aka.value }}",
+    "namespace_id": "{{ output.resource_id.value }}",
+    "namespace_name": "{{ resourceName }}",
+    "region": "{{ output.region_name.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

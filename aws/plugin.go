@@ -294,6 +294,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_redshift_parameter_group":                                 tableAwsRedshiftParameterGroup(ctx),
 			"aws_redshift_snapshot":                                        tableAwsRedshiftSnapshot(ctx),
 			"aws_redshift_subnet_group":                                    tableAwsRedshiftSubnetGroup(ctx),
+			"aws_redshiftserverless_namespace":                             tableAwsRedshiftServerlessNamespace(ctx),
 			"aws_region":                                                   tableAwsRegion(ctx),
 			"aws_route53_domain":                                           tableAwsRoute53Domain(ctx),
 			"aws_route53_health_check":                                     tableAwsRoute53HealthCheck(ctx),
