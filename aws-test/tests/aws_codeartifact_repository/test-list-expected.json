@@ -1,0 +1,12 @@
+[
+  {
+    "administrator_account": "{{ output.administrator_account.value }}",
+    "arn": "{{ output.resource_aka.value }}",
+    "description": "{{ resourceName }}",
+    "domain_owner": "{{ output.domain_owner.value }}",
+    "region": "{{ output.region_name.value }}",
+    "tags": {
+      "name": "{{ resourceName }}"
+    }
+  }
+]

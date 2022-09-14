@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
@@ -26,6 +27,7 @@ import (
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -82,6 +84,17 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 		return nil, err
 	}
 	return codedeploy.NewFromConfig(*cfg), nil
+}
+
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
 }
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
@@ -151,6 +164,17 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {

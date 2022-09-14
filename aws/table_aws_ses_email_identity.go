@@ -41,7 +41,7 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "verification_token",
-				Description: "The verification token for a domain identity.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release. The verification token for a domain identity.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getSESIdentityVerificationAttributes,
 			},
