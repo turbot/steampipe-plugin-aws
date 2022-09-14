@@ -1,8 +1,6 @@
 # Table: aws_redshiftserverless_workgroup
 
-**Amazon Redshift Serverless** makes it convenient for you to run and scale analytics without having to provision and manage data warehouses. With Amazon Redshift Serverless, data analysts, developers, and data scientists can now use Amazon Redshift to get insights from data in seconds by loading data into and querying records from the data warehouse.
-
-**Workgroup** is a collection of compute resources. The compute-related workgroup groups together compute resources like RPUs, VPC subnet groups, and security groups. Properties for the workgroup include network and security settings. Other resources that are grouped under workgroups include access and usage limits.
+Amazon Redshift Serverless workgroups are collections of compute resources. The compute-related workgroup groups together compute resources like RPUs, VPC subnet groups, and security groups. Properties for the workgroup include network and security settings. Other resources that are grouped under workgroups include access and usage limits.
 
 ## Examples
 
@@ -21,7 +19,7 @@ from
   aws_redshiftserverless_workgroup;
 ```
 
-### List all unavailable workgroups
+### List unavailable workgroups
 
 ```sql
 select
@@ -38,7 +36,7 @@ where
   status <> 'AVAILABLE';
 ```
 
-### List all publicly accessible workgroups
+### List publicly accessible workgroups
 
 ```sql
 select
@@ -55,7 +53,7 @@ where
   publicly_accessible;
 ```
 
-### Get total base capacity utilized by all available workgroups
+### Get total base capacity utilized by available workgroups
 
 ```sql
 select
@@ -66,7 +64,7 @@ where
   status = 'AVAILABLE';
 ```
 
-### List endpoint details of all workgroups
+### Get endpoint details of each workgroups
 
 ```sql
 select
@@ -78,7 +76,7 @@ from
   aws_redshiftserverless_workgroup;
 ```
 
-### List all config parameters associated with each workgroups
+### List config parameters associated with each workgroup
 
 ```sql
 select
