@@ -48,7 +48,7 @@ where
   status != 'Active';
 ```
 
-### List of domain policy statements that grant external access
+### List domain policy statements that grant external access
 
 ```sql
 select
@@ -70,7 +70,7 @@ where
   );
 ```
 
-### Get S3 bucket details associated to the domain
+### Get S3 bucket details associated with each domain
 
 ```sql
 select
@@ -83,7 +83,7 @@ from
   join aws_s3_bucket b on d.s3_bucket_arn = b.arn;
 ```
 
-### Get KMS key details associated to the domain
+### Get KMS key details associated with each the domain
 
 ```sql
 select
@@ -109,4 +109,4 @@ from
   join aws_kms_key k on d.encryption_key = k.arn
 where 
   key_manager = 'CUSTOMER';
-  ```
+```
