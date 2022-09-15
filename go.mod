@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/acm v1.14.8
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.12.8
+	github.com/aws/aws-sdk-go-v2/service/appconfig v1.13.7
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16

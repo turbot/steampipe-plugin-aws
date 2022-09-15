@@ -152,6 +152,7 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv
 	return apigatewayv2.New(sess), nil
 }
 
+// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {

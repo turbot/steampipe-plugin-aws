@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
@@ -68,6 +69,14 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 		return nil, err
 	}
 	return apigatewayv2.NewFromConfig(*cfg), nil
+}
+
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return appconfig.NewFromConfig(*cfg), nil
 }
 
 func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
