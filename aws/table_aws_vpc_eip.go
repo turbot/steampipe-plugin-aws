@@ -43,6 +43,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN due to no allocation ID
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the VPC EIP.",
 				Type:        proto.ColumnType_STRING,
@@ -61,7 +62,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "domain",
-				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic(standard) or instances in a VPC (vpc).",
+				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic (standard) or instances in a VPC (vpc).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -124,13 +125,14 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Transform:   transform.From(getVpcEipTurbotTags),
 			},
 			{
+				// Fallback to public IP for EIPs in EC2-Classic
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				// Fall back to public IP for EIPs in EC2-Classic
-				Transform: transform.FromField("AllocationId", "PublicIp"),
+				Transform:   transform.FromField("AllocationId", "PublicIp"),
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN, so no valid AKAs either
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -219,13 +221,9 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 }
 
 func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	logger.Warn("aws_vpc_eip.getVpcEipARN", "Region", region)
 
 	eip := h.Item.(types.Address)
-	logger.Warn("aws_vpc_eip.getVpcEipARN", "EIP", &eip)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -234,17 +232,14 @@ func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
-	logger.Warn("aws_vpc_eip.getVpcEipARN", "Common column data", commonColumnData)
 
 	// EIPs in EC2-Classic do not have an allocation ID, therefore no valid ARN
-	if *eip.AllocationId == "" {
-		logger.Warn("aws_vpc_eip.getVpcEipARN", "Missing allocation ID")
+	if eip.AllocationId == nil {
 		return nil, nil
 	}
 
 	// Get resource ARN
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":eip/" + *eip.AllocationId
-	logger.Warn("aws_vpc_eip.getVpcEipARN", "arn", arn)
 
 	return arn, nil
 }
