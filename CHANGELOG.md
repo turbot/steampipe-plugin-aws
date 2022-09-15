@@ -1,3 +1,33 @@
+## v0.77.0 [2022-09-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_appconfig_application](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appconfig_application) ([#1253](https://github.com/turbot/steampipe-plugin-aws/pull/1253))
+  - [aws_codeartifact_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codeartifact_domain) ([#1184](https://github.com/turbot/steampipe-plugin-aws/pull/1184))
+  - [aws_codeartifact_repository](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codeartifact_repository) ([#1268](https://github.com/turbot/steampipe-plugin-aws/pull/1268))
+  - [aws_codedeploy_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codedeploy_app) ([#1295](https://github.com/turbot/steampipe-plugin-aws/pull/1295))
+  - [aws_redshiftserverless_namespace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshiftserverless_namespace) ([#1305](https://github.com/turbot/steampipe-plugin-aws/pull/1305))
+  - [aws_redshiftserverless_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshiftserverless_workgroup) ([#1304](https://github.com/turbot/steampipe-plugin-aws/pull/1304))
+
+_Enhancements_
+
+- Added `access_key_last_used_date`, `access_key_last_used_region` columns and `access_key_last_used_service` to `aws_iam_access_key` table. ([#1281](https://github.com/turbot/steampipe-plugin-aws/pull/1281))
+- Added `vpc_endpoint_connections` column to `aws_vpc_endpoint_service` table. ([#1104](https://github.com/turbot/steampipe-plugin-aws/pull/1104))
+- Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2):
+  - `aws_vpc_route_table`
+
+_Bug fixes_
+
+- `aws_dynamodb_table_export` table queries no longer fail when passing in `arn` get key column.
+- `aws_ec2_transit_gateway`, `aws_ec2_transit_gateway_route`, `aws_ec2_transit_gateway_route_table`, and `aws_ec2_transit_gateway_vpc_attachment` tables should not error in me-central-1 region. ([#1282](https://github.com/turbot/steampipe-plugin-aws/pull/1282))
+- `aws_vpc_eip` table now handles EIPs in EC2-Classic properly. ([#1308](https://github.com/turbot/steampipe-plugin-aws/pull/1308))
+- `aws_wafregional_rule` table now properly checks for supported regions. ([#1306](https://github.com/turbot/steampipe-plugin-aws/pull/1306))
+
+_Deprecated_
+
+- Deprecated `verification_token` column in `aws_ses_email_identity` table since there is no verification token for email identities. This column will be removed in a future version.
+
 ## v0.76.0 [2022-09-09]
 
 _What's new?_
