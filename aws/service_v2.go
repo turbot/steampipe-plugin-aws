@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
@@ -401,4 +402,15 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	}
 
 	return retryTime, nil
+}
+
+func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
+	cfg, err := getClient(ctx, d, "Account")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return account.NewFromConfig(*cfg), nil
 }
