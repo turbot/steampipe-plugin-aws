@@ -19,7 +19,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 		Name:        "aws_account_contact",
 		Description: "AWS Account Contact",
 		List: &plugin.ListConfig{
-			Hydrate: getAwsAccountContact,
+			Hydrate: listAwsAccountContacts,
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:       "contact_account_id",
@@ -63,7 +63,6 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				Name:        "contact_account_id",
 				Description: "Account ID to get contact details for.",
 				Type:        proto.ColumnType_STRING,
-				// Transform:   transform.FromQual("contact_account_id"),
 			},
 			{
 				Name:        "city",
@@ -118,13 +117,13 @@ type accountContactData = struct {
 
 //// LIST FUNCTION
 
-func getAwsAccountContact(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
 	svc, err := AccountClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_account_contact.getAwsAccountContact", "service_creation_error", err)
+		logger.Error("aws_account_contact.listAwsAccountContacts", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -153,7 +152,7 @@ func getAwsAccountContact(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetContactInformation(ctx, input)
 	if err != nil {
-		logger.Error("aws_account_contact.getAwsAccountContact", "api_error", err)
+		logger.Error("aws_account_contact.listAwsAccountContacts", "api_error", err)
 		return nil, err
 	}
 
