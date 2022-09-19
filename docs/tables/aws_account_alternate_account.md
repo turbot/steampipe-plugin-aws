@@ -27,7 +27,7 @@ from
 ```
 
 
-### Get billing alternated contact details
+### Get billing alternate contact details
 
 ```sql
 select

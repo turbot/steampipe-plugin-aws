@@ -43,7 +43,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "contact_account_id",
-				Description: "Account ID to get contact details for.",
+				Description: "Account ID to get alternate contact details for.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
