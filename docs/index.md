@@ -229,12 +229,12 @@ You may specify a named profile from an AWS credential file with the `profile` a
 #### aws credential file:
 
 ```ini
-[profile_y]
+[account_a]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
 region = us-west-2
 
-[profile_z]
+[account_b]
 aws_access_key_id = AKIA4YFAKEKEYJ7HS98F
 aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 ```
@@ -242,15 +242,15 @@ aws_secret_access_key = Apf938vDKd8ThisIsNotRealzTiEUwXj9nKLWP9mg4
 #### aws.spc:
 
 ```hcl
-connection "aws_account_y" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "profile_y"
+  profile = "account_a"
   regions = ["us-east-1", "us-west-2"]
 }
 
-connection "aws_account_z" {
+connection "aws_account_b" {
   plugin  = "aws"
-  profile = "profile_z"
+  profile = "account_b"
   regions = ["ap-southeast-1", "ap-southeast-2"]
 }
 ```
@@ -266,7 +266,7 @@ Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/
 #### aws credential file:
 
 ```ini
-[aws_000000000000]
+[account_a_with_sso]
 sso_start_url = https://d-9a672b0000.awsapps.com/start
 sso_region = us-east-2
 sso_account_id = 000000000000
@@ -277,9 +277,9 @@ region = us-east-1
 #### aws.spc:
 
 ```hcl
-connection "aws_000000000000" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "aws_000000000000"
+  profile = "account_a_with_sso"
   regions = ["us-west-2", "us-east-1",  "us-west-1", "us-east-2"]
 }
 ```
@@ -291,23 +291,34 @@ If your aws credential file contains profiles that assume a role via the `source
 #### aws credential file:
 
 ```ini
-[cli-user]
+[cli_user]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
-region = us-west-2
+# this Principal must have permissions to sts:AssumeRole for 'arn:aws:iam::*:role/spc_role'
 
-[role-without-mfa]
-role_arn = arn:aws:iam::123456789012:role/test_assume
-source_profile = cli-user
+[account_a_role_without_mfa]
+role_arn = arn:aws:iam::111111111111:role/spc_role
+source_profile = cli_user
 external_id = xxxxx
+
+[account_b_role_without_mfa]
+role_arn = arn:aws:iam::222222222222:role/spc_role
+source_profile = cli_user
+external_id = yyyyy
 ```
 
 #### aws.spc:
 
 ```hcl
-connection "role_aws" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "role-without-mfa"
+  profile = "account_a_role_without_mfa"
+  regions = ["us-east-1", "us-east-2"]
+}
+
+connection "aws_account_b" {
+  plugin  = "aws"
+  profile = "account_b_role_without_mfa"
   regions = ["us-east-1", "us-east-2"]
 }
 ```
@@ -323,22 +334,31 @@ Note that Steampipe cannot prompt you for your token currently, so you must auth
 #### aws credential file:
 
 ```bash
-[user_account]
+[cli_user]
 aws_access_key_id = AKIA4YFAKEKEYXTDS252
 aws_secret_access_key = SH42YMW5p3EThisIsNotRealzTiEUwXN8BOIOF5J8m
-mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
+mfa_serial = arn:aws:iam::999999999999:mfa/my_role_mfa
 
-[aws_account_123456789012]
-credential_process = sh -c 'mfa.sh arn:aws:iam::123456789012:role/my_role arn:aws:iam::111111111111:mfa/my_role_mfa user_account 2> $(tty)'
+[account_a_role_with_mfa]
+credential_process = sh -c 'mfa.sh arn:aws:iam::111111111111:role/my_role arn:aws:iam::999999999999:mfa/my_role_mfa cli_user 2> $(tty)'
+
+[account_b_role_with_mfa]
+credential_process = sh -c 'mfa.sh arn:aws:iam::222222222222:role/my_role arn:aws:iam::999999999999:mfa/my_role_mfa cli_user 2> $(tty)'
 ```
 
 #### aws.spc:
 
 ```hcl
-connection "aws_account_123456789012" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "aws_account_123456789012"
-  regions = ["*"]
+  profile = "account_a_role_with_mfa"
+  regions = ["us-east-1", "us-east-2"]
+}
+
+connection "aws_account_b" {
+  plugin  = "aws"
+  profile = "account_b_role_with_mfa"
+  regions = ["us-east-1", "us-east-2"]
 }
 ```
 
@@ -355,7 +375,7 @@ When authenticating with temporary credentials, like using an access key pair wi
 [vault_user_account]
 credential_process = /usr/local/bin/aws-vault exec -j vault_user_profile # vault_user_profile is the name of the profile in AWS_VAULT...
 
-[aws_account_123456789012]
+[account_a]
 source_profile = vault_user_account
 role_arn = arn:aws:iam::123456789012:role/my_role
 mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
@@ -364,9 +384,9 @@ mfa_serial = arn:aws:iam::111111111111:mfa/my_role_mfa
 #### aws.spc:
 
 ```hcl
-connection "aws_account_123456789012" {
+connection "aws_account_a" {
   plugin  = "aws"
-  profile = "aws_account_123456789012"
+  profile = "account_a"
   regions = ["*"]
 }
 ```
@@ -376,7 +396,7 @@ connection "aws_account_123456789012" {
 The AWS plugin allows you set static credentials with the `access_key`, `secret_key`, and `session_token` arguments in your connection.
 
 ```hcl
-connection "aws_account_x" {
+connection "aws_account_a" {
   plugin     = "aws"
   secret_key = "gMCYsoGqjfThisISNotARealKeyVVhh"
   access_key = "ASIA3ODZSWFYSN2PFHPJ"
