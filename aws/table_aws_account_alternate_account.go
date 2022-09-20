@@ -20,6 +20,9 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 		Description: "AWS Account Alternate Contact",
 		List: &plugin.ListConfig{
 			Hydrate: listAwsAccountAlternateContacts,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:       "contact_account_id",
