@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,8 +19,11 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_msk_cluster",
 		Description: "AWS Managed Streaming for Apache Kafka",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("cluster_arn"),
-			Hydrate:    getKafkaCluster,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
@@ -29,9 +31,10 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "cluster_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) that uniquely identifies the Cluster.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ClusterArn"),
 			},
 			{
 				Name:        "cluster_name",
@@ -173,42 +176,43 @@ func listKafkaClusters(clusterType string) func(ctx context.Context, d *plugin.Q
 
 //// HYDRATE FUNCTIONS
 
-func getKafkaCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	clusterArn := d.KeyColumnQuals["cluster_arn"].GetStringValue()
-	if clusterArn == "" {
-		return nil, nil
-	}
-
-	// Create service
-	svc, err := KafkaClient(ctx, d)
-	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
-		return nil, err
-	}
-
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	params := &kafka.DescribeClusterV2Input{
-		ClusterArn: aws.String(clusterArn),
-	}
-
-	op, err := svc.DescribeClusterV2(ctx, params)
-	if err != nil {
-		if strings.Contains(err.Error(), "NotFoundException") || strings.Contains(err.Error(), "api error") {
+func getKafkaCluster(clusterType string) func(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	return func(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+		logger := plugin.Logger(ctx)
+		clusterArn := d.KeyColumnQuals["arn"].GetStringValue()
+		if clusterArn == "" {
 			return nil, nil
 		}
-		logger.Error("aws_msk_cluster.getKafkaCluster", "DescribeClusterV2", err)
-		return nil, err
-	}
 
-	if op != nil {
-		return *op.ClusterInfo, nil
+		// Create service
+		svc, err := KafkaClient(ctx, d)
+		if err != nil {
+			logger.Error("aws_msk_cluster.getKafkaCluster", "service_creation_error", err)
+			return nil, err
+		}
+
+		// Unsupported region, return no data
+		if svc == nil {
+			return nil, nil
+		}
+
+		params := &kafka.DescribeClusterV2Input{
+			ClusterArn: aws.String(clusterArn),
+		}
+
+		op, err := svc.DescribeClusterV2(ctx, params)
+		if err != nil {
+			logger.Error("aws_msk_cluster.getKafkaCluster", "api_error", err)
+			return nil, err
+		}
+
+		// It'd be better to check if the cluster type matches before the API call,
+		// but we can't tell what type of cluster it is based off of the ARN.
+		if op != nil && string(op.ClusterInfo.ClusterType) == clusterType {
+			return *op.ClusterInfo, nil
+		}
+		return nil, nil
 	}
-	return nil, nil
 }
 
 func getKafkaClusterOperation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -265,8 +269,8 @@ func getKafkaClusterConfiguration(ctx context.Context, d *plugin.QueryData, h *p
 		logger.Error("aws_msk_cluster.getKafkaClusterConfiguration", "service_creation_error", err)
 		return nil, err
 	}
+	// Unsupported region, return no data
 	if svc == nil {
-		// Unsupported region, return no data
 		return nil, nil
 	}
 

@@ -8,7 +8,7 @@ MSK Serverless is a cluster type for Amazon MSK that makes it possible for you t
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   cluster_type,
@@ -20,11 +20,11 @@ from
   aws_msk_serverless_cluster;
 ```
 
-### List all inactive clusters
+### List inactive clusters
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -38,7 +38,7 @@ where
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -50,11 +50,11 @@ order by
   creation_time;
 ```
 
-### Get VPC details of all the clusters
+### Get VPC details of each cluster
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   vpc ->> 'SubnetIds' as subnet_ids,
@@ -64,11 +64,11 @@ from
   jsonb_array_elements(serverless -> 'VpcConfigs') as vpc
 ```
 
-### List clusters where IAM authentication is disabled
+### List clusters with IAM authentication disabled
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   serverless -> 'ClientAuthentication' as client_authentication

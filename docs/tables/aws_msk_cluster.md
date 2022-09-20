@@ -8,7 +8,7 @@ Amazon Managed Streaming for Apache Kafka (Amazon MSK) is a fully managed servic
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   cluster_type,
@@ -20,11 +20,11 @@ from
   aws_msk_cluster;
 ```
 
-### List all inactive clusters
+### List inactive clusters
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -34,11 +34,11 @@ where
   state <> 'ACTIVE';
 ```
 
-### List clusters having public access
+### List clusters that allow public access
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -52,7 +52,7 @@ where
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -66,7 +66,7 @@ where
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time
@@ -80,7 +80,7 @@ where
 
 ```sql
 select
-  cluster_arn,
+  arn,
   cluster_name,
   state,
   creation_time

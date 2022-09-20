@@ -17,8 +17,11 @@ func tableAwsMSKServerlessCluster(_ context.Context) *plugin.Table {
 		Name:        "aws_msk_serverless_cluster",
 		Description: "AWS Serverless Managed Streaming for Apache Kafka",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("cluster_arn"),
-			Hydrate:    getKafkaCluster,
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getKafkaCluster(string(types.ClusterTypeServerless)),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKafkaClusters(string(types.ClusterTypeServerless)),
@@ -26,9 +29,10 @@ func tableAwsMSKServerlessCluster(_ context.Context) *plugin.Table {
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "cluster_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) that uniquely identifies the Cluster.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ClusterArn"),
 			},
 			{
 				Name:        "cluster_name",
