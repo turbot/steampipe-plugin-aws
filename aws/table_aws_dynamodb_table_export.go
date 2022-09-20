@@ -18,7 +18,7 @@ func tableAwsDynamoDBTableExport(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ExportNotFoundException"}),
 			},
 			Hydrate: getTableExport,
 		},
@@ -204,8 +204,12 @@ func listTableExports(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	export := h.Item.(*dynamodb.ExportSummary)
+	var arn string
+	if h.Item != nil {
+		arn = *h.Item.(*dynamodb.ExportSummary).ExportArn
+	} else {
+		arn = d.KeyColumnQuals["arn"].GetStringValue()
+	}
 
 	// Create Session
 	svc, err := DynamoDbService(ctx, d)
@@ -214,7 +218,7 @@ func getTableExport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	input := &dynamodb.DescribeExportInput{
-		ExportArn: export.ExportArn,
+		ExportArn: &arn,
 	}
 
 	op, err := svc.DescribeExport(input)

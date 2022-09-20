@@ -183,6 +183,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "code",
+				Description: "The deployment package of the function or version.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+			},
+			{
 				Name:        "environment_variables",
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
@@ -361,6 +367,19 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
 
 	functionName := functionName(h.Item)
+
+	commonColumnData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "get_common_columns_error", err)
+		return nil, err
+	}
+
+	awsCommonData := commonColumnData.(*awsCommonColumnData)
+	// GovCloud does not support function URLs
+	// https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-lambda.html#govcloud-lambda-diffs
+	if awsCommonData.Partition == "aws-us-gov" {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := LambdaService(ctx, d)

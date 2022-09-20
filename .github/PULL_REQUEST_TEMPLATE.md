@@ -1,7 +1,7 @@
 # Integration test logs
 <details>
   <summary>Logs</summary>
-  
+
 ```
 Add passing integration test logs here
 ```
@@ -10,7 +10,7 @@ Add passing integration test logs here
 # Example query results
 <details>
   <summary>Results</summary>
-  
+
 ```
 Add example SQL query results here (please include the input queries as well)
 ```
