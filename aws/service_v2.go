@@ -28,6 +28,7 @@ import (
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
@@ -173,6 +174,17 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kafka.NewFromConfig(*cfg), nil
 }
 
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
