@@ -1,10 +1,10 @@
-select 
+select
   cluster_name,
-  cluster_arn,
+  arn,
   akas,
   serverless ->> 'VpcConfigs' as vpc_config,
   serverless ->> 'ClientAuthentication' as client_authentication
-from 
+from
   aws_msk_serverless_cluster
-where 
+where
   cluster_name = '{{ resourceName }}-dummy';

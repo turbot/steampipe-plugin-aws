@@ -1,9 +1,9 @@
-select 
+select
   cluster_name,
-  cluster_arn,
+  arn,
   akas,
   tags
-from 
+from
   aws_msk_serverless_cluster
-where 
-  cluster_arn = '{{ output.resource_aka.value }}';
+where
+  arn = '{{ output.resource_aka.value }}';
