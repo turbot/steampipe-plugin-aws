@@ -21,7 +21,7 @@ select
   phone_number,
   title
 from
-  aws_account_alternate_account;
+  aws_account_alternate_contact;
 ```
 
 ### Get billing alternate contact details
@@ -35,7 +35,7 @@ select
   phone_number,
   title
 from
-  aws_account_alternate_account
+  aws_account_alternate_contact
 where
   alternate_contact_type = 'BILLING';
 ```
@@ -51,7 +51,7 @@ select
   phone_number,
   title
 from
-  aws_account_alternate_account
+  aws_account_alternate_contact
 where
   contact_account_id = '123456789012';
 ```
