@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	go_kit_packs "github.com/turbot/go-kit/types"
+	go_kit_types "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 
 	"github.com/aws/aws-sdk-go-v2/service/account"
@@ -156,7 +156,7 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	*/
 	input := &account.GetContactInformationInput{}
 	if contactAccountID != commonColumnData.AccountId {
-		input.AccountId = go_kit_packs.String(contactAccountID)
+		input.AccountId = go_kit_types.String(contactAccountID)
 	}
 
 	op, err := svc.GetContactInformation(ctx, input)
