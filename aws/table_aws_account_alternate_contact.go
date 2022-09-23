@@ -25,12 +25,12 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:       "contact_account_id",
+					Name:       "linked_account_id",
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
 				{
-					Name:    "alternate_contact_type",
+					Name:    "contact_type",
 					Require: plugin.Optional,
 				},
 			},
@@ -43,15 +43,10 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("AlternateContact.Name"),
 			},
 			{
-				Name:        "alternate_contact_type",
+				Name:        "contact_type",
 				Description: "The type of alternate contact.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AlternateContact.AlternateContactType"),
-			},
-			{
-				Name:        "contact_account_id",
-				Description: "Account ID to get alternate contact details for.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "email_address",
@@ -66,10 +61,23 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("AlternateContact.PhoneNumber"),
 			},
 			{
-				Name:        "title",
+				Name:        "contact_title",
 				Description: "The title associated with this alternate contact.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("AlternateContact.Title"),
+			},
+			{
+				Name:        "linked_account_id",
+				Description: "Account ID to get alternate contact details for.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LinkedAccountID"),
+			},
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AlternateContact.Name"),
 			},
 		}),
 	}
@@ -77,7 +85,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 
 type accountAlternateContactData = struct {
 	AlternateContact types.AlternateContact
-	ContactAccountId string
+	LinkedAccountID  string
 }
 
 //// LIST FUNCTION
@@ -103,16 +111,16 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	var contactAccountID string
-	if d.KeyColumnQuals["contact_account_id"] != nil {
-		contactAccountID = d.KeyColumnQuals["contact_account_id"].GetStringValue()
+	var linkedAccountID string
+	if d.KeyColumnQuals["linked_account_id"] != nil {
+		linkedAccountID = d.KeyColumnQuals["linked_account_id"].GetStringValue()
 	} else {
-		contactAccountID = commonColumnData.AccountId
+		linkedAccountID = commonColumnData.AccountId
 	}
 
 	contactTypes := []string{"BILLING", "OPERATIONS", "SECURITY"}
-	if d.KeyColumnQuals["alternate_contact_type"] != nil {
-		contactTypes = []string{d.KeyColumnQuals["alternate_contact_type"].GetStringValue()}
+	if d.KeyColumnQuals["contact_type"] != nil {
+		contactTypes = []string{d.KeyColumnQuals["contact_type"].GetStringValue()}
 	}
 
 	/*
@@ -125,8 +133,8 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 		Error: operation error Account: GetAlternateContact, https response error StatusCode: 403, RequestID: 875c3f06-611d-43e7-9d87-0f910dddea22, AccessDeniedException: User: arn:aws:iam::123456789012:user/steampipe-test is not authorized to perform: account:GetAlternateContact (SQLSTATE HV000)
 	*/
 	input := &account.GetAlternateContactInput{}
-	if contactAccountID != commonColumnData.AccountId {
-		input.AccountId = go_kit_packs.String(contactAccountID)
+	if linkedAccountID != commonColumnData.AccountId {
+		input.AccountId = go_kit_packs.String(linkedAccountID)
 	}
 
 	for _, contactType := range contactTypes {
@@ -137,7 +145,7 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 			return nil, err
 		}
 
-		d.StreamListItem(ctx, &accountAlternateContactData{*op.AlternateContact, contactAccountID})
+		d.StreamListItem(ctx, &accountAlternateContactData{*op.AlternateContact, linkedAccountID})
 	}
 
 	return nil, nil

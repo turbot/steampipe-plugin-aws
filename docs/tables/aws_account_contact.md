@@ -2,11 +2,13 @@
 
 Contains the details of the primary contact information associated with an AWS account.
 
-This table supports the optional list key column `contact_account_id`, with the following requirements:
+This table supports the optional list key column `linked_account_id`, with the following requirements:
 - The caller must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.
 - The specified account ID must also be a member account in the same organization.
 - The organization must have [all features enabled](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html).
 - The organization must have [trusted access](https://docs.aws.amazon.com/accounts/latest/reference/using-orgs-trusted-access.html) enabled for the Account Management service.
+
+**Note**: If using AWS' `ReadOnlyAccess` policy, this policy does not include the `account:GetContactInformation` permission, so you will need to add it to use this table.
 
 ## Examples
 
@@ -39,5 +41,5 @@ select
 from
   aws_account_contact
 where
-  contact_account_id = '123456789012';
+  linked_account_id = '123456789012';
 ```

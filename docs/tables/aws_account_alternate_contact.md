@@ -1,8 +1,8 @@
 # Table: aws_account_alternate_contact
 
-A structure that contains the details of the billing, operations, and security alternate contacts associated with an AWS account.
+Contains the details of the billing, operations, and security alternate contacts associated with an AWS account.
 
-This table supports the optional list key column `contact_account_id`, with the following requirements:
+This table supports the optional list key column `linked_account_id`, with the following requirements:
 - The caller must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.
 - The specified account ID must also be a member account in the same organization.
 - The organization must have [all features enabled](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html).
@@ -15,11 +15,11 @@ This table supports the optional list key column `contact_account_id`, with the 
 ```sql
 select
   name,
-  contact_account_id,
-  alternate_contact_type,
+  linked_account_id,
+  contact_type,
   email_address,
   phone_number,
-  title
+  contact_title
 from
   aws_account_alternate_contact;
 ```
@@ -29,15 +29,15 @@ from
 ```sql
 select
   name,
-  contact_account_id,
-  alternate_contact_type,
+  linked_account_id,
+  contact_type,
   email_address,
   phone_number,
-  title
+  contact_title
 from
   aws_account_alternate_contact
 where
-  alternate_contact_type = 'BILLING';
+  contact_type = 'BILLING';
 ```
 
 ### Get alternate contact details for an account in the organization (using credentials from the management account)
@@ -45,13 +45,30 @@ where
 ```sql
 select
   name,
-  contact_account_id,
-  alternate_contact_type,
+  linked_account_id,
+  contact_type,
   email_address,
   phone_number,
-  title
+  contact_title
 from
   aws_account_alternate_contact
 where
-  contact_account_id = '123456789012';
+  linked_account_id = '123456789012';
+```
+
+### Get operations alternate contact details for an account in the organization (using credentials from the management account)
+
+```sql
+select
+  name,
+  linked_account_id,
+  contact_type,
+  email_address,
+  phone_number,
+  contact_title
+from
+  aws_account_alternate_contact
+where
+  linked_account_id = '123456789012'
+  and contact_type = 'SECURITY';
 ```

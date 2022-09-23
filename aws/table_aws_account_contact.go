@@ -22,7 +22,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 			Hydrate: listAwsAccountContacts,
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:       "contact_account_id",
+					Name:       "linked_account_id",
 					Require:    plugin.Optional,
 					CacheMatch: "exact",
 				},
@@ -58,11 +58,6 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				Description: "The name of the company associated with the primary contact information, if any.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContactInformation.CompanyName"),
-			},
-			{
-				Name:        "contact_account_id",
-				Description: "Account ID to get contact details for.",
-				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "city",
@@ -106,13 +101,26 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ContactInformation.WebsiteUrl"),
 			},
+			{
+				Name:        "linked_account_id",
+				Description: "Account ID to get contact details for.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("LinkedAccountID"),
+			},
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ContactInformation.FullName"),
+			},
 		}),
 	}
 }
 
 type accountContactData = struct {
 	ContactInformation types.ContactInformation
-	ContactAccountId   string
+	LinkedAccountID    string
 }
 
 //// LIST FUNCTION
@@ -138,11 +146,11 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	var contactAccountID string
-	if d.KeyColumnQuals["contact_account_id"] != nil {
-		contactAccountID = d.KeyColumnQuals["contact_account_id"].GetStringValue()
+	var linkedAccountID string
+	if d.KeyColumnQuals["linked_account_id"] != nil {
+		linkedAccountID = d.KeyColumnQuals["linked_account_id"].GetStringValue()
 	} else {
-		contactAccountID = commonColumnData.AccountId
+		linkedAccountID = commonColumnData.AccountId
 	}
 
 	/*
@@ -155,8 +163,8 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 		Error: operation error Account: GetContactInformation, https response error StatusCode: 403, RequestID: 875c3f06-611d-43e7-9d87-0f910dddea22, AccessDeniedException: User: arn:aws:iam::123456789012:user/steampipe-test is not authorized to perform: account:GetContactInformation (SQLSTATE HV000)
 	*/
 	input := &account.GetContactInformationInput{}
-	if contactAccountID != commonColumnData.AccountId {
-		input.AccountId = go_kit_types.String(contactAccountID)
+	if linkedAccountID != commonColumnData.AccountId {
+		input.AccountId = go_kit_types.String(linkedAccountID)
 	}
 
 	op, err := svc.GetContactInformation(ctx, input)
@@ -165,7 +173,7 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	d.StreamListItem(ctx, &accountContactData{*op.ContactInformation, contactAccountID})
+	d.StreamListItem(ctx, &accountContactData{*op.ContactInformation, linkedAccountID})
 
 	return nil, nil
 }
