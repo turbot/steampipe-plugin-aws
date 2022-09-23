@@ -120,7 +120,7 @@ type accountContactData = struct {
 func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	// Create Session
+	// Create service
 	svc, err := AccountClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_account_contact.listAwsAccountContacts", "service_creation_error", err)

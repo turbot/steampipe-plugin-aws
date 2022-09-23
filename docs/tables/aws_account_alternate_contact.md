@@ -1,4 +1,4 @@
-# Table: aws_account_alternate_account
+# Table: aws_account_alternate_contact
 
 A structure that contains the details of the billing, operations, and security alternate contacts associated with an AWS account.
 

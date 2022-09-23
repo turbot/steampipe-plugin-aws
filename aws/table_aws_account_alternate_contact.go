@@ -75,7 +75,7 @@ func tableAwsAccountAlternateContact(_ context.Context) *plugin.Table {
 	}
 }
 
-type alternateAccountContactData = struct {
+type accountAlternateContactData = struct {
 	AlternateContact types.AlternateContact
 	ContactAccountId string
 }
@@ -85,10 +85,10 @@ type alternateAccountContactData = struct {
 func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	// Create Session
+	// Create service
 	svc, err := AccountClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_account_alternate_account.listAwsAccountAlternateContacts", "service_creation_error", err)
+		logger.Error("aws_account_alternate_contact.listAwsAccountAlternateContacts", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -131,15 +131,13 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 
 	for _, contactType := range contactTypes {
 		input.AlternateContactType = types.AlternateContactType(contactType)
-
-		logger.Warn("Making API call", "type", contactType)
 		op, err := svc.GetAlternateContact(ctx, input)
 		if err != nil {
-			logger.Error("aws_account_alternate_account.listAwsAccountAlternateContacts", "contact_type", contactType, "api_error", err)
+			logger.Error("aws_account_alternate_contact.listAwsAccountAlternateContacts", "contact_type", contactType, "api_error", err)
 			return nil, err
 		}
 
-		d.StreamListItem(ctx, &alternateAccountContactData{*op.AlternateContact, contactAccountID})
+		d.StreamListItem(ctx, &accountAlternateContactData{*op.AlternateContact, contactAccountID})
 	}
 
 	return nil, nil
