@@ -112,7 +112,7 @@ func tableAwsAccountContact(_ context.Context) *plugin.Table {
 
 type accountContactData = struct {
 	ContactInformation types.ContactInformation
-	ContactAccountId    *string
+	ContactAccountId   string
 }
 
 //// LIST FUNCTION
@@ -138,16 +138,25 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	input := &account.GetContactInformationInput{}
+	var contactAccountID string
 	if d.KeyColumnQuals["contact_account_id"] != nil {
-		input.AccountId = go_kit_packs.String(d.KeyColumnQuals["contact_account_id"].GetStringValue())
+		contactAccountID = d.KeyColumnQuals["contact_account_id"].GetStringValue()
+	} else {
+		contactAccountID = commonColumnData.AccountId
 	}
 
-	var contactAccountId string
-	if d.KeyColumnQuals["contact_account_id"] == nil {
-		contactAccountId = commonColumnData.AccountId
-	} else {
-		contactAccountId = *input.AccountId
+	/*
+		If calling from the org management account and the management account ID is
+		given, the following error is thrown:
+		Error: operation error Account: GetContactInformation, https response error StatusCode: 403, RequestID: 01cb2b09-8b6a-4073-baba-5b9511632d2e, AccessDeniedException: User: arn:aws:iam::123456789012:user/steampipe-test is not authorized to perform: account:GetContactInformation (The management account can only be managed using the standalone context from the management account.) (SQLSTATE HV000)
+
+		If calling from a linked account and any account ID is given (even its own)
+		the following error is thrown:
+		Error: operation error Account: GetContactInformation, https response error StatusCode: 403, RequestID: 875c3f06-611d-43e7-9d87-0f910dddea22, AccessDeniedException: User: arn:aws:iam::123456789012:user/steampipe-test is not authorized to perform: account:GetContactInformation (SQLSTATE HV000)
+	*/
+	input := &account.GetContactInformationInput{}
+	if contactAccountID != commonColumnData.AccountId {
+		input.AccountId = go_kit_packs.String(contactAccountID)
 	}
 
 	op, err := svc.GetContactInformation(ctx, input)
@@ -156,7 +165,7 @@ func listAwsAccountContacts(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	d.StreamListItem(ctx, &accountContactData{*op.ContactInformation, &contactAccountId})
+	d.StreamListItem(ctx, &accountContactData{*op.ContactInformation, contactAccountID})
 
 	return nil, nil
 }

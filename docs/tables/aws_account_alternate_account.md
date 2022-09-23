@@ -1,6 +1,6 @@
-# Table: aws_account_contact
+# Table: aws_account_alternate_account
 
-Contains the details of the primary contact information associated with an AWS account.
+A structure that contains the details of the billing, operations, and security alternate contacts associated with an AWS account.
 
 This table supports the optional list key column `contact_account_id`, with the following requirements:
 - The caller must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.
@@ -14,30 +14,44 @@ This table supports the optional list key column `contact_account_id`, with the 
 
 ```sql
 select
-  full_name,
-  company_name,
-  city,
+  name,
+  contact_account_id,
+  alternate_contact_type,
+  email_address,
   phone_number,
-  postal_code,
-  state_or_region,
-  website_url
+  title
 from
-  aws_account_contact;
+  aws_account_alternate_account;
 ```
 
-### Get contact details for an account in the organization (using credentials from the management account)
+### Get billing alternate contact details
 
 ```sql
 select
-  full_name,
-  company_name,
-  city,
+  name,
+  contact_account_id,
+  alternate_contact_type,
+  email_address,
   phone_number,
-  postal_code,
-  state_or_region,
-  website_url
+  title
 from
-  aws_account_contact
+  aws_account_alternate_account
+where
+  alternate_contact_type = 'BILLING';
+```
+
+### Get alternate contact details for an account in the organization (using credentials from the management account)
+
+```sql
+select
+  name,
+  contact_account_id,
+  alternate_contact_type,
+  email_address,
+  phone_number,
+  title
+from
+  aws_account_alternate_account
 where
   contact_account_id = '123456789012';
 ```
