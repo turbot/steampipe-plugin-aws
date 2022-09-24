@@ -93,6 +93,18 @@ type accountAlternateContactData = struct {
 func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
+	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
+	commonData, err := getCommonColumnsCached(ctx, d, h)
+	if err != nil {
+		return nil, err
+	}
+	commonColumnData := commonData.(*awsCommonColumnData)
+
+	// Account management APIs are not supported in GovCloud as of 2022-09-23
+	if commonColumnData.Partition == "aws-us-gov" {
+		return nil, nil
+	}
+
 	// Create service
 	svc, err := AccountClient(ctx, d)
 	if err != nil {
@@ -103,13 +115,6 @@ func listAwsAccountAlternateContacts(ctx context.Context, d *plugin.QueryData, h
 	if svc == nil {
 		return nil, nil
 	}
-
-	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
-	commonData, err := getCommonColumnsCached(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	commonColumnData := commonData.(*awsCommonColumnData)
 
 	var linkedAccountID string
 	if d.KeyColumnQuals["linked_account_id"] != nil {
