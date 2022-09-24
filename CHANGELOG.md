@@ -1,3 +1,22 @@
+## v0.78.0 [2022-09-23]
+
+_What's new?_
+
+- New tables added
+  - [aws_account_alternate_contact](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_account_alternate_contact) ([#1310](https://github.com/turbot/steampipe-plugin-aws/pull/1310))
+  - [aws_account_contact](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_account_contact) ([#1310](https://github.com/turbot/steampipe-plugin-aws/pull/1310))
+  - [aws_msk_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_msk_cluster) ([#1291](https://github.com/turbot/steampipe-plugin-aws/pull/1291))
+  - [aws_msk_serverless_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_msk_serverless_cluster) ([#1291](https://github.com/turbot/steampipe-plugin-aws/pull/1291))
+
+_Enhancements_
+
+- Updated index doc **Configuring AWS Credentials** section to use consistent profile and account names. ([#1209](https://github.com/turbot/steampipe-plugin-aws/pull/1209)) (Thanks to [@michael-ullrich-1010](https://github.com/michael-ullrich-1010) for the contribution!)
+- Improved plugin error message when the `regions` config argument is set to an invalid value `[]`.
+
+_Bug fixes_
+
+- `aws_macie2_classification_job` table now checks for supported regions.
+
 ## v0.77.0 [2022-09-15]
 
 _What's new?_
