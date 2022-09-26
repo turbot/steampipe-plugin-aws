@@ -18420,6 +18420,7 @@ func TestGlobalConditionPrincipalOrgID(t *testing.T) {
 	t.Run("TestPrincipalOrgIDConditionWhenUnknownOperatoryType", testPrincipalOrgIDConditionWhenUnknownOperatoryType)
 	t.Run("TestPrincipalOrgIDConditionWhenAcrossMultipleStatements", testPrincipalOrgIDConditionWhenAcrossMultipleStatements)
 	t.Run("TestPrincipalOrgIDConditionWhenPrincipalIsAnArn", testPrincipalOrgIDConditionWhenPrincipalIsAnArn)
+	t.Run("TestPrincipalOrgIDConditionWhenPrincipalIsPublicAndHasAnOrganizationThenSharedAccess", testPrincipalOrgIDConditionWhenPrincipalIsPublicAndHasAnOrganizationThenSharedAccess)
 }
 
 func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals(t *testing.T) {
@@ -19925,6 +19926,71 @@ func testPrincipalOrgIDConditionWhenPrincipalIsAnArn(t *testing.T) {
 		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
 		t.Fail()
 	}
+}
+
+func testPrincipalOrgIDConditionWhenPrincipalIsPublicAndHasAnOrganizationThenSharedAccess(t *testing.T) {
+	// Set up
+	userAccountId := "012345678901"
+	policyContent := `
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "AllowedOrganization",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Action": "ec2:DescribeVolumes",
+          "Resource": "arn:aws:s3:::omero-resource-policy-bucket",
+          "Condition": { "StringEquals": { "aws:PrincipalOrgID": "o-aaabbbccc123" } }
+        }
+      ]
+    }
+	`
+
+	expected := PolicySummary{
+		AccessLevel: "shared",
+		AllowedOrganizationIds: []string{
+			"o-aaabbbccc123",
+		},
+		AllowedPrincipals:                   []string{"*"},
+		AllowedPrincipalAccountIds:          []string{"*"},
+		AllowedPrincipalFederatedIdentities: []string{},
+		AllowedPrincipalServices:            []string{},
+		IsPublic:                            false,
+		PublicAccessLevels:                  []string{},
+		SharedAccessLevels:                  []string{"List"},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{},
+		SharedStatementIds:                  []string{"AllowedOrganization"},
+	}
+
+	// Test
+	evaluated, err := EvaluatePolicy(policyContent, userAccountId)
+
+	// Evaluate
+	if err != nil {
+		t.Fatalf("Unexpected error while evaluating policy: %s", err)
+	}
+
+	errors := evaluatePrincipalTest(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Fatal("Conditions Unit Test error detected")
+	}
+
+	errors = evaluateIntegration(t, evaluated, expected)
+	if len(errors) > 0 {
+		for _, error := range errors {
+			t.Log(error)
+		}
+		t.Log("Integration Test error detected - Find Unit Test error to resolve issue")
+		t.Fail()
+	}
+
 }
 
 func TestGlobalConditionSourceOwner(t *testing.T) {
