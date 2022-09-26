@@ -1117,7 +1117,9 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 			continue
 		}
 
-		if !strings.HasPrefix(organization, "o-") && !strings.HasPrefix(organization, "ou-") {
+		// For aws:PrincipalOrgPaths - Leave here as reference
+		// if !strings.HasPrefix(organization, "o-") && !strings.HasPrefix(organization, "ou-") {
+		if !strings.HasPrefix(organization, "o-") {
 			continue
 		}
 
@@ -1134,6 +1136,11 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 
 		allowedOrganizationIdsSet[organization] = true
 		isShared = true
+
+		if isPublic && !evaluatedPrincipal.isServicePublic && !evaluatedPrincipal.isFederatedPublic {
+			isPublic = false
+		}
+
 		processed = true
 	}
 
