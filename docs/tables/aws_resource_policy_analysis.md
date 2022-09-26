@@ -113,7 +113,53 @@ You **_must_** specify a single `policy` and `account_id` in a `where` or `join`
 
 ## Examples
 
-### Basic info
+### Analyze resource policies query
+
+```sql
+select
+  pa.is_public,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids
+from
+  aws_resource_policy_analysis as pa
+where
+  account_id = '111122223333'
+  and policy = '
+  {
+    "Version": "2012-10-17",
+    "Id": "Policy1658140668960",
+    "Statement": [
+      {
+        "Sid": "AllowedPricipal",
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::111122223333:root" },
+        "Resource": "arn:aws:s3:::test-bucket",
+        "Action": "s3:*"
+      },
+      {
+        "Sid": "AllowedService",
+        "Effect": "Allow",
+        "Principal": { "Service": "ec2.amazonaws.com" },
+        "Resource": "arn:aws:s3:::test-bucket",
+        "Action": "s3:*",
+        "Condition": { "StringEquals": { "aws:SourceAccount": "555566667777" } }
+      },
+      {
+        "Sid": "AllowedOrganization",
+        "Effect": "Allow",
+        "Principal": { "AWS": "*" },
+        "Action": "s3:*",
+        "Resource": "arn:aws:s3:::test-bucket",
+        "Condition": { "StringEquals": { "aws:PrincipalOrgID": "o-aaabbbccc123" } }
+      }
+    ]
+  }
+  '
+```
+
+### Analyze trust policies query
 
 ```sql
 select
@@ -128,85 +174,171 @@ from
 where
   account_id = '111122223333'
   and policy = '
-{
-  "Version": "2012-10-17",
-  "Id": "Policy1658140668960",
-  "Statement": [
-    {
-      "Sid": "AllowedService",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AwsPrincipal",
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::444455556666:root" },
+        "Action": "sts:AssumeRole"
       },
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::omero-resource-policy-bucket",
-      "Condition": { "StringEquals": { "aws:SourceAccount": "011026983618" } }
-    },
-    {
-      "Sid": "AllowedPricipal",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::034519905315:root"
+      {
+        "Sid": "Federated",
+        "Effect": "Allow",
+        "Principal": { "Federated": "arn:aws:iam::111122223333:saml-provider/SSO" },
+        "Action": "sts:AssumeRoleWithSAML",
+        "Condition": { "StringEquals": { "SAML:aud": "aud" } }
       },
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::omero-resource-policy-bucket"
-    },
-    {
-      "Sid": "AllowedOrganization",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
+      {
+        "Sid": "Service",
+        "Effect": "Allow",
+        "Principal": { "Service": "ec2.amazonaws.com" },
+        "Action": "sts:AssumeRole",
+        "Condition": { "StringEquals": { "aws:SourceAccount": "011026983618" } }
       },
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::omero-resource-policy-bucket",
-      "Condition": { "StringEquals": { "aws:PrincipalOrgID": "o-c3a5y4wd52" } }
-    }
-  ]
-}
+      {
+        "Sid": "Organization",
+        "Effect": "Allow",
+        "Principal": { "AWS": "*" },
+        "Action": "sts:AssumeRole",
+        "Condition": { "StringEquals": { "aws:PrincipalOrgID": "o-aaabbbccc123" } }
+      },
+      {
+        "Sid": "WebIdentity",
+        "Effect": "Allow",
+        "Principal": { "Federated": "accounts.google.com" },
+        "Action": "sts:AssumeRoleWithWebIdentity",
+        "Condition": { "StringEquals": { "accounts.google.com:aud": "aud" } }
+      }
+    ]
+  }
   '
 ```
 
-### Query to analyse policy content for public grants
+### Query the resource policy for all S3 buckets
 
 ```sql
 select
-  *
-from
-  aws_resource_policy_analysis as ps
-where
-  account_id = '111122223333'
-  and policy = '
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": "s3:DeleteBucket",
-          "Principal": "*",
-          "Resource": "arn:aws:s3:::test-bucket"
-        }
-      ]
-    }
-  '
-```
-
-### Query the resource policy for an S3 bucket
-
-```sql
-select
-  pa.access_level,
-  pa.
-  r.region,
-  r.account_id
+  r.name,
+  pa.is_public,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids,
+  r.arn
 from
   aws_s3_bucket as r,
   aws_resource_policy_analysis as pa
 where
   pa.account_id = r.account_id
   and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Query to analyze access levels of all lambda functions
+
+```sql
+select
+  case
+    when pa.is_public = true then 'public'
+    when count(pa.shared_access_levels) > 0 then 'shared'
+    else 'private'
+  end access_level,
+  r.name,
+  r.arn
+from
+  aws_lambda_function as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
 group by
-  resource,
-  title,
-  r.region,
-  r.account_id
+  r.name,
+  pa.is_public,
+  r,arn
+order by access_level
+```
+
+### Query the assume role policy for all IAM roles
+
+```sql
+select
+  r.name,
+  pa.is_public,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids,
+  r.arn
+from
+  aws_iam_role as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.assume_role_policy_std
+order by
+  r.name
+```
+
+### Query to analyze access levels of assume role polices
+
+```sql
+select
+  case
+    when pa.is_public = true then 'public'
+    when count(pa.shared_access_levels) > 0 then 'shared'
+    else 'private'
+  end access_level,
+  r.name,
+  r.arn
+from
+  aws_iam_role as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.assume_role_policy_std
+group by
+  r.name,
+  pa.is_public,
+  r,arn
+order by access_level
+```
+
+### Get the SIDs that grant public and shared access in all S3 buckets
+
+```sql
+select
+  r.name,
+  pa.public_statement_ids,
+  pa.shared_statement_ids,
+  r.arn
+from
+  aws_s3_bucket as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Get the public, shared and private access levels for all S3 buckets
+
+```sql
+select
+  r.name,
+  pa.public_access_levels,
+  pa.shared_access_levels,
+  pa.private_access_levels,
+  r.arn
+from
+  aws_s3_bucket as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+order by
+  r.name
 ```
