@@ -1081,16 +1081,35 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 
 		organization := principal
 		if evaulatedOperator.isLike {
-			if organization == "*" || organization == "o-*" {
+			if organization == "*" {
+				allowedOrganizationIdsSet["o-*"] = true
+				// For aws:PrincipalOrgPaths - Leave here as reference
+				// allowedOrganizationIdsSet["ou-*"] = true
+				isPublic = true
+				processed = true
+				continue
+			}
+
+			// For aws:PrincipalOrgPaths - Leave here as reference
+			// if !strings.HasPrefix(organization, "o-") && !strings.HasPrefix(organization, "ou-") {
+			if !strings.HasPrefix(organization, "o-") {
+				continue
+			}
+
+			if organization == "o-*" {
 				allowedOrganizationIdsSet["o-*"] = true
 				isPublic = true
 				processed = true
 				continue
 			}
 
-			if !strings.HasPrefix(organization, "o-") {
-				continue
-			}
+			// For aws:PrincipalOrgPaths - Leave here as reference
+			// if organization == "ou-*" {
+			// 	allowedOrganizationIdsSet["ou-*"] = true
+			// 	isPublic = true
+			// 	processed = true
+			// 	continue
+			// }
 
 			allowedOrganizationIdsSet[organization] = true
 			isShared = true
@@ -1098,7 +1117,18 @@ func evaluatePrincipalOrganizationIdCondition(evaluatedPrincipal EvaluatedPrinci
 			continue
 		}
 
-		if !strings.HasPrefix(organization, "o-") || strings.Contains(organization, "*") || strings.Contains(organization, "?") {
+		if !strings.HasPrefix(organization, "o-") && !strings.HasPrefix(organization, "ou-") {
+			continue
+		}
+
+		// For aws:PrincipalOrgPaths - Leave here as reference
+		// reOrgUnit1 := regexp.MustCompile(`ou-[0-9a-z]{4,32}-[0-9a-z]{8,32}`)
+		// reOrgUnit2 := regexp.MustCompile(`ou-[a-z0-9]{10,32}`)
+		reOrg := regexp.MustCompile(`o-[a-z0-9]{10,32}`)
+
+		// For aws:PrincipalOrgPaths - Leave here as reference
+		//if !reOrgUnit1.MatchString(organization) && !reOrgUnit2.MatchString(organization) && !reOrg.MatchString(organization) {
+		if !reOrg.MatchString(organization) {
 			continue
 		}
 

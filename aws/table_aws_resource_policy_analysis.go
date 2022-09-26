@@ -24,12 +24,12 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "access_level",
 				Type:        proto.ColumnType_STRING,
-				Description: "Access level of the resource based of policy. Valid values are 'public', 'shared' and 'private'.",
+				Description: "Overall access level of the resources based off the policy. Valid values are 'public', 'shared' and 'private'.",
 			},
 			{
 				Name:        "is_public",
 				Type:        proto.ColumnType_BOOL,
-				Description: "The policy status for an Amazon resource, indicating whether the resource is public.",
+				Description: "A convenient flag used to check if the access level of the policy is 'public'.",
 			},
 			{
 				Name:        "policy",
@@ -40,57 +40,57 @@ func tableAwsResourcePolicyAnalysis(_ context.Context) *plugin.Table {
 			{
 				Name:        "public_statement_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The Sid of the statements that shares a resource(s) publically. If Sid is not given in statement, an Sid will be generated with the name Statement[index].",
+				Description: "List of statement Sids that grant public access to resources. If Sid is missing then 'Statement[index]' will be used.",
 			},
 			{
 				Name:        "shared_statement_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "The Sid of the statements that shares a resource(s) with other accounts. If Sid is not given in statement, an Sid will be generated with the name Statement[index].",
+				Description: "List of statement Sids that grant shared access to resource(s). If Sid is missing then 'Statement[index]' will be used.",
 			},
 			{
 				Name:        "public_access_levels",
 				Type:        proto.ColumnType_JSON,
-				Description: "Public access levels (based off parliament's levels).",
+				Description: "Public access levels such as 'Read', 'Write', 'Tagging', etc. to describe the actions allowed by the policy",
 			},
 			{
 				Name:        "shared_access_levels",
 				Type:        proto.ColumnType_JSON,
-				Description: "Shared access levels (based off parliament's levels).",
+				Description: "Shared access levels such as 'Read', 'Write', 'Tagging', etc. to describe the actions allowed by the policy",
 			},
 			{
 				Name:        "private_access_levels",
 				Type:        proto.ColumnType_JSON,
-				Description: "Private access levels (based off parliament's levels).",
+				Description: "Private access levels such as 'Read', 'Write', 'Tagging', etc. to describe the actions allowed by the policy",
 			},
 			{
 				Name:        "allowed_organization_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "A list of organisations resource is accessible to.",
+				Description: "List of organisations allowed to access the resources.",
 			},
 			{
 				Name:        "allowed_principals",
 				Type:        proto.ColumnType_JSON,
-				Description: "A list of principals resource is accessible to.",
+				Description: "List of principals allowed to access the resources.",
 			},
 			{
 				Name:        "allowed_principal_account_ids",
 				Type:        proto.ColumnType_JSON,
-				Description: "A list of account ids resource is accessible to.",
+				Description: "List of account ids allowed to access the resources.",
 			},
 			{
 				Name:        "allowed_principal_federated_identities",
 				Type:        proto.ColumnType_JSON,
-				Description: "A list of federated identities resource is accessible to.",
+				Description: "List federated identities allowed to access resources.",
 			},
 			{
 				Name:        "allowed_principal_services",
 				Type:        proto.ColumnType_JSON,
-				Description: "A list of services resource is accessible to.",
+				Description: "List of AWS services allowed to access resources.",
 			},
 			{
 				Name:        "account_id",
 				Type:        proto.ColumnType_STRING,
-				Description: "The id of AWS account to which resource belongs.",
+				Description: "The id of AWS account where the policy is deployed.",
 				Transform:   transform.FromQual("account_id"),
 			},
 		},

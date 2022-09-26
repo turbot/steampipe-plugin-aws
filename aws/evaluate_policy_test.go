@@ -18435,7 +18435,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals(t *testi
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -18448,7 +18448,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEquals(t *testi
 
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
+		AllowedOrganizationIds:              []string{"o-kkklllmmm555"},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
@@ -18695,7 +18695,7 @@ func testPrincipalOrgIDConditionUsingStringEqualsIfExists(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEqualsIfExists": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -18760,7 +18760,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEqualsIgnoreCas
           "Resource": "*",
           "Condition": {
             "StringEqualsIgnoreCase": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -18773,7 +18773,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringEqualsIgnoreCas
 
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
+		AllowedOrganizationIds:              []string{"o-kkklllmmm555"},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
@@ -19020,7 +19020,7 @@ func testPrincipalOrgIDConditionUsingStringEqualsIgnoreCaseIfExists(t *testing.T
           "Resource": "*",
           "Condition": {
             "StringEqualsIgnoreCaseIfExists": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -19085,7 +19085,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringLike(t *testing
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -19098,7 +19098,7 @@ func testPrincipalOrgIDConditionWhenValueIsAValidOrgIDUsingStringLike(t *testing
 
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid"},
+		AllowedOrganizationIds:              []string{"o-kkklllmmm555"},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
@@ -19292,8 +19292,10 @@ func testPrincipalOrgIDConditionWhenValueIsFullWildcardUsingStringLike(t *testin
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "public",
-		AllowedOrganizationIds:              []string{"o-*"},
+		AccessLevel: "public",
+		AllowedOrganizationIds: []string{
+			"o-*",
+		},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
@@ -19345,7 +19347,7 @@ func testPrincipalOrgIDConditionWhenValueIsWildcardOrganizationUsingStringLike(t
           "Resource": "*",
           "Condition": {
             "StringLike": {
-              "aws:PrincipalOrgID": ["o-valid*"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555*"]
             }
           },
           "Principal": {
@@ -19358,7 +19360,7 @@ func testPrincipalOrgIDConditionWhenValueIsWildcardOrganizationUsingStringLike(t
 
 	expected := PolicySummary{
 		AccessLevel:                         "shared",
-		AllowedOrganizationIds:              []string{"o-valid*"},
+		AllowedOrganizationIds:              []string{"o-kkklllmmm555*"},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
 		AllowedPrincipalFederatedIdentities: []string{},
@@ -19475,7 +19477,7 @@ func testPrincipalOrgIDConditionUsingStringLikeIfExists(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringLikeIfExists": {
-              "aws:PrincipalOrgID": ["o-valid"]
+              "aws:PrincipalOrgID": ["o-kkklllmmm555"]
             }
           },
           "Principal": {
@@ -19541,9 +19543,9 @@ func testPrincipalOrgIDConditionWithMulipleValuesUsingStringOperators(t *testing
           "Condition": {
             "StringEquals": {
               "aws:PrincipalOrgID": [
-                "o-valid1",
+                "o-ggghhhiii555",
                 "o-*",
-                "o-valid2"
+                "o-kkklllmmm555"
               ]
             }
           },
@@ -19558,8 +19560,8 @@ func testPrincipalOrgIDConditionWithMulipleValuesUsingStringOperators(t *testing
 	expected := PolicySummary{
 		AccessLevel: "shared",
 		AllowedOrganizationIds: []string{
-			"o-valid1",
-			"o-valid2",
+			"o-ggghhhiii555",
+			"o-kkklllmmm555",
 		},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
@@ -19742,7 +19744,7 @@ func testPrincipalOrgIDConditionWhenAcrossMultipleStatements(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-aaavalid"]
+              "aws:PrincipalOrgID": ["o-zzzyyyxxx987"]
             }
           },
           "Principal": {
@@ -19768,7 +19770,7 @@ func testPrincipalOrgIDConditionWhenAcrossMultipleStatements(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-zzzvalid"]
+              "aws:PrincipalOrgID": ["o-aaabbbccc123"]
             }
           },
           "Principal": {
@@ -19783,8 +19785,8 @@ func testPrincipalOrgIDConditionWhenAcrossMultipleStatements(t *testing.T) {
 		AccessLevel: "public",
 		AllowedOrganizationIds: []string{
 			"o-*",
-			"o-aaavalid",
-			"o-zzzvalid",
+			"o-aaabbbccc123",
+			"o-zzzyyyxxx987",
 		},
 		AllowedPrincipals:                   []string{"012345678901"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
@@ -19840,7 +19842,7 @@ func testPrincipalOrgIDConditionWhenPrincipalIsAnArn(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-aaavalid"]
+              "aws:PrincipalOrgID": ["o-zzzyyyxxx987"]
             }
           },
           "Principal": {
@@ -19866,7 +19868,7 @@ func testPrincipalOrgIDConditionWhenPrincipalIsAnArn(t *testing.T) {
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "aws:PrincipalOrgID": ["o-zzzvalid"]
+              "aws:PrincipalOrgID": ["o-aaabbbccc123"]
             }
           },
           "Principal": {
@@ -19881,8 +19883,8 @@ func testPrincipalOrgIDConditionWhenPrincipalIsAnArn(t *testing.T) {
 		AccessLevel: "public",
 		AllowedOrganizationIds: []string{
 			"o-*",
-			"o-aaavalid",
-			"o-zzzvalid",
+			"o-aaabbbccc123",
+			"o-zzzyyyxxx987",
 		},
 		AllowedPrincipals:                   []string{"arn:aws:iam::012345678901:root"},
 		AllowedPrincipalAccountIds:          []string{"012345678901"},
