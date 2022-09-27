@@ -109,6 +109,10 @@ func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessana
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return accessanalyzer.New(sess), nil
 }
 
@@ -117,6 +121,7 @@ func AmplifyService(ctx context.Context, d *plugin.QueryData) (*amplify.Amplify,
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -128,6 +133,10 @@ func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*a
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return applicationautoscaling.New(sess), nil
 }
 
@@ -136,6 +145,7 @@ func AuditManagerService(ctx context.Context, d *plugin.QueryData) (*auditmanage
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -147,6 +157,10 @@ func AutoScalingService(ctx context.Context, d *plugin.QueryData) (*autoscaling.
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return autoscaling.New(sess), nil
 }
 
@@ -154,6 +168,10 @@ func BackupService(ctx context.Context, d *plugin.QueryData) (*backup.Backup, er
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, backup.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return backup.New(sess), nil
 }
@@ -194,6 +212,7 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.Code
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -205,6 +224,10 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return codecommit.New(sess), nil
 }
 
@@ -212,6 +235,10 @@ func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipelin
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return codepipeline.New(sess), nil
 }
@@ -221,6 +248,10 @@ func CloudFrontService(ctx context.Context, d *plugin.QueryData) (*cloudfront.Cl
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return cloudfront.New(sess), nil
 }
 
@@ -228,6 +259,10 @@ func CloudFormationService(ctx context.Context, d *plugin.QueryData) (*cloudform
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, cloudformation.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return cloudformation.New(sess), nil
 }
@@ -237,6 +272,10 @@ func CloudWatchService(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Cl
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return cloudwatch.New(sess), nil
 }
 
@@ -244,6 +283,10 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, cloudwatchlogs.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return cloudwatchlogs.New(sess), nil
 }
@@ -253,6 +296,10 @@ func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) 
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return cloudtrail.New(sess), nil
 }
 
@@ -260,6 +307,10 @@ func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.Con
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, configservice.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return configservice.New(sess), nil
 }
@@ -269,6 +320,7 @@ func CostExplorerService(ctx context.Context, d *plugin.QueryData) (*costexplore
 	if err != nil {
 		return nil, err
 	}
+
 	return costexplorer.New(sess), nil
 }
 
@@ -277,6 +329,7 @@ func DAXService(ctx context.Context, d *plugin.QueryData) (*dax.DAX, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -288,6 +341,10 @@ func DatabaseMigrationService(ctx context.Context, d *plugin.QueryData) (*databa
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return databasemigrationservice.New(sess), nil
 }
 
@@ -295,6 +352,10 @@ func DirectoryService(ctx context.Context, d *plugin.QueryData) (*directoryservi
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, directoryservice.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return directoryservice.New(sess), nil
 }
@@ -304,6 +365,10 @@ func DLMService(ctx context.Context, d *plugin.QueryData) (*dlm.DLM, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return dlm.New(sess), nil
 }
 
@@ -312,6 +377,10 @@ func DynamoDBService(ctx context.Context, d *plugin.QueryData) (*dynamodb.Dynamo
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return dynamodb.New(sess), nil
 }
 
@@ -319,6 +388,10 @@ func EC2Service(ctx context.Context, d *plugin.QueryData, region string) (*ec2.E
 	sess, err := getSessionForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return ec2.New(sess), nil
 }
@@ -341,6 +414,10 @@ func ECRService(ctx context.Context, d *plugin.QueryData) (*ecr.ECR, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return ecr.New(sess), nil
 }
 
@@ -348,6 +425,10 @@ func EcrPublicService(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, ecrpublic.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return ecrpublic.New(sess), nil
 }
@@ -357,6 +438,10 @@ func ECSService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return ecs.New(sess), nil
 }
 
@@ -365,6 +450,10 @@ func EFSService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return efs.New(sess), nil
 }
 
@@ -372,6 +461,10 @@ func FSxService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, fsx.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return fsx.New(sess), nil
 }
@@ -389,6 +482,10 @@ func ElasticBeanstalkService(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return elasticbeanstalk.New(sess), nil
 }
 
@@ -405,6 +502,10 @@ func ElasticsearchService(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return elasticsearchservice.New(sess), nil
 }
 
@@ -412,6 +513,10 @@ func ELBv2Service(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, elbv2.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return elbv2.New(sess), nil
 }
@@ -421,6 +526,10 @@ func EventBridgeService(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return eventbridge.New(sess), nil
 }
 
@@ -428,6 +537,10 @@ func EMRService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, emr.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return emr.New(sess), nil
 }
@@ -437,6 +550,10 @@ func FirehoseService(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return firehose.New(sess), nil
 }
 
@@ -444,6 +561,10 @@ func GlacierService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, glacier.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return glacier.New(sess), nil
 }
@@ -463,6 +584,10 @@ func GlueService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return glue.New(sess), nil
 }
 
@@ -470,6 +595,10 @@ func GuardDutyService(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, guardduty.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return guardduty.New(sess), nil
 }
@@ -487,6 +616,10 @@ func IdentityStoreService(ctx context.Context, d *plugin.QueryData) (*identityst
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return identitystore.New(sess), nil
 }
 
@@ -495,6 +628,7 @@ func InspectorService(ctx context.Context, d *plugin.QueryData) (*inspector.Insp
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -506,6 +640,10 @@ func KinesisService(ctx context.Context, d *plugin.QueryData) (*kinesis.Kinesis,
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return kinesis.New(sess), nil
 }
 
@@ -513,6 +651,10 @@ func KinesisAnalyticsV2Service(ctx context.Context, d *plugin.QueryData) (*kines
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, kinesisanalyticsv2.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return kinesisanalyticsv2.New(sess), nil
 }
@@ -522,6 +664,10 @@ func KinesisVideoService(ctx context.Context, d *plugin.QueryData) (*kinesisvide
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return kinesisvideo.New(sess), nil
 }
 
@@ -529,6 +675,10 @@ func KMSService(ctx context.Context, d *plugin.QueryData) (*kms.KMS, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, kms.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return kms.New(sess), nil
 }
@@ -538,6 +688,10 @@ func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, er
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return lambda.New(sess), nil
 }
 
@@ -545,6 +699,10 @@ func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, er
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, macie2.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return macie2.New(sess), nil
 }
@@ -554,6 +712,7 @@ func MediaStoreService(ctx context.Context, d *plugin.QueryData) (*mediastore.Me
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -565,6 +724,10 @@ func NeptuneService(ctx context.Context, d *plugin.QueryData) (*neptune.Neptune,
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return neptune.New(sess), nil
 }
 
@@ -572,6 +735,10 @@ func NetworkFirewallService(ctx context.Context, d *plugin.QueryData) (*networkf
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, networkfirewall.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return networkfirewall.New(sess), nil
 }
@@ -581,6 +748,7 @@ func PinpointService(ctx context.Context, d *plugin.QueryData) (*pinpoint.Pinpoi
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -608,6 +776,10 @@ func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing,
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return pricing.New(sess), nil
 }
 
@@ -615,6 +787,10 @@ func RAMService(ctx context.Context, d *plugin.QueryData) (*ram.RAM, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, ram.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return ram.New(sess), nil
 }
@@ -624,6 +800,10 @@ func RDSService(ctx context.Context, d *plugin.QueryData) (*rds.RDS, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return rds.New(sess), nil
 }
 
@@ -631,6 +811,10 @@ func RedshiftService(ctx context.Context, d *plugin.QueryData) (*redshift.Redshi
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, redshift.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return redshift.New(sess), nil
 }
@@ -649,6 +833,10 @@ func Route53ResolverService(ctx context.Context, d *plugin.QueryData) (*route53r
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return route53resolver.New(sess), nil
 }
 
@@ -665,6 +853,10 @@ func SecretsManagerService(ctx context.Context, d *plugin.QueryData) (*secretsma
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return secretsmanager.New(sess), nil
 }
 
@@ -672,6 +864,10 @@ func SecurityHubService(ctx context.Context, d *plugin.QueryData) (*securityhub.
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, securityhub.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return securityhub.New(sess), nil
 }
@@ -681,6 +877,10 @@ func S3ControlService(ctx context.Context, d *plugin.QueryData, region string) (
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return s3control.New(sess), nil
 }
 
@@ -688,6 +888,10 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, sagemaker.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return sagemaker.New(sess), nil
 }
@@ -697,6 +901,7 @@ func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.Query
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
@@ -708,6 +913,10 @@ func SESService(ctx context.Context, d *plugin.QueryData) (*ses.SES, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return ses.New(sess), nil
 }
 
@@ -715,6 +924,10 @@ func SNSService(ctx context.Context, d *plugin.QueryData) (*sns.SNS, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, sns.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return sns.New(sess), nil
 }
@@ -742,6 +955,10 @@ func ServiceQuotasRegionalService(ctx context.Context, d *plugin.QueryData) (*se
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return servicequotas.New(sess), nil
 }
 
@@ -750,6 +967,10 @@ func SQSService(ctx context.Context, d *plugin.QueryData) (*sqs.SQS, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return sqs.New(sess), nil
 }
 
@@ -757,6 +978,10 @@ func SSMService(ctx context.Context, d *plugin.QueryData) (*ssm.SSM, error) {
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, ssm.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return ssm.New(sess), nil
 }
@@ -773,6 +998,10 @@ func StepFunctionsService(ctx context.Context, d *plugin.QueryData) (*sfn.SFN, e
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, sfn.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return sfn.New(sess), nil
 }
@@ -791,6 +1020,10 @@ func TaggingResourceService(ctx context.Context, d *plugin.QueryData) (*resource
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return resourcegroupstaggingapi.New(sess), nil
 }
 
@@ -807,6 +1040,10 @@ func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return wafregional.New(sess), nil
 }
 
@@ -822,6 +1059,10 @@ func WAFv2Service(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
+	}
 	return wafv2.New(sess), nil
 }
 
@@ -829,6 +1070,10 @@ func WellArchitectedService(ctx context.Context, d *plugin.QueryData) (*wellarch
 	sess, err := getSessionForQuerySupportedRegion(ctx, d, wellarchitected.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the session is empty, it is because of the un-supported region
+	if sess == nil {
+		return nil, nil
 	}
 	return wellarchitected.New(sess), nil
 }
@@ -838,6 +1083,7 @@ func WorkspacesService(ctx context.Context, d *plugin.QueryData) (*workspaces.Wo
 	if err != nil {
 		return nil, err
 	}
+	// If the session is empty, it is because of the un-supported region
 	if sess == nil {
 		return nil, nil
 	}
