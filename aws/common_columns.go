@@ -10,8 +10,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-var count = 0
-
 // column definitions for the common columns
 func commonAwsRegionalColumns() []*plugin.Column {
 	return []*plugin.Column{
@@ -131,9 +129,6 @@ func getCallerIdentity(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.(*sts.GetCallerIdentityOutput), nil
 	}
-
-	count++
-	plugin.Logger(ctx).Warn(d.Connection.Name, "getAccountPartition.Count", count)
 
 	// get the service connection for the service
 	stsSvc, err := STSService(ctx, d)

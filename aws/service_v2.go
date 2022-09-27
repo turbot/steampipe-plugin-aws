@@ -408,27 +408,3 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 
 	return retryTime, nil
 }
-
-func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) []string {
-	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
-		return cachedData.([]string)
-	}
-
-	var endpoints *Endpoints
-	getCachedEndpoints := plugin.HydrateFunc(GetAwsEndpoints).WithCache()
-	getCachedEndpointsData, err := getCachedEndpoints(ctx, d, nil)
-	if err != nil {
-		return []string{}
-	}
-
-	endpoints = getCachedEndpointsData.(*Endpoints)
-	getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
-	partition, _ := getCachedAccountPartition(ctx, d, nil)
-
-	regions := endpoints.GetPartitionByName(partition.(string)).Service(serviceId).Regions()
-
-	// set cache
-	d.ConnectionManager.Cache.Set(cacheKey, regions)
-	return regions
-}
