@@ -24,6 +24,7 @@ import (
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -164,6 +165,14 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 		return nil, err
 	}
 	return sns.NewFromConfig(*cfg), nil
+}
+
+func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return redshift.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
