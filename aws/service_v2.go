@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
@@ -106,6 +107,17 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 		return nil, err
 	}
 	return codedeploy.NewFromConfig(*cfg), nil
+}
+
+func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cloudformation.NewFromConfig(*cfg), nil
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
