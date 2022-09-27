@@ -113,7 +113,169 @@ You **_must_** specify a single `policy` and `account_id` in a `where` or `join`
 
 ## Examples
 
-### Analyze resource policies query
+### List all S3 buckets that have publically accessible resource policies
+
+```sql
+select
+  r.name,
+  r.arn
+from
+  aws_s3_bucket as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.is_public = true
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Query the resource policy for all S3 buckets
+
+```sql
+select
+  r.name,
+  pa.is_public,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids,
+  r.arn
+from
+  aws_s3_bucket as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Query to analyze access levels of all Lambda functions
+
+```sql
+select
+  case
+    when pa.is_public = true then 'public'
+    when count(pa.shared_access_levels) > 0 then 'shared'
+    else 'private'
+  end access_level,
+  r.name,
+  r.arn
+from
+  aws_lambda_function as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+group by
+  r.name,
+  pa.is_public,
+  r,arn
+order by access_level
+```
+
+### Query the assume role policy for all IAM roles
+
+```sql
+select
+  r.name,
+  pa.is_public,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids,
+  r.arn
+from
+  aws_iam_role as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.assume_role_policy_std
+order by
+  r.name
+```
+
+### Query to analyze access levels of IAM roles policies
+
+```sql
+select
+  case
+    when pa.is_public = true then 'public'
+    when count(pa.shared_access_levels) > 0 then 'shared'
+    else 'private'
+  end access_level,
+  r.name,
+  r.arn
+from
+  aws_iam_role as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.assume_role_policy_std
+group by
+  r.name,
+  pa.is_public,
+  r,arn
+order by access_level
+```
+
+### Get the SIDs that grant public and shared access in all customer managed KMS keys
+
+```sql
+select
+  right(aliases -> 0 ->> 'AliasName', -6) as alias,
+  pa.public_statement_ids,
+  pa.shared_statement_ids,
+  r.id,
+  r.arn
+from
+  aws_kms_key as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+  and r.key_manager = 'CUSTOMER'
+order by
+  r.id
+```
+
+### Get the public, shared and private access levels for all S3 buckets
+
+```sql
+select
+  r.name,
+  pa.public_access_levels,
+  pa.shared_access_levels,
+  pa.private_access_levels,
+  r.arn
+from
+  aws_s3_bucket as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Return all EFS resources that have shared access and are accessible from accounts outside a trusted accounts list
+
+```sql
+select
+  pa.allowed_principal_account_ids
+from
+  aws_efs_file_system as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+  and not pa.allowed_principal_account_ids <@ '["111122223333", "999988887777"]'
+  and pa.is_public = false
+  and jsonb_array_length(pa.shared_statement_ids) > 0
+```
+
+### Analyze a resource policy query
 
 ```sql
 select
@@ -159,7 +321,7 @@ where
   '
 ```
 
-### Analyze trust policies query
+### Analyze a trust policy query
 
 ```sql
 select
@@ -214,131 +376,4 @@ where
     ]
   }
   '
-```
-
-### Query the resource policy for all S3 buckets
-
-```sql
-select
-  r.name,
-  pa.is_public,
-  pa.allowed_principal_account_ids,
-  pa.allowed_principals,
-  pa.allowed_principal_services,
-  pa.allowed_organization_ids,
-  r.arn
-from
-  aws_s3_bucket as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.policy_std
-order by
-  r.name
-```
-
-### Query to analyze access levels of all lambda functions
-
-```sql
-select
-  case
-    when pa.is_public = true then 'public'
-    when count(pa.shared_access_levels) > 0 then 'shared'
-    else 'private'
-  end access_level,
-  r.name,
-  r.arn
-from
-  aws_lambda_function as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.policy_std
-group by
-  r.name,
-  pa.is_public,
-  r,arn
-order by access_level
-```
-
-### Query the assume role policy for all IAM roles
-
-```sql
-select
-  r.name,
-  pa.is_public,
-  pa.allowed_principal_account_ids,
-  pa.allowed_principals,
-  pa.allowed_principal_services,
-  pa.allowed_organization_ids,
-  r.arn
-from
-  aws_iam_role as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.assume_role_policy_std
-order by
-  r.name
-```
-
-### Query to analyze access levels of assume role polices
-
-```sql
-select
-  case
-    when pa.is_public = true then 'public'
-    when count(pa.shared_access_levels) > 0 then 'shared'
-    else 'private'
-  end access_level,
-  r.name,
-  r.arn
-from
-  aws_iam_role as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.assume_role_policy_std
-group by
-  r.name,
-  pa.is_public,
-  r,arn
-order by access_level
-```
-
-### Get the SIDs that grant public and shared access in all S3 buckets
-
-```sql
-select
-  r.name,
-  pa.public_statement_ids,
-  pa.shared_statement_ids,
-  r.arn
-from
-  aws_s3_bucket as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.policy_std
-order by
-  r.name
-```
-
-### Get the public, shared and private access levels for all S3 buckets
-
-```sql
-select
-  r.name,
-  pa.public_access_levels,
-  pa.shared_access_levels,
-  pa.private_access_levels,
-  r.arn
-from
-  aws_s3_bucket as r,
-  aws_resource_policy_analysis as pa
-where
-  pa.account_id = r.account_id
-  and pa.policy = r.policy_std
-order by
-  r.name
 ```
