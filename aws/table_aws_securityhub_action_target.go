@@ -66,11 +66,11 @@ func tableAwsSecurityHubActionTarget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubActionTargets")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -125,14 +125,14 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getSecurityHubActionTarget")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

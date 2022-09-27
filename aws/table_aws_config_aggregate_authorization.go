@@ -75,9 +75,9 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d, h)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "service_connection_error", err)
 		return nil, err
@@ -123,7 +123,7 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 	auth := h.Item.(*configservice.AggregationAuthorization)
 
 	// Create Session
-	svc, err := ConfigService(ctx, d, h)
+	svc, err := ConfigService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "service_connection_error", err)
 		return nil, err

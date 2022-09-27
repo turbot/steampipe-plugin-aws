@@ -176,7 +176,7 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	restAPI := h.Item.(types.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -208,10 +208,10 @@ func listAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayStage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_stage.getAPIGatewayStage", "service_client_error", err)
 		return nil, err

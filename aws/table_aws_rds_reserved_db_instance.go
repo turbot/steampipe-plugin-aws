@@ -147,11 +147,11 @@ func tableAwsRDSReservedDBInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSReservedDBInstances")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -231,11 +231,11 @@ func listRDSReservedDBInstances(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// HYDRATE FUNCTIONS
 
-func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	dbInstanceIdentifier := d.KeyColumnQuals["reserved_db_instance_id"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

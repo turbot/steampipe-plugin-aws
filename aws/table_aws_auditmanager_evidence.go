@@ -175,7 +175,7 @@ func listAuditManagerEvidences(ctx context.Context, d *plugin.QueryData, h *plug
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -287,11 +287,11 @@ func getRowDataForEvidence(ctx context.Context, svc *auditmanager.AuditManager, 
 
 //// HYDRATE FUNCTIONS
 
-func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAuditManagerEvidence(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAuditManagerEvidence")
 
 	// Create Session
-	svc, err := AuditManagerService(ctx, d, h)
+	svc, err := AuditManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -35,5 +35,5 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCountDaily(_ context.Context
 func listEc2ApplicationLoadBalancerMetricRequestCountDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	loadBalancer := h.Item.(*elbv2.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
-	return listCWMetricStatistics(ctx, d, h, "DAILY", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
 }

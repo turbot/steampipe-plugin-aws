@@ -126,7 +126,7 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 func listAwsBackupFrameworkTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

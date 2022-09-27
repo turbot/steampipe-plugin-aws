@@ -97,11 +97,11 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBSubnetGroups")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -147,11 +147,11 @@ func listRDSDBSubnetGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func getRDSDBSubnetGroupTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	dbSubnetGroup := h.Item.(*rds.DBSubnetGroup)
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

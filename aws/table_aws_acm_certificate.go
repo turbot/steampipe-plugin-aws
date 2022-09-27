@@ -219,15 +219,14 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-
-	// Create service
-	svc, err := ACMClient(ctx, d, h)
+func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Get service client
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
-		logger.Error("aws_acm_certificate.listAwsAcmCertificates", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_acm_certificate.listAwsAcmCertificates", "connection_error", err)
 		return nil, err
 	}
+
 	if svc == nil {
 		// Unsupported region, return no data
 		return nil, nil
@@ -290,7 +289,8 @@ func listAwsAcmCertificates(ctx context.Context, d *plugin.QueryData, h *plugin.
 func getAwsAcmCertificateAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := ACMClient(ctx, d, h)
+	// svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateAttributes", "connection_error", err)
 		return nil, err
@@ -323,7 +323,8 @@ func getAwsAcmCertificateProperties(ctx context.Context, d *plugin.QueryData, h 
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMClient(ctx, d, h)
+	// svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_acm_certificate.getAwsAcmCertificateProperties", "service_client_error", err)
 		return nil, err
@@ -348,7 +349,8 @@ func listTagsForAcmCertificate(ctx context.Context, d *plugin.QueryData, h *plug
 	item := h.Item.(*types.CertificateDetail)
 
 	// Create session
-	svc, err := ACMClient(ctx, d, h)
+	// svc, err := ACMClient(ctx, d)
+	svc, err := ACMClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_acm_certificate.listTagsForAcmCertificate", "service_client_error", err)
 		return nil, err

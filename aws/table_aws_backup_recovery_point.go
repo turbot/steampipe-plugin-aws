@@ -160,7 +160,7 @@ func listAwsBackupRecoveryPoints(ctx context.Context, d *plugin.QueryData, h *pl
 	vault := h.Item.(*backup.VaultListMember)
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func getAwsBackupRecoveryPoint(ctx context.Context, d *plugin.QueryData, h *plug
 	plugin.Logger(ctx).Trace("getAwsBackupRecoveryPoint")
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -110,9 +110,9 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func listAwsBackupVaults(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func getAwsBackupVault(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func getAwsBackupVaultNotification(ctx context.Context, d *plugin.QueryData, h *
 
 func getAwsBackupVaultAccessPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

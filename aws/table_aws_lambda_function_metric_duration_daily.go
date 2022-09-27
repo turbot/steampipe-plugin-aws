@@ -34,5 +34,5 @@ func tableAwsLambdaFunctionMetricDurationDaily(_ context.Context) *plugin.Table 
 
 func listLambdaFunctionMetricDurationDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	lambdaFunctionConfiguration := h.Item.(*lambda.FunctionConfiguration)
-	return listCWMetricStatistics(ctx, d, h, "DAILY", "AWS/Lambda", "Duration", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
+	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Lambda", "Duration", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
 }

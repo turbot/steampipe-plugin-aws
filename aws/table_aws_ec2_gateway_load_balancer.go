@@ -145,9 +145,9 @@ func tableAwsEc2GatewayLoadBalancer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBV2Client(ctx, d, h)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_gateway_load_balancer.listEc2GatewayLoadBalancers", "connection_error", err)
 		return nil, err
@@ -212,9 +212,9 @@ func listEc2GatewayLoadBalancers(ctx context.Context, d *plugin.QueryData, h *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2GatewayLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := ELBV2Client(ctx, d, h)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_gateway_load_balancer.getEc2GatewayLoadBalancer", "connection_error", err)
 		return nil, err
@@ -248,7 +248,7 @@ func getAwsEc2GatewayLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	gatewayLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBV2Client(ctx, d, h)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_gateway_load_balancer.getAwsEc2GatewayLoadBalancerTags", "connection_error", err)
 		return nil, err
@@ -280,7 +280,7 @@ func getAwsEc2GatewayLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	gatewayLoadBalancer := h.Item.(types.LoadBalancer)
 
 	// Create service
-	svc, err := ELBV2Client(ctx, d, h)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_gateway_load_balancer.getAwsEc2GatewayLoadBalancerAttributes", "connection_error", err)
 		return nil, err

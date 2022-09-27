@@ -70,9 +70,9 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDomainNames(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.listDomainNames", "service_client_error", err)
 		return nil, err
@@ -129,10 +129,10 @@ func listDomainNames(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getDomainName(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDomainName(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_domain_name.getDomainName", "service_client_error", err)
 		return nil, err

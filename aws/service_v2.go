@@ -27,8 +27,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
-	// For service endpoints
+	// Service endpoint refernce package
 	acmv1 "github.com/aws/aws-sdk-go/service/acm"
 	apigatewayv1 "github.com/aws/aws-sdk-go/service/apigateway"
 	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
@@ -36,11 +38,9 @@ import (
 	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
 	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
-	elb "github.com/aws/aws-sdk-go/service/elb"
-	elbv2 "github.com/aws/aws-sdk-go/service/elbv2"
-
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	elbv1 "github.com/aws/aws-sdk-go/service/elb"
+	elbv2v1 "github.com/aws/aws-sdk-go/service/elbv2"
+	snsv1 "github.com/aws/aws-sdk-go/service/sns"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -52,34 +52,51 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 }
 func noOpToken() error { return nil }
 
-func ACMClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*acm.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, acmv1.EndpointsID)
+func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, acmv1.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
+	}
+
 	return acm.NewFromConfig(*cfg), nil
 }
 
-func APIGatewayClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*apigateway.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, apigatewayv1.EndpointsID)
+func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return apigateway.NewFromConfig(*cfg), nil
 }
 
-func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*apigatewayv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, apigatewayv2v1.EndpointsID)
+func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, apigatewayv2v1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-func AutoScalingClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*autoscaling.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, autoscalingv1.EndpointsID)
+func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, autoscalingv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
 }
@@ -94,42 +111,62 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
-func DocDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*docdb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, docdbv1.EndpointsID)
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, docdbv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return docdb.NewFromConfig(*cfg), nil
 }
 
-func DynamoDBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*dynamodb.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, dynamodbv1.EndpointsID)
+func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, dynamodbv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-func EC2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*ec2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, ec2v1.EndpointsID)
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, ec2v1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func ELBClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elasticloadbalancing.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, elb.EndpointsID)
+func ELBClient(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancing.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elbv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return elasticloadbalancing.NewFromConfig(*cfg), nil
 }
 
-func ELBV2Client(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*elasticloadbalancingv2.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, elbv2.EndpointsID)
+func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancingv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, elbv2v1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
@@ -138,6 +175,10 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return iam.NewFromConfig(*cfg), nil
 }
@@ -167,13 +208,21 @@ func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*
 	if err != nil {
 		return nil, err
 	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
+	}
 	return s3control.NewFromConfig(*cfg), nil
 }
 
-func SNSClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*sns.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, h, SNSServiceID)
+func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, snsv1.EndpointsID)
 	if err != nil {
 		return nil, err
+	}
+	// If the config is empty, it is because of the un-supported region
+	if cfg == nil {
+		return nil, nil
 	}
 	return sns.NewFromConfig(*cfg), nil
 }
@@ -235,12 +284,13 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceID string) (*aws.Config, error) {
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
 	}
-	validRegions := SupportedRegionsForService(ctx, d, h, serviceID)
+	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+	plugin.Logger(ctx).Warn("aws_acm_certificate.listAwsAcmCertificates", "h", validRegions)
 	if !helpers.StringSliceContains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
@@ -251,19 +301,10 @@ func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, 
 	return getClient(ctx, d, region)
 }
 
-// Helper function to get the session for a region set in query data
-// func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	if region == "" {
-// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-// 	}
-// 	return getClient(ctx, d, region)
-// }
-
 // Helper function to get the session for a specific region
 func getClientForRegion(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
 	if region == "" {
-		return nil, fmt.Errorf("getSessionForRegion called with an empty region")
+		return nil, fmt.Errorf("getClientForRegion called with an empty region")
 	}
 	return getClient(ctx, d, region)
 }
@@ -368,7 +409,7 @@ func (j *ExponentialJitterBackoff) BackoffDelay(attempt int, err error) (time.Du
 	return retryTime, nil
 }
 
-func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
+func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, serviceId string) []string {
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
@@ -376,14 +417,14 @@ func SupportedRegionsForClient(ctx context.Context, d *plugin.QueryData, h *plug
 
 	var endpoints *Endpoints
 	getCachedEndpoints := plugin.HydrateFunc(GetAwsEndpoints).WithCache()
-	getCachedEndpointsData, err := getCachedEndpoints(ctx, d, h)
+	getCachedEndpointsData, err := getCachedEndpoints(ctx, d, nil)
 	if err != nil {
 		return []string{}
 	}
 
 	endpoints = getCachedEndpointsData.(*Endpoints)
 	getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
-	partition, _ := getCachedAccountPartition(ctx, d, h)
+	partition, _ := getCachedAccountPartition(ctx, d, nil)
 
 	regions := endpoints.GetPartitionByName(partition.(string)).Service(serviceId).Regions()
 

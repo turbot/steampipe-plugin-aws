@@ -163,7 +163,7 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Get API details
 	apiGatewayv2API := h.Item.(types.Api)
 
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.listAPIGatewayV2Stages", "service_client_error", err)
 		return nil, err
@@ -222,10 +222,10 @@ func listAPIGatewayV2Stages(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayV2Stage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_stage.getAPIGatewayV2Stage", "service_client_error", err)
 		return nil, err

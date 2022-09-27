@@ -115,7 +115,7 @@ func tableAwsAPIGatewayAPIKey(_ context.Context) *plugin.Table {
 func listAPIKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_api_key.listAPIKeys", "service_client_error", err)
 		return nil, err
@@ -175,11 +175,11 @@ func listAPIKeys(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 //// HYDRATE FUNCTIONS
 
-func getAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAPIKey")
 
 	// Create session
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getAPIKey", "service_client_error", err)
 		return nil, err

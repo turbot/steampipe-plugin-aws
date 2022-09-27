@@ -146,9 +146,9 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := KinesisService(ctx, d, h)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// get service
-	svc, err := KinesisService(ctx, d, h)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
-	svc, err := KinesisService(ctx, d, h)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// Create Session
-	svc, err := KinesisService(ctx, d, h)
+	svc, err := KinesisService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

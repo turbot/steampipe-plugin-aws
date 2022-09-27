@@ -136,11 +136,11 @@ type recordInfo struct {
 
 //// LIST FUNCTION
 
-func listRoute53Records(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	hostedZoneID := d.KeyColumnQuals["zone_id"].GetStringValue()
 
 	// Create session
-	svc, err := Route53Service(ctx, d, h)
+	svc, err := Route53Service(ctx, d)
 	if err != nil {
 		return nil, err
 	}

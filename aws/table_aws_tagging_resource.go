@@ -88,11 +88,11 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listTaggingResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listTaggingResources")
 
 	// Create session
-	svc, err := TaggingResourceService(ctx, d, h)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -138,13 +138,13 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 //// HYDRATE FUNCTIONS
 
-func getTaggingResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getTaggingResource")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create session
-	svc, err := TaggingResourceService(ctx, d, h)
+	svc, err := TaggingResourceService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

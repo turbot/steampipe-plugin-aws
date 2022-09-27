@@ -88,11 +88,11 @@ func tableAwsAPIGatewayUsagePlan(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listUsagePlans(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listUsagePlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create service
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_api_gateway_usage_plan.listUsagePlans", "service_client_error", err)
 		return nil, err
@@ -147,10 +147,10 @@ func listUsagePlans(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 //// HYDRATE FUNCTIONS
 
-func getUsagePlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getUsagePlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := APIGatewayClient(ctx, d, h)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gateway_rest_api.getUsagePlan", "service_cllient_error", err)
 		return nil, err

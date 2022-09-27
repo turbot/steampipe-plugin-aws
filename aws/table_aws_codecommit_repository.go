@@ -96,9 +96,9 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := CodeCommitService(ctx, d, h)
+	svc, err := CodeCommitService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func listCodeCommitRepositoryTags(ctx context.Context, d *plugin.QueryData, h *p
 	plugin.Logger(ctx).Trace("listCodeCommitRepositoryTags")
 
 	// Create service
-	svc, err := CodeCommitService(ctx, d, h)
+	svc, err := CodeCommitService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

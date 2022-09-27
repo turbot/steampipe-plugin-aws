@@ -127,11 +127,11 @@ func tableAwsSnsTopicSubscription(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsSnsTopicSubscriptions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSnsTopicSubscriptions")
 
 	// Create Session
-	svc, err := SNSService(ctx, d, h)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getSubscriptionAttributes(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create session
-	svc, err := SNSService(ctx, d, h)
+	svc, err := SNSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

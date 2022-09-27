@@ -118,11 +118,11 @@ func tableAwsSageMakerModel(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsSageMakerModels(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsSageMakerModels")
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, h)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func getAwsSageMakerModel(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create service
-	svc, err := SageMakerService(ctx, d, h)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func listAwsSageMakerModelTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create Session
-	svc, err := SageMakerService(ctx, d, h)
+	svc, err := SageMakerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

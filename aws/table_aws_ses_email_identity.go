@@ -73,12 +73,12 @@ func tableAwsSESEmailIdentity(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSESEmailIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listSESEmailIdentities")
 
 	// Create Session
-	svc, err := SESService(ctx, d, h)
+	svc, err := SESService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func getSESIdentityVerificationAttributes(ctx context.Context, d *plugin.QueryDa
 	identities := []*string{&identity}
 
 	// Create Session
-	svc, err := SESService(ctx, d, h)
+	svc, err := SESService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func getSESIdentityNotificationAttributes(ctx context.Context, d *plugin.QueryDa
 	identities := []*string{&identity}
 
 	// Create Session
-	svc, err := SESService(ctx, d, h)
+	svc, err := SESService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

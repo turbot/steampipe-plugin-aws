@@ -99,9 +99,9 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -162,13 +162,13 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, h 
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

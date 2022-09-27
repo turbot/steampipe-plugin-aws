@@ -165,11 +165,11 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func describePatchBaselines(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func describePatchBaselines(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("describePatchBaselines")
 
 	// Create session
-	svc, err := SSMService(ctx, d, h)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func getPatchBaseline(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// get service
-	svc, err := SSMService(ctx, d, h)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func getAwsSSMPatchBaselineTags(ctx context.Context, d *plugin.QueryData, h *plu
 	baseline := h.Item.(*ssm.GetPatchBaselineOutput)
 
 	// Create Session
-	svc, err := SSMService(ctx, d, h)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

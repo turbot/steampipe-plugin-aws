@@ -58,10 +58,10 @@ func trim(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	return strings.TrimSpace(s), nil
 }
 
-func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudwatchLogEvents(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

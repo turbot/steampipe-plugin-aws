@@ -94,10 +94,10 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.listVpcVpnGateways", "connection_error", err)
 		return nil, err
@@ -142,12 +142,12 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	vpnGatewayID := d.KeyColumnQuals["vpn_gateway_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.getVpcVpnGateway", "connection_error", err)
 		return nil, err

@@ -251,11 +251,11 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listNeptuneDBClusters")
 
 	// Create session
-	svc, err := NeptuneService(ctx, d, h)
+	svc, err := NeptuneService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -308,14 +308,14 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 //// HYDRATE FUNCTIONS
 
-func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getNeptuneDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getNeptuneDBCluster")
 
 	identifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create session
-	svc, err := NeptuneService(ctx, d, h)
+	svc, err := NeptuneService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +347,7 @@ func getNeptuneDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	clusterArn := h.Item.(*neptune.DBCluster).DBClusterArn
 
 	// Create session
-	svc, err := NeptuneService(ctx, d, h)
+	svc, err := NeptuneService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

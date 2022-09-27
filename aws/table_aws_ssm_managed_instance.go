@@ -150,11 +150,11 @@ func tableAwsSSMManagedInstance(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSsmManagedInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSsmManagedInstances")
 
 	// Create session
-	svc, err := SSMService(ctx, d, h)
+	svc, err := SSMService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

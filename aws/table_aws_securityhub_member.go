@@ -76,11 +76,11 @@ func tableAwsSecurityHubMember(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubMembers")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

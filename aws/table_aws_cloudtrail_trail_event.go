@@ -224,7 +224,7 @@ func tableAwsCloudtrailEventsListKeyColumns() []*plugin.KeyColumn {
 func listCloudwatchLogTrailEvents(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

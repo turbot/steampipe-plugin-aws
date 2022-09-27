@@ -111,7 +111,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 	instanceArn := *instance.InstanceArn
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d, h)
+	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func getSsoAdminPermissionSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	plugin.Logger(ctx).Trace("getSsoAdminPermissionSet")
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d, h)
+	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	plugin.Logger(ctx).Trace("getSsoAdminResourceTags")
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d, h)
+	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

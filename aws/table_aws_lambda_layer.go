@@ -92,12 +92,12 @@ func tableAwsLambdaLayer(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listLambdaLayers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listLambdaLayers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listLambdaLayers")
 
 	// Create service
-	svc, err := LambdaService(ctx, d, h)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		logger.Error("listLambdaLayers", "error_LambdaService", err)
 		return nil, err

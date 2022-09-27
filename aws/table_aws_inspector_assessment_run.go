@@ -121,10 +121,10 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

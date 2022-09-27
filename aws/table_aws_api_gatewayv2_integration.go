@@ -174,7 +174,7 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 	api := h.Item.(types.Api)
 
 	// Create Session
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.listAPIGatewayV2Integrations", "service_client_error", err)
 		return nil, err
@@ -232,10 +232,10 @@ func listAPIGatewayV2Integrations(ctx context.Context, d *plugin.QueryData, h *p
 
 //// HYDRATE FUNCTIONS
 
-func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAPIGatewayV2Integration(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := APIGatewayV2Client(ctx, d, h)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_api_gatewayv2_integration.getAPIGatewayV2Integration", "service_client_error", err)
 		return nil, err

@@ -345,11 +345,11 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBClusters")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -417,11 +417,11 @@ func listRDSDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func getRDSDBClusterPendingMaintenanceAction(ctx context.Context, d *plugin.Quer
 	dbClusterIdentifier := *h.Item.(*rds.DBCluster).DBClusterIdentifier
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

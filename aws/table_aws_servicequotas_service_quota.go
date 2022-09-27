@@ -129,11 +129,11 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listServiceQuotas(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listServiceQuotas")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func listServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getServiceQuota(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getServiceQuota")
 
 	quotaCode := d.KeyColumnQuals["quota_code"].GetStringValue()
@@ -212,7 +212,7 @@ func getServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func getServiceQuotaTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	quota := h.Item.(*servicequotas.ServiceQuota)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

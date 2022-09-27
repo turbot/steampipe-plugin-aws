@@ -95,11 +95,11 @@ func tableAwsAppAutoScalingTarget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 
 	// Create Session
-	svc, err := ApplicationAutoScalingService(ctx, d, h)
+	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listAwsApplicationAutoScalingTargets", "connection_error", err)
 		return nil, err
@@ -159,14 +159,14 @@ func listAwsApplicationAutoScalingTargets(ctx context.Context, d *plugin.QueryDa
 
 //// HYDRATE FUNCTIONS
 
-func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsApplicationAutoScalingTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getAwsApplicationAutoScalingTarget")
 
 	name := d.KeyColumnQuals["service_namespace"].GetStringValue()
 	id := d.KeyColumnQuals["resource_id"].GetStringValue()
 
 	// create service
-	svc, err := ApplicationAutoScalingService(ctx, d, h)
+	svc, err := ApplicationAutoScalingService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

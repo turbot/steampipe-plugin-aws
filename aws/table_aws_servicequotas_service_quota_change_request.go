@@ -141,11 +141,11 @@ func tableAwsServiceQuotasServiceQuotaChangeRequest(_ context.Context) *plugin.T
 
 //// LIST FUNCTION
 
-func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listServiceQuotaChangeRequests")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func listServiceQuotaChangeRequests(ctx context.Context, d *plugin.QueryData, h 
 
 //// HYDRATE FUNCTIONS
 
-func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getServiceQuotaChangeRequest")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
@@ -213,7 +213,7 @@ func getServiceQuotaChangeRequest(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func getServiceQuotaChangeRequestTags(ctx context.Context, d *plugin.QueryData, 
 	quota := h.Item.(*servicequotas.RequestedServiceQuotaChange)
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

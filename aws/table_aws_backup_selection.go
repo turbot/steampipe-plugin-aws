@@ -109,7 +109,7 @@ func listBackupSelections(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	plugin.Logger(ctx).Trace("listBackupSelections")
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func getBackupSelection(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	plugin.Logger(ctx).Trace("getBackupSelection")
 
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

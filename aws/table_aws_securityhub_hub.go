@@ -74,11 +74,11 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubs")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +102,13 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSecurityHub")
 
 	hubArn := d.KeyColumnQuals["hub_arn"].GetStringValue()
 
 	// get service
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// get service
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "service_creation_error", err)
 		return nil, err
@@ -161,7 +161,7 @@ func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	hubArn := *h.Item.(*securityhub.DescribeHubOutput).HubArn
 
 	// get service
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

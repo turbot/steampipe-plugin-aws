@@ -145,10 +145,10 @@ func tableAwsVpcFlowlog(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_flow_log.listVpcFlowlogs", "connection_error", err)
 		return nil, err
@@ -217,13 +217,13 @@ func listVpcFlowlogs(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcFlowlog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	quals := d.KeyColumnQuals
 	flowlogID := quals["flow_log_id"].GetStringValue()
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_flow_log.getVpcFlowlog", "connection_error", err)
 		return nil, err

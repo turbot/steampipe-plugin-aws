@@ -110,7 +110,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func listCloudwatchLogStreams(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getCloudwatchLogStream")
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
@@ -177,7 +177,7 @@ func getCloudwatchLogStream(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

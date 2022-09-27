@@ -115,9 +115,9 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDBClient(ctx, d, h)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_backup.listDynamodbBackups", "service_connection_error", err)
 		return nil, err
@@ -180,7 +180,7 @@ func listDynamodbBackups(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 	if strings.TrimSpace(arn) == "" {
@@ -188,7 +188,7 @@ func getDynamodbBackup(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := DynamoDBClient(ctx, d, h)
+	svc, err := DynamoDBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dynamodb_backup.getDynamodbBackup", "service_client_error", err)
 		return nil, err

@@ -115,7 +115,7 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -76,7 +76,7 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, h *plugin
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
 	// Create session
-	svc, err := IdentityStoreService(ctx, d, h)
+	svc, err := IdentityStoreService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -140,14 +140,14 @@ type IdentityStoreGroup struct {
 
 //// HYDRATE FUNCTIONS
 
-func getIdentityStoreGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getIdentityStoreGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getIdentityStoreGroup")
 
 	groupId := d.KeyColumnQuals["id"].GetStringValue()
 	identityStoreId := d.KeyColumnQuals["identity_store_id"].GetStringValue()
 
 	// Create session
-	svc, err := IdentityStoreService(ctx, d, h)
+	svc, err := IdentityStoreService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

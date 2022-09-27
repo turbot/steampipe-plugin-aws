@@ -102,7 +102,7 @@ func tableAwsVpcCustomerGateway(_ context.Context) *plugin.Table {
 func listVpcCustomerGateways(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.listVpcCustomerGateways", "connection error", err)
 		return nil, err
@@ -149,7 +149,7 @@ func getVpcCustomerGateway(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	customerGatewayID := d.KeyColumnQuals["customer_gateway_id"].GetStringValue()
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_customer_gateway.getVpcCustomerGateway", "connection error", err)
 		return nil, err

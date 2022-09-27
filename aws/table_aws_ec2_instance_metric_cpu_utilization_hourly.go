@@ -33,5 +33,5 @@ func tableAwsEc2InstanceMetricCpuUtilizationHourly(_ context.Context) *plugin.Ta
 
 func listEc2InstanceMetricCpuUtilizationHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	instance := h.Item.(*ec2.Instance)
-	return listCWMetricStatistics(ctx, d, h, "HOURLY", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
+	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/EC2", "CPUUtilization", "InstanceId", *instance.InstanceId)
 }

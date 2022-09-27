@@ -222,11 +222,11 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRDSDBSnapshots")
 
 	// Create Session
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -277,11 +277,11 @@ func listRDSDBSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRDSDBSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	dbSnapshotIdentifier := d.KeyColumnQuals["db_snapshot_identifier"].GetStringValue()
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +311,7 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 	dbSnapshot := h.Item.(*rds.DBSnapshot)
 
 	// Create service
-	svc, err := RDSService(ctx, d, h)
+	svc, err := RDSService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

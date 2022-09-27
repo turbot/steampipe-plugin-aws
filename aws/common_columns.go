@@ -100,7 +100,7 @@ type awsCommonColumnData struct {
 }
 
 // get columns which are returned with all tables: region, partition and account
-func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCommonColumns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	if region == "" {
 		region = "global"
@@ -108,7 +108,7 @@ func getCommonColumns(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	var commonColumnData *awsCommonColumnData
 	getCallerIdentityCached := plugin.HydrateFunc(getCallerIdentity).WithCache()
-	getCallerIdentityData, err := getCallerIdentityCached(ctx, d, h)
+	getCallerIdentityData, err := getCallerIdentityCached(ctx, d, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func getAccountPartition(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return cachedData.(string), nil
 	}
 
-	commonData, err := getCommonColumns(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, nil)
 	if err != nil {
 		plugin.Logger(ctx).Error("getAccountPartition", "common_data_error", err)
 		// If error or some other issue return default partition

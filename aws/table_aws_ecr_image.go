@@ -99,7 +99,7 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create Session
-	svc, err := ECRService(ctx, d, h)
+	svc, err := ECRService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImages", "connection_error", err)
 		return nil, err

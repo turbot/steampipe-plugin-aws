@@ -240,11 +240,11 @@ func tableAwsSecurityHubFinding(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSecurityHubFindings")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func listSecurityHubFindings(ctx context.Context, d *plugin.QueryData, h *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getSecurityHubFinding")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
@@ -314,7 +314,7 @@ func getSecurityHubFinding(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// get service
-	svc, err := SecurityHubService(ctx, d, h)
+	svc, err := SecurityHubService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

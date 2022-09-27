@@ -59,11 +59,11 @@ func tableAwsBackupProtectedResource(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupProtectedResources(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsBackupProtectedResources")
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func getAwsBackupProtectedResource(ctx context.Context, d *plugin.QueryData, h *
 	plugin.Logger(ctx).Trace("getAwsBackupProtectedResource")
 
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

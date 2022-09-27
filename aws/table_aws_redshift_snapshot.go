@@ -231,11 +231,11 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 	}
 }
 
-func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsRedshiftSnapshots")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d, h)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +309,7 @@ func getAwsRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, h)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

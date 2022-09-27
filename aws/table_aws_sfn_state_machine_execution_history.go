@@ -235,7 +235,7 @@ type historyInfo struct {
 
 func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d, h)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
@@ -323,9 +323,9 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 	}
 }
 
-func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, arn string) ([]historyInfo, error) {
+func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData, arn string) ([]historyInfo, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d, h)
+	svc, err := StepFunctionsService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err

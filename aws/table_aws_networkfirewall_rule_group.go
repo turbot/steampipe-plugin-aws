@@ -142,11 +142,11 @@ func tableAwsNetworkFirewallRuleGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listNetworkFirewallRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listNetworkFirewallRuleGroups")
 
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d, h)
+	svc, err := NetworkFirewallService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func getNetworkFirewallRuleGroup(ctx context.Context, d *plugin.QueryData, h *pl
 		arn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
 	// Create session
-	svc, err := NetworkFirewallService(ctx, d, h)
+	svc, err := NetworkFirewallService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

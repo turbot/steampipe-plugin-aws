@@ -266,7 +266,7 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 
 func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBClient(ctx, d, h)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.listEc2ClassicLoadBalancers", "connection_error", err)
 		return nil, err
@@ -321,11 +321,11 @@ func listEc2ClassicLoadBalancers(ctx context.Context, d *plugin.QueryData, h *pl
 
 //// HYDRATE FUNCTIONS
 
-func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getEc2ClassicLoadBalancer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	loadBalancerName := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create service
-	svc, err := ELBClient(ctx, d, h)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getEc2ClassicLoadBalancer", "connection_error", err)
 		return nil, err
@@ -356,7 +356,7 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBClient(ctx, d, h)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerAttributes", "connection_error", err)
 		return nil, err
@@ -384,7 +384,7 @@ func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, 
 	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
 
 	// Create service
-	svc, err := ELBClient(ctx, d, h)
+	svc, err := ELBClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerTags", "connection_error", err)
 		return nil, err

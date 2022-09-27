@@ -244,9 +244,9 @@ func tableAwsSnsTopic(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsSnsTopics(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Get client
-	svc, err := SNSClient(ctx, d, h)
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "get_client_error", err)
 		return nil, err
@@ -300,7 +300,7 @@ func getTopicAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Get client
-	svc, err := SNSClient(ctx, d, h)
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sns_topic.getTopicAttributes", "get_client_error", err)
 		return nil, err
@@ -327,7 +327,7 @@ func listTagsForSnsTopic(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	topicAttributesOutput := h.Item.(*sns.GetTopicAttributesOutput)
 
 	// Get client
-	svc, err := SNSClient(ctx, d, h)
+	svc, err := SNSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_sns_topic.listTagsForSnsTopic", "get_client_error", err)
 		return nil, err

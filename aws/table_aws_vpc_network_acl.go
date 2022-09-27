@@ -101,10 +101,10 @@ func tableAwsVpcNetworkACL(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_network_acl.listVpcNetworkACLs", "connection_error", err)
 		return nil, err
@@ -169,12 +169,12 @@ func listVpcNetworkACLs(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcNetworkACL(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	networkACLID := d.KeyColumnQuals["network_acl_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_network_acl.getVpcNetworkACL", "connection_error", err)
 		return nil, err

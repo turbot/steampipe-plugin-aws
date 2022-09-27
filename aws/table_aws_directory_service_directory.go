@@ -209,9 +209,9 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DirectoryService(ctx, d, h)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -271,9 +271,9 @@ func listDirectoryServiceDirectories(ctx context.Context, d *plugin.QueryData, h
 
 //// HYDRATE FUNCTIONS
 
-func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDirectoryServiceDirectory(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := DirectoryService(ctx, d, h)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ func getDirectoryServiceSharedDirectory(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Create service
-	svc, err := DirectoryService(ctx, d, h)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_directory_service_directory.getDirectoryServiceSharedDirectory", "service_creation_error", err)
 		return nil, err
@@ -369,7 +369,7 @@ func getDirectoryServiceDirectoryTags(ctx context.Context, d *plugin.QueryData, 
 	directoryID := h.Item.(*directoryservice.DirectoryDescription).DirectoryId
 
 	// Create service
-	svc, err := DirectoryService(ctx, d, h)
+	svc, err := DirectoryService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

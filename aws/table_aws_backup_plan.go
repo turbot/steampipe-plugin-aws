@@ -104,9 +104,9 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func listAwsBackupPlans(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func getAwsBackupPlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := BackupService(ctx, d, h)
+	svc, err := BackupService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

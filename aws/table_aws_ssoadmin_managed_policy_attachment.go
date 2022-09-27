@@ -57,7 +57,7 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listSsoAdminManagedPolicyAttachments")
 
 	permissionSetArn := d.KeyColumnQuals["permission_set_arn"].GetStringValue()
@@ -67,7 +67,7 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 	}
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d, h)
+	svc, err := SSOAdminService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

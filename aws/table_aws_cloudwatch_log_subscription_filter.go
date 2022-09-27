@@ -95,7 +95,7 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.listCloudwatchLogSubscriptionFilters", "service_creation_error", err)
 		return nil, err
@@ -155,7 +155,7 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 
 //// HYDRATE FUNCTIONS
 
-func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	if d.KeyColumnQuals["name"] == nil || d.KeyColumnQuals["log_group_name"] == nil {
 		return nil, nil
 	}
@@ -163,7 +163,7 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	logGroupName := d.KeyColumnQuals["log_group_name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "service_creation_error", err)
 		return nil, err

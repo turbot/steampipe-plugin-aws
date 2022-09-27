@@ -181,9 +181,9 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudFormationService(ctx, d, h)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -220,9 +220,9 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, h)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	stack := h.Item.(*cloudformation.Stack)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, h)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	stack := h.Item.(*cloudformation.Stack)
 
 	// Create Session
-	svc, err := CloudFormationService(ctx, d, h)
+	svc, err := CloudFormationService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

@@ -169,9 +169,9 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSecretsManagerSecrets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := SecretsManagerService(ctx, d, h)
+	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func describeSecretsManagerSecret(ctx context.Context, d *plugin.QueryData, h *p
 	}
 
 	// get service
-	svc, err := SecretsManagerService(ctx, d, h)
+	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func getSecretsManagerSecretPolicy(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	// Create Session
-	svc, err := SecretsManagerService(ctx, d, h)
+	svc, err := SecretsManagerService(ctx, d)
 	if err != nil {
 		logger.Error("getSecretsManagerSecretPolicy", "error_SecretsManagerService", err)
 		return nil, err

@@ -88,11 +88,11 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listRedshiftSubnetGroup")
 
 	// Create Session
-	svc, err := RedshiftService(ctx, d, h)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -137,11 +137,11 @@ func listRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin
 
 //// HYDRATE FUNCTIONS
 
-func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	clusterSubnetGroupName := d.KeyColumnQuals["cluster_subnet_group_name"].GetStringValue()
 
 	// Create service
-	svc, err := RedshiftService(ctx, d, h)
+	svc, err := RedshiftService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

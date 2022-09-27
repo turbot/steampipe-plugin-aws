@@ -56,12 +56,12 @@ func tableAwsCloudwatchLogResourcePolicy(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCloudwatchLogResourcePolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listCloudwatchLogResourcePolicies")
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d, h)
+	svc, err := CloudWatchLogsService(ctx, d)
 	if err != nil {
 		logger.Error("listCloudwatchLogResourcePolicies", "error_CloudWatchLogsService", err)
 		return nil, err

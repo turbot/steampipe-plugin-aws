@@ -9,7 +9,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
-// // TABLE DEFINITION
+//// TABLE DEFINITION
+
 func tableAwsEbsVolumeMetricWriteOpsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume_metric_write_ops_hourly",
@@ -33,5 +34,5 @@ func tableAwsEbsVolumeMetricWriteOpsHourly(_ context.Context) *plugin.Table {
 
 func listEbsVolumeMetricWriteOpsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	volume := h.Item.(*ec2.Volume)
-	return listCWMetricStatistics(ctx, d, h, "HOURLY", "AWS/EBS", "VolumeWriteOps", "VolumeId", *volume.VolumeId)
+	return listCWMetricStatistics(ctx, d, "HOURLY", "AWS/EBS", "VolumeWriteOps", "VolumeId", *volume.VolumeId)
 }

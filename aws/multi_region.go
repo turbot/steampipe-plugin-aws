@@ -242,26 +242,34 @@ func unique(stringSlice []string) []string {
 	return list
 }
 
-func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, serviceId string) []string {
+// SupportedRegionsForService list outs the valid regions for a service based on service id
+func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, serviceId string) []string {
 	var partitionName string
 	var partition endpoints.Partition
+
+	// If valid regions list is already avialable in cache, return it
 	cacheKey := fmt.Sprintf("supported-regions-%s", serviceId)
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
 		return cachedData.([]string)
 	}
 
+	// Get the partition of the AWS account plugin is connected to
 	if cachedData, ok := d.ConnectionManager.Cache.Get("getAccountPartition"); ok {
 		partitionName = cachedData.(string)
 	}
 
-	// Set default partition to AWS
+	// If partition name is not available,
+	// try to fetch partiton from APIs
 	if partitionName == "" {
 		getCachedAccountPartition := plugin.HydrateFunc(getAccountPartition).WithCache()
-		partitionData, _ := getCachedAccountPartition(ctx, d, h)
+		// Ignoring the errors as we don't want plugin to fail if unable to determine the partitions
+		// Instead below switch statment will set AWS commercial as the deafult partition
+		partitionData, _ := getCachedAccountPartition(ctx, d, nil)
 		partitionName, _ = partitionData.(string)
 	}
 
-	// Get patrition based on the partion name
+	// Get AWS partition based on the partition name
+	// If the partition name was obtained from APIs set AWS commercial as the default partition
 	switch partitionName {
 	case endpoints.AwsPartitionID:
 		partition = endpoints.AwsPartition()
@@ -278,6 +286,7 @@ func SupportedRegionsForService(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	var validRegions []string
+	// Get the list of the service regions based on the Service Id
 	regions := partition.Services()[serviceId].Regions()
 	for rs := range regions {
 		validRegions = append(validRegions, rs)

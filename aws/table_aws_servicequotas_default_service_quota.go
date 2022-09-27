@@ -114,11 +114,11 @@ func tableAwsServiceQuotasDefaultServiceQuota(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listDefaultServiceQuotas")
 
 	// Create Session
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func listDefaultServiceQuotas(ctx context.Context, d *plugin.QueryData, h *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getDefaultServiceQuota")
 
 	quotaCode := d.KeyColumnQuals["quota_code"].GetStringValue()
@@ -197,7 +197,7 @@ func getDefaultServiceQuota(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create service
-	svc, err := ServiceQuotasRegionalService(ctx, d, h)
+	svc, err := ServiceQuotasRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

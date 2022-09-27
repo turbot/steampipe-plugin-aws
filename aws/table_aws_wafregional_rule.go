@@ -80,10 +80,10 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 }
 
 // // LIST FUNCTION
-func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWAFRegionalRules")
 	// Create session
-	svc, err := WAFRegionalService(ctx, d, h)
+	svc, err := WAFRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger.Trace("getAwsWAFRegionalRule")
 
 	// Create Session
-	svc, err := WAFRegionalService(ctx, d, h)
+	svc, err := WAFRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

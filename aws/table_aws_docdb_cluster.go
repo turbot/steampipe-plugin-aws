@@ -232,11 +232,11 @@ func tableAwsDocDBCluster(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDocDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := DocDBClient(ctx, d, h)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.listDocDBClusters", "service_creation_error", err)
 		return nil, err
@@ -298,7 +298,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getDocDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getDocDBCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	dbClusterIdentifier := d.KeyColumnQuals["db_cluster_identifier"].GetStringValue()
 	if len(dbClusterIdentifier) < 1 {
@@ -306,7 +306,7 @@ func getDocDBCluster(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	// Create service
-	svc, err := DocDBClient(ctx, d, h)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBCluster", "service_creation_error", err)
 		return nil, err
@@ -337,7 +337,7 @@ func getDocDBClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	cluster := h.Item.(types.DBCluster)
 
 	// Create Session
-	svc, err := DocDBClient(ctx, d, h)
+	svc, err := DocDBClient(ctx, d)
 	if err != nil {
 		logger.Error("aws_docdb_cluster.getDocDBClusterTags", "service_creation_error", err)
 		return nil, err

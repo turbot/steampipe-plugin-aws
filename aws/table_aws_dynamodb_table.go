@@ -217,9 +217,9 @@ func tableAwsDynamoDBTable(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDynamboDbTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := DynamoDBService(ctx, d, h)
+	svc, err := DynamoDBService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func getDynamboDbTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := DynamoDBService(ctx, d, h)
+	svc, err := DynamoDBService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func getDescribeContinuousBackups(ctx context.Context, d *plugin.QueryData, h *p
 	table := h.Item.(*dynamodb.TableDescription)
 
 	// Create Session
-	svc, err := DynamoDBService(ctx, d, h)
+	svc, err := DynamoDBService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +360,7 @@ func getTableTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Create Session
-	svc, err := DynamoDBService(ctx, d, h)
+	svc, err := DynamoDBService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -398,7 +398,7 @@ func getTableStreamingDestination(ctx context.Context, d *plugin.QueryData, h *p
 	tableName := h.Item.(*dynamodb.TableDescription).TableName
 
 	// Create Session
-	svc, err := DynamoDBService(ctx, d, h)
+	svc, err := DynamoDBService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

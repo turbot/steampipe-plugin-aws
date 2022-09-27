@@ -126,10 +126,10 @@ func tableAwsInspectorAssessmentTemplate(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func getInspectorAssessmentTemplate(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func getAwsInspectorAssessmentTemplateTags(ctx context.Context, d *plugin.QueryD
 	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func listAwsInspectorAssessmentEventSubscriptions(ctx context.Context, d *plugin
 	assessmentTemplateArn := *h.Item.(*inspector.AssessmentTemplate).Arn
 
 	// Create Session
-	svc, err := InspectorService(ctx, d, h)
+	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

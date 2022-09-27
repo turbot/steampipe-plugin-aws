@@ -97,10 +97,10 @@ func tableAwsVpcRouteTable(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create session
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_route_table.listVpcRouteTables", "connection_error", err)
 		return nil, err
@@ -163,12 +163,12 @@ func listVpcRouteTables(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 //// HYDRATE FUNCTIONS
 
-func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getVpcRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	routeTableID := d.KeyColumnQuals["route_table_id"].GetStringValue()
 
 	// get service
-	svc, err := EC2Client(ctx, d, h)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_vpc_route_table.getVpcRouteTable", "connection_error", err)
 		return nil, err

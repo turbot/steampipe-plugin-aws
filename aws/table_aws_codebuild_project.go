@@ -212,9 +212,9 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CodeBuildService(ctx, d, h)
+	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func getCodeBuildProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	// get service
-	svc, err := CodeBuildService(ctx, d, h)
+	svc, err := CodeBuildService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

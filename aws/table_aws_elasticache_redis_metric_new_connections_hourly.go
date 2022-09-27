@@ -34,5 +34,5 @@ func tableAwsElasticacheRedisMetricNewConnectionsHourly(_ context.Context) *plug
 
 func listElastiCacheMetricNewConnectionsHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	cacheClusterConfiguration := h.Item.(*elasticache.CacheCluster)
-	return listCWMetricStatistics(ctx, d, h, "Hourly", "AWS/ElastiCache", "NewConnections", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
+	return listCWMetricStatistics(ctx, d, "Hourly", "AWS/ElastiCache", "NewConnections", "CacheClusterId", *cacheClusterConfiguration.CacheClusterId)
 }

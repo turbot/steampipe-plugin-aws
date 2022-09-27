@@ -100,11 +100,11 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listKinesisVideoStreams")
 
 	// Create session
-	svc, err := KinesisVideoService(ctx, d, h)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// get service
-	svc, err := KinesisVideoService(ctx, d, h)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	data := h.Item.(*kinesisvideo.StreamInfo)
 
 	// Create Session
-	svc, err := KinesisVideoService(ctx, d, h)
+	svc, err := KinesisVideoService(ctx, d)
 	if err != nil {
 		return nil, err
 	}

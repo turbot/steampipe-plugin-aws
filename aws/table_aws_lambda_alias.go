@@ -118,7 +118,7 @@ type aliasRowData = struct {
 func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listLambdaAliases")
 
-	svc, err := LambdaService(ctx, d, h)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func listLambdaAliases(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 //// HYDRATE FUNCTIONS
 
-func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getLambdaAlias(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	matrixRegion := d.KeyColumnQualString(matrixKeyRegion)
 	plugin.Logger(ctx).Trace("getLambdaAlias")
 
@@ -198,7 +198,7 @@ func getLambdaAlias(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, h)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, h)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getLambdaAliasPolicy", "error_LambdaService", err)
 		return nil, err
@@ -263,7 +263,7 @@ func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin
 	alias := h.Item.(*aliasRowData)
 
 	// Create Session
-	svc, err := LambdaService(ctx, d, h)
+	svc, err := LambdaService(ctx, d)
 	if err != nil {
 		return nil, err
 	}
