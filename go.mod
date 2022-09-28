@@ -25,6 +25,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9

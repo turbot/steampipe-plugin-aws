@@ -281,8 +281,6 @@ func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getRoute53DomainTags")
 
 	name := domainName(h.Item)
 
@@ -308,7 +306,6 @@ func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53DomainARN")
 
 	name := domainName(h.Item)
 
@@ -326,7 +323,6 @@ func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func route53DomainTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53DomainTurbotTags")
 
 	tags := d.HydrateItem.(*route53domains.ListTagsForDomainOutput)
 

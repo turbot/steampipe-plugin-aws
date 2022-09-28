@@ -142,6 +142,8 @@ github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15 h1:MpzLGfgsFwY+rk5rERg22DiH2
 github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15/go.mod h1:1UfKb/PiPkk/yE+nnB7XuhZl3pxPWufotyaoFSZNKlw=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9/go.mod h1:8ZCxqSjiKCzYs8G8EDB6aaxL4IgqYSbHHuhOUY7lSbE=
+github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2 h1:xxCS9CIRNBaXVxeRk6Oa54o1GDvwWPN2mC4ZvLt/4/Q=
+github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2/go.mod h1:kBlmUeN2zAmSUU2/5Zubr9SzeSin/z1AfdlfO1bWpQg=
 github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17 h1:Y/ay2+KWFoPBWP5p4VnWi7uCnZe+C6kdTlYUZC1w30U=
 github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17/go.mod h1:8kD6U3g33wPkjgM8boZrrVeXT6kmaWKf0nHquE2wWVU=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1 h1:OKQIQ0QhEBmGr2LfT952meIZz3ujrPYnxH+dO/5ldnI=
