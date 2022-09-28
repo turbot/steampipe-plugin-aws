@@ -46,6 +46,27 @@ func tableAwsIamAccessKey(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
+				Name:        "access_key_last_used_date",
+				Description: "The date when the access key was last used.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("LastUsedDate"),
+			},
+			{
+				Name:        "access_key_last_used_service",
+				Description: "The service last used by the access key.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("ServiceName"),
+			},
+			{
+				Name:        "access_key_last_used_region",
+				Description: "The region in which the access key was last used.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getIamAccessKeyLastUsed,
+				Transform:   transform.FromField("Region"),
+			},
+			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
@@ -128,4 +149,27 @@ func getIamAccessKeyAka(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	awsCommonData := commonColumnData.(*awsCommonColumnData)
 	aka := []string{"arn:" + awsCommonData.Partition + ":iam::" + awsCommonData.AccountId + ":user/" + *accessKey.UserName + "/accesskey/" + *accessKey.AccessKeyId}
 	return aka, nil
+}
+
+func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create Session
+	svc, err := IAMClient(ctx, d)
+	if err != nil {
+	  plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "client_error", err)
+	  return nil, err
+	}
+
+	accessKey := h.Item.(types.AccessKeyMetadata)
+
+	params := iam.GetAccessKeyLastUsedInput{
+		AccessKeyId: accessKey.AccessKeyId,
+	}
+
+	op, err := svc.GetAccessKeyLastUsed(ctx, &params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "api_error", err)
+		return nil, err
+	}
+
+	return op.AccessKeyLastUsed, nil
 }

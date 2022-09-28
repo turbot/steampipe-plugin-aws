@@ -14,9 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
+	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
@@ -24,7 +26,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -33,7 +37,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -61,6 +67,17 @@ func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanal
 	return accessanalyzer.NewFromConfig(*cfg), nil
 }
 
+func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
+	cfg, err := getClient(ctx, d, "Account")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return account.NewFromConfig(*cfg), nil
+}
+
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -85,10 +102,21 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return appconfig.NewFromConfig(*cfg), nil
+}
+
 func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, "auditmanager")
 	if err != nil {
 		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
 	}
 	return auditmanager.NewFromConfig(*cfg), nil
 }
@@ -149,12 +177,15 @@ func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch
 	return cloudwatchlogs.NewFromConfig(*cfg), nil
 }
 
-func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
-	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
 	if err != nil {
 		return nil, err
 	}
-	return costexplorer.NewFromConfig(*cfg), nil
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
 }
 
 func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
@@ -163,6 +194,23 @@ func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Clien
 		return nil, err
 	}
 	return codebuild.NewFromConfig(*cfg), nil
+}
+
+func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codedeploy.NewFromConfig(*cfg), nil
+}
+
+// CostExplorerClient returns the connection client for AWS Cost Explorer service
+func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return costexplorer.NewFromConfig(*cfg), nil
 }
 
 func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
@@ -236,12 +284,34 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	return iam.NewFromConfig(*cfg), nil
 }
 
+func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kafka.NewFromConfig(*cfg), nil
+}
+
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
 		return nil, err
 	}
 	return organizations.NewFromConfig(*cfg), nil
+}
+
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {

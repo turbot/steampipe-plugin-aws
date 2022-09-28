@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -42,6 +43,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN due to no allocation ID
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) specifying the VPC EIP.",
 				Type:        proto.ColumnType_STRING,
@@ -60,7 +62,7 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "domain",
-				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic(standard) or instances in a VPC (vpc).",
+				Description: "Indicates whether Elastic IP address is for use with instances in EC2-Classic (standard) or instances in a VPC (vpc).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -123,12 +125,14 @@ func tableAwsVpcEip(_ context.Context) *plugin.Table {
 				Transform:   transform.From(getVpcEipTurbotTags),
 			},
 			{
+				// Fallback to public IP for EIPs in EC2-Classic
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AllocationId"),
+				Transform:   transform.FromField("AllocationId", "PublicIp"),
 			},
 			{
+				// EIPs in EC2-Classic have no valid ARN, so no valid AKAs either
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -218,7 +222,9 @@ func getVpcEip(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	eip := h.Item.(types.Address)
+
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -227,7 +233,12 @@ func getVpcEipARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get resource arn
+	// EIPs in EC2-Classic do not have an allocation ID, therefore no valid ARN
+	if eip.AllocationId == nil {
+		return nil, nil
+	}
+
+	// Get resource ARN
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":eip/" + *eip.AllocationId
 
 	return arn, nil

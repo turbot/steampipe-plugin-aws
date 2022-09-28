@@ -18,7 +18,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayAttachmentID.NotFound", "InvalidTransitGatewayAttachmentID.Unavailable", "InvalidTransitGatewayAttachmentID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGatewayVpcAttachment,
 		},
@@ -33,6 +33,9 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 				{Name: "transit_gateway_id", Require: plugin.Optional},
 				{Name: "transit_gateway_owner_id", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,

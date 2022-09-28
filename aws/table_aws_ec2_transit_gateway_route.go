@@ -26,6 +26,9 @@ func tableAwsEc2TransitGatewayRoute(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 				{Name: "type", Require: plugin.Optional},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{

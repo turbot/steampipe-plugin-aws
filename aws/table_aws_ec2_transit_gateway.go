@@ -22,7 +22,7 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidTransitGatewayID.NotFound", "InvalidTransitGatewayID.Unavailable", "InvalidTransitGatewayID.Malformed", "InvalidAction"}),
 			},
 			Hydrate: getEc2TransitGateway,
 		},
@@ -39,6 +39,9 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 				{Name: "vpn_ecmp_support", Require: plugin.Optional},
 				{Name: "owner_id", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
