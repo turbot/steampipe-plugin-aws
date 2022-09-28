@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -148,7 +147,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 //// HYDRATE FUNCTIONS
 
 func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	
+
 	logger := plugin.Logger(ctx)
 	logger.Trace("getConfigConformancePack")
 	quals := d.KeyColumnQuals
@@ -162,7 +161,7 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	params := &configservice.DescribeConformancePacksInput{
-		ConformancePackNames: []string{*aws.String(name)},
+		ConformancePackNames: []string{name},
 	}
 
 	op, err := svc.DescribeConformancePacks(ctx, params)
