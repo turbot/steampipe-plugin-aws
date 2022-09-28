@@ -99,7 +99,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "notification_arns",
 				Description: "SNS topic ARNs to which stack related events are published.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("NotificationARNs"),
+				Transform:   transform.From(handlecfnStackNotificationArns),
 			},
 			{
 				Name:        "outputs",
@@ -152,7 +152,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags associated with stack.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.From(cfnStackTagsToTurbotTags),
 			},
 
 			// Standard columns
@@ -294,15 +294,25 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 }
 
 //// TRANSFORM FUNCTIONS
+func handlecfnStackNotificationArns(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	stack := d.HydrateItem.(types.Stack)
+
+	if len(stack.NotificationARNs) > 0 {
+		return stack.NotificationARNs, nil
+	}
+
+	return nil, nil
+}
 
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string
-
-	if stack.Tags != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range stack.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
+	if len(stack.Tags)>0{
+    if stack.Tags != nil {
+			turbotTagsMap = map[string]string{}
+			for _, i := range stack.Tags {
+				turbotTagsMap[*i.Key] = *i.Value
+			}
 		}
 	}
 	return turbotTagsMap, nil
