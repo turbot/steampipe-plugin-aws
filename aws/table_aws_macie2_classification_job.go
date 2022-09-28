@@ -160,6 +160,11 @@ func listMacie2ClassificationJobs(ctx context.Context, d *plugin.QueryData, _ *p
 		return nil, err
 	}
 
+	// Service is not supported in the region
+	if svc == nil {
+		return nil, nil
+	}
+
 	input := &macie2.ListClassificationJobsInput{
 		MaxResults: aws.Int64(100),
 	}
@@ -233,6 +238,11 @@ func getMacie2ClassificationJob(ctx context.Context, d *plugin.QueryData, h *plu
 	svc, err := Macie2Service(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+
+	// Service is not supported in the region
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build params

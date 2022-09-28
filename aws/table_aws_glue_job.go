@@ -43,7 +43,7 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "allocated_capacity",
-				Description: "Deprecated. Use max_capacity. The number of Glue data processing units (DPUs) that can be allocated when this job runs.",
+				Description: "[DEPRECATED] This column has been deprecated and will be removed in a future release, use max_capacity instead. The number of Glue data processing units (DPUs) that can be allocated when this job runs.",
 				Type:        proto.ColumnType_DOUBLE,
 			},
 			{

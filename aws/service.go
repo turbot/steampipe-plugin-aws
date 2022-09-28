@@ -152,6 +152,7 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv
 	return apigatewayv2.New(sess), nil
 }
 
+// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -579,9 +580,12 @@ func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, er
 }
 
 func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, "macie2")
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return macie2.New(sess), nil
 }
@@ -840,9 +844,12 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 }
 
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WafRegionalServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return wafregional.New(sess), nil
 }

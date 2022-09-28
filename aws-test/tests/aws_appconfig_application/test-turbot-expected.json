@@ -1,0 +1,9 @@
+[
+  {
+    "akas": ["{{ output.resource_aka.value }}"],
+    "tags": {
+      "Type": "AppConfig Application"
+    },
+    "title": "{{ output.resource_name.value }}"
+  }
+]

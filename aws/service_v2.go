@@ -16,8 +16,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
+	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -25,10 +29,15 @@ import (
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -40,6 +49,17 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 	return noOpToken, nil
 }
 func noOpToken() error { return nil }
+
+func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
+	cfg, err := getClient(ctx, d, "Account")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return account.NewFromConfig(*cfg), nil
+}
 
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
@@ -65,12 +85,39 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return appconfig.NewFromConfig(*cfg), nil
+}
+
 func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codedeploy.NewFromConfig(*cfg), nil
+}
+
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
 }
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
@@ -81,6 +128,17 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	}
 
 	return costexplorer.NewFromConfig(*cfg), nil
+}
+
+func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.DaxServiceID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return dax.NewFromConfig(*cfg), nil
 }
 
 func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
@@ -129,6 +187,28 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kafka.NewFromConfig(*cfg), nil
+}
+
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
@@ -232,21 +312,21 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-// func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	if region == "" {
-// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-// 	}
-// 	validRegions := SupportedRegionsForService(ctx, d, serviceID)
-// 	if !helpers.StringSliceContains(validRegions, region) {
-// 		// We choose to ignore unsupported regions rather than returning an error
-// 		// for them - it's a better user experience. So, return a nil session rather
-// 		// than an error. The caller must handle this case.
-// 		return nil, nil
-// 	}
-// 	// Supported region, so get and return the session
-// 	return getClient(ctx, d, region)
-// }
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+	}
+	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
+	}
+	// Supported region, so get and return the session
+	return getClient(ctx, d, region)
+}
 
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {
