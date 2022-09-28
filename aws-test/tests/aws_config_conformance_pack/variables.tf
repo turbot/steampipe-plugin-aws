@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "default"
+  default     = "aws_nagraj"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -19,7 +19,7 @@ variable "aws_region" {
 
 variable "aws_region_alternate" {
   type        = string
-  default     = "us-east-2"
+  default     = "ap-south-1"
   description = "Alternate AWS region used for tests that require two regions (e.g. DynamoDB global tables)."
 }
 
@@ -54,7 +54,7 @@ resource "aws_config_configuration_recorder" "configuration_recorder" {
 }
 
 resource "aws_iam_role" "r" {
-  name = "awsconfig-example"
+  name = var.resource_name
 
   assume_role_policy = <<POLICY
 {
@@ -118,5 +118,3 @@ output "resource_name" {
 output "resource_aka" {
   value = aws_config_conformance_pack.named_test_resource.arn
 }
-
-
