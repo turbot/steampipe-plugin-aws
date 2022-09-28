@@ -2,9 +2,11 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -70,10 +72,14 @@ func getDefaultEBSVolumeEncryption(ctx context.Context, d *plugin.QueryData, _ *
 	params := &ec2.GetEbsEncryptionByDefaultInput{}
 	defaultEncryption, err := svc.GetEbsEncryptionByDefault(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_regional_settings.getDefaultEBSVolumeEncryption", "api_error", err)
-		if strings.Contains(err.Error(), "AuthFailure") {
-			return false, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			// Return default ebs key alias for disabled regions
+			if ae.ErrorCode() == "AuthFailure" {
+				return false, nil
+			}
 		}
+		plugin.Logger(ctx).Error("aws_ec2_regional_settings.getDefaultEBSVolumeEncryption", "api_error", err)
 		return nil, err
 	}
 	return defaultEncryption.EbsEncryptionByDefault, nil

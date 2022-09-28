@@ -171,7 +171,8 @@ func getAwsEc2TransitGatewayRouteAka(ctx context.Context, d *plugin.QueryData, h
 	return akas, nil
 }
 
-// // UTILITY FUNCTION
+//// UTILITY FUNCTION
+
 // Build ec2 transit gateway route list call input filter
 func buildEc2TransitGatewayRouteFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

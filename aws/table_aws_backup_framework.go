@@ -2,11 +2,12 @@ package aws
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/backup/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -211,11 +212,13 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	op, err := svc.DescribeFramework(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "api_error", err)
-
-		if strings.Contains(err.Error(), "ResourceNotFoundException") {
-			return nil, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "ResourceNotFoundException" {
+				return nil, nil
+			}
 		}
+		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "api_error", err)
 		return nil, err
 	}
 

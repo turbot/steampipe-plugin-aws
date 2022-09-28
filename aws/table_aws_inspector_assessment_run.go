@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -125,20 +123,14 @@ func tableAwsInspectorAssessmentRun(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.InspectorServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	var assessmentRunArns []*string

@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -183,17 +181,14 @@ type InspectorFindingInfo struct {
 //// LIST FUNCTION
 
 func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	serviceId := endpoints.InspectorServiceID
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &inspector.ListFindingsInput{
@@ -224,11 +219,6 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *inspector.ListFindingsOutput, isLast bool) bool {
 			findingArns = append(findingArns, page.FindingArns...)
-
-			// plugin.Logger(ctx).Error("Total Number of Findings ====>>>>", len(page.FindingArns))
-			// if len(page.FindingArns) <= 500 {
-			// 	return false
-			// }
 			return !isLast
 		},
 	)
@@ -292,14 +282,6 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorFinding")
-
-	serviceId := endpoints.InspectorServiceID
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	var findingArn string
 	if h.Item != nil {
@@ -313,6 +295,10 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

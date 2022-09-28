@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/inspector"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -79,20 +77,14 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.InspectorServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &inspector.ListAssessmentTargetsInput{
@@ -141,19 +133,6 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Inspector is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://inspector.ap-northeast-3.amazonaws.com/": dial tcp: lookup inspector.ap-northeast-3.amazonaws.com: no such host
-	serviceId := endpoints.InspectorServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTarget")
-
 	var assessmentTargetArn string
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*inspector.AssessmentTarget).Arn
@@ -167,6 +146,10 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &inspector.DescribeAssessmentTargetsInput{
@@ -176,7 +159,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.DescribeAssessmentTargets(params)
 	if err != nil {
-		logger.Debug("describeAssessmentTarget__", "ERROR", err)
+		plugin.Logger(ctx).Debug("describeAssessmentTarget__", "ERROR", err)
 		return nil, err
 	}
 	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {
