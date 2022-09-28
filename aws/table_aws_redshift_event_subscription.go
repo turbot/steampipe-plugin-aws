@@ -157,7 +157,7 @@ func listRedshiftEventSubscriptions(ctx context.Context, d *plugin.QueryData, _ 
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -183,7 +183,7 @@ func getRedshiftEventSubscription(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Get call
-	data, err := svc.DescribeEventSubscriptions(ctx, params, func(o *redshift.Options) {})
+	data, err := svc.DescribeEventSubscriptions(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_event_subscription.getRedshiftEventSubscription", "api_error", err)
 		return nil, err

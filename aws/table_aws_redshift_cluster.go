@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"time"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -101,6 +102,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_security_groups",
 				Description: "A list of cluster security group that are associated with the cluster. Each security group is represented by an element that contains ClusterSecurityGroup.Name and ClusterSecurityGroup.Status subelements. Cluster security groups are used when the cluster is not created in an Amazon Virtual Private Cloud (VPC). Clusters that are created in a VPC use VPC security groups, which are listed by the VpcSecurityGroups parameter.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ClusterSecurityGroups").Transform(handleRedshiftClusterSecurityGroupsEmptyResult),
 			},
 			{
 				Name:        "cluster_snapshot_copy_status",
@@ -137,6 +139,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "deferred_maintenance_windows",
 				Description: "Describes a group of DeferredMaintenanceWindow objects.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("DeferredMaintenanceWindows").Transform(handleRedshiftDeferredMaintenanceWindowsEmptyResult),
 			},
 			{
 				Name:        "elastic_ip_status",
@@ -182,6 +185,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "iam_roles",
 				Description: "A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("IamRoles").Transform(handleRedshiftIamRolesEmptyResult),
 			},
 			{
 				Name:        "kms_key_id",
@@ -262,6 +266,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "snapshot_schedule_state",
 				Description: "The current state of the cluster snapshot schedule.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("SnapshotScheduleState").Transform(handleRedshiftSnapshotScheduleStateEmptyResult),
 			},
 			{
 				Name:        "vpc_id",
@@ -291,7 +296,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleRedshiftClusterTagsEmptyResult),
 			},
 
 			// Steampipe standard columns
@@ -316,6 +321,35 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+// Describes the status of logging for a cluster.
+type LoggingStatus struct {
+
+	// The name of the S3 bucket where the log files are stored.
+	BucketName *string
+
+	// The message indicating that logs failed to be delivered.
+	LastFailureMessage *string
+
+	// The last time when logs failed to be delivered.
+	LastFailureTime *time.Time
+
+	// The last time that logs were delivered.
+	LastSuccessfulDeliveryTime *time.Time
+
+	// The log destination type. An enum with possible values of s3 and cloudwatch.
+	LogDestinationType *string
+
+	// The collection of exported log types. Log types include the connection log, user
+	// log and user activity log.
+	LogExports []string
+
+	// true if logging is on, false if logging is off.
+	LoggingEnabled bool
+
+	// The prefix applied to the log file names.
+	S3KeyPrefix *string
 }
 
 //// LIST FUNCTION
@@ -367,7 +401,7 @@ func listRedshiftClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -392,7 +426,7 @@ func getRedshiftCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		ClusterIdentifier: aws.String(name),
 	}
 
-	op, err := svc.DescribeClusters(ctx, params, func(o *redshift.Options) {})
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftCluster", "api_error", err)
 		return nil, err
@@ -418,13 +452,18 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 		ClusterIdentifier: name,
 	}
 
-	op, err := svc.DescribeLoggingStatus(ctx, params, func(o *redshift.Options) {})
+	op, err := svc.DescribeLoggingStatus(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_cluster.getRedshiftLoggingDetails", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	logDestinationType := string(op.LogDestinationType)
+	if logDestinationType == "" {
+		return LoggingStatus{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, nil, op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
+	}
+
+	return LoggingStatus{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, aws.String(logDestinationType), op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
 }
 
 func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -434,13 +473,13 @@ func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plu
 		plugin.Logger(ctx).Error("aws_redshift_cluster.getClusterScheduledActions", "connection_error", err)
 		return nil, err
 	}
-	name := h.Item.(types.Cluster).ClusterIdentifier
+	name := *h.Item.(types.Cluster).ClusterIdentifier
 
 	params := &redshift.DescribeScheduledActionsInput{
 		Filters: []types.ScheduledActionFilter{
 			{
 				Name:   "cluster-identifier",
-				Values: []string{*name},
+				Values: []string{name},
 			},
 		},
 	}
@@ -486,12 +525,52 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	cluster := d.HydrateItem.(types.Cluster)
 
-	if cluster.Tags != nil {
+	if len(cluster.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range cluster.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftClusterTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cluster := d.HydrateItem.(types.Cluster)
+	if len(cluster.Tags) > 0 {
+		return cluster.Tags, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftIamRolesEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cluster := d.HydrateItem.(types.Cluster)
+	if len(cluster.IamRoles) > 0 {
+		return cluster.IamRoles, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftDeferredMaintenanceWindowsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cluster := d.HydrateItem.(types.Cluster)
+	if len(cluster.DeferredMaintenanceWindows) > 0 {
+		return cluster.DeferredMaintenanceWindows, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftSnapshotScheduleStateEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cluster := d.HydrateItem.(types.Cluster)
+	if cluster.SnapshotScheduleState == "" {
+		return nil, nil
+	}
+	return cluster.SnapshotScheduleState, nil
+}
+
+func handleRedshiftClusterSecurityGroupsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	cluster := d.HydrateItem.(types.Cluster)
+	if len(cluster.ClusterSecurityGroups) > 0 {
+		return cluster.ClusterSecurityGroups, nil
 	}
 	return nil, nil
 }

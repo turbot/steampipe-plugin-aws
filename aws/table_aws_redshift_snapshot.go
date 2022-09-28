@@ -205,7 +205,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleRedshiftSnapshotTagsEmptyResult),
 			},
 
 			// Standard columns
@@ -299,7 +299,7 @@ func listRedshiftSnapshots(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -328,7 +328,7 @@ func getRedshiftSnapshot(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		SnapshotIdentifier: aws.String(name),
 	}
 
-	op, err := svc.DescribeClusterSnapshots(ctx, params, func(o *redshift.Options) {})
+	op, err := svc.DescribeClusterSnapshots(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_snapshot.getRedshiftSnapshot", "api_error", err)
 		return nil, err
@@ -367,12 +367,20 @@ func redshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (
 	snapshot := d.HydrateItem.(types.Snapshot)
 
 	// Get the resource tags
-	if snapshot.Tags != nil {
+	if len(snapshot.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range snapshot.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftSnapshotTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	snapshot := d.HydrateItem.(types.Snapshot)
+	if len(snapshot.Tags) > 0 {
+		return snapshot.Tags, nil
 	}
 	return nil, nil
 }

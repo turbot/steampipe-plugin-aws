@@ -59,8 +59,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags attached to the subnet group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getRedshiftSubnetGroup,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleRedshiftSubnetGroupTagsEmptyResult),
 			},
 
 			// Standard columns
@@ -136,7 +135,7 @@ func listRedshiftSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -160,7 +159,7 @@ func getRedshiftSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		ClusterSubnetGroupName: aws.String(clusterSubnetGroupName),
 	}
 
-	op, err := svc.DescribeClusterSubnetGroups(ctx, params, func(o *redshift.Options) {})
+	op, err := svc.DescribeClusterSubnetGroups(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_subnet_group.getRedshiftSubnetGroup", "api_error", err)
 		return nil, err
@@ -197,7 +196,7 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
 
-	if clusterSubnetGroup.Tags != nil {
+	if len(clusterSubnetGroup.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range clusterSubnetGroup.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
@@ -205,5 +204,13 @@ func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData
 		return turbotTagsMap, nil
 	}
 
+	return nil, nil
+}
+
+func handleRedshiftSubnetGroupTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
+	if len(clusterSubnetGroup.Tags) > 0 {
+		return clusterSubnetGroup.Tags, nil
+	}
 	return nil, nil
 }

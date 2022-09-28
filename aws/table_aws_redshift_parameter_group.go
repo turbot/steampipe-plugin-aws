@@ -56,7 +56,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the parameter group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Transform:   transform.FromField("Tags").Transform(handleRedshiftParameterGroupTagsEmptyResult),
 			},
 
 			// Standard columns for all tables
@@ -132,7 +132,7 @@ func listRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -158,7 +158,7 @@ func getRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 	}
 
 	// Get call
-	data, err := svc.DescribeClusterParameterGroups(ctx, params, func(o *redshift.Options) {})
+	data, err := svc.DescribeClusterParameterGroups(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameterGroup", "api_error", err)
 		return nil, err
@@ -175,6 +175,7 @@ func getRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create Session
 	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameters", "connection_error", err)
 		return nil, err
 	}
 
@@ -186,8 +187,9 @@ func getRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	op, err := svc.DescribeClusterParameters(ctx, params, func(o *redshift.Options) {})
+	op, err := svc.DescribeClusterParameters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameters", "api_error", err)
 		return nil, err
 	}
 
@@ -201,6 +203,7 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -226,6 +229,14 @@ func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (inter
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
+	}
+	return nil, nil
+}
+
+func handleRedshiftParameterGroupTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	clusterParameterGroup := d.HydrateItem.(types.ClusterParameterGroup)
+	if len(clusterParameterGroup.Tags) > 0 {
+		return clusterParameterGroup.Tags, nil
 	}
 	return nil, nil
 }
