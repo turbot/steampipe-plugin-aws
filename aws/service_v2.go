@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
@@ -191,7 +192,16 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error
 	}
 	return elbv2.NewFromConfig(*cfg), nil
 }
-
+func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return efs.NewFromConfig(*cfg), nil
+}
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {

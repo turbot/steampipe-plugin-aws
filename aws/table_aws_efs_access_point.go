@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -113,13 +113,13 @@ func tableAwsEfsAccessPoint(_ context.Context) *plugin.Table {
 
 func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
 	input := &efs.DescribeAccessPointsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(100),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -131,7 +131,7 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if d.QueryContext.Limit != nil {
 		if *limit < *input.MaxResults {
 			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
+				input.MaxResults = aws.Int32(5)
 			} else {
 				input.MaxResults = limit
 			}
@@ -164,7 +164,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	accessPointID := quals["access_point_id"].GetStringValue()
 
 	// create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
