@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
@@ -99,6 +100,37 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
+	// CloudControl returns GeneralServiceException in a lot of situations, which
+	// AWS SDK treats as retryable. This is frustrating because we end up retrying
+	// many times for things that will never work.
+	// So, we use a specific client configuration for CloudControl with a smaller
+	// number of retries to avoid hangs. In effect, this service IGNORES the retry
+	// configuration in aws.spc - but, good enough for something that is rarely used
+	// anyway.
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("CloudControlService called without a region in QueryData")
+	}
+
+	// Use a service level cache since we are going around the standard
+	// getSession with its caching.
+	serviceCacheKey := fmt.Sprintf("cloudcontrol-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudcontrol.Client), nil
+	}
+
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudcontrol.NewFromConfig(*cfg)
+
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
 }
 
 func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
