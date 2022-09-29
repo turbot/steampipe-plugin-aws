@@ -103,8 +103,8 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 		return nil, err
 	}
 	if op.ConfigurationRecorders != nil {
-		for _, ConfigurationRecorders := range op.ConfigurationRecorders {
-			d.StreamListItem(ctx, ConfigurationRecorders)
+		for _, configurationRecorder := range op.ConfigurationRecorders {
+			d.StreamListItem(ctx, configurationRecorder)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -147,8 +147,6 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 }
 
 func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigConfigurationRecorderStatus")
-
 	configurationRecorder := h.Item.(types.ConfigurationRecorder)
 
 	// Create session
@@ -195,7 +193,6 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 }
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsConfigurationRecorderAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	configurationRecorder := h.Item.(types.ConfigurationRecorder)

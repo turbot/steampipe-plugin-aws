@@ -103,7 +103,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 
 	input := &configservice.DescribeConformancePacksInput{
-		Limit: int32(20),
+		Limit: int32(2),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -148,8 +148,6 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
-	logger := plugin.Logger(ctx)
-	logger.Trace("getConfigConformancePack")
 	quals := d.KeyColumnQuals
 	name := quals["name"].GetStringValue()
 
@@ -166,12 +164,11 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	op, err := svc.DescribeConformancePacks(ctx, params)
 	if err != nil {
-		logger.Debug("getConfigConformancePack", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_config_conformance_pack.getConfigConformancePack", "api_error", err)
 		return nil, err
 	}
 
-	if op != nil {
-		logger.Debug("getConfigConformancePack", "SUCCESS", op)
+	if len(op.ConformancePackDetails) > 0 {
 		return op.ConformancePackDetails[0], nil
 	}
 

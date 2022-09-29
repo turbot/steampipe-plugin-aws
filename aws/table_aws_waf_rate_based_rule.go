@@ -97,7 +97,6 @@ func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// plugin.Logger(ctx).Trace("listAwsWafRateBasedRules")
 	// Create session
 	svc, err := WAFClient(ctx, d)
 	if err != nil {

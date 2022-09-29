@@ -84,7 +84,7 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	}
 
 	input := &configservice.DescribeAggregationAuthorizationsInput{
-		Limit: int32(0),
+		Limit: int32(2),
 	}
 
 	// If the requested number of items is less than the paging max limit
@@ -99,6 +99,8 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	paginator := configservice.NewDescribeAggregationAuthorizationsPaginator(svc, input, func(o *configservice.DescribeAggregationAuthorizationsPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
+
+	plugin.Logger(ctx).Info("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "HAS MORE PAGES", err)
 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -125,7 +127,7 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 	// Create session
 	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "api_error", err)
 		return nil, err
 	}
 
