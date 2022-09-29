@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -40,6 +41,8 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -211,6 +214,17 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error
 		return nil, err
 	}
 	return elbv2.NewFromConfig(*cfg), nil
+}
+
+func FsxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return fsx.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
