@@ -116,12 +116,6 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 	maxLimit := int32(100)
-	data := h.Item.(types.FileSystemDescription)
-	params := &efs.DescribeMountTargetsInput{
-		FileSystemId: data.FileSystemId,
-		MaxItems:     aws.Int32(maxLimit),
-	}
-
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
@@ -131,6 +125,11 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 				maxLimit= int32(*limit)
 			}
 		}
+	}
+	data := h.Item.(types.FileSystemDescription)
+	params := &efs.DescribeMountTargetsInput{
+		FileSystemId: data.FileSystemId,
+		MaxItems:     aws.Int32(maxLimit),
 	}
 	// List call
 	pagesLeft := true
@@ -142,7 +141,6 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 		for _, mountTarget := range result.MountTargets {
 			d.StreamListItem(ctx, mountTarget)
-
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				pagesLeft = false

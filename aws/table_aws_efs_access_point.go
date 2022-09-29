@@ -120,15 +120,6 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
   maxLimit := int32(100)
-	input := &efs.DescribeAccessPointsInput{
-		MaxResults: aws.Int32(maxLimit),
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["file_system_id"] != nil {
-		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
-	}
-  
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
@@ -139,7 +130,14 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			}
 		}
 	}
-	
+	input := &efs.DescribeAccessPointsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["file_system_id"] != nil {
+		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
+	}
   paginator:=efs.NewDescribeAccessPointsPaginator(svc,input,func(o *efs.DescribeAccessPointsPaginatorOptions) {
 		o.Limit=maxLimit
 		o.StopOnDuplicateToken=true
@@ -152,7 +150,6 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 		for _, accessPoint  := range output.AccessPoints{
 			d.StreamListItem(ctx, accessPoint)
-
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil

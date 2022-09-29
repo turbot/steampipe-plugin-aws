@@ -163,15 +163,6 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
   maxLimit := int32(100)
-	input := &efs.DescribeFileSystemsInput{
-		MaxItems: aws.Int32(maxLimit),
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["creation_token"] != nil {
-		input.CreationToken = aws.String(equalQuals["creation_token"].GetStringValue())
-	}
-
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
@@ -182,7 +173,14 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			}
 		}
 	}
+	input := &efs.DescribeFileSystemsInput{
+		MaxItems: aws.Int32(maxLimit),
+	}
 
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["creation_token"] != nil {
+		input.CreationToken = aws.String(equalQuals["creation_token"].GetStringValue())
+	}
 	// List call
 	paginator:=efs.NewDescribeFileSystemsPaginator(svc,input,func(o *efs.DescribeFileSystemsPaginatorOptions) {
 		o.Limit=maxLimit
@@ -196,7 +194,6 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 		for _, fileSystem  := range output.FileSystems{
 			d.StreamListItem(ctx, fileSystem)
-
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
