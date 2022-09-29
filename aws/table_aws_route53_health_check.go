@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -252,12 +254,18 @@ func getHealthCheckStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	params := &route53.GetHealthCheckStatusInput{
-		HealthCheckId: aws.String(*healthCheck.Id),
+		HealthCheckId: healthCheck.Id,
 	}
 
 	// execute get call
 	item, err := svc.GetHealthCheckStatus(ctx, params)
 	if err != nil {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidInput" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckStatus", "api_error", err)
 		return nil, err
 	}
@@ -324,8 +332,14 @@ func route53HealthCheckTurbotTags(ctx context.Context, d *transform.TransformDat
 
 func route53CloudWatchAlarmConfigurationEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	configuration := d.HydrateItem.(types.HealthCheck).CloudWatchAlarmConfiguration
+
+	if configuration == nil {
+		return nil, nil
+	}
+
 	if len(configuration.Dimensions) == 0 {
 		return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, nil}, nil
 	}
+
 	return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, configuration.Dimensions}, nil
 }
