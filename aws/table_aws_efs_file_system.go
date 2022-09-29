@@ -2,13 +2,13 @@ package aws
 
 import (
 	"context"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
+	"github.com/aws/aws-sdk-go-v2/service/efs/types"
+	"github.com/aws/smithy-go"
+	
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -158,13 +158,13 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 
 func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
+  maxLimit := int32(100)
 	input := &efs.DescribeFileSystemsInput{
-		MaxItems: aws.Int64(100),
+		MaxItems: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -174,31 +174,36 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+				maxLimit=1
 			} else {
-				input.MaxItems = limit
+				maxLimit= int32(*limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeFileSystemsPages(
-		input,
-		func(page *efs.DescribeFileSystemsOutput, isLast bool) bool {
-			for _, fileSystem := range page.FileSystems {
-				d.StreamListItem(ctx, fileSystem)
+	paginator:=efs.NewDescribeFileSystemsPaginator(svc,input,func(o *efs.DescribeFileSystemsPaginatorOptions) {
+		o.Limit=maxLimit
+		o.StopOnDuplicateToken=true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
+			return nil, err
+		}
+		for _, fileSystem  := range output.FileSystems{
+			d.StreamListItem(ctx, fileSystem)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil,nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+		
+	}
 	return nil, err
 }
 
@@ -206,7 +211,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create service
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +223,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		FileSystemId: aws.String(fileSystemID),
 	}
 
-	op, err := svc.DescribeFileSystems(params)
+	op, err := svc.DescribeFileSystems(ctx,params)
 	if err != nil {
 		return nil, err
 	}
@@ -233,10 +238,10 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("getElasticFileSystemPolicy")
 
-	fileSystem := h.Item.(*efs.FileSystemDescription)
+	fileSystem := h.Item.(types.FileSystemDescription)
 
 	// Create session
-	svc, err := EfsService(ctx, d)
+	svc, err := EFSClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -246,10 +251,10 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 		FileSystemId: fileSystem.FileSystemId,
 	}
 
-	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(param)
+	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(ctx,param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "PolicyNotFound" {
+		if a, ok := err.(smithy.APIError); ok {
+			if a.ErrorCode() == "PolicyNotFound" {
 				return nil, nil
 			}
 			return nil, err
@@ -261,7 +266,7 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func elasticFileSystemTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	fileSystemTag := d.HydrateItem.(*efs.FileSystemDescription)
+	fileSystemTag := d.HydrateItem.(types.FileSystemDescription)
 	if fileSystemTag.Tags == nil {
 		return nil, nil
 	}
@@ -278,7 +283,7 @@ func elasticFileSystemTurbotData(_ context.Context, d *transform.TransformData) 
 }
 
 func getElasticFileSystemTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	fileSystemTitle := d.HydrateItem.(*efs.FileSystemDescription)
+	fileSystemTitle := d.HydrateItem.(types.FileSystemDescription)
 
 	if fileSystemTitle.Tags != nil {
 		for _, i := range fileSystemTitle.Tags {
@@ -292,7 +297,7 @@ func getElasticFileSystemTurbotTitle(_ context.Context, d *transform.TransformDa
 }
 
 func automaticBackupsValue(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	automaticBackup := d.HydrateItem.(*efs.FileSystemDescription)
+	automaticBackup := d.HydrateItem.(types.FileSystemDescription)
 
 	if automaticBackup.Tags != nil {
 		for _, i := range automaticBackup.Tags {

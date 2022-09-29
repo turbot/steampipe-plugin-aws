@@ -207,7 +207,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 			}
 			for _, stack := range output.Stacks {
 				d.StreamListItem(ctx, stack)
-	
+	      plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
 				// Context can be cancelled due to manual cancellation or the limit has been hit
 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
 					return nil,nil

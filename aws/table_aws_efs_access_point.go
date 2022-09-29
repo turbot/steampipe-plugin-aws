@@ -5,6 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/efs"
+	"github.com/aws/aws-sdk-go-v2/service/efs/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -117,43 +119,47 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
-
+  maxLimit := int32(100)
 	input := &efs.DescribeAccessPointsInput{
-		MaxResults: aws.Int32(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["file_system_id"] != nil {
 		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
 	}
-
+  
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 5 {
-				input.MaxResults = aws.Int32(5)
+				maxLimit=5
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit) 
 			}
 		}
 	}
+	
+  paginator:=efs.NewDescribeAccessPointsPaginator(svc,input,func(o *efs.DescribeAccessPointsPaginatorOptions) {
+		o.Limit=maxLimit
+		o.StopOnDuplicateToken=true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
+			return nil, err
+		}
+		for _, accessPoint  := range output.AccessPoints{
+			d.StreamListItem(ctx, accessPoint)
 
-	// List call
-	err = svc.DescribeAccessPointsPages(
-		input,
-		func(page *efs.DescribeAccessPointsOutput, isLast bool) bool {
-			for _, accessPoint := range page.AccessPoints {
-				d.StreamListItem(ctx, accessPoint)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil,nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+		
+	}
 	return nil, err
 }
 
@@ -173,7 +179,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		AccessPointId: aws.String(accessPointID),
 	}
 
-	data, err := svc.DescribeAccessPoints(params)
+	data, err := svc.DescribeAccessPoints(ctx,params)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +194,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("efsAccessPointTurbotTags")
-	tagList := d.HydrateItem.(*efs.AccessPointDescription)
+	tagList := d.HydrateItem.(types.AccessPointDescription)
 
 	if tagList.Tags == nil {
 		return nil, nil
@@ -196,20 +202,21 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
-		for _, i := range tagList.Tags {
-			turbotTagsMap[*i.Key] = *i.Value
+	
+    if tagList.Tags != nil {
+			turbotTagsMap = map[string]string{}
+			for _, i := range tagList.Tags {
+				turbotTagsMap[*i.Key] = *i.Value
+			}
 		}
-	}
-
+	
 	return turbotTagsMap, nil
 }
 
 // Generate title for the resource
 func efsAccessPointTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("efsAccessPointTitle")
-	data := d.HydrateItem.(*efs.AccessPointDescription)
+	data := d.HydrateItem.(types.AccessPointDescription)
 
 	// If name is available, then setting name as title, else setting Access Point ID as title
 	if data.Name != nil {
