@@ -121,7 +121,6 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 
 func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	auth := h.Item.(types.AggregationAuthorization)
-	// auth := h.Item.(*configservice.AggregationAuthorization)
 
 	// Create session
 	svc, err := ConfigClient(ctx, d)

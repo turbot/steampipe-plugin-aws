@@ -2,9 +2,9 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -173,12 +173,25 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 
 	statusArr := status.ConfigurationRecordersStatus[0]
 
-	last_status := string(statusArr.LastStatus)
-	if last_status == "" {
-		return Status{statusArr.LastErrorCode, statusArr.LastErrorMessage, statusArr.LastStartTime, nil, statusArr.LastStatusChangeTime, statusArr.LastStopTime, statusArr.Name, statusArr.Recording}, nil
+	// encode status object
+	byteData, err := json.Marshal(statusArr)
+	if err != nil {
+		return nil, err
 	}
 
-	return Status{statusArr.LastErrorCode, statusArr.LastErrorMessage, statusArr.LastStartTime, aws.String(last_status), statusArr.LastStatusChangeTime, statusArr.LastStopTime, statusArr.Name, statusArr.Recording}, nil
+	// unmarshal the status object to Status struct
+	var res Status
+	err = json.Unmarshal(byteData, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	// return nil, if LastStatus value is empty
+	if *res.LastStatus == "" {
+		res.LastStatus = nil
+	}
+
+	return res, nil
 }
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
