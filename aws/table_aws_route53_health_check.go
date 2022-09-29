@@ -50,7 +50,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "linked_service_description",
-				Description: "If the health check was created by another service, an optional description that can be provided by the other service.",
+				Description: "If the health check was created by another service, an configurationtional description that can be provided by the other service.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("LinkedService.Description"),
 			},
@@ -58,6 +58,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 				Name:        "cloud_watch_alarm_configuration",
 				Description: "A complex type that contains information about the CloudWatch alarm that Amazon Route 53 is monitoring for this health check.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(route53CloudWatchAlarmConfigurationEmptyCheck),
 			},
 			{
 				Name:        "health_check_config",
@@ -109,7 +110,7 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 type CloudWatchAlarmConfiguration struct {
 
 	// For the metric that the CloudWatch alarm is associated with, the arithmetic
-	// operation that is used for the comparison.
+	// configurationeration that is used for the comparison.
 	//
 	// This member is required.
 	ComparisonOperator types.ComparisonOperator
@@ -127,7 +128,7 @@ type CloudWatchAlarmConfiguration struct {
 
 	// The namespace of the metric that the alarm is associated with. For more
 	// information, see Amazon CloudWatch Namespaces, Dimensions, and Metrics Reference
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/CW_Support_For_AWS.html)
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DevelconfigurationerGuide/CW_Support_For_AWS.html)
 	// in the Amazon CloudWatch User Guide.
 	//
 	// This member is required.
@@ -154,10 +155,9 @@ type CloudWatchAlarmConfiguration struct {
 	// For the metric that the CloudWatch alarm is associated with, a complex type that
 	// contains information about the dimensions for the metric. For information, see
 	// Amazon CloudWatch Namespaces, Dimensions, and Metrics Reference
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/CW_Support_For_AWS.html)
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DevelconfigurationerGuide/CW_Support_For_AWS.html)
 	// in the Amazon CloudWatch User Guide.
 	Dimensions []types.Dimension
-
 }
 
 //// LIST FUNCTION
@@ -199,15 +199,6 @@ func listHealthChecks(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		}
 
 		for _, healthCheck := range output.HealthChecks {
-
-			dimensions := healthCheck.CloudWatchAlarmConfiguration.Dimensions
-
-		if len(dimensions) == 0 {
-		return CloudWatchAlarmConfiguration{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, nil, op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
-	}
-
-	return LoggingStatus{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, aws.String(logDestinationType), op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
-
 			d.StreamListItem(ctx, healthCheck)
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -292,9 +283,9 @@ func getHealthCheckTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// execute list call
 	resp, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-	plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckTags", "api_error", err)
-	return nil, err
-}
+		plugin.Logger(ctx).Error("aws_route53_health_check.getHealthCheckTags", "api_error", err)
+		return nil, err
+	}
 
 	return resp, nil
 }
@@ -308,7 +299,7 @@ func getRoute53HealthCheckTurbotAkas(ctx context.Context, d *plugin.QueryData, h
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Get data for turbot defined properties
+	// Get data for turbot defined prconfigurationerties
 	akas := []string{"arn:" + commonColumnData.Partition + ":route53:::" + "healthcheck/" + *healthCheck.Id}
 
 	return akas, nil
@@ -329,4 +320,12 @@ func route53HealthCheckTurbotTags(ctx context.Context, d *transform.TransformDat
 	}
 
 	return turbotTagsMap, nil
+}
+
+func route53CloudWatchAlarmConfigurationEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	configuration := d.HydrateItem.(types.HealthCheck).CloudWatchAlarmConfiguration
+	if len(configuration.Dimensions) == 0 {
+		return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, nil}, nil
+	}
+	return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, configuration.Dimensions}, nil
 }
