@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
+	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -18,12 +18,12 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException"}),
 			},
-			Hydrate: getAwsElasticBeanstalkApplication,
+			Hydrate: getElasticBeanstalkApplication,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsElasticBeanstalkApplications,
+			Hydrate: listElasticBeanstalkApplications,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -58,6 +58,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Name:        "configuration_templates",
 				Description: "The names of the configuration templates associated with this application.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ConfigurationTemplates").Transform(handleConfigurationTemplatesEmptyResult),
 			},
 			{
 				Name:        "versions",
@@ -74,16 +75,10 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the application.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsElasticBeanstalkApplicationTags,
-				Transform:   transform.FromField("ResourceTags"),
+				Transform:   transform.FromField("ResourceTags").Transform(handleEnvironmentTagsEmptyResult),
 			},
 
 			// Standard columns for all tables
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ApplicationArn").Transform(arnToAkas),
-			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -95,7 +90,13 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsElasticBeanstalkApplicationTags,
-				Transform:   transform.FromField("ResourceTags").Transform(getElasticBeanstalkApplicationTurbotTags),
+				Transform:   transform.FromField("ResourceTags").Transform(handleElasticBeanstalkApplicationTurbotTags),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ApplicationArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -103,18 +104,20 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listElasticBeanstalkApplications", "connection_error", err)
 		return nil, err
 	}
 
 	// List call
 	params := &elasticbeanstalk.DescribeApplicationsInput{}
 
-	op, err := svc.DescribeApplications(params)
+	op, err := svc.DescribeApplications(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listElasticBeanstalkApplications", "api_error", err)
 		return nil, err
 	}
 
@@ -132,64 +135,68 @@ func listAwsElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryDat
 
 //// HYDRATE FUNCTIONS
 
-func getAwsElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsElasticBeanstalkApplication")
-
+func getElasticBeanstalkApplication(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.getElasticBeanstalkApplication", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &elasticbeanstalk.DescribeApplicationsInput{
-		ApplicationNames: []*string{aws.String(name)},
+		ApplicationNames: []string{name},
 	}
 
 	// Get call
-	data, err := svc.DescribeApplications(params)
+	data, err := svc.DescribeApplications(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.getElasticBeanstalkApplication", "api_error", err)
+		return nil, err
+	}
 
-	if data.Applications != nil && len(data.Applications) > 0 {
+	if len(data.Applications) > 0 {
 		return data.Applications[0], nil
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsElasticBeanstalkApplicationTags")
-
-	arn := *h.Item.(*elasticbeanstalk.ApplicationDescription).ApplicationArn
+	arn := h.Item.(types.ApplicationDescription).ApplicationArn
 
 	// Create Session
-	svc, err := ElasticBeanstalkService(ctx, d)
+	svc, err := ElasticBeanstalkClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listAwsElasticBeanstalkApplicationTags", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &elasticbeanstalk.ListTagsForResourceInput{
-		ResourceArn: &arn,
+		ResourceArn: arn,
 	}
 
-	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listAwsElasticBeanstalkApplicationTags", "api_error", err)
 		return nil, err
 	}
 
 	return op, nil
 }
 
-func getElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElasticBeanstalkApplicationTurbotTags")
+func handleElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
-	if tagList.ResourceTags == nil {
+	if len(tagList.ResourceTags) == 0 {
 		return nil, nil
 	}
 	// Mapping the resource tags inside turbotTags
@@ -202,4 +209,20 @@ func getElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.
 	}
 
 	return turbotTagsMap, nil
+}
+
+func handleEnvironmentTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
+	if len(tagList.ResourceTags) > 0 {
+		return tagList.ResourceTags, nil
+	}
+	return nil, nil
+}
+
+func handleConfigurationTemplatesEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	application := d.HydrateItem.(types.ApplicationDescription)
+	if len(application.ConfigurationTemplates) > 0 {
+		return application.ConfigurationTemplates, nil
+	}
+	return nil, nil
 }
