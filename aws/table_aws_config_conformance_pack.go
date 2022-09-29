@@ -128,7 +128,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_sns_topic.listAwsSnsTopics", "api_error", err)
+			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)
 			return nil, err
 		}
 		for _, conformancePack := range output.ConformancePackDetails {

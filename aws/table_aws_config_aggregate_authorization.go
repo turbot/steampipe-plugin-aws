@@ -3,8 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -77,51 +77,56 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 
 func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := ConfigService(ctx, d)
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "service_connection_error", err)
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &configservice.DescribeAggregationAuthorizationsInput{
-		Limit: aws.Int64(0),
+		Limit: int32(0),
 	}
 
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			input.Limit = limit
+		if *limit < int64(input.Limit) {
+			input.Limit = int32(*limit)
 		}
 	}
 
-	err = svc.DescribeAggregationAuthorizationsPages(
-		input,
-		func(page *configservice.DescribeAggregationAuthorizationsOutput, lastPage bool) bool {
-			if page.AggregationAuthorizations != nil {
-				for _, authorization := range page.AggregationAuthorizations {
-					d.StreamListItem(ctx, authorization)
+	paginator := configservice.NewDescribeAggregationAuthorizationsPaginator(svc, input, func(o *configservice.DescribeAggregationAuthorizationsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-					// Context can be cancelled due to manual cancellation or the limit has been hit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_config_aggregate_authorization.listConfigAggregateAuthorizations", "api_error", err)
+			return nil, err
+		}
+		for _, aurhorization := range output.AggregationAuthorizations {
+			d.StreamListItem(ctx, aurhorization)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
+
 	return nil, err
 }
 
 func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	auth := h.Item.(*configservice.AggregationAuthorization)
+	auth := h.Item.(types.AggregationAuthorization)
+	// auth := h.Item.(*configservice.AggregationAuthorization)
 
-	// Create Session
-	svc, err := ConfigService(ctx, d)
+	// Create session
+	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "service_connection_error", err)
+		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -131,7 +136,7 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_config_aggregate_authorization.getConfigAggregateAuthorizationsTags", "api_error", err)
 		return nil, err
@@ -142,11 +147,11 @@ func getConfigAggregateAuthorizationsTags(ctx context.Context, d *plugin.QueryDa
 //// TRANSFORM FUNCTIONS
 
 func configAggregateAuthorizationsTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	tagList := d.Value.([]*configservice.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
+	if len(tagList) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tagList {
 			turbotTagsMap[*i.Key] = *i.Value
