@@ -113,6 +113,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// Create session
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "service_creation_error", err)
 		return nil, err
 	}
 	maxLimit := int32(100)
@@ -141,6 +142,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 		}
 		for _, mountTarget := range result.MountTargets {
 			d.StreamListItem(ctx, mountTarget)
+			plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "api_error", err)
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				pagesLeft = false
@@ -164,6 +166,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTarget", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -192,6 +195,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 	// Create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetSecurityGroup", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -202,6 +206,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 
 	op, err := svc.DescribeMountTargetSecurityGroups(ctx,params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getAwsEfsMountTargetSecurityGroup", "DescribeMountTargetSecurityGroups", err)
 		return nil, err
 	}
 

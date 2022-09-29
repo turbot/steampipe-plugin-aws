@@ -224,7 +224,7 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStack", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -276,8 +276,8 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
-	plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "service_creation_error", err)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -287,6 +287,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	stackResources, err := svc.DescribeStackResources(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "service_creation_error", err)
 		return nil, err
 	}
 

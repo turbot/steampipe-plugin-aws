@@ -117,6 +117,7 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Create Session
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "service_creation_error", err)
 		return nil, err
 	}
   maxLimit := int32(100)
@@ -150,6 +151,7 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 		for _, accessPoint  := range output.AccessPoints{
 			d.StreamListItem(ctx, accessPoint)
+			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
@@ -169,6 +171,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_access_point.getEfsAccessPoint", "service_creation_error", err)
 		return nil, err
 	}
 
@@ -178,6 +181,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	data, err := svc.DescribeAccessPoints(ctx,params)
 	if err != nil {
+		plugin.Logger(ctx).Error("getEfsAccessPoint_", "ERROR", err)
 		return nil, err
 	}
 
