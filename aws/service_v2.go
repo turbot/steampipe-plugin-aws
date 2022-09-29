@@ -33,6 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
@@ -43,6 +44,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 
 	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
+	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -255,6 +257,17 @@ func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
 		return nil, nil
 	}
 	return kms.NewFromConfig(*cfg), nil
+}
+
+func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lambdaEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return lambda.NewFromConfig(*cfg), nil
 }
 
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
