@@ -80,14 +80,14 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Description: "A list of configuration for DNS query logging that is associated with the current AWS account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneQueryLoggingConfigs,
-				Transform:   transform.FromField("QueryLoggingConfigs").Transform(handleRoute53ZoneQueryLoggingEmptyResult),
+				Transform:   transform.FromField("QueryLoggingConfigs"),
 			},
 			{
 				Name:        "dnssec_key_signing_keys",
 				Description: "The key-signing keys (KSKs) in AWS account.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneDNSSEC,
-				Transform:   transform.FromField("KeySigningKeys").Transform(handleRoute53ZoneDNSSECEmptyResult),
+				Transform:   transform.FromField("KeySigningKeys"),
 			},
 			{
 				Name:        "dnssec_status",
@@ -101,7 +101,7 @@ func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getHostedZoneTags,
-				Transform:   transform.FromField("ResourceTagSet.Tags").Transform(handleRoute53ZoneTagsEmptyResult),
+				Transform:   transform.FromField("ResourceTagSet.Tags"),
 			},
 			{
 				Name:        "vpcs",
@@ -362,26 +362,3 @@ func route53HostedZoneTurbotTags(ctx context.Context, d *transform.TransformData
 	return nil, nil
 }
 
-func handleRoute53ZoneTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-  tags := d.HydrateItem.(*route53.ListTagsForResourceOutput)
-  if len(tags.ResourceTagSet.Tags) > 0 {
-    return tags.ResourceTagSet.Tags, nil
-  }
-  return nil, nil
-}
-
-func handleRoute53ZoneDNSSECEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-  dnssec := d.HydrateItem.(*route53.GetDNSSECOutput)
-  if len(dnssec.KeySigningKeys) > 0 {
-    return dnssec.KeySigningKeys, nil
-  }
-  return nil, nil
-}
-
-func handleRoute53ZoneQueryLoggingEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-  queryLogging := d.HydrateItem.(*route53.ListQueryLoggingConfigsOutput)
-  if len(queryLogging.QueryLoggingConfigs) > 0 {
-    return queryLogging.QueryLoggingConfigs, nil
-  }
-  return nil, nil
-}
