@@ -133,7 +133,7 @@ func tableAwsElasticBeanstalkEnvironment(_ context.Context) *plugin.Table {
 				Description: "A list of links to other environments in the same group.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getElasticBeanstalkEnvironment,
-				Transform:   transform.FromField("EnvironmentLinks").Transform(handleEnvironmentLinksEmptyResult),
+				Transform:   transform.FromField("EnvironmentLinks"),
 			},
 			{
 				Name:        "resources",
@@ -324,12 +324,4 @@ func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *tran
 		}
 	}
 	return turbotTagsMap, nil
-}
-
-func handleEnvironmentLinksEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	environment := d.HydrateItem.(types.EnvironmentDescription)
-	if len(environment.EnvironmentLinks) > 0 {
-		return environment.EnvironmentLinks, nil
-	}
-	return nil, nil
 }

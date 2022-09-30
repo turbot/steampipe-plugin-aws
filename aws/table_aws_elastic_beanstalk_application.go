@@ -60,7 +60,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Name:        "configuration_templates",
 				Description: "The names of the configuration templates associated with this application.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ConfigurationTemplates").Transform(handleConfigurationTemplatesEmptyResult),
+				Transform:   transform.FromField("ConfigurationTemplates"),
 			},
 			{
 				Name:        "versions",
@@ -77,7 +77,7 @@ func tableAwsElasticBeanstalkApplication(_ context.Context) *plugin.Table {
 				Description: "A list of tags assigned to the application.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listAwsElasticBeanstalkApplicationTags,
-				Transform:   transform.FromField("ResourceTags").Transform(handleEnvironmentTagsEmptyResult),
+				Transform:   transform.FromField("ResourceTags"),
 			},
 
 			// Standard columns for all tables
@@ -204,7 +204,7 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 func handleElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
-	if len(tagList.ResourceTags) == 0 {
+	if tagList.ResourceTags == nil {
 		return nil, nil
 	}
 	// Mapping the resource tags inside turbotTags
@@ -217,20 +217,4 @@ func handleElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transfo
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleEnvironmentTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
-	if len(tagList.ResourceTags) > 0 {
-		return tagList.ResourceTags, nil
-	}
-	return nil, nil
-}
-
-func handleConfigurationTemplatesEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	application := d.HydrateItem.(types.ApplicationDescription)
-	if len(application.ConfigurationTemplates) > 0 {
-		return application.ConfigurationTemplates, nil
-	}
-	return nil, nil
 }

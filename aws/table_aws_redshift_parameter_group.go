@@ -56,7 +56,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the parameter group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(handleRedshiftParameterGroupTagsEmptyResult),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns for all tables
@@ -229,14 +229,6 @@ func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (inter
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftParameterGroupTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	clusterParameterGroup := d.HydrateItem.(types.ClusterParameterGroup)
-	if len(clusterParameterGroup.Tags) > 0 {
-		return clusterParameterGroup.Tags, nil
 	}
 	return nil, nil
 }

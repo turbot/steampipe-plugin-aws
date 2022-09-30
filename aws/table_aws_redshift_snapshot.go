@@ -205,7 +205,7 @@ func tableAwsRedshiftSnapshot(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(handleRedshiftSnapshotTagsEmptyResult),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns
@@ -367,20 +367,12 @@ func redshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (
 	snapshot := d.HydrateItem.(types.Snapshot)
 
 	// Get the resource tags
-	if len(snapshot.Tags) > 0 {
+	if snapshot.Tags != nil {
 		turbotTagsMap := map[string]string{}
 		for _, i := range snapshot.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftSnapshotTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	snapshot := d.HydrateItem.(types.Snapshot)
-	if len(snapshot.Tags) > 0 {
-		return snapshot.Tags, nil
 	}
 	return nil, nil
 }

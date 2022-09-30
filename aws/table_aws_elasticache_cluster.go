@@ -158,7 +158,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Description: "A list of tags associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForElastiCacheCluster,
-				Transform:   transform.FromField("TagList").Transform(handleElasticacheClusterTagsEmptyResult),
+				Transform:   transform.FromField("TagList"),
 			},
 
 			// Standard columns
@@ -306,7 +306,7 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterTag := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
 
-	if len(clusterTag.TagList) == 0 {
+	if clusterTag.TagList == nil {
 		return nil, nil
 	}
 
@@ -320,12 +320,4 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleElasticacheClusterTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	tags := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
-	if len(tags.TagList) > 0 {
-		return tags.TagList, nil
-	}
-	return nil, nil
 }

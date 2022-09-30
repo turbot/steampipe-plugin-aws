@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"time"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -102,7 +101,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "cluster_security_groups",
 				Description: "A list of cluster security group that are associated with the cluster. Each security group is represented by an element that contains ClusterSecurityGroup.Name and ClusterSecurityGroup.Status subelements. Cluster security groups are used when the cluster is not created in an Amazon Virtual Private Cloud (VPC). Clusters that are created in a VPC use VPC security groups, which are listed by the VpcSecurityGroups parameter.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ClusterSecurityGroups").Transform(handleRedshiftClusterSecurityGroupsEmptyResult),
+				Transform:   transform.FromField("ClusterSecurityGroups"),
 			},
 			{
 				Name:        "cluster_snapshot_copy_status",
@@ -139,7 +138,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "deferred_maintenance_windows",
 				Description: "Describes a group of DeferredMaintenanceWindow objects.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DeferredMaintenanceWindows").Transform(handleRedshiftDeferredMaintenanceWindowsEmptyResult),
+				Transform:   transform.FromField("DeferredMaintenanceWindows"),
 			},
 			{
 				Name:        "elastic_ip_status",
@@ -185,7 +184,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "iam_roles",
 				Description: "A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("IamRoles").Transform(handleRedshiftIamRolesEmptyResult),
+				Transform:   transform.FromField("IamRoles"),
 			},
 			{
 				Name:        "kms_key_id",
@@ -266,7 +265,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "snapshot_schedule_state",
 				Description: "The current state of the cluster snapshot schedule.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SnapshotScheduleState").Transform(handleRedshiftSnapshotScheduleStateEmptyResult),
+				Transform:   transform.FromField("SnapshotScheduleState"),
 			},
 			{
 				Name:        "vpc_id",
@@ -296,7 +295,7 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "The list of tags for the cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(handleRedshiftClusterTagsEmptyResult),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Steampipe standard columns
@@ -321,35 +320,6 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-// Describes the status of logging for a cluster.
-type LoggingStatus struct {
-
-	// The name of the S3 bucket where the log files are stored.
-	BucketName *string
-
-	// The message indicating that logs failed to be delivered.
-	LastFailureMessage *string
-
-	// The last time when logs failed to be delivered.
-	LastFailureTime *time.Time
-
-	// The last time that logs were delivered.
-	LastSuccessfulDeliveryTime *time.Time
-
-	// The log destination type. An enum with possible values of s3 and cloudwatch.
-	LogDestinationType *string
-
-	// The collection of exported log types. Log types include the connection log, user
-	// log and user activity log.
-	LogExports []string
-
-	// true if logging is on, false if logging is off.
-	LoggingEnabled bool
-
-	// The prefix applied to the log file names.
-	S3KeyPrefix *string
 }
 
 //// LIST FUNCTION
@@ -458,12 +428,7 @@ func getRedshiftLoggingDetails(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, err
 	}
 
-	logDestinationType := string(op.LogDestinationType)
-	if logDestinationType == "" {
-		return LoggingStatus{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, nil, op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
-	}
-
-	return LoggingStatus{op.BucketName, op.LastFailureMessage, op.LastFailureTime, op.LastSuccessfulDeliveryTime, aws.String(logDestinationType), op.LogExports, op.LoggingEnabled, op.S3KeyPrefix}, nil
+	return op, nil
 }
 
 func getClusterScheduledActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -525,52 +490,12 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	cluster := d.HydrateItem.(types.Cluster)
 
-	if len(cluster.Tags) > 0 {
+	if cluster.Tags != nil {
 		turbotTagsMap := map[string]string{}
 		for _, i := range cluster.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftClusterTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(types.Cluster)
-	if len(cluster.Tags) > 0 {
-		return cluster.Tags, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftIamRolesEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(types.Cluster)
-	if len(cluster.IamRoles) > 0 {
-		return cluster.IamRoles, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftDeferredMaintenanceWindowsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(types.Cluster)
-	if len(cluster.DeferredMaintenanceWindows) > 0 {
-		return cluster.DeferredMaintenanceWindows, nil
-	}
-	return nil, nil
-}
-
-func handleRedshiftSnapshotScheduleStateEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(types.Cluster)
-	if cluster.SnapshotScheduleState == "" {
-		return nil, nil
-	}
-	return cluster.SnapshotScheduleState, nil
-}
-
-func handleRedshiftClusterSecurityGroupsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	cluster := d.HydrateItem.(types.Cluster)
-	if len(cluster.ClusterSecurityGroups) > 0 {
-		return cluster.ClusterSecurityGroups, nil
 	}
 	return nil, nil
 }

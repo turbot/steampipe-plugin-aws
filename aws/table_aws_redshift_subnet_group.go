@@ -59,7 +59,7 @@ func tableAwsRedshiftSubnetGroup(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags attached to the subnet group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(handleRedshiftSubnetGroupTagsEmptyResult),
+				Transform:   transform.FromField("Tags"),
 			},
 
 			// Standard columns
@@ -196,21 +196,17 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
 
-	if len(clusterSubnetGroup.Tags) > 0 {
-		turbotTagsMap := map[string]string{}
+	if clusterSubnetGroup.Tags == nil {
+		return nil, nil
+	}
+
+	// Get the resource tags
+	var turbotTagsMap map[string]string
+	if clusterSubnetGroup.Tags != nil {
+		turbotTagsMap = map[string]string{}
 		for _, i := range clusterSubnetGroup.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
-		return turbotTagsMap, nil
 	}
-
-	return nil, nil
-}
-
-func handleRedshiftSubnetGroupTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
-	if len(clusterSubnetGroup.Tags) > 0 {
-		return clusterSubnetGroup.Tags, nil
-	}
-	return nil, nil
+	return turbotTagsMap, nil
 }
