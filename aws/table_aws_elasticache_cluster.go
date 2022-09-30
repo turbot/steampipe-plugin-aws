@@ -2,15 +2,16 @@ package aws
 
 import (
 	"context"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/smithy-go"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -157,7 +158,7 @@ func tableAwsElastiCacheCluster(_ context.Context) *plugin.Table {
 				Description: "A list of tags associated with the cluster.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     listTagsForElastiCacheCluster,
-				Transform:   transform.FromField("TagList"),
+				Transform:   transform.FromField("TagList").Transform(handleElasticacheClusterTagsEmptyResult),
 			},
 
 			// Standard columns
@@ -287,9 +288,10 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 	clusterTags, err := svc.ListTagsForResource(ctx, param)
 
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "CacheClusterNotFound" {
-				return &elasticache.ListTagsForResourceOutput{}, nil
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "CacheClusterNotFound" {
+				return nil, nil
 			}
 		}
 		plugin.Logger(ctx).Error("aws_elasticache_cluster.listTagsForElastiCacheCluster", "api_error", err)
@@ -304,7 +306,7 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterTag := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
 
-	if clusterTag.TagList == nil {
+	if len(clusterTag.TagList) == 0 {
 		return nil, nil
 	}
 
@@ -318,4 +320,12 @@ func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	}
 
 	return turbotTagsMap, nil
+}
+
+func handleElasticacheClusterTagsEmptyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
+	if len(tags.TagList) > 0 {
+		return tags.TagList, nil
+	}
+	return nil, nil
 }
