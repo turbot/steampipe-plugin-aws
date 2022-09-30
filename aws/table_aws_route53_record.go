@@ -6,7 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
-	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	route53Types "github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/turbot/go-kit/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -129,7 +130,7 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 
 type recordInfo struct {
 	ZoneID *string
-	Record types.ResourceRecordSet
+	Record route53Types.ResourceRecordSet
 }
 
 //// LIST FUNCTION
@@ -156,26 +157,11 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if equalQuals["type"] != nil {
 		// StartRecordType has a constraint that it must be used with StartRecordName
 		if equalQuals["type"].GetStringValue() != "" && input.StartRecordName != nil {
-			// input.StartRecordType = aws.String(equalQuals["type"].GetStringValue())
-			input.StartRecordType.Values()
+			input.StartRecordType = route53Types.RRType(equalQuals["type"].GetStringValue())
 		}
 	}
 
-	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html
-	// The maximum/minimum record set per page is not mentioned in doc, so it has been set 1000 to max and 1 to min
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	// limit := d.QueryContext.Limit
-	// if d.QueryContext.Limit != nil {
-	// 	if *limit < 1000 {
-	// 		if *limit < 1 {
-	// 			input.MaxItems = aws.String("1")
-	// 		} else {
-	// 			input.MaxItems = aws.String(fmt.Sprint(*limit))
-	// 		}
-	// 	}
-	// }
-
-		// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
@@ -187,78 +173,39 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 
-op, err := svc.ListResourceRecordSets(ctx, &input)
-if err != nil{
-	plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
+	// Paginator not avilable for the in v2, till date 09/30/2022
+	op, err := svc.ListResourceRecordSets(ctx, &input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
 		return nil, err
+	}
+
+	for _, record := range op.ResourceRecordSets {
+		// The StartRecordName and StartRecordType input parameters only tell
+		// the API where to start when returning results, so any records/types
+		// that are greater in lexicographic order will also be returned.
+		// Since Postgres will filter on exact matches anyway, check for exact
+		// matches as an optimization to reduce the number of requests.
+
+		if input.StartRecordName != nil && record.Name != input.StartRecordName {
+			plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
+			return nil, nil
+		}
+
+		if record.Type != input.StartRecordType {
+			plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", input.StartRecordType, "record.Type", record.Type)
+			return nil, nil
+		}
+
+		d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
+	}
+	return nil, nil
 }
-
-for _, record := range op.ResourceRecordSets {
-				// The StartRecordName and StartRecordType input parameters only tell
-				// the API where to start when returning results, so any records/types
-				// that are greater in lexicographic order will also be returned.
-				// Since Postgres will filter on exact matches anyway, check for exact
-				// matches as an optimization to reduce the number of requests.
-
-				if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
-					plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
-					return nil, nil
-				}
-
-				if *record.Ty != *input.StartRecordType {
-					plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", *input.StartRecordType, "record.Type", *record.Type)
-					return nil, nil
-				}
-				d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return nil, nil
-				}
-		return nil, err
-}
-
-}
-
-///
-	// err = svc.ListResourceRecordSetsPages(
-	// 	input,
-	// 	func(page *route53.ListResourceRecordSetsOutput, isLast bool) bool {
-	// 		for _, record := range page.ResourceRecordSets {
-	// 			// The StartRecordName and StartRecordType input parameters only tell
-	// 			// the API where to start when returning results, so any records/types
-	// 			// that are greater in lexicographic order will also be returned.
-	// 			// Since Postgres will filter on exact matches anyway, check for exact
-	// 			// matches as an optimization to reduce the number of requests.
-
-	// 			if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
-	// 				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
-	// 				return false
-	// 			}
-
-	// 			if input.StartRecordType != nil && *record.Type != *input.StartRecordType {
-	// 				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", *input.StartRecordType, "record.Type", *record.Type)
-	// 				return false
-	// 			}
-
-	// 			d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
-
-	// 			// Context may get cancelled due to manual cancellation or if the limit has been reached
-	// 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-	// 				return false
-	// 			}
-			// }
-		// 	return !isLast
-		// },
-
-// 	notFoundErrors := []string{"InvalidParameter", "NoSuchHostedZone"}
-// 	if err != nil {
-// 		if helpers.StringSliceContains(notFoundErrors, err.(awserr.Error).Code()) {
-// 			return nil, nil
-// 		}
-// 	}
-// 	return nil, err
-// }
 
 //// TRANSFORM FUNCTION
 
@@ -289,13 +236,10 @@ func getRoute53RecordSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":route53:::" +
-		"hostedzone/" + *recordData.ZoneID +
-		"/recordset/" + *recordData.Record.Name +
-		"/" + *recordData.Record.Type
+	arn := fmt.Sprintf("arn:%s:route53:::hostedzone/%s/recordset/%s/%s", commonColumnData.Partition, *recordData.ZoneID, *recordData.Record.Name, recordData.Record.Type)
 
 	if recordData.Record.SetIdentifier != nil {
-		arn += "/" + *recordData.Record.SetIdentifier
+		arn = fmt.Sprintf("%s/%s", arn, *recordData.Record.SetIdentifier)
 	}
 
 	// Get data for turbot defined properties
