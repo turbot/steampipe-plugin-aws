@@ -60,7 +60,6 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 				Name:        "cloud_watch_alarm_configuration",
 				Description: "A complex type that contains information about the CloudWatch alarm that Amazon Route 53 is monitoring for this health check.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(route53CloudWatchAlarmConfigurationEmptyCheck),
 			},
 			{
 				Name:        "health_check_config",
@@ -105,61 +104,6 @@ func tableAwsRoute53HealthCheck(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
-}
-
-// A complex type that contains information about the CloudWatch alarm that Amazon
-// Route 53 is monitoring for this health check.
-type CloudWatchAlarmConfiguration struct {
-
-	// For the metric that the CloudWatch alarm is associated with, the arithmetic
-	// configurationeration that is used for the comparison.
-	//
-	// This member is required.
-	ComparisonOperator types.ComparisonOperator
-
-	// For the metric that the CloudWatch alarm is associated with, the number of
-	// periods that the metric is compared to the threshold.
-	//
-	// This member is required.
-	EvaluationPeriods *int32
-
-	// The name of the CloudWatch metric that the alarm is associated with.
-	//
-	// This member is required.
-	MetricName *string
-
-	// The namespace of the metric that the alarm is associated with. For more
-	// information, see Amazon CloudWatch Namespaces, Dimensions, and Metrics Reference
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DevelconfigurationerGuide/CW_Support_For_AWS.html)
-	// in the Amazon CloudWatch User Guide.
-	//
-	// This member is required.
-	Namespace *string
-
-	// For the metric that the CloudWatch alarm is associated with, the duration of one
-	// evaluation period in seconds.
-	//
-	// This member is required.
-	Period *int32
-
-	// For the metric that the CloudWatch alarm is associated with, the statistic that
-	// is applied to the metric.
-	//
-	// This member is required.
-	Statistic types.Statistic
-
-	// For the metric that the CloudWatch alarm is associated with, the value the
-	// metric is compared with.
-	//
-	// This member is required.
-	Threshold *float64
-
-	// For the metric that the CloudWatch alarm is associated with, a complex type that
-	// contains information about the dimensions for the metric. For information, see
-	// Amazon CloudWatch Namespaces, Dimensions, and Metrics Reference
-	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/DevelconfigurationerGuide/CW_Support_For_AWS.html)
-	// in the Amazon CloudWatch User Guide.
-	Dimensions []types.Dimension
 }
 
 //// LIST FUNCTION
@@ -328,18 +272,4 @@ func route53HealthCheckTurbotTags(ctx context.Context, d *transform.TransformDat
 	}
 
 	return turbotTagsMap, nil
-}
-
-func route53CloudWatchAlarmConfigurationEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	configuration := d.HydrateItem.(types.HealthCheck).CloudWatchAlarmConfiguration
-
-	if configuration == nil {
-		return nil, nil
-	}
-
-	if len(configuration.Dimensions) == 0 {
-		return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, nil}, nil
-	}
-
-	return CloudWatchAlarmConfiguration{configuration.ComparisonOperator, configuration.EvaluationPeriods, configuration.MetricName, configuration.Namespace, configuration.Period, configuration.Statistic, configuration.Threshold, configuration.Dimensions}, nil
 }
