@@ -133,6 +133,7 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 				return nil, nil
 			}
 		}
+
 		if response.NextMarker != nil {
 			pagesLeft = true
 			params.NextMarker = response.NextMarker

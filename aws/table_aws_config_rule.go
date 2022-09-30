@@ -19,7 +19,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchConfigRuleException", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getConfigRule,
 		},
@@ -72,6 +72,7 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Name:        "maximum_execution_frequency",
 				Description: "The maximum frequency with which AWS Config runs evaluations for a rule.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("MaximumExecutionFrequency").Transform(handleMaximumExecutionFrequencyResult),
 			},
 			{
 				Name:        "compliance_by_config_rule",
@@ -171,12 +172,11 @@ func listConfigRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigRule")
 
 	// Create session
 	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_rule.listConfigRules", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRule", "get_client_error", err)
 		return nil, err
 	}
 
@@ -200,12 +200,11 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getConfigRuleTags")
 
 	// Create session
 	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_rule.listConfigRules", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRuleTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -225,12 +224,11 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getComplianceByConfigRules")
 
 	// Create session
 	svc, err := ConfigClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_config_rule.listConfigRules", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getComplianceByConfigRules", "get_client_error", err)
 		return nil, err
 	}
 
@@ -243,7 +241,7 @@ func getComplianceByConfigRules(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.DescribeComplianceByConfigRule(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
+		plugin.Logger(ctx).Error("aws_config_rule.getComplianceByConfigRules", "DescribeComplianceByConfigRule", err)
 		return nil, err
 	}
 
@@ -266,4 +264,12 @@ func configRuleTurbotTags(_ context.Context, d *transform.TransformData) (interf
 	}
 
 	return turbotTagsMap, nil
+}
+
+func handleMaximumExecutionFrequencyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(types.ConfigRule)
+	if data.MaximumExecutionFrequency == "" {
+		return nil, nil
+	}
+	return data.MaximumExecutionFrequency, nil
 }
