@@ -134,7 +134,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "state",
 				Description: "The current state of the function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.State", "State").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Configuration.State", "State"),
 			},
 			{
 				Name:        "state_reason",
@@ -146,13 +146,13 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "state_reason_code",
 				Description: "The reason code for the function's current state.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.StateReasonCode", "StateReasonCode").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Configuration.StateReasonCode", "StateReasonCode"),
 			},
 			{
 				Name:        "last_update_status",
 				Description: "The status of the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.LastUpdateStatus", "LastUpdateStatus").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Configuration.LastUpdateStatus", "LastUpdateStatus"),
 			},
 			{
 				Name:        "last_update_status_reason",
@@ -164,7 +164,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Name:        "last_update_status_reason_code",
 				Description: "The reason code for the last update that was performed on the function.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Configuration.LastUpdateStatusReasonCode", "LastUpdateStatusReasonCode").Transform(handleEmptySliceAndMap),
+				Transform:   transform.FromField("Configuration.LastUpdateStatusReasonCode", "LastUpdateStatusReasonCode"),
 			},
 			{
 				Name:        "reserved_concurrent_executions",
