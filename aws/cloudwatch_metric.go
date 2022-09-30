@@ -2,14 +2,11 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -121,14 +118,14 @@ func getCWStartDateForGranularity(granularity string) time.Time {
 	return time.Now().AddDate(0, 0, -5)
 }
 
-func getCWPeriodForGranularity(granularity string) int32 {
+func getCWPeriodForGranularity(granularity string) int64 {
 	switch strings.ToUpper(granularity) {
 	case "DAILY":
 		// 24 hours
-		return int32(86400)
+		return 86400
 	case "HOURLY":
 		// 1 hour
-		return int32(3600)
+		return 3600
 	}
 	// else 5 minutes
 	return 300
@@ -136,10 +133,11 @@ func getCWPeriodForGranularity(granularity string) int32 {
 
 func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
 
+	plugin.Logger(ctx).Trace("getCWMetricStatistics")
+
 	// Create Session
-	svc, err := CloudWatchClient(ctx, d)
+	svc, err := CloudWatchService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCWMetricStatistics.CloudWatchClient", "connection_error", err)
 		return nil, err
 	}
 
@@ -152,18 +150,18 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		MetricName: aws.String(metricName),
 		StartTime:  aws.Time(startTime),
 		EndTime:    aws.Time(endTime),
-		Period:     aws.Int32(period),
-		Statistics: []types.Statistic{
-			"Average",
-			"SampleCount",
-			"Sum",
-			"Minimum",
-			"Maximum",
+		Period:     aws.Int64(period),
+		Statistics: []*string{
+			aws.String("Average"),
+			aws.String("SampleCount"),
+			aws.String("Sum"),
+			aws.String("Minimum"),
+			aws.String("Maximum"),
 		},
 	}
 
 	if dimensionName != "" && dimensionValue != "" {
-		params.Dimensions = []types.Dimension{
+		params.Dimensions = []*cloudwatch.Dimension{
 			{
 				Name:  aws.String(dimensionName),
 				Value: aws.String(dimensionValue),
@@ -171,9 +169,8 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		}
 	}
 
-	stats, err := svc.GetMetricStatistics(ctx, params)
+	stats, err := svc.GetMetricStatistics(params)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCWMetricStatistics.GetMetricStatistics", "api_error", err)
 		return nil, err
 	}
 
@@ -189,7 +186,7 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 			Timestamp:      datapoint.Timestamp,
 			SampleCount:    datapoint.SampleCount,
 			Sum:            datapoint.Sum,
-			Unit:           aws.String(fmt.Sprint(datapoint.Unit)),
+			Unit:           datapoint.Unit,
 		})
 
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
