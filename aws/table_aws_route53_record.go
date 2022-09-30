@@ -146,7 +146,6 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	input := route53.ListResourceRecordSetsInput{}
-	maxItems := int32(1000)
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
@@ -161,19 +160,8 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
-		}
-	}
-
 	// Paginator not avilable for the in v2, till date 09/30/2022
+	// Also, API doesn't support paging. Therfore not handling limit for the function
 	op, err := svc.ListResourceRecordSets(ctx, &input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
