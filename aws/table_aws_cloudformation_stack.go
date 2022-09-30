@@ -235,7 +235,6 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	op, err := svc.DescribeStacks(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getCloudFormationStack__", "ERROR", err)
 		return nil, err
 	}
 
@@ -247,7 +246,6 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(types.Stack)
 
 	// Create Session
@@ -271,7 +269,6 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getStackTemplate")
 	stack := h.Item.(types.Stack)
 
 	// Create Session

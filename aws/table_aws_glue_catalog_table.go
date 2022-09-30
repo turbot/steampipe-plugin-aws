@@ -218,8 +218,6 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 //// HYDRATE FUNCTIONS
 
 func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCatalogTable")
-
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	databaseName := d.KeyColumnQuals["database_name"].GetStringValue()
 
@@ -250,7 +248,6 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 }
 
 func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCatalogTableAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.Table)
 

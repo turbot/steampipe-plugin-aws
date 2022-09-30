@@ -225,7 +225,6 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	op, err := svc.DescribeFileSystems(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getElasticFileSystem_", "ERROR", err)
 		return nil, err
 	}
 
@@ -236,9 +235,6 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getElasticFileSystemPolicy")
-
 	fileSystem := h.Item.(types.FileSystemDescription)
 
 	// Create session

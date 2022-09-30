@@ -194,7 +194,6 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("efsAccessPointTurbotTags")
 	tagList := d.HydrateItem.(types.AccessPointDescription)
 
 	if tagList.Tags == nil {
@@ -216,7 +215,6 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 
 // Generate title for the resource
 func efsAccessPointTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("efsAccessPointTitle")
 	data := d.HydrateItem.(types.AccessPointDescription)
 
 	// If name is available, then setting name as title, else setting Access Point ID as title

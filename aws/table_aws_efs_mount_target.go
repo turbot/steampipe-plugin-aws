@@ -161,8 +161,6 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTarget")
-
 	// Create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
@@ -190,8 +188,6 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTargetSecurityGroup")
-
 	// Create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
@@ -216,7 +212,6 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 //// TRANSFORM FUNCTION
 
 func getAwsEfsMountTargetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEfsMountTargetAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.MountTargetDescription)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()

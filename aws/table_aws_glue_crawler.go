@@ -236,7 +236,6 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGlueCrawlerArn")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	data := h.Item.(types.Crawler)
 
