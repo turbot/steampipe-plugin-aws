@@ -125,8 +125,6 @@ func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		for _, ruleGroups := range response.RuleGroups {
 			d.StreamListItem(ctx, ruleGroups)
 
-			plugin.Logger(ctx).Info("aws_waf_rule_group.listWafRuleGroups", "HAS PAGES", err)
-
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -279,7 +277,3 @@ func classicRuleGroupData(item interface{}, ctx context.Context, d *plugin.Query
 
 	return data
 }
-
-steampipe query --output json "select * from aws_old.aws_waf_rule_group order by account_id, region, rule_group_id" | sed 's/aws_old/aws/g' > ../steampipe-query-results/aws/output_data/old/aws_waf_rule_group.json
-
-steampipe query --output json "select * from aws_waf_rule_group order by account_id, region, rule_group_id" > ../steampipe-query-results/aws/output_data/new/aws_waf_rule_group.json

@@ -72,7 +72,6 @@ func tableAwsConfigRule(_ context.Context) *plugin.Table {
 				Name:        "maximum_execution_frequency",
 				Description: "The maximum frequency with which AWS Config runs evaluations for a rule.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("MaximumExecutionFrequency").Transform(handleMaximumExecutionFrequencyResult),
 			},
 			{
 				Name:        "compliance_by_config_rule",
@@ -264,12 +263,4 @@ func configRuleTurbotTags(_ context.Context, d *transform.TransformData) (interf
 	}
 
 	return turbotTagsMap, nil
-}
-
-func handleMaximumExecutionFrequencyResult(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(types.ConfigRule)
-	if data.MaximumExecutionFrequency == "" {
-		return nil, nil
-	}
-	return data.MaximumExecutionFrequency, nil
 }

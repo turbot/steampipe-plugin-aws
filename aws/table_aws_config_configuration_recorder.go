@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"encoding/json"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/types"
@@ -169,27 +167,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 		return nil, nil
 	}
 
-	statusArr := status.ConfigurationRecordersStatus[0]
-
-	// encode status object
-	byteData, err := json.Marshal(statusArr)
-	if err != nil {
-		return nil, err
-	}
-
-	// unmarshal the status object to Status struct
-	var res Status
-	err = json.Unmarshal(byteData, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	// return nil, if LastStatus value is empty
-	if *res.LastStatus == "" {
-		res.LastStatus = nil
-	}
-
-	return res, nil
+	return status.ConfigurationRecordersStatus[0], nil
 }
 
 func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -205,32 +183,4 @@ func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h 
 	arn := "arn:" + commonColumnData.Partition + ":config:" + region + ":" + commonColumnData.AccountId + ":config-recorder" + "/" + *configurationRecorder.Name
 
 	return arn, nil
-}
-
-// The current status of the configuration recorder.
-type Status struct {
-
-	// The error code indicating that the recording failed.
-	LastErrorCode *string
-
-	// The message indicating that the recording failed due to an error.
-	LastErrorMessage *string
-
-	// The time the recorder was last started.
-	LastStartTime *time.Time
-
-	// The last (previous) status of the recorder.
-	LastStatus *string
-
-	// The time when the status was last changed.
-	LastStatusChangeTime *time.Time
-
-	// The time the recorder was last stopped.
-	LastStopTime *time.Time
-
-	// The name of the configuration recorder.
-	Name *string
-
-	// Specifies whether or not the recorder is currently recording.
-	Recording bool
 }
