@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -38,7 +38,7 @@ func tableAwsGlueDataCatalogEncryptionSettings(_ context.Context) *plugin.Table 
 
 func listGlueDataCatalogEncryptionSettings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_data_catalog_encryption_settings.listGlueDataCatalogEncryptionSettings", "service_creation_error", err)
 		return nil, err
@@ -47,7 +47,7 @@ func listGlueDataCatalogEncryptionSettings(ctx context.Context, d *plugin.QueryD
 	input := &glue.GetDataCatalogEncryptionSettingsInput{}
 
 	// List call
-	result, err := svc.GetDataCatalogEncryptionSettings(input)
+	result, err := svc.GetDataCatalogEncryptionSettings(ctx,input)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_data_catalog_encryption_settings.listGlueDataCatalogEncryptionSettings", "api_error", err)

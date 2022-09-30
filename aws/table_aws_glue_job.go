@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -166,44 +167,47 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 
 func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "service_creation_error", err)
 		return nil, err
 	}
-
-	input := &glue.GetJobsInput{
-		MaxResults: aws.Int64(100),
-	}
-
 	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit=1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit) 
 			}
 		}
 	}
-
+	input := &glue.GetJobsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
 	// List call
-	err = svc.GetJobsPages(
-		input,
-		func(page *glue.GetJobsOutput, isLast bool) bool {
-			for _, job := range page.Jobs {
-				d.StreamListItem(ctx, job)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator:=glue.NewGetJobsPaginator(svc ,input,func(o *glue.GetJobsPaginatorOptions) {
+		o.Limit=maxLimit
+		o.StopOnDuplicateToken=true
+	}) 
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			return nil, err
+		}
+		for _, job  := range output.Jobs{
+			d.StreamListItem(ctx, job)
+			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil,nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+		
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
 		return nil, err
@@ -223,7 +227,7 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "service_creation_error", err)
 		return nil, err
@@ -235,19 +239,19 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	}
 
 	// Get call
-	data, err := svc.GetJob(params)
+	data, err := svc.GetJob(ctx,params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "api_error", err)
 		return nil, err
 	}
-	return data.Job, nil
+	return *data.Job, nil
 }
 
 func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	name := h.Item.(*glue.Job).Name
+	name := h.Item.(types.Job).Name
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "service_creation_error", err)
 		return nil, err
@@ -259,7 +263,7 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Get call
-	data, err := svc.GetJobBookmark(params)
+	data, err := svc.GetJobBookmark(ctx,params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "api_error", err)
 		return nil, err
@@ -269,7 +273,7 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 
 func getGlueJobArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*glue.Job)
+	data := h.Item.(types.Job)
 
 	// Get common columns
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()

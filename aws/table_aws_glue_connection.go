@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
+	"github.com/aws/aws-sdk-go-v2/service/glue/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -109,14 +110,25 @@ func tableAwsGlueConnection(_ context.Context) *plugin.Table {
 
 func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "service_creation_error", err)
 		return nil, err
 	}
-
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	maxLimit := int32(100)
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < int64(maxLimit) {
+			if *limit < 1 {
+				maxLimit=1
+			} else {
+				maxLimit = int32(*limit) 
+			}
+		}
+	}
 	input := &glue.GetConnectionsInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if d.KeyColumnQuals["connection_type"] != nil {
@@ -124,39 +136,32 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		if connectionType == "" || strings.EqualFold(connectionType, "SFTP") {
 			return nil, nil
 		}
-		input.SetFilter(&glue.GetConnectionsFilter{
-			ConnectionType: aws.String(connectionType),
-		})
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
-		}
+		input.Filter = &types.GetConnectionsFilter{
+      ConnectionType: types.ConnectionType(connectionType),
+    }
 	}
 
 	// List call
-	err = svc.GetConnectionsPages(
-		input,
-		func(page *glue.GetConnectionsOutput, isLast bool) bool {
-			for _, connection := range page.ConnectionList {
-				d.StreamListItem(ctx, connection)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator:=glue.NewGetConnectionsPaginator(svc,input,func(o *glue.GetConnectionsPaginatorOptions) {
+		o.Limit=maxLimit
+		o.StopOnDuplicateToken=true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_glue_catalog_connection.listGlueConnections", "api_error", err)
+			return nil, err
+		}
+		for _,  connection := range output.ConnectionList{
+			d.StreamListItem(ctx,connection)
+			plugin.Logger(ctx).Error("aws_glue_catalog_connection.listGlueConnections", "api_error", err)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil,nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+		
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
 		return nil, err
@@ -176,7 +181,7 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := GlueService(ctx, d)
+	svc, err := GlueClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "service_creation_error", err)
 		return nil, err
@@ -188,17 +193,17 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// Get call
-	data, err := svc.GetConnection(params)
+	data, err := svc.GetConnection(ctx,params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "api_error", err)
 		return nil, err
 	}
-	return data.Connection, nil
+	return *data.Connection, nil
 }
 
 func getGlueConnectionArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	data := h.Item.(*glue.Connection)
+	data := h.Item.(types.Connection)
 
 	// Get common columns
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()

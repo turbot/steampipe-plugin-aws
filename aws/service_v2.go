@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -201,6 +202,16 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 		return nil, nil
 	}
 	return efs.NewFromConfig(*cfg), nil
+}
+func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return glue.NewFromConfig(*cfg), nil
 }
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
