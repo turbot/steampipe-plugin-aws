@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
@@ -144,8 +145,13 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "client_error", err)
 		return nil, err
 	}
+	if strings.TrimSpace(hostedZoneID) == "" {
+		return nil, nil
+	}
 
-	input := route53.ListResourceRecordSetsInput{}
+	input := route53.ListResourceRecordSetsInput{
+		HostedZoneId: &hostedZoneID,
+	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["name"] != nil {
