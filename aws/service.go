@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
@@ -31,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
@@ -76,7 +74,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
-	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/aws/aws-sdk-go/service/ram"
@@ -108,14 +105,6 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
-
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return accessanalyzer.New(sess), nil
-}
 
 func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
@@ -220,18 +209,15 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codebuild.EndpointsID)
 	if err != nil {
 		return nil, err
-	}
-	if sess == nil {
-		return nil, nil
 	}
 	return codebuild.New(sess), nil
 }
 
 func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +225,7 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 }
 
 func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -276,14 +262,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 		return nil, err
 	}
 	return cloudwatchlogs.New(sess), nil
-}
-
-func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return cloudtrail.New(sess), nil
 }
 
 func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
@@ -634,14 +612,6 @@ func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchser
 		return nil, err
 	}
 	return opensearchservice.New(sess), nil
-}
-
-func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return organizations.New(sess), nil
 }
 
 func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {

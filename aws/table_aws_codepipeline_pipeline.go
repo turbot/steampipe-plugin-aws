@@ -128,6 +128,10 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &codepipeline.ListPipelinesInput{
 		MaxResults: aws.Int64(1000),
@@ -186,6 +190,10 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build params
 	params := &codepipeline.GetPipelineInput{
@@ -214,6 +222,10 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params

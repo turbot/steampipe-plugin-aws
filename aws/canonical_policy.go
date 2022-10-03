@@ -126,17 +126,17 @@ func (statement *Statement) UnmarshalJSON(b []byte) error {
 
 // canonicalCondition converts the conditions to a standard format for easier matching
 // Note that:
-//     - conditions keys are CASE INSENSITIVE - we convert them to lower case.
-//     - Like other fields in IAM policies, the condition values can either be a string
-//       or an array of strings - we always convery them to arrays for easier searching
-//       and we remove duplicates
-//     - condition values can be string, boolean, or numeric depending on the operator
-//       key,  but whereever the a bool or int is accepted, a string representation is
-//       also accepted - e.g. you can use `true` or `"true"`.  While it would probably
-//       be ideal to cast to the ACTUAL type based on the operator, we currently cast
-//       them all to strings - Its simpler, and the net effect is pretty much the same;
-//       since postgres json functions only return text or jsonb, you need to cast
-//       them explicitly in your query anyway....
+//   - conditions keys are CASE INSENSITIVE - we convert them to lower case.
+//   - Like other fields in IAM policies, the condition values can either be a string
+//     or an array of strings - we always convery them to arrays for easier searching
+//     and we remove duplicates
+//   - condition values can be string, boolean, or numeric depending on the operator
+//     key,  but whereever the a bool or int is accepted, a string representation is
+//     also accepted - e.g. you can use `true` or `"true"`.  While it would probably
+//     be ideal to cast to the ACTUAL type based on the operator, we currently cast
+//     them all to strings - Its simpler, and the net effect is pretty much the same;
+//     since postgres json functions only return text or jsonb, you need to cast
+//     them explicitly in your query anyway....
 func canonicalCondition(src map[string]interface{}) (map[string]interface{}, error) {
 	newConditions := make(map[string]interface{})
 

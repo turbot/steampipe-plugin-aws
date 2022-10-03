@@ -157,17 +157,16 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
 	appId := d.KeyColumnQuals["id"].GetStringValue()
 	// Empty check
 	if appId == "" {
 		return nil, nil
 	}
 
-	// Create Session
+	// Create service
 	svc, err := PinpointService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApp", "connection_error", err)
+		plugin.Logger(ctx).Error("getPinpointApp", "connection", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -192,20 +191,15 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func getPinpointApplicationSettings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
+	plugin.Logger(ctx).Trace("getPinpointApplicationSettings")
 	application := h.Item.(*pinpoint.ApplicationResponse)
 
-	// Create Session
+	// Create service
 	svc, err := PinpointService(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getPinpointApplicationSettings", "connection_error", err)
+		plugin.Logger(ctx).Error("getPinpointApplicationSettings", "connection", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
 	params := &pinpoint.GetApplicationSettingsInput{}
 	params.SetApplicationId(*application.Id)
 

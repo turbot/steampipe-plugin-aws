@@ -4,14 +4,12 @@ import (
 	"context"
 	"strings"
 
-	go_kit_packs "github.com/turbot/go-kit/types"
-
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/acm/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -369,7 +367,7 @@ func certificateTurbotTags(_ context.Context, d *transform.TransformData) (inter
 }
 
 func certificateArnToTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	item := go_kit_packs.SafeString(d.Value)
+	item := d.Value.(string)
 
 	// Get the resource title
 	title := item[strings.LastIndex(item, "/")+1:]
