@@ -212,31 +212,6 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 	}
 }
 
-type ProjectArtifacts struct {
-	ArtifactIdentifier   *string
-	BucketOwnerAccess    *string
-	EncryptionDisabled   *bool
-	Location             *string
-	Name                 *string
-	NamespaceType        *string
-	OverrideArtifactName *bool
-	Packaging            *string
-	Path                 *string
-	Type                 *string
-}
-
-type ProjectLogConfig struct {
-	CloudWatchLogs *types.CloudWatchLogsConfig
-	S3Logs         *ProjectS3Logs
-}
-
-type ProjectS3Logs struct {
-	BucketOwnerAccess  *string
-	EncryptionDisabled *bool
-	Location           *string
-	Status             *string
-}
-
 //// LIST FUNCTION
 
 func listCodeBuildProjects(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -342,4 +317,3 @@ func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (
 	}
 	return turbotTagsMap, nil
 }
-
