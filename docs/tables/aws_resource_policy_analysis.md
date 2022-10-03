@@ -192,7 +192,7 @@ order by
   r.id
 ```
 
-### Get the public, shared and private access levels for all S3 buckets
+### Get the public, shared and private access levels for all Lambda functions
 
 ```sql
 select
@@ -202,7 +202,7 @@ select
   pa.private_access_levels,
   r.arn
 from
-  aws_s3_bucket as r,
+  aws_lambda_function as r,
   aws_resource_policy_analysis as pa
 where
   pa.account_id = r.account_id
@@ -222,7 +222,7 @@ from
 where
   pa.account_id = r.account_id
   and pa.policy = r.policy_std
-  and not pa.allowed_principal_account_ids <@ '["111122223333", "999988887777"]'
+  and not pa.allowed_principal_account_ids <@ '["<Account 1>", "<Account 2>"]'
   and pa.is_public = false
   and jsonb_array_length(pa.shared_statement_ids) > 0
 ```
