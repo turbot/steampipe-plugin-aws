@@ -57,3 +57,18 @@ from
 where
   health_status = 'Suspended';
 ```
+
+### List managed actions for each environment
+
+```sql
+select
+  environment_name,
+  a ->> 'ActionDescription' as action_description,
+  a ->> 'ActionId' as action_id,
+  a ->> 'ActionType' as action_type,
+  a ->> 'Status' as action_status,
+  a ->> 'WindowStartTime' as action_window_start_time
+from
+  aws_elastic_beanstalk_environment,
+  jsonb_array_elements(managed_actions) as a;
+```

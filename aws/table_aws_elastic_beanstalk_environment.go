@@ -214,6 +214,7 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 	for pagesLeft {
 		result, err := svc.DescribeEnvironments(params)
 		if err != nil {
+			plugin.Logger(ctx).Error("elastic_beanstalk_application.listAwsElasticBeanstalkEnvironments", "api_error", err)
 			return nil, err
 		}
 
@@ -240,8 +241,6 @@ func listAwsElasticBeanstalkEnvironments(ctx context.Context, d *plugin.QueryDat
 //// HYDRATE FUNCTIONS
 
 func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsElasticBeanstalkEnvironment")
-
 	// Create Session
 	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
@@ -263,7 +262,7 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 
 	environmentData, err := svc.DescribeEnvironments(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsElasticBeanstalkEnvironment__", "ERROR", err)
+		plugin.Logger(ctx).Error("elastic_beanstalk_application.getAwsElasticBeanstalkEnvironment", "api_error", err)
 		return nil, err
 	}
 
@@ -275,8 +274,6 @@ func getAwsElasticBeanstalkEnvironment(ctx context.Context, d *plugin.QueryData,
 }
 
 func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsElasticBeanstalkEnvironmentManagedActions")
-
 	// Create Session
 	svc, err := ElasticBeanstalkService(ctx, d)
 	if err != nil {
@@ -285,14 +282,14 @@ func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plu
 
 	name := *h.Item.(*elasticbeanstalk.EnvironmentDescription).EnvironmentName
 
-	// Build the params
+	// Build params
 	params := &elasticbeanstalk.DescribeEnvironmentManagedActionsInput{
 		EnvironmentName: aws.String(name),
 	}
 
 	managedActions, err := svc.DescribeEnvironmentManagedActions(params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsElasticBeanstalkEnvironmentManagedActions__", "ERROR", err)
+		plugin.Logger(ctx).Error("elastic_beanstalk_environment.getAwsElasticBeanstalkEnvironmentManagedActions", "api_error", err)
 		return nil, err
 	}
 
@@ -304,7 +301,6 @@ func getAwsElasticBeanstalkEnvironmentManagedActions(ctx context.Context, d *plu
 
 func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	plugin.Logger(ctx).Trace("listElasticBeanstalkEnvironmentTags")
 
 	resourceArn := h.Item.(*elasticbeanstalk.EnvironmentDescription).EnvironmentArn
 
@@ -314,7 +310,7 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 		return nil, err
 	}
 
-	// Build param
+	// Build params
 	params := &elasticbeanstalk.ListTagsForResourceInput{
 		ResourceArn: resourceArn,
 	}
@@ -322,7 +318,7 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	// Get call
 	op, err := svc.ListTagsForResource(params)
 	if err != nil {
-		logger.Debug("listElasticBeanstalkEnvironmentTags", "ERROR", err)
+		logger.Error("elastic_beanstalk_environment.listElasticBeanstalkEnvironmentTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
@@ -331,7 +327,6 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 //// TRANSFORM FUNCTIONS
 
 func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("elasticBeanstalkEnvironmentTagListToTurbotTags")
 	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
 	// Mapping the resource tags inside turbotTags
