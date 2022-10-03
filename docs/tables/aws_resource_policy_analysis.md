@@ -1,6 +1,8 @@
 # Table: aws_resource_policy_analysis
 
-AWS Resource Policy Analysis table returns the access analysis of the IAM policies of the specific resource.
+AWS Resource Policy Analysis table analyzes AWS resource or identity policies and returns which Principals have been granted access, the details on the SIDs that provide access to third parties and the type of access given at that access level. It will also calculate the overall access level of the policy which can be used to determine if the policy is too permissive.
+
+The summary of this data will be returned in tabular form.
 
 This table answers the following questions:
 
@@ -10,7 +12,11 @@ This table answers the following questions:
 - Is the overall access granted of the policy at a public, shared and private level?
 - How many accounts, identity providers, services or organizations are referred by the policy?
 
-The analysis table will return overall access granted and it is subdivided into three categories: ["Public", "Shared", "Private"].
+The analysis table will return overall access granted and it is subdivided into three categories:0
+
+- Public
+- Shared
+- Private
 
 Public access has one of the following characteristics:
 
@@ -86,7 +92,7 @@ For example, if the home account is `111122221111` the following policy will be 
 
 Principals are organized by the table and returned in their own columns.
 
-The table will sort statement IDs into three different categories, public for statements that grant public access, shared and private for shared and private access respectively.
+The table will sort statement SIDs into three different categories, public for statements that grant public access, shared and private for shared and private access respectively.
 
 The table will also give the access level of Functions at each access level. This is can be either none or all of the following values:
 
