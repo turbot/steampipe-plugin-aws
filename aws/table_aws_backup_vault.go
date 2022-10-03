@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +20,17 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_vault",
 		Description: "AWS Backup Vault",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
-			Hydrate:           getAwsBackupVault,
+			KeyColumns: plugin.SingleColumn("name"),
+			// DescribeBackupVault API returns AccessDeniedException instead of a not found error when it is called for vaults that do not exist
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "AccessDeniedException"}),
+			},
+			Hydrate: getAwsBackupVault,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupVaults,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -65,6 +68,7 @@ func tableAwsBackupVault(_ context.Context) *plugin.Table {
 				Name:        "sns_topic_arn",
 				Description: "An ARN that uniquely identifies an Amazon Simple Notification Service.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsBackupVaultNotification,
 				Transform:   transform.FromField("SNSTopicArn"),
 			},
 			{

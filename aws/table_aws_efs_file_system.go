@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/efs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 		Name:        "aws_efs_file_system",
 		Description: "AWS Elastic File System",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("file_system_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
-			Hydrate:           getElasticFileSystem,
+			KeyColumns: plugin.SingleColumn("file_system_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"FileSystemNotFound", "ValidationException"}),
+			},
+			Hydrate: getElasticFileSystem,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElasticFileSystem,
@@ -29,7 +31,7 @@ func tableAwsElasticFileSystem(_ context.Context) *plugin.Table {
 				{Name: "creation_token", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

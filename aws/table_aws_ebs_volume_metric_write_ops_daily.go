@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsEbsVolumeMetricWriteOpsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ebs_volume_metric_write_ops_daily",
@@ -18,7 +19,7 @@ func tableAwsEbsVolumeMetricWriteOpsDaily(_ context.Context) *plugin.Table {
 			ParentHydrate: listEBSVolume,
 			Hydrate:       listEbsVolumeMetricWriteOpsDaily,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricCpuUtilizationDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_cpu_utilization_daily",
@@ -18,7 +19,7 @@ func tableAwsRdsInstanceMetricCpuUtilizationDaily(_ context.Context) *plugin.Tab
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricCpuUtilizationDaily,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

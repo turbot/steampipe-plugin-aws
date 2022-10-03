@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 		Name:        "aws_route53_resolver_rule",
 		Description: "AWS Route53 Resolver Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getAwsRoute53ResolverRule,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getAwsRoute53ResolverRule,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRoute53ResolverRules,
@@ -32,7 +34,7 @@ func tableAwsRoute53ResolverRule(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -312,6 +314,7 @@ func route53resolverRuleTagListToTurbotTags(ctx context.Context, d *transform.Tr
 }
 
 //// UTILITY FUNCTION
+
 // Build route53resolver rule list call input filter
 func buildRoute53ResolverRuleFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
 	filters := make([]*route53resolver.Filter, 0)

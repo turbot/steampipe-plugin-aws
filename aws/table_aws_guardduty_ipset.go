@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
@@ -18,9 +18,11 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 		Name:        "aws_guardduty_ipset",
 		Description: "AWS GuardDuty IPSet",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"detector_id", "ipset_id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
-			Hydrate:           getAwsGuardDutyIPSet,
+			KeyColumns: plugin.AllColumns([]string{"detector_id", "ipset_id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInputException", "NoSuchEntityException", "BadRequestException"}),
+			},
+			Hydrate: getAwsGuardDutyIPSet,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listGuardDutyDetectors,
@@ -29,7 +31,7 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 				{Name: "detector_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

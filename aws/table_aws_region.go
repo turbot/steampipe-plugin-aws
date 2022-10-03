@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +19,11 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 		Name:        "aws_region",
 		Description: "AWS Region",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsRegion,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+			},
+			Hydrate: getAwsRegion,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRegions,
@@ -80,7 +83,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsClient(ctx, d, defaultRegion)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "connnection.error", err)
 		return nil, err
@@ -91,7 +94,7 @@ func listAwsRegions(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	// execute list call
-	resp, err := svc.DescribeRegions(params)
+	resp, err := svc.DescribeRegions(ctx, params)
 	if err != nil {
 		logger.Error("aws_region.listAwsRegions", "api.error", err)
 		return nil, err
@@ -110,7 +113,7 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	defaultRegion := GetDefaultAwsRegion(d)
 
 	// Create service
-	svc, err := Ec2Service(ctx, d, defaultRegion)
+	svc, err := Ec2RegionsClient(ctx, d, defaultRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +121,11 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 
 	params := &ec2.DescribeRegionsInput{
 		AllRegions:  aws.Bool(true),
-		RegionNames: []*string{aws.String(regionName)},
+		RegionNames: []string{regionName},
 	}
 
 	// execute list call
-	op, err := svc.DescribeRegions(params)
+	op, err := svc.DescribeRegions(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +140,7 @@ func getAwsRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 //// TRANSFORM FUNCTIONS
 
 func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRegionAkas")
-	region := h.Item.(*ec2.Region)
+	region := h.Item.(types.Region)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicequotas"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,18 +18,22 @@ func tableAwsServiceQuotasServiceQuota(_ context.Context) *plugin.Table {
 		Name:        "aws_servicequotas_service_quota",
 		Description: "AWS ServiceQuotas Service Quota",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
-			Hydrate:           getServiceQuota,
+			KeyColumns: plugin.AllColumns([]string{"service_code", "quota_code", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+			},
+			Hydrate: getServiceQuota,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listServiceQuotas,
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchResourceException"}),
+			Hydrate: listServiceQuotas,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchResourceException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "service_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildServiceQuotasServicesRegionList,
+		GetMatrixItemFunc: BuildServiceQuotasServicesRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "quota_name",

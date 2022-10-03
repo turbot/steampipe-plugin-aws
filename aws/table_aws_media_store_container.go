@@ -6,9 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
@@ -16,15 +17,19 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 		Name:        "aws_media_store_container",
 		Description: "AWS Media Store Container",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
-			Hydrate:           getMediaStoreContainer,
+			KeyColumns: plugin.AllColumns([]string{"name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ContainerNotFoundException", "ContainerInUseException"}),
+			},
+			Hydrate: getMediaStoreContainer,
 		},
 		List: &plugin.ListConfig{
-			Hydrate:           listMediaStoreContainers,
-			ShouldIgnoreError: isNotFoundError([]string{"ContainerInUseException"}),
+			Hydrate: listMediaStoreContainers,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ContainerInUseException"}),
+			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -107,13 +112,16 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 
 func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("listMediaStoreContainers")
 
 	// Create service
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		logger.Error("listMediaStoreContainers", "error_MediaStoreService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Set MaxResults to the maximum number allowed
@@ -161,15 +169,22 @@ func listMediaStoreContainers(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getMediaStoreContainer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getMediaStoreContainer")
 
 	containerName := d.KeyColumnQuals["name"].GetStringValue()
+	// check if name is empty
+	if containerName == "" {
+		return nil, nil
+	}
 
 	// Create service
 	svc, err := MediaStoreService(ctx, d)
 	if err != nil {
 		logger.Error("getMediaStoreContainer", "error_MediaStoreService", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

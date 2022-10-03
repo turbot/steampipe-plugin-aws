@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricWriteIopsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_write_iops_hourly",
@@ -18,7 +19,7 @@ func tableAwsRdsInstanceMetricWriteIopsHourly(_ context.Context) *plugin.Table {
 			ParentHydrate: listRDSDBInstances,
 			Hydrate:       listRdsInstanceMetricWriteIopsHourly,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

@@ -1,0 +1,7 @@
+[
+  {
+    "account_id": "{{ output.account_id.value }}",
+    "arn": "{{ output.standards_control_arn.value }}",
+    "title" : "{{ output.title.value }}"
+  }
+]

@@ -7,36 +7,32 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
 
-func tableAwsIamRole(_ context.Context) *plugin.Table {
+func tableAwsIamRole(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_iam_role",
 		Description: "AWS IAM Role",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamRole,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			Hydrate:    getIamRole,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamRoles,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
-			},
-		},
-		HydrateDependencies: []plugin.HydrateDependencies{
-			{
-				Func:    getAwsIamRoleInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamRoleInlinePolicies},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -129,14 +125,14 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the role..",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the role.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamRoleInlinePolicies,
+				Hydrate:     listAwsIamRoleInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -189,65 +185,72 @@ func tableAwsIamRole(_ context.Context) *plugin.Table {
 
 func listIamRoles(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "client_error", err)
 		return nil, err
 	}
 
-	input := &iam.ListRolesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
 
+	input := iam.ListRolesInput{}
 	equalQual := d.KeyColumnQuals
 	if equalQual["path"] != nil {
 		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListRolesPages(
-		input,
-		func(page *iam.ListRolesOutput, lastPage bool) bool {
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := iam.NewListRolesPaginator(svc, &input, func(o *iam.ListRolesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-			for _, role := range page.Roles {
-				d.StreamListItem(ctx, role)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, role := range output.Roles {
+			d.StreamListItem(ctx, role)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getIamRole")
-
-	// Create service
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.getIamRole", "client_error", err)
 		return nil, err
 	}
 
 	var name string
 	if h.Item != nil {
-		data := h.Item.(*iam.Role)
-		name = types.SafeString(data.RoleName)
+		data := h.Item.(types.Role)
+		name = *data.RoleName
 	} else {
 		name = d.KeyColumnQuals["name"].GetStringValue()
 		arn := d.KeyColumnQuals["arn"].GetStringValue()
@@ -256,72 +259,74 @@ func getIamRole(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 		}
 	}
 
-	params := &iam.GetRoleInput{
-		RoleName: aws.String(name),
-	}
-
-	op, err := svc.GetRole(params)
+	params := &iam.GetRoleInput{RoleName: aws.String(name)}
+	op, err := svc.GetRole(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.getIamRole", "api_error", err)
 		return nil, err
 	}
 
-	return op.Role, nil
+	return *op.Role, nil
 }
 
 func getAwsIamInstanceProfileData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamInstanceProfileData")
-	role := h.Item.(*iam.Role)
+	role := h.Item.(types.Role)
 
-	// create service
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.getAwsIamInstanceProfileData", "client_error", err)
 		return nil, err
 	}
 
 	var associatedInstanceProfileArns []string
+	params := iam.ListInstanceProfilesForRoleInput{RoleName: role.RoleName}
 
-	params := &iam.ListInstanceProfilesForRoleInput{
-		RoleName: role.RoleName,
+	paginator := iam.NewListInstanceProfilesForRolePaginator(svc, &params, func(o *iam.ListInstanceProfilesForRolePaginatorOptions) {
+		o.Limit = 100
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_policy.getAwsIamInstanceProfileData", "api_error", err)
+			return nil, err
+		}
+
+		for _, instanceProfile := range output.InstanceProfiles {
+			associatedInstanceProfileArns = append(associatedInstanceProfileArns, *instanceProfile.Arn)
+		}
 	}
-
-	err = svc.ListInstanceProfilesForRolePages(
-		params,
-		func(page *iam.ListInstanceProfilesForRoleOutput, lastPage bool) bool {
-			for _, instanceProfile := range page.InstanceProfiles {
-				associatedInstanceProfileArns = append(associatedInstanceProfileArns, *instanceProfile.Arn)
-			}
-			return !lastPage
-		},
-	)
 
 	return associatedInstanceProfileArns, err
 }
 
 func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamRoleAttachedPolicies")
-	role := h.Item.(*iam.Role)
+	role := h.Item.(types.Role)
 
 	// create service
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.getAwsIamRoleAttachedPolicies", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.ListAttachedRolePoliciesInput{
-		RoleName: role.RoleName,
-	}
-
-	roleData, err := svc.ListAttachedRolePolicies(params)
-	if err != nil {
-		return nil, err
-	}
+	params := &iam.ListAttachedRolePoliciesInput{RoleName: role.RoleName}
+	paginator := iam.NewListAttachedRolePoliciesPaginator(svc, params, func(o *iam.ListAttachedRolePoliciesPaginatorOptions) {
+		o.Limit = 100
+		o.StopOnDuplicateToken = true
+	})
 
 	var attachedPolicyArns []string
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_policy.getAwsIamRoleAttachedPolicies", "api_error", err)
+			return nil, err
+		}
 
-	if roleData.AttachedPolicies != nil {
-		for _, policy := range roleData.AttachedPolicies {
+		for _, policy := range output.AttachedPolicies {
 			attachedPolicyArns = append(attachedPolicyArns, *policy.PolicyArn)
 		}
 	}
@@ -330,46 +335,38 @@ func getAwsIamRoleAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func listAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsIamRoleInlinePolicies")
-	role := h.Item.(*iam.Role)
+	role := h.Item.(types.Role)
 
-	// create service
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_role.listAwsIamRoleInlinePolicies", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.ListRolePoliciesInput{
-		RoleName: role.RoleName,
-	}
+	params := &iam.ListRolePoliciesInput{RoleName: role.RoleName}
+	paginator := iam.NewListRolePoliciesPaginator(svc, params, func(o *iam.ListRolePoliciesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
 
-	roleData, err := svc.ListRolePolicies(params)
-	if err != nil {
-		return nil, err
-	}
+	var policyNames []string
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_policy.listAwsIamRoleInlinePolicies", "api_error", err)
+			return nil, err
+		}
 
-	return roleData, nil
-}
+		policyNames = append(policyNames, output.PolicyNames...)
 
-func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsIamRoleInlinePolicies")
-	role := h.Item.(*iam.Role)
-	listRolePoliciesOutput := h.HydrateResults["listAwsIamRoleInlinePolicies"].(*iam.ListRolePoliciesOutput)
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
-		return nil, err
 	}
 
 	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listRolePoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listRolePoliciesOutput.PolicyNames))
-	for _, policy := range listRolePoliciesOutput.PolicyNames {
+	policyCh := make(chan map[string]interface{}, len(policyNames))
+	errorCh := make(chan error, len(policyNames))
+	for _, policy := range policyNames {
 		wg.Add(1)
-		go getRolePolicyDataAsync(policy, role.RoleName, svc, &wg, policyCh, errorCh)
+		go getRolePolicyDataAsync(ctx, &policy, role.RoleName, svc, &wg, policyCh, errorCh)
 	}
 
 	// wait for all inline policies to be processed
@@ -392,10 +389,10 @@ func getAwsIamRoleInlinePolicies(ctx context.Context, d *plugin.QueryData, h *pl
 	return rolePolicies, nil
 }
 
-func getRolePolicyDataAsync(policy *string, roleName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
+func getRolePolicyDataAsync(ctx context.Context, policy *string, roleName *string, svc *iam.Client, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
 	defer wg.Done()
 
-	rowData, err := getRoleInlinePolicy(policy, roleName, svc)
+	rowData, err := getRoleInlinePolicy(ctx, policy, roleName, svc)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -403,14 +400,14 @@ func getRolePolicyDataAsync(policy *string, roleName *string, svc *iam.IAM, wg *
 	}
 }
 
-func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (map[string]interface{}, error) {
+func getRoleInlinePolicy(ctx context.Context, policyName *string, roleName *string, svc *iam.Client) (map[string]interface{}, error) {
 	rolePolicy := make(map[string]interface{})
 	params := &iam.GetRolePolicyInput{
 		PolicyName: policyName,
 		RoleName:   roleName,
 	}
 
-	tmpPolicy, err := svc.GetRolePolicy(params)
+	tmpPolicy, err := svc.GetRolePolicy(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -439,12 +436,11 @@ func getRoleInlinePolicy(policyName *string, roleName *string, svc *iam.IAM) (ma
 //// TRANSFORM FUNCTIONS
 
 func getIamRoleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*iam.Role)
+	tags := d.HydrateItem.(types.Role)
 	var turbotTagsMap map[string]string
-
-	if data.Tags != nil {
+	if tags.Tags != nil {
 		turbotTagsMap = map[string]string{}
-		for _, i := range data.Tags {
+		for _, i := range tags.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}

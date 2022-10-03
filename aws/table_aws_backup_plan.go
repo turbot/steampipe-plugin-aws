@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +20,16 @@ func tableAwsBackupPlan(_ context.Context) *plugin.Table {
 		Name:        "aws_backup_plan",
 		Description: "AWS Backup Plan",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("backup_plan_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException"}),
-			Hydrate:           getAwsBackupPlan,
+			KeyColumns: plugin.SingleColumn("backup_plan_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException"}),
+			},
+			Hydrate: getAwsBackupPlan,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsBackupPlans,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

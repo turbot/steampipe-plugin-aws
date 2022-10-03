@@ -2,13 +2,13 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 		Name:        "aws_cloudfront_origin_access_identity",
 		Description: "AWS CloudFront Origin Access Identity",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchCloudFrontOriginAccessIdentity"}),
-			Hydrate:           getCloudFrontOriginAccessIdentity,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchCloudFrontOriginAccessIdentity"}),
+			},
+			Hydrate: getCloudFrontOriginAccessIdentity,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCloudFrontOriginAccessIdentities,
@@ -87,89 +89,99 @@ func tableAwsCloudFrontOriginAccessIdentity(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFrontOriginAccessIdentities(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listCloudFrontOriginAccessIdentities")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.listCloudFrontOriginAccessIdentities", "client_error", err)
 		return nil, err
 	}
 
 	// The maximum number for MaxItems parameter is not defined by the API
 	// We have set the MaxItems to 1000 based on our test
-	input := &cloudfront.ListCloudFrontOriginAccessIdentitiesInput{
-		MaxItems: aws.Int64(1000),
-	}
+	maxItems := int32(1000)
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListCloudFrontOriginAccessIdentitiesPages(
-		input,
-		func(page *cloudfront.ListCloudFrontOriginAccessIdentitiesOutput, isLast bool) bool {
-			for _, identity := range page.CloudFrontOriginAccessIdentityList.Items {
-				d.StreamListItem(ctx, identity)
+	input := &cloudfront.ListCloudFrontOriginAccessIdentitiesInput{
+		MaxItems: &maxItems,
+	}
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := cloudfront.NewListCloudFrontOriginAccessIdentitiesPaginator(svc, input, func(o *cloudfront.ListCloudFrontOriginAccessIdentitiesPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.listCloudFrontOriginAccessIdentities", "api_error", err)
+			return nil, err
+		}
+
+		for _, identity := range output.CloudFrontOriginAccessIdentityList.Items {
+			d.StreamListItem(ctx, identity)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getCloudFrontOriginAccessIdentity(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontOriginAccessIdentity")
-
-	// Create session
-	svc, err := CloudFrontService(ctx, d)
+	// Get client
+	svc, err := CloudFrontClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentity", "client_error", err)
 		return nil, err
 	}
 
 	var identityID string
 	if h.Item != nil {
-		identityID = *h.Item.(*cloudfront.OriginAccessIdentitySummary).Id
+		identityID = *h.Item.(types.CloudFrontOriginAccessIdentitySummary).Id
 	} else {
 		identityID = d.KeyColumnQuals["id"].GetStringValue()
 	}
 
-	params := &cloudfront.GetCloudFrontOriginAccessIdentityInput{
-		Id: aws.String(identityID),
+	if strings.TrimSpace(identityID) == "" {
+		return nil, nil
 	}
 
-	op, err := svc.GetCloudFrontOriginAccessIdentity(params)
+	params := &cloudfront.GetCloudFrontOriginAccessIdentityInput{
+		Id: &identityID,
+	}
+
+	op, err := svc.GetCloudFrontOriginAccessIdentity(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentity", "api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	return *op, nil
 }
 
 func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudFrontOriginAccessIdentityARN")
 	originAccessIdentityData := *originAccessIdentityID(h.Item)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudfront_origin_access_identity.getCloudFrontOriginAccessIdentityARN", "common_data_error", err)
 		return nil, err
 	}
 
@@ -181,9 +193,9 @@ func getCloudFrontOriginAccessIdentityARN(ctx context.Context, d *plugin.QueryDa
 
 func originAccessIdentityID(item interface{}) *string {
 	switch item := item.(type) {
-	case *cloudfront.GetCloudFrontOriginAccessIdentityOutput:
+	case cloudfront.GetCloudFrontOriginAccessIdentityOutput:
 		return item.CloudFrontOriginAccessIdentity.Id
-	case *cloudfront.OriginAccessIdentitySummary:
+	case types.CloudFrontOriginAccessIdentitySummary:
 		return item.Id
 	}
 	return nil

@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		Name:        "aws_secretsmanager_secret",
 		Description: "AWS Secrets Manager Secret",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           describeSecretsManagerSecret,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: describeSecretsManagerSecret,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecretsManagerSecrets,
@@ -30,7 +32,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 				{Name: "primary_region", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -20,9 +20,11 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_patch_baseline",
 		Description: "AWS SSM Patch Baseline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("baseline_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
-			Hydrate:           getPatchBaseline,
+			KeyColumns: plugin.SingleColumn("baseline_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DoesNotExistException", "InvalidResourceId", "InvalidParameter", "ValidationException"}),
+			},
+			Hydrate: getPatchBaseline,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: describePatchBaselines,
@@ -31,7 +33,7 @@ func tableAwsSSMPatchBaseline(_ context.Context) *plugin.Table {
 				{Name: "operating_system", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

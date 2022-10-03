@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugin.Table {
@@ -21,7 +21,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 			Hydrate:       listStepFunctionsStateMachineExecutionHistories,
 			ParentHydrate: listStepFunctionsStateManchines,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

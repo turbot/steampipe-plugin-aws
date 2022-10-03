@@ -1,3 +1,3 @@
-select account_id, akas, partition, region, tags, title
+select account_id, akas, partition, region, title
 from aws.aws_lambda_function
-where name = '{{ resourceName }}'
+where name = '{{ resourceName }}';

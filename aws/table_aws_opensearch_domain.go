@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
@@ -15,20 +15,22 @@ func tableAwsOpenSearchDomain(_ context.Context) *plugin.Table {
 		Name:        "aws_opensearch_domain",
 		Description: "AWS OpenSearch Domain",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("domain_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getOpenSearchDomain,
+			KeyColumns: plugin.SingleColumn("domain_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getOpenSearchDomain,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOpenSearchDomains,
 		},
-		HydrateDependencies: []plugin.HydrateDependencies{
+		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func:    listOpenSearchDomainTags,
 				Depends: []plugin.HydrateFunc{getOpenSearchDomain},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
@@ -283,6 +285,12 @@ func getOpenSearchDomain(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("listOpenSearchDomainTags")
+
+	// Domain will be nil if getOpenSearchDomain returned an error but
+	// was ignored through ignore_error_codes config arg
+	if h.HydrateResults["getOpenSearchDomain"] == nil {
+		return nil, nil
+	}
 
 	arn := h.HydrateResults["getOpenSearchDomain"].(*opensearchservice.DomainStatus).ARN
 

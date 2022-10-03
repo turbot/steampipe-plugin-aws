@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
@@ -16,14 +16,16 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_endpoint_service",
 		Description: "AWS VPC Endpoint Service",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("service_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidServiceName"}),
-			Hydrate:           getVpcEndpointService,
+			KeyColumns: plugin.SingleColumn("service_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidServiceName"}),
+			},
+			Hydrate: getVpcEndpointService,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEndpointServices,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",
@@ -66,8 +68,8 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "service_type",
-				Description: "The type of service.",
+				Name:        "availability_zones",
+				Description: "The Availability Zones in which the service is available.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -76,9 +78,22 @@ func tableAwsVpcEndpointService(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "availability_zones",
-				Description: "The Availability Zones in which the service is available.",
+				Name:        "service_type",
+				Description: "The type of service.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vpc_endpoint_connections",
+				Description: "Information about one or more VPC endpoint connections.",
+				Hydrate:     getVpcEndpointConnections,
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "vpc_endpoint_service_permissions",
+				Description: "Information about one or more allowed principals.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listVpcEndpointServicePermissions,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "tags_src",
@@ -193,6 +208,76 @@ func getVpcEndpointService(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 	if op.ServiceDetails != nil && len(op.ServiceDetails) > 0 {
 		return op.ServiceDetails[0], nil
+	}
+	return nil, nil
+}
+
+func listVpcEndpointServicePermissions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("listVpcEndpointServicePermissions")
+
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	serviceId := h.Item.(*ec2.ServiceDetail).ServiceId
+
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the params
+	params := &ec2.DescribeVpcEndpointServicePermissionsInput{
+		ServiceId:  serviceId,
+		MaxResults: aws.Int64(1000),
+	}
+
+	allowedPrincipals := []*ec2.AllowedPrincipal{}
+	err = svc.DescribeVpcEndpointServicePermissionsPages(
+		params,
+		func(page *ec2.DescribeVpcEndpointServicePermissionsOutput, isLast bool) bool {
+			allowedPrincipals = append(allowedPrincipals, page.AllowedPrincipals...)
+			return !isLast
+		},
+	)
+	if err != nil {
+		if strings.Contains(err.Error(), "NotFound") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listVpcEndpointServicePermissions", "ERROR", err)
+		return nil, err
+	}
+
+	return allowedPrincipals, nil
+}
+
+func getVpcEndpointConnections(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	endpointService := h.Item.(*ec2.ServiceDetail)
+
+	// get service
+	svc, err := Ec2Service(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Debug("aws_vpc_endpoint_service.getVpcEndpointConnections", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &ec2.DescribeVpcEndpointConnectionsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("service-id"),
+				Values: []*string{endpointService.ServiceId},
+			},
+		},
+	}
+
+	// Get call
+	op, err := svc.DescribeVpcEndpointConnections(params)
+	if err != nil {
+		plugin.Logger(ctx).Debug("aws_vpc_endpoint_service.getVpcEndpointConnections", "api_error", err)
+		return nil, err
+	}
+
+	if op.VpcEndpointConnections != nil && len(op.VpcEndpointConnections) > 0 {
+		return op, nil
 	}
 	return nil, nil
 }

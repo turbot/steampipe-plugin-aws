@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsElasticacheRedisMetricCurrConnectionsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_curr_connections_hourly",
@@ -18,7 +19,7 @@ func tableAwsElasticacheRedisMetricCurrConnectionsHourly(_ context.Context) *plu
 			ParentHydrate: listElastiCacheClusters,
 			Hydrate:       listElastiCacheMetricCurrConnectionsHourly,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

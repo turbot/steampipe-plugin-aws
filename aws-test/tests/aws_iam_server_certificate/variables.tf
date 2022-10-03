@@ -7,7 +7,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -41,18 +41,12 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 resource "tls_private_key" "example" {
   algorithm = "RSA"
 }
 
 resource "tls_self_signed_cert" "example" {
-  key_algorithm   = "RSA"
+  # key_algorithm   = "RSA"
   private_key_pem = tls_private_key.example.private_key_pem
 
   subject {

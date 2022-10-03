@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_elasticache_redis_metric_get_type_cmds_hourly",
@@ -18,7 +19,7 @@ func tableAwsElasticacheRedisMetricGetTypeCmdsHourly(_ context.Context) *plugin.
 			ParentHydrate: listElastiCacheClusters,
 			Hydrate:       listElastiCacheMetricGetTypeCmdsHourly,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns(cwMetricColumns(
 			[]*plugin.Column{
 				{

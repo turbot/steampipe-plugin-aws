@@ -36,3 +36,14 @@ select
 from
   aws_lambda_alias;
 ```
+
+### List URL configuration details for each alias
+
+```sql
+select
+  name,
+  function_name,
+  jsonb_pretty(url_config) as url_config
+from
+  aws_lambda_alias;
+```

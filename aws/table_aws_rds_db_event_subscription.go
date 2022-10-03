@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsRDSDBEventSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_event_subscription",
 		Description: "AWS RDS DB Event Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cust_subscription_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"SubscriptionNotFound"}),
-			Hydrate:           getRDSDBEventSubscription,
+			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SubscriptionNotFound"}),
+			},
+			Hydrate: getRDSDBEventSubscription,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBEventSubscriptions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",

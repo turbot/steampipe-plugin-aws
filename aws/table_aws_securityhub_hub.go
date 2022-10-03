@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,19 +16,28 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_hub",
 		Description: "AWS Security Hub",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("hub_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
-			Hydrate:           getSecurityHub,
+			KeyColumns: plugin.SingleColumn("hub_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException", "ResourceNotFoundException"}),
+			},
+			Hydrate: getSecurityHub,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubs,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "hub_arn",
 				Description: "The ARN of the Hub resource that was retrieved.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "administrator_account",
+				Description: "Provides the details for the Security Hub administrator account for the current member account.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSecurityHubAdministratorAccount,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "auto_enable_controls",
@@ -112,6 +121,26 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 	return op, nil
+}
+
+func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// get service
+	svc, err := SecurityHubService(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "service_creation_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	params := &securityhub.GetAdministratorAccountInput{}
+
+	// Get call
+	op, err := svc.GetAdministratorAccount(params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "api_error", err)
+		return nil, err
+	}
+	return op.Administrator, nil
 }
 
 func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

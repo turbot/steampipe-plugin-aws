@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
@@ -17,14 +17,16 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_parameter_group",
 		Description: "AWS Redshift Parameter Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ClusterParameterGroupNotFound"}),
-			Hydrate:           getAwsRedshiftParameterGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterParameterGroupNotFound"}),
+			},
+			Hydrate: getAwsRedshiftParameterGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftParameterGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

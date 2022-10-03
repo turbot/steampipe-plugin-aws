@@ -4,6 +4,19 @@ AWS Key Management Service (KMS) is an Amazon Web Services product that allows a
 
 ## Examples
 
+### Basic info
+
+```sql
+select
+  id,
+  title,
+  arn,
+  key_manager,
+  creation_date
+from
+  aws_kms_key;
+```
+
 ### List of KMS keys where key rotation is not enabled
 
 ```sql

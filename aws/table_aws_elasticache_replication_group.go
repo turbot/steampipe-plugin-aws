@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_elasticache_replication_group",
 		Description: "AWS ElastiCache Replication Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("replication_group_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
-			Hydrate:           getElastiCacheReplicationGroup,
+			KeyColumns: plugin.SingleColumn("replication_group_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ReplicationGroupNotFoundFault", "InvalidParameterValue"}),
+			},
+			Hydrate: getElastiCacheReplicationGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheReplicationGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_group_id",

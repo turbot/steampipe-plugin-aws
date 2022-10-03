@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_snapshot",
 		Description: "AWS RDS DB Snapshot",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("db_snapshot_identifier"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBSnapshotNotFound"}),
-			Hydrate:           getRDSDBSnapshot,
+			KeyColumns: plugin.SingleColumn("db_snapshot_identifier"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSnapshotNotFound"}),
+			},
+			Hydrate: getRDSDBSnapshot,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSnapshots,
@@ -31,7 +33,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_snapshot_identifier",

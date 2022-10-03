@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 // column definitions for the common columns
@@ -36,7 +36,7 @@ func commonAwsRegionalColumns() []*plugin.Column {
 }
 
 // column definitions for the common columns
-func commonS3Columns() []*plugin.Column {
+func commonColumns() []*plugin.Column {
 	return []*plugin.Column{
 		{
 			Name:        "partition",
@@ -88,8 +88,8 @@ func awsColumns(columns []*plugin.Column) []*plugin.Column {
 	return append(columns, commonAwsColumns()...)
 }
 
-func awsS3Columns(columns []*plugin.Column) []*plugin.Column {
-	return append(columns, commonS3Columns()...)
+func awsDefaultColumns(columns []*plugin.Column) []*plugin.Column {
+	return append(columns, commonColumns()...)
 }
 
 // struct to store the common column data

@@ -3,10 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/aws-sdk-go/aws"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
@@ -59,7 +62,7 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 				Name:        "missing_context_values",
 				Type:        proto.ColumnType_JSON,
 				Description: "The missing content values for this policy simulation.",
-				Transform:   transform.FromGo(),
+				Transform:   transform.FromGo().NullIfZero(),
 			},
 			{
 				Name:        "resource_specific_results",
@@ -86,36 +89,38 @@ func tableAwsIamPolicySimulator(_ context.Context) *plugin.Table {
 type awsIamPolicySimulatorResult struct {
 	Action                            string
 	Decision                          *string
-	DecisionDetails                   map[string]*string
-	MatchedStatements                 []*iam.Statement
-	MissingContextValues              []*string
-	OrganizationsDecisionDetail       *iam.OrganizationsDecisionDetail
-	PermissionsBoundaryDecisionDetail *iam.PermissionsBoundaryDecisionDetail
+	DecisionDetails                   map[string]types.PolicyEvaluationDecisionType
+	MatchedStatements                 *[]types.Statement
+	MissingContextValues              []string
+	OrganizationsDecisionDetail       *types.OrganizationsDecisionDetail
+	PermissionsBoundaryDecisionDetail *types.PermissionsBoundaryDecisionDetail
 	PrincipalArn                      string
 	ResourceArn                       string
-	ResourceSpecificResults           []*iam.ResourceSpecificResult
-	Result                            *iam.EvaluationResult
+	ResourceSpecificResults           []types.ResourceSpecificResult
+	Result                            types.EvaluationResult
 }
 
 func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listIamPolicySimulation")
 	principalArn := d.KeyColumnQuals["principal_arn"].GetStringValue()
 	action := d.KeyColumnQuals["action"].GetStringValue()
 	resourceArn := d.KeyColumnQuals["resource_arn"].GetStringValue()
 
 	// Create Session
-	svc, err := IAMService(ctx, d)
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy_simulator.listIamPolicySimulation", "client_error", err)
 		return nil, err
 	}
 
 	var params = &iam.SimulatePrincipalPolicyInput{
 		PolicySourceArn: &principalArn,
-		ActionNames:     []*string{&action},
-		ResourceArns:    []*string{&resourceArn},
+		ActionNames:     []string{action},
+		ResourceArns:    []string{resourceArn},
 	}
-	op, err := svc.SimulatePrincipalPolicy(params)
+
+	op, err := svc.SimulatePrincipalPolicy(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_policy_simulator.listIamPolicySimulation", "api_error", err)
 		return nil, err
 	}
 
@@ -124,9 +129,9 @@ func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	row := awsIamPolicySimulatorResult{
 		Action:                            action,
-		Decision:                          resultForAction.EvalDecision,
+		Decision:                          aws.String(string(resultForAction.EvalDecision)),
 		DecisionDetails:                   resultForAction.EvalDecisionDetails,
-		MatchedStatements:                 resultForAction.MatchedStatements,
+		MatchedStatements:                 &resultForAction.MatchedStatements,
 		MissingContextValues:              resultForAction.MissingContextValues,
 		OrganizationsDecisionDetail:       resultForAction.OrganizationsDecisionDetail,
 		PermissionsBoundaryDecisionDetail: resultForAction.PermissionsBoundaryDecisionDetail,
@@ -134,6 +139,13 @@ func listIamPolicySimulation(ctx context.Context, d *plugin.QueryData, _ *plugin
 		ResourceArn:                       resourceArn,
 		ResourceSpecificResults:           resultForAction.ResourceSpecificResults,
 		Result:                            resultForAction,
+	}
+
+	if len(resultForAction.MatchedStatements) == 0 {
+		row.MatchedStatements = nil
+	}
+	if len(resultForAction.MissingContextValues) == 0 {
+		row.MissingContextValues = nil
 	}
 
 	d.StreamListItem(ctx, row)

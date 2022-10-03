@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	pb "github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -23,35 +24,35 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listInspectorAssessmentTargets,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
 				Description: "The name of the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "arn",
 				Description: "The ARN that specifies the Amazon Inspector assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "resource_group_arn",
 				Description: "The ARN that specifies the resource group that is associated with the assessment target.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "created_at",
 				Description: "The time at which the assessment target is created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The time at which UpdateAssessmentTarget is called.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getInspectorAssessmentTarget,
 			},
 
@@ -59,14 +60,14 @@ func tableAwsInspectorAssessmentTarget(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getInspectorAssessmentTarget,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(arnToAkas),
 			},
 		}),
@@ -80,6 +81,10 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &inspector.ListAssessmentTargetsInput{
@@ -128,9 +133,6 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorAssessmentTarget")
-
 	var assessmentTargetArn string
 	if h.Item != nil {
 		assessmentTargetArn = *h.Item.(*inspector.AssessmentTarget).Arn
@@ -144,6 +146,10 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build the params
 	params := &inspector.DescribeAssessmentTargetsInput{
@@ -153,7 +159,7 @@ func getInspectorAssessmentTarget(ctx context.Context, d *plugin.QueryData, h *p
 	// Get call
 	data, err := svc.DescribeAssessmentTargets(params)
 	if err != nil {
-		logger.Debug("describeAssessmentTarget__", "ERROR", err)
+		plugin.Logger(ctx).Debug("describeAssessmentTarget__", "ERROR", err)
 		return nil, err
 	}
 	if data.AssessmentTargets != nil && len(data.AssessmentTargets) > 0 {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
@@ -39,7 +39,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -99,6 +99,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := CloudWatchLogsService(ctx, d)

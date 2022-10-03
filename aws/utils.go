@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -14,8 +15,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func ec2TagsToMap(tags []*ec2.Tag) (*map[string]string, error) {
@@ -73,7 +74,7 @@ func extractNameFromSqsQueueURL(queue string) (string, error) {
 }
 
 func handleNilString(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	value := types.SafeString(d.Value)
+	value := types.SafeString(fmt.Sprintf("%v", d.Value))
 	if value == "" {
 		return "false", nil
 	}
@@ -206,4 +207,25 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		}
 	}
 	return value
+}
+
+// handleNullIfZero :: handles empty slices and map convert them to null instead of the zero type
+func handleEmptySliceAndMap(ctx context.Context, d *transform.TransformData) (any, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+
+	reflectVal := reflect.ValueOf(d.Value)
+	switch reflectVal.Kind() {
+	case reflect.Slice, reflect.Map:
+		if reflectVal.Len() == 0 {
+			return nil, nil
+		}
+	case reflect.Struct:
+		if reflectVal == reflect.Zero(reflectVal.Type()) {
+			return nil, nil
+		}
+	}
+
+	return d.Value, nil
 }

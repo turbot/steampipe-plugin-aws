@@ -7,12 +7,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,20 +23,16 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_iam_group",
 		Description: "AWS IAM Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AnyColumn([]string{"name", "arn"}),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
-			Hydrate:           getIamGroup,
+			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError", "NoSuchEntity", "InvalidParameter"}),
+			},
+			Hydrate: getIamGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listIamGroups,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "path", Require: plugin.Optional},
-			},
-		},
-		HydrateDependencies: []plugin.HydrateDependencies{
-			{
-				Func:    getAwsIamGroupInlinePolicies,
-				Depends: []plugin.HydrateFunc{listAwsIamGroupInlinePolicies},
 			},
 		},
 		Columns: awsColumns([]*plugin.Column{
@@ -68,14 +65,14 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 				Name:        "inline_policies",
 				Description: "A list of policy documents that are embedded as inline policies for the group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamGroupInlinePolicies,
+				Hydrate:     listAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "inline_policies_std",
 				Description: "Inline policies in canonical form for the group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsIamGroupInlinePolicies,
+				Hydrate:     listAwsIamGroupInlinePolicies,
 				Transform:   transform.FromValue().Transform(inlinePoliciesToStd),
 			},
 			{
@@ -112,67 +109,72 @@ func tableAwsIamGroup(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listIamGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listIamGroups")
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.listIamGroups", "client_error", err)
 		return nil, err
 	}
 
-	input := &iam.ListGroupsInput{
-		MaxItems: aws.Int64(1000),
-	}
+	input := &iam.ListGroupsInput{}
 
 	equalQual := d.KeyColumnQuals
 	if equalQual["path"] != nil {
 		input.PathPrefix = aws.String(equalQual["path"].GetStringValue())
 	}
 
+	maxItems := int32(1000)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 1 {
-				input.MaxItems = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.ListGroupsPages(
-		input,
-		func(page *iam.ListGroupsOutput, lastPage bool) bool {
-			for _, group := range page.Groups {
-				d.StreamListItem(ctx, group)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := iam.NewListGroupsPaginator(svc, input, func(o *iam.ListGroupsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aaws_iam_group.listIamGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, group := range output.Groups {
+			d.StreamListItem(ctx, group)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getIamGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getIamGroup")
-
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 	groupName := d.KeyColumnQuals["name"].GetStringValue()
 	if len(arn) > 0 {
 		groupName = strings.Split(arn, "/")[len(strings.Split(arn, "/"))-1]
 	}
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.getIamGroup", "client_error", err)
 		return nil, err
 	}
 
@@ -180,22 +182,22 @@ func getIamGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		GroupName: aws.String(groupName),
 	}
 
-	op, err := svc.GetGroup(params)
+	op, err := svc.GetGroup(ctx, params)
 	if err != nil {
-		logger.Debug("getIamGroup__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_iam_group.getIamGroup", "api_error", err)
 		return nil, err
 	}
 
-	return op.Group, nil
+	return *op.Group, nil
 }
 
 func getAwsIamGroupAttachedPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupAttachedPolicies")
-	group := h.Item.(*iam.Group)
+	group := h.Item.(types.Group)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.listIamGroups", "client_error", err)
 		return nil, err
 	}
 
@@ -203,8 +205,9 @@ func getAwsIamGroupAttachedPolicies(ctx context.Context, d *plugin.QueryData, h 
 		GroupName: group.GroupName,
 	}
 
-	groupData, err := svc.ListAttachedGroupPolicies(params)
+	groupData, err := svc.ListAttachedGroupPolicies(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.getAwsIamGroupAttachedPolicies", "api_error", err)
 		return nil, err
 	}
 
@@ -220,69 +223,52 @@ func getAwsIamGroupAttachedPolicies(ctx context.Context, d *plugin.QueryData, h 
 }
 
 func getAwsIamGroupUsers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupUsers")
-	group := h.Item.(*iam.Group)
+	group := h.Item.(types.Group)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.getAwsIamGroupUsers", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.GetGroupInput{
-		GroupName: group.GroupName,
-	}
+	params := &iam.GetGroupInput{GroupName: group.GroupName}
 
-	groupData, err := svc.GetGroup(params)
+	groupData, err := svc.GetGroup(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.getAwsIamGroupUsers", "api_error", err)
 		return nil, err
 	}
 
-	if groupData.Users != nil {
+	if len(groupData.Users) > 0 {
 		return groupData, nil
 	}
-	return iam.GetGroupOutput{}, nil
+	return nil, nil
 }
 
 func listAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupInlinePolicies")
-	group := h.Item.(*iam.Group)
+	group := h.Item.(types.Group)
 
-	// Create Session
-	svc, err := IAMService(ctx, d)
+	// Get client
+	svc, err := IAMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.listAwsIamGroupInlinePolicies", "client_error", err)
 		return nil, err
 	}
 
-	params := &iam.ListGroupPoliciesInput{
-		GroupName: group.GroupName,
-	}
-
-	groupData, err := svc.ListGroupPolicies(params)
+	params := &iam.ListGroupPoliciesInput{GroupName: group.GroupName}
+	groupData, err := svc.ListGroupPolicies(ctx, params)
 	if err != nil {
-		return nil, err
-	}
-
-	return groupData, nil
-}
-
-func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsIamGroupInlinePolicies")
-	group := h.Item.(*iam.Group)
-	listGroupPoliciesOutput := h.HydrateResults["listAwsIamGroupInlinePolicies"].(*iam.ListGroupPoliciesOutput)
-
-	// Create Session
-	svc, err := IAMService(ctx, d)
-	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.listAwsIamGroupInlinePolicies", "api_error", err)
 		return nil, err
 	}
 
 	var wg sync.WaitGroup
-	policyCh := make(chan map[string]interface{}, len(listGroupPoliciesOutput.PolicyNames))
-	errorCh := make(chan error, len(listGroupPoliciesOutput.PolicyNames))
-	for _, policy := range listGroupPoliciesOutput.PolicyNames {
+	policyCh := make(chan map[string]interface{}, len(groupData.PolicyNames))
+	errorCh := make(chan error, len(groupData.PolicyNames))
+	for _, policy := range groupData.PolicyNames {
 		wg.Add(1)
-		go getGroupPolicyDataAsync(policy, group.GroupName, svc, &wg, policyCh, errorCh)
+		go getGroupPolicyDataAsync(ctx, policy, group.GroupName, svc, &wg, policyCh, errorCh)
 	}
 
 	// wait for all inline policies to be processed
@@ -294,6 +280,7 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 
 	for err := range errorCh {
 		// return the first error
+		plugin.Logger(ctx).Error("aws_iam_group.listAwsIamGroupInlinePolicies", "channel_error", err)
 		return nil, err
 	}
 
@@ -306,10 +293,10 @@ func getAwsIamGroupInlinePolicies(ctx context.Context, d *plugin.QueryData, h *p
 	return groupPolicies, nil
 }
 
-func getGroupPolicyDataAsync(policy *string, groupName *string, svc *iam.IAM, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
+func getGroupPolicyDataAsync(ctx context.Context, policy string, groupName *string, svc *iam.Client, wg *sync.WaitGroup, policyCh chan map[string]interface{}, errorCh chan error) {
 	defer wg.Done()
 
-	rowData, err := getGroupInlinePolicy(policy, groupName, svc)
+	rowData, err := getGroupInlinePolicy(ctx, policy, groupName, svc)
 	if err != nil {
 		errorCh <- err
 	} else if rowData != nil {
@@ -317,27 +304,30 @@ func getGroupPolicyDataAsync(policy *string, groupName *string, svc *iam.IAM, wg
 	}
 }
 
-func getGroupInlinePolicy(policyName *string, groupName *string, svc *iam.IAM) (map[string]interface{}, error) {
+func getGroupInlinePolicy(ctx context.Context, policyName string, groupName *string, svc *iam.Client) (map[string]interface{}, error) {
 	groupPolicy := make(map[string]interface{})
 	params := &iam.GetGroupPolicyInput{
-		PolicyName: policyName,
+		PolicyName: &policyName,
 		GroupName:  groupName,
 	}
 
-	tmpPolicy, err := svc.GetGroupPolicy(params)
+	tmpPolicy, err := svc.GetGroupPolicy(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_iam_group.getGroupInlinePolicy", "api_error", err)
 		return nil, err
 	}
 
 	if tmpPolicy != nil && tmpPolicy.PolicyDocument != nil {
 		decoded, decodeErr := url.QueryUnescape(*tmpPolicy.PolicyDocument)
 		if decodeErr != nil {
+			plugin.Logger(ctx).Error("aws_iam_group.getGroupInlinePolicy", "decode_error", err)
 			return nil, decodeErr
 		}
 
 		var rawPolicy interface{}
 		err := json.Unmarshal([]byte(decoded), &rawPolicy)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_iam_group.getGroupInlinePolicy", "unmarshal_error", err)
 			return nil, err
 		}
 

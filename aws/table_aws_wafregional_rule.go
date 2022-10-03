@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
@@ -17,15 +17,19 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 		Name:        "aws_wafregional_rule",
 		Description: "AWS WAF Regional Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("rule_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException"}),
-			Hydrate:           getAwsWAFRegionalRule,
+			KeyColumns: plugin.SingleColumn("rule_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
+			},
+			Hydrate: getAwsWAFRegionalRule,
 		},
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"WAFNonexistentItemException"}),
-			Hydrate:           listAwsWAFRegionalRules,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"WAFNonexistentItemException"}),
+			},
+			Hydrate: listAwsWAFRegionalRules,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -76,12 +80,16 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsWAFRegionalRules")
 	// Create session
 	svc, err := WAFRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	// List call
@@ -125,6 +133,7 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 }
 
 //// HYDRATE FUNCTIONS
+
 func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsWAFRegionalRule")
@@ -133,6 +142,9 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	svc, err := WAFRegionalService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	var id string

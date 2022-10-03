@@ -3,11 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,14 +19,16 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 
 		// Get: &plugin.GetConfig{
 		// 	KeyColumns:        plugin.SingleColumn("route_table_id"),
-		// 	ShouldIgnoreError: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+		// IgnoreConfig: &plugin.IgnoreConfig{
+		// 	ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableID.Malformed"}),
+		// }
 		// 	Hydrate:           getAwsVpcRoute,
 		// },
 		List: &plugin.ListConfig{
 			ParentHydrate: listVpcRouteTables,
 			Hydrate:       listAwsVpcRoute,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "route_table_id",
@@ -143,7 +144,7 @@ func tableAwsVpcRoute(_ context.Context) *plugin.Table {
 
 type routeTableRoute = struct {
 	RouteTableID *string
-	Route        *ec2.Route
+	Route        types.Route
 }
 
 //// LIST FUNCTION
@@ -151,12 +152,12 @@ type routeTableRoute = struct {
 func listAwsVpcRoute(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("listAwsVpcRoute")
 
-	routeTable := h.Item.(*ec2.RouteTable)
+	routeTable := h.Item.(types.RouteTable)
 
 	for _, route := range routeTable.Routes {
 		d.StreamLeafListItem(ctx, &routeTableRoute{routeTable.RouteTableId, route})
 
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
+		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}

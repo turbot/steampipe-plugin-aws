@@ -19,133 +19,13 @@
       }
     },
     "bucket_policy_is_public": false,
-    "lifecycle_rules": [
-      {
-        "AbortIncompleteMultipartUpload": null,
-        "Expiration": {
-          "Date": null,
-          "Days": 90,
-          "ExpiredObjectDeleteMarker": null
-        },
-        "Filter": {
-          "And": {
-            "Prefix": "log/",
-            "Tags": [
-              {
-                "Key": "autoclean",
-                "Value": "true"
-              },
-              {
-                "Key": "rule",
-                "Value": "log"
-              }
-            ]
-          },
-          "Prefix": null,
-          "Tag": null
-        },
-        "ID": "log",
-        "NoncurrentVersionExpiration": null,
-        "NoncurrentVersionTransitions": null,
-        "Prefix": null,
-        "Status": "Enabled",
-        "Transitions": [
-          {
-            "Date": null,
-            "Days": 30,
-            "StorageClass": "STANDARD_IA"
-          },
-          {
-            "Date": null,
-            "Days": 60,
-            "StorageClass": "GLACIER"
-          }
-        ]
-      },
-      {
-        "AbortIncompleteMultipartUpload": null,
-        "Expiration": {
-          "Date": "2022-01-12T00:00:00Z",
-          "Days": null,
-          "ExpiredObjectDeleteMarker": null
-        },
-        "Filter": {
-          "And": null,
-          "Prefix": "tmp/",
-          "Tag": null
-        },
-        "ID": "tmp",
-        "NoncurrentVersionExpiration": null,
-        "NoncurrentVersionTransitions": null,
-        "Prefix": null,
-        "Status": "Enabled",
-        "Transitions": null
-      }
-    ],
     "logging": null,
     "name": "{{ resourceName }}",
     "object_lock_configuration": {
       "ObjectLockEnabled": "Enabled",
       "Rule": null
     },
-    "policy": {
-      "Id": "MYBUCKETPOLICY",
-      "Statement": [
-        {
-          "Action": "s3:*",
-          "Condition": {
-            "IpAddress": {
-              "aws:SourceIp": "8.8.8.8/32"
-            }
-          },
-          "Effect": "Deny",
-          "Principal": "*",
-          "Resource": "{{ output.resource_aka.value }}/*",
-          "Sid": "IPAllow"
-        }
-      ],
-      "Version": "2012-10-17"
-    },
-    "policy_std": {
-      "Id": "MYBUCKETPOLICY",
-      "Statement": [
-        {
-          "Action": [
-            "s3:*"
-          ],
-          "Condition": {
-            "IpAddress": {
-              "aws:sourceip": [
-                "8.8.8.8/32"
-              ]
-            }
-          },
-          "Effect": "Deny",
-          "Principal": {
-            "AWS": [
-              "*"
-            ]
-          },
-          "Resource": [
-            "{{ output.resource_aka.value }}/*"
-          ],
-          "Sid": "IPAllow"
-        }
-      ],
-      "Version": "2012-10-17"
-    },
     "replication": null,
-    "server_side_encryption_configuration": {
-      "Rules": [
-        {
-          "ApplyServerSideEncryptionByDefault": {
-            "KMSMasterKeyID": "{{ output.kms_key_id.value }}",
-            "SSEAlgorithm": "aws:kms"
-          },
-          "BucketKeyEnabled": false
-        }
-      ]
-    },
     "versioning_enabled": true,
     "versioning_mfa_delete": false
   }

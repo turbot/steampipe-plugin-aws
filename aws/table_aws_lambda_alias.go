@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -19,9 +19,11 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 		Name:        "aws_lambda_alias",
 		Description: "AWS Lambda Alias",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "function_name", "region"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
-			Hydrate:           getLambdaAlias,
+			KeyColumns: plugin.AllColumns([]string{"name", "function_name", "region"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException"}),
+			},
+			Hydrate: getLambdaAlias,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsLambdaFunctions,
@@ -31,7 +33,7 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				{Name: "function_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -80,6 +82,13 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getLambdaAliasPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "url_config",
+				Description: "The function URL configuration details of the alias.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getLambdaAliasUrlConfig,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -234,4 +243,32 @@ func getLambdaAliasPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	return op, nil
+}
+
+func getLambdaAliasUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaAliasUrlConfig")
+
+	alias := h.Item.(*aliasRowData)
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.GetFunctionUrlConfigInput{
+		FunctionName: alias.FunctionName,
+		Qualifier:    alias.Alias.Name,
+	}
+
+	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	if err != nil {
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getLambdaAliasUrlConfig", "GetFunctionUrlConfig_err", err)
+		return nil, err
+	}
+
+	return urlConfigs, nil
 }

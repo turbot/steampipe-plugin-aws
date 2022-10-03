@@ -63,7 +63,7 @@ select
   name,
   healthy_threshold,
   health_check_interval,
-  heath_check_target,
+  health_check_target,
   health_check_timeout,
   unhealthy_threshold
 from

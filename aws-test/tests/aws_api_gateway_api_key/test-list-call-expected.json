@@ -3,7 +3,6 @@
     "akas": [
       "{{ output.resource_aka.value }}"
     ],
-    "created_date": "{{output.created_date.value}}",
     "id": "{{output.resource_id.value}}",
     "name": "{{resourceName}}",
 

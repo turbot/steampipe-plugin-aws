@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,9 +20,11 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 		Name:        "aws_ebs_volume",
 		Description: "AWS EBS Volume",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("volume_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
-			Hydrate:           getEBSVolume,
+			KeyColumns: plugin.SingleColumn("volume_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidVolume.NotFound", "InvalidParameterValue"}),
+			},
+			Hydrate: getEBSVolume,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEBSVolume,
@@ -38,7 +40,7 @@ func tableAwsEBSVolume(_ context.Context) *plugin.Table {
 				{Name: "volume_type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "volume_id",
@@ -340,6 +342,7 @@ func getEBSVolumeTitle(_ context.Context, d *transform.TransformData) (interface
 }
 
 //// UTILITY FUNCTION
+
 // Build ebs volume list call input filter
 func buildEbsVolumeFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 	filters := make([]*ec2.Filter, 0)

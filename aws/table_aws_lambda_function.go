@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -23,7 +24,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listAwsLambdaFunctions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -177,10 +178,28 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.VpcConfig.VpcId", "VpcConfig.VpcId"),
 			},
 			{
+				Name:        "architectures",
+				Description: "The instruction set architecture that the function supports. Architecture is a string array with one of the valid values.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "code",
+				Description: "The deployment package of the function or version.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+			},
+			{
 				Name:        "environment_variables",
 				Description: "The environment variables that are accessible from function code during execution.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Configuration.Environment.Variables", "Environment.Variables"),
+			},
+			{
+				Name:        "file_system_configs",
+				Description: "Connection settings for an Amazon EFS file system.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Configuration.FileSystemConfigs"),
 			},
 			{
 				Name:        "policy",
@@ -195,6 +214,13 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getFunctionPolicy,
 				Transform:   transform.FromField("Policy").Transform(unescape).Transform(policyToCanonical),
+			},
+			{
+				Name:        "url_config",
+				Description: "The function URL configuration details of the function.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getLambdaFunctionUrlConfig,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "vpc_security_group_ids",
@@ -335,6 +361,46 @@ func getFunctionPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return nil, err
 	}
 	return op, nil
+}
+
+func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	plugin.Logger(ctx).Trace("getLambdaFunctionUrlConfig")
+
+	functionName := functionName(h.Item)
+
+	commonColumnData, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "get_common_columns_error", err)
+		return nil, err
+	}
+
+	awsCommonData := commonColumnData.(*awsCommonColumnData)
+	// GovCloud does not support function URLs
+	// https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-lambda.html#govcloud-lambda-diffs
+	if awsCommonData.Partition == "aws-us-gov" {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := LambdaService(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	input := &lambda.GetFunctionUrlConfigInput{
+		FunctionName: aws.String(functionName),
+	}
+
+	urlConfigs, err := svc.GetFunctionUrlConfig(input)
+	if err != nil {
+		if strings.Contains(err.Error(), "ResourceNotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("getLambdaFunctionUrlConfig", "GetFunctionUrlConfig_error", err)
+		return nil, err
+	}
+
+	return urlConfigs, nil
 }
 
 func functionName(item interface{}) string {

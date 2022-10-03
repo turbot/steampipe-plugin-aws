@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 		Name:        "aws_ecs_task_definition",
 		Description: "AWS ECS Task Definition",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("task_definition_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
-			Hydrate:           getEcsTaskDefinition,
+			KeyColumns: plugin.SingleColumn("task_definition_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterException", "ClientException"}),
+			},
+			Hydrate: getEcsTaskDefinition,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEcsTaskDefinitions,
@@ -30,7 +32,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "task_definition_arn",

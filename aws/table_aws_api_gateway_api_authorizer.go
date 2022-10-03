@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,15 +20,17 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gateway_authorizer",
 		Description: "AWS API Gateway Authorizer",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"rest_api_id", "id"}),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getRestAPIAuthorizer,
+			KeyColumns: plugin.AllColumns([]string{"rest_api_id", "id"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+			},
+			Hydrate: getRestAPIAuthorizer,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listRestAPI,
 			Hydrate:       listRestAPIAuthorizers,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -100,7 +104,7 @@ func tableAwsAPIGatewayAuthorizer(_ context.Context) *plugin.Table {
 }
 
 type authorizerRowData = struct {
-	Authorizer *apigateway.Authorizer
+	Authorizer any
 	RestAPIId  *string
 }
 
@@ -108,38 +112,41 @@ type authorizerRowData = struct {
 
 func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get Rest API details
-	restAPI := h.Item.(*apigateway.RestApi)
+	restAPI := h.Item.(types.RestApi)
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.listRestAPIAuthorizers", "service_client_error", err)
 		return nil, err
 	}
 
-	params := &apigateway.GetAuthorizersInput{
-		Limit:     aws.Int64(500),
-		RestApiId: restAPI.Id,
-	}
-
 	// Limiting the results
-	limit := d.QueryContext.Limit
+	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
-			if *limit < 1 {
-				params.Limit = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	op, err := svc.GetAuthorizers(params)
+	params := &apigateway.GetAuthorizersInput{
+		Limit:     aws.Int32(maxLimit),
+		RestApiId: restAPI.Id,
+	}
+
+	op, err := svc.GetAuthorizers(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.listRestAPIAuthorizers", "api_error", err)
 		return nil, err
 	}
 
 	for _, authorizer := range op.Items {
-		d.StreamLeafListItem(ctx, &authorizerRowData{authorizer, restAPI.Id})
+		d.StreamLeafListItem(ctx, &authorizerRowData{&authorizer, restAPI.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.QueryStatus.RowsRemaining(ctx) == 0 {
@@ -152,11 +159,11 @@ func listRestAPIAuthorizers(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRestAPIAuthorizer")
 
 	// Create Session
-	svc, err := APIGatewayService(ctx, d)
+	svc, err := APIGatewayClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.getRestAPIAuthorizer", "service_client_error", err)
 		return nil, err
 	}
 
@@ -168,9 +175,12 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		RestApiId:    aws.String(RestAPIID),
 	}
 
-	authorizerData, err := svc.GetAuthorizer(params)
+	authorizerData, err := svc.GetAuthorizer(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getRestAPIAuthorizer__", "ERROR", err)
+		if strings.Contains(err.Error(), "NotFoundException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_api_gateway_authorizer.getRestAPIAuthorizer", "api_error", err)
 		return nil, err
 	}
 
@@ -178,9 +188,17 @@ func getRestAPIAuthorizer(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayAuthorizerAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	apiAuthorizer := h.Item.(*authorizerRowData)
+	authorizer := h.Item.(*authorizerRowData).Authorizer
+
+	id := ""
+	restApiId := h.Item.(*authorizerRowData).RestAPIId
+	switch item := authorizer.(type) {
+	case *apigateway.GetAuthorizerOutput:
+		id = *item.Id
+	case types.Authorizer:
+		id = *item.Id
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -189,6 +207,6 @@ func getAPIGatewayAuthorizerAkas(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	commonColumnData := commonData.(*awsCommonColumnData)
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + ":" + commonColumnData.AccountId + "::/restapis/" + *apiAuthorizer.RestAPIId + "/authorizer/" + *apiAuthorizer.Authorizer.Id}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + ":" + commonColumnData.AccountId + "::/restapis/" + *restApiId + "/authorizer/" + id}
 	return akas, nil
 }

@@ -6,9 +6,6 @@
     ],
     "partition": "{{ output.aws_partition.value }}",
     "region": "{{ output.region_name.value }}",
-    "tags":{
-      "name": "{{ resourceName }}"
-    },
     "title": "{{ resourceName }}"
   }
 ]

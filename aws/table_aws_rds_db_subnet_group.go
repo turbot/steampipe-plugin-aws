@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,11 +18,13 @@ func tableAwsRDSDBSubnetGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_subnet_group",
 		Description: "AWS RDS DB Subnet Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"DBSubnetGroupNotFoundFault"}),
-			Hydrate:           getRDSDBSubnetGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSubnetGroupNotFoundFault"}),
+			},
+			Hydrate: getRDSDBSubnetGroup,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBSubnetGroups,
 		},

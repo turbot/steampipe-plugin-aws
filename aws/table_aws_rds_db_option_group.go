@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 		Name:        "aws_rds_db_option_group",
 		Description: "AWS RDS DB Option Group",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
-			Hydrate:           getRDSDBOptionGroup,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"OptionGroupNotFoundFault"}),
+			},
+			Hydrate: getRDSDBOptionGroup,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBOptionGroups,
@@ -29,7 +31,7 @@ func tableAwsRDSDBOptionGroup(_ context.Context) *plugin.Table {
 				{Name: "major_engine_version", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

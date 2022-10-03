@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
@@ -15,14 +15,16 @@ func tableAwsVpcEgressOnlyIGW(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_egress_only_internet_gateway",
 		Description: "AWS VPC Egress Only Internet Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
-			Hydrate:           getVpcEgressOnlyInternetGateway,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidEgressOnlyInternetGatewayId.NotFound", "InvalidEgressOnlyInternetGatewayId.Malformed"}),
+			},
+			Hydrate: getVpcEgressOnlyInternetGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcEgressOnlyInternetGateways,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",

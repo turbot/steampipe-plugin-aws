@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 		Name:        "aws_vpc_vpn_gateway",
 		Description: "AWS VPC VPN Gateway",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("vpn_gateway_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
-			Hydrate:           getVpcVpnGateway,
+			KeyColumns: plugin.SingleColumn("vpn_gateway_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidVpnGatewayID.NotFound", "InvalidVpnGatewayID.Malformed"}),
+			},
+			Hydrate: getVpcVpnGateway,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listVpcVpnGateways,
@@ -28,7 +30,7 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "vpn_gateway_id",
@@ -92,12 +94,11 @@ func tableAwsVpcVpnGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listVpcVpnGateways", "AWS_REGION", region)
 
 	// Create session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.listVpcVpnGateways", "connection_error", err)
 		return nil, err
 	}
 
@@ -116,7 +117,12 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	// List call
-	resp, err := svc.DescribeVpnGateways(input)
+	resp, err := svc.DescribeVpnGateways(ctx, input)
+
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.listVpcVpnGateways", "api_error", err)
+	}
+
 	for _, vpnGateway := range resp.VpnGateways {
 		d.StreamListItem(ctx, vpnGateway)
 
@@ -132,27 +138,25 @@ func listVpcVpnGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getVpcVpnGateway")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	vpnGatewayID := d.KeyColumnQuals["vpn_gateway_id"].GetStringValue()
 
 	// get service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.getVpcVpnGateway", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &ec2.DescribeVpnGatewaysInput{
-		VpnGatewayIds: []*string{aws.String(vpnGatewayID)},
+		VpnGatewayIds: []string{vpnGatewayID},
 	}
 
 	// Get call
-	op, err := svc.DescribeVpnGateways(params)
+	op, err := svc.DescribeVpnGateways(ctx, params)
 	if err != nil {
-		logger.Debug("getVpcVpnGateway__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.getVpcVpnGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -163,13 +167,13 @@ func getVpcVpnGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 }
 
 func getVpcVpnGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getVpcVpnGatewayTurbotAkas")
-	vpnGateway := h.Item.(*ec2.VpnGateway)
+	vpnGateway := h.Item.(types.VpnGateway)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_vpc_vpn_gateway.getVpcVpnGatewayTurbotAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -183,7 +187,7 @@ func getVpcVpnGatewayTurbotAkas(ctx context.Context, d *plugin.QueryData, h *plu
 //// TRANSFORM FUNCTIONS
 
 func getVpcVpnGatewayTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	vpnGateway := d.HydrateItem.(*ec2.VpnGateway)
+	vpnGateway := d.HydrateItem.(types.VpnGateway)
 	param := d.Param.(string)
 
 	// Get resource title

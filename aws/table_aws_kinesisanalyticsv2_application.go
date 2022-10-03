@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsKinesisAnalyticsV2Application(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesisanalyticsv2_application",
 		Description: "AWS Kinesis Analytics V2 Application",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("application_name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getKinesisAnalyticsV2Application,
+			KeyColumns: plugin.SingleColumn("application_name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getKinesisAnalyticsV2Application,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listKinesisAnalyticsV2Applications,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "application_name",

@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/workspaces"
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +18,11 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 		Name:        "aws_workspaces_workspace",
 		Description: "AWS Workspaces",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workspace_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException"}),
-			Hydrate:           getWorkspace,
+			KeyColumns: plugin.SingleColumn("workspace_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException"}),
+			},
+			Hydrate: getWorkspace,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWorkspaces,
@@ -31,7 +32,7 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 				{Name: "user_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workspace_id",
@@ -152,21 +153,16 @@ func tableAwsWorkspace(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listWorkspaces")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	serviceId := endpoints.WorkspacesServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
 	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	input := &workspaces.DescribeWorkspacesInput{
@@ -230,16 +226,6 @@ func listWorkspaces(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("getWorkspace")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Workspaces is not supported in all regions. For unsupported regions the API throws an error, e.g.,
-	// Post "https://workspaces.eu-north-1.amazonaws.com/": dial tcp: lookup workspaces.eu-north-1.amazonaws.com: no such host
-	serviceId := endpoints.WorkspacesServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	WorkspaceId := d.KeyColumnQuals["workspace_id"].GetStringValue()
 
 	// check if workspace id is empty
@@ -247,10 +233,15 @@ func getWorkspace(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		return nil, nil
 	}
 
-	// Create service
+	// Create Session
 	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("getWorkspace", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params
@@ -280,7 +271,12 @@ func listWorkspacesTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create Session
 	svc, err := WorkspacesService(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listWorkspaces", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build the params

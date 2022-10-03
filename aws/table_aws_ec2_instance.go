@@ -5,14 +5,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/go-kit/helpers"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -22,9 +22,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance",
 		Description: "AWS EC2 Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
-			Hydrate:           getEc2Instance,
+			KeyColumns: plugin.SingleColumn("instance_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceID.NotFound", "InvalidInstanceID.Unavailable", "InvalidInstanceID.Malformed"}),
+			},
+			Hydrate: getEc2Instance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEc2Instance,
@@ -49,7 +51,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				{Name: "vpc_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "instance_id",
@@ -338,17 +340,32 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2Instance", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "connection_error", err)
 		return nil, err
 	}
 
-	input := ec2.DescribeInstancesInput{
-		MaxResults: types.Int64(1000),
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			// select * from aws_ec2_instance limit 1
+			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
+			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
+	input := &ec2.DescribeInstancesInput{
+		MaxResults: aws.Int32(maxLimit),
 	}
 	filters := buildEc2InstanceFilter(d.KeyColumnQuals)
 
@@ -356,43 +373,35 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		input.Filters = filters
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			// select * from aws_ec2_instance limit 1
-			// Error: InvalidParameterValue: Value ( 1 ) for parameter maxResults is invalid. Expecting a value greater than 5.
-			// 		status code: 400, request id: a84912d9-f5fd-403f-8e37-7f7b3f6faba6
-			if *limit < 5 {
-				input.MaxResults = types.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeInstancesPaginator(svc, input, func(o *ec2.DescribeInstancesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeInstancesPages(&input, func(page *ec2.DescribeInstancesOutput, isLast bool) bool {
-		if page.Reservations != nil && len(page.Reservations) > 0 {
-			for _, reservation := range page.Reservations {
-				for _, instance := range reservation.Instances {
-					d.StreamListItem(ctx, instance)
-					// Check if context has been cancelled or if the limit has been hit (if specified)
-					// if there is a limit, it will return the number of rows required to reach this limit
-					if d.QueryStatus.RowsRemaining(ctx) == 0 {
-						return false
-					}
-				}
-			}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance.listEc2Instance", "api_error", err)
+			return nil, err
 		}
 
-		return !isLast
-	},
-	)
+		for _, items := range output.Reservations {
+			for _, instance := range items.Instances {
 
-	if err != nil {
-		plugin.Logger(ctx).Error("listEc2Instance", "DescribeInstancesPages_error", err)
+				d.StreamListItem(ctx, instance)
+				// Check if context has been cancelled or if the limit has been hit (if specified)
+				// if there is a limit, it will return the number of rows required to reach this limit
+				if d.QueryStatus.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
+			}
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, err
@@ -401,24 +410,23 @@ func listEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 //// HYDRATE FUNCTIONS
 
 func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2Instance")
 
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	instanceID := d.KeyColumnQuals["instance_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(instanceID)},
+		InstanceIds: []string{instanceID},
 	}
 
-	op, err := svc.DescribeInstances(params)
+	op, err := svc.DescribeInstances(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEc2Instance", "DescribeInstances_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2Instance", "api_error", err)
 		return nil, err
 	}
 
@@ -431,8 +439,7 @@ func getEc2Instance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getEc2InstanceARN")
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -449,24 +456,23 @@ func getEc2InstanceARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceDisableAPITerminationData")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceDisableAPITerminationData", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameDisableApiTermination),
+		Attribute:  types.InstanceAttributeNameDisableApiTermination,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceDisableAPITerminationData", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceDisableAPITerminationData", "api_error", err)
 		return nil, err
 	}
 
@@ -474,24 +480,23 @@ func getInstanceDisableAPITerminationData(ctx context.Context, d *plugin.QueryDa
 }
 
 func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceInitiatedShutdownBehavior")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceInitiatedShutdownBehavior", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameInstanceInitiatedShutdownBehavior),
+		Attribute:  types.InstanceAttributeNameInstanceInitiatedShutdownBehavior,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceInitiatedShutdownBehavior", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceInitiatedShutdownBehavior", "api_error", err)
 		return nil, err
 	}
 
@@ -499,24 +504,23 @@ func getInstanceInitiatedShutdownBehavior(ctx context.Context, d *plugin.QueryDa
 }
 
 func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceKernelID")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceKernelID", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameKernel),
+		Attribute:  types.InstanceAttributeNameKernel,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceKernelID", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceKernelID", "api_error", err)
 		return nil, err
 	}
 
@@ -524,24 +528,23 @@ func getInstanceKernelID(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceRAMDiskID")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceRAMDiskID", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameRamdisk),
+		Attribute:  types.InstanceAttributeNameRamdisk,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceRAMDiskID", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceRAMDiskID", "api_error", err)
 		return nil, err
 	}
 
@@ -549,24 +552,23 @@ func getInstanceRAMDiskID(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceSriovNetSupport")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceSriovNetSupport", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameSriovNetSupport),
+		Attribute:  types.InstanceAttributeNameSriovNetSupport,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceSriovNetSupport", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceSriovNetSupport", "api_error", err)
 		return nil, err
 	}
 
@@ -574,24 +576,23 @@ func getInstanceSriovNetSupport(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceUserData")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceUserData", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceAttributeInput{
 		InstanceId: instance.InstanceId,
-		Attribute:  aws.String(ec2.InstanceAttributeNameUserData),
+		Attribute:  types.InstanceAttributeNameUserData,
 	}
 
-	instanceData, err := svc.DescribeInstanceAttribute(params)
+	instanceData, err := svc.DescribeInstanceAttribute(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceUserData", "DescribeInstanceAttribute_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceUserData", "api_error", err)
 		return nil, err
 	}
 
@@ -599,24 +600,23 @@ func getInstanceUserData(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getInstanceStatus")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	instance := h.Item.(*ec2.Instance)
+	instance := h.Item.(types.Instance)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceStatus", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeInstanceStatusInput{
-		InstanceIds:         []*string{instance.InstanceId},
-		IncludeAllInstances: types.Bool(true),
+		InstanceIds:         []string{*instance.InstanceId},
+		IncludeAllInstances: aws.Bool(true),
 	}
 
-	instanceData, err := svc.DescribeInstanceStatus(params)
+	instanceData, err := svc.DescribeInstanceStatus(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getInstanceStatus", "DescribeInstanceStatus_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_instance.getInstanceStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -626,12 +626,22 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 //// TRANSFORM FUNCTIONS
 
 func getEc2InstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	instance := d.HydrateItem.(*ec2.Instance)
-	return ec2TagsToMap(instance.Tags)
+	instance := d.HydrateItem.(types.Instance)
+	var turbotTagsMap map[string]string
+	if instance.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range instance.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.Instance)
+	data := d.HydrateItem.(types.Instance)
 	title := data.InstanceId
 	if data.Tags != nil {
 		for _, i := range data.Tags {
@@ -644,10 +654,10 @@ func getEc2InstanceTurbotTitle(_ context.Context, d *transform.TransformData) (i
 }
 
 func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.Instance)
+	data := d.HydrateItem.(types.Instance)
 
 	if *data.StateTransitionReason != "" {
-		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, *data.State.Name) {
+		if helpers.StringSliceContains([]string{"shutting-down", "stopped", "stopping", "terminated"}, string(data.State.Name)) {
 			// User initiated (2019-09-12 16:38:34 GMT)
 			regexExp := regexp.MustCompile(`\((.*?) *\)`)
 			stateTransitionTime := regexExp.FindStringSubmatch(*data.StateTransitionReason)
@@ -663,8 +673,8 @@ func ec2InstanceStateChangeTime(_ context.Context, d *transform.TransformData) (
 //// UTILITY FUNCTIONS
 
 // Build ec2 instance list call input filter
-func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"hypervisor":                  "hypervisor",
@@ -689,16 +699,14 @@ func buildEc2InstanceFilter(equalQuals plugin.KeyColumnEqualsQualMap) []*ec2.Fil
 
 	for columnName, filterName := range filterQuals {
 		if equalQuals[columnName] != nil {
-			filter := ec2.Filter{
-				Name: types.String(filterName),
+			filter := types.Filter{
+				Name: aws.String(filterName),
 			}
 			value := equalQuals[columnName]
 			if value.GetStringValue() != "" {
-				filter.Values = []*string{types.String(equalQuals[columnName].GetStringValue())}
-			} else if value.GetListValue() != nil {
-				filter.Values = getListValues(value.GetListValue())
+				filter.Values = []string{equalQuals[columnName].GetStringValue()}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters
@@ -709,7 +717,7 @@ func getListValues(listValue *proto.QualValueList) []*string {
 	if listValue != nil {
 		for _, value := range listValue.Values {
 			if value.GetStringValue() != "" {
-				values = append(values, types.String(value.GetStringValue()))
+				values = append(values, aws.String(value.GetStringValue()))
 			}
 		}
 	}

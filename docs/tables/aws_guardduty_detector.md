@@ -30,7 +30,6 @@ where
   status = 'ENABLED';
 ```
 
-
 ### Get data source status info for each detector
 
 ```sql
@@ -42,4 +41,17 @@ select
   data_sources -> 'FlowLogs' ->> 'Status' as flow_logs_status
 from
   aws_guardduty_detector;
+```
+
+### Get information about the master account relationship
+
+```sql
+select 
+  detector_id,
+  master_account ->> 'AccountId' as master_account_id,
+  master_account ->> 'InvitationId' as invitation_id, 
+  master_account ->> 'RelationshipStatus' as relationship_status 
+from    
+  aws_guardduty_detector
+where master_account is not null;
 ```

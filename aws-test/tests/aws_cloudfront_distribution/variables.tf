@@ -6,7 +6,7 @@ variable "resource_name" {
 
 variable "aws_profile" {
   type        = string
-  default     = "integration-tests"
+  default     = "default"
   description = "AWS credentials profile used for the test. Default is to use the default profile."
 }
 
@@ -40,20 +40,14 @@ data "aws_region" "alternate" {
   provider = aws.alternate
 }
 
-data "null_data_source" "resource" {
-  inputs = {
-    scope = "arn:${data.aws_partition.current.partition}:::${data.aws_caller_identity.current.account_id}"
-  }
-}
-
 resource "aws_s3_bucket" "test_bucket" {
-  bucket = var.resource_name
+  bucket        = var.resource_name
   force_destroy = true
 }
 
 resource "aws_cloudfront_distribution" "named_test_resource" {
   origin {
-    domain_name = "${aws_s3_bucket.test_bucket.bucket_regional_domain_name}"
+    domain_name = aws_s3_bucket.test_bucket.bucket_regional_domain_name
     origin_id   = "s3-${aws_s3_bucket.test_bucket.bucket}"
   }
   enabled             = false

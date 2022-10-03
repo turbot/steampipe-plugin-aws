@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 		Name:        "aws_availability_zone",
 		Description: "AWS Availability Zone",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "region_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValue"}),
-			Hydrate:           getAwsAvailabilityZone,
+			KeyColumns: plugin.AllColumns([]string{"name", "region_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValue"}),
+			},
+			Hydrate: getAwsAvailabilityZone,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listAwsRegions,

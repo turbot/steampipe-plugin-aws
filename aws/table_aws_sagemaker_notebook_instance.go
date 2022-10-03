@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,9 +17,11 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
-			Hydrate:           getAwsSageMakerNotebookInstance,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+			},
+			Hydrate: getAwsSageMakerNotebookInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
@@ -29,7 +31,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				{Name: "notebook_instance_status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

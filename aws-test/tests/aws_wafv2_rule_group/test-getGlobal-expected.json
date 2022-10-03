@@ -15,8 +15,10 @@
             "CustomRequestHandling": null
           },
           "Block": null,
+          "Captcha": null,
           "Count": null
         },
+        "CaptchaConfig": null,
         "Name": "rule-1",
         "OverrideAction": null,
         "Priority": 1,

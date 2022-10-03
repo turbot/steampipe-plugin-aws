@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eventbridge"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
@@ -15,17 +15,21 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		Name:        "aws_eventbridge_rule",
 		Description: "AWS EventBridge Rule",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
-			Hydrate:           getAwsEventBridgeRule,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
+			},
+			Hydrate: getAwsEventBridgeRule,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEventBridgeRules,
+			ParentHydrate: listAwsEventBridgeBuses,
+			Hydrate:       listAwsEventBridgeRules,
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "event_bus_name", Require: plugin.Optional},
 				{Name: "name_prefix", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -116,7 +120,12 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var eventBusName string
+	if h.Item != nil {
+		eventBusName = *h.Item.(*eventbridge.DescribeEventBusOutput).Name
+	}
+
 	// Create session
 	svc, err := EventBridgeService(ctx, d)
 	if err != nil {
@@ -127,6 +136,9 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 	input := &eventbridge.ListRulesInput{
 		// Default to the maximum allowed
 		Limit: aws.Int64(100),
+	}
+	if eventBusName != "" {
+		input.EventBusName = &eventBusName
 	}
 
 	equalQuals := d.KeyColumnQuals

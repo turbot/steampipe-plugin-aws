@@ -2,12 +2,13 @@ package aws
 
 import (
 	"context"
+	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +21,7 @@ func tableAwsEmrInstanceGroup(_ context.Context) *plugin.Table {
 			ParentHydrate: listEmrClusters,
 			Hydrate:       listEmrInstanceGroups,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -188,7 +189,14 @@ func listEmrInstanceGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		},
 	)
 
-	return nil, err
+	if err != nil {
+		if strings.Contains(err.Error(), "InvalidRequestException") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("listEmrInstanceGroups", "ListInstanceGroupsPages-err", err)
+		return nil, err
+	}
+	return nil, nil
 }
 
 func getEmrInstanceGroupARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

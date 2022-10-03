@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -31,7 +32,7 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 				{Name: "id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -167,19 +168,29 @@ func tableAwsVpcPeeringConnection(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	logger.Trace("listVpcPeeringConnections", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
-		logger.Error("listVpcPeeringConnections", "Ec2Service_error", err)
+		plugin.Logger(ctx).Error("aws_vpc_peering_connection.listVpcPeeringConnections", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = int32(5)
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeVpcPeeringConnectionsInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filterKeyMap := []VpcFilterKeyMap{
@@ -200,37 +211,26 @@ func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plug
 		input.Filters = filters
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeVpcPeeringConnectionsPaginator(svc, input, func(o *ec2.DescribeVpcPeeringConnectionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_vpc_peering_connection.listVpcPeeringConnections", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.VpcPeeringConnections {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
-	}
-
-	// List call
-	err = svc.DescribeVpcPeeringConnectionsPages(
-		input,
-		func(page *ec2.DescribeVpcPeeringConnectionsOutput, isLast bool) bool {
-			for _, connection := range page.VpcPeeringConnections {
-				d.StreamListItem(ctx, connection)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		logger.Error("listVpcPeeringConnections", "DescribeVpcPeeringConnectionsPages_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -239,7 +239,7 @@ func listVpcPeeringConnections(ctx context.Context, d *plugin.QueryData, _ *plug
 //// TRANSFORM FUNCTION
 
 func vpcPeeringConnectionTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	connection := d.HydrateItem.(*ec2.VpcPeeringConnection)
+	connection := d.HydrateItem.(types.VpcPeeringConnection)
 
 	var turbotTagsMap map[string]string
 	if connection.Tags != nil {

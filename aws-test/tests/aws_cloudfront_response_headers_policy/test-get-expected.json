@@ -1,0 +1,80 @@
+[
+	{
+		"account_id": "{{ output.account_id.value }}",
+		"arn": "{{ output.resource_aka.value }}",
+		"etag": "{{ output.etag.value }}",
+		"id": "{{ output.resource_id.value }}",
+		"name": "{{ output.resource_name.value }}",
+		"response_headers_policy_config": {
+			"Comment": "test comment",
+			"CorsConfig": {
+				"AccessControlAllowCredentials": true,
+				"AccessControlAllowHeaders": {
+					"Items": ["test"],
+					"Quantity": 1
+				},
+				"AccessControlAllowMethods": {
+					"Items": ["GET"],
+					"Quantity": 1
+				},
+				"AccessControlAllowOrigins": {
+					"Items": ["test.example.comtest"],
+					"Quantity": 1
+				},
+				"AccessControlExposeHeaders": {
+					"Items": null,
+					"Quantity": 0
+				},
+				"AccessControlMaxAgeSec": null,
+				"OriginOverride": true
+			},
+			"CustomHeadersConfig": {
+				"Items": [
+					{
+						"Header": "X-Test",
+						"Override": true,
+						"Value": "none"
+					},
+					{
+						"Header": "X-Permitted-Cross-Domain-Policies",
+						"Override": true,
+						"Value": "none"
+					}
+				],
+				"Quantity": 2
+			},
+			"Name": "{{ output.resource_name.value }}",
+			"SecurityHeadersConfig": {
+				"ContentSecurityPolicy": {
+					"ContentSecurityPolicy": null,
+					"Override": null
+				},
+				"ContentTypeOptions": {
+					"Override": true
+				},
+				"FrameOptions": {
+					"FrameOption": "SAMEORIGIN",
+					"Override": false
+				},
+				"ReferrerPolicy": {
+					"Override": false,
+					"ReferrerPolicy": "strict-origin-when-cross-origin"
+				},
+				"StrictTransportSecurity": {
+					"AccessControlMaxAgeSec": 31536000,
+					"IncludeSubdomains": false,
+					"Override": false,
+					"Preload": false
+				},
+        "XSSProtection": {
+          "ModeBlock": true,
+          "Override": false,
+          "Protection": true,
+          "ReportUri": null
+        }
+      },
+      "ServerTimingHeadersConfig": null
+    },
+    "type": "custom"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "db_cluster_identifier": "{{ resourceName }}",
+    "deletion_protection": false,
+    "endpoint": "{{ output.endpoint.value }}",
+    "engine": "docdb",
+    "master_user_name": "turbottest",
+    "multi_az": false,
+    "storage_encrypted": false,
+    "tags_src": [
+      {
+        "Key": "name",
+        "Value": "{{ resourceName }}"
+      }
+    ]
+  }
+]

@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,14 +17,16 @@ func tableAwsCodepipelinePipeline(_ context.Context) *plugin.Table {
 		Name:        "aws_codepipeline_pipeline",
 		Description: "AWS Codepipeline Pipeline",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"PipelineNotFoundException"}),
-			Hydrate:           getCodepipelinePipeline,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"PipelineNotFoundException"}),
+			},
+			Hydrate: getCodepipelinePipeline,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listCodepipelinePipelines,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -126,6 +128,10 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	input := &codepipeline.ListPipelinesInput{
 		MaxResults: aws.Int64(1000),
@@ -184,6 +190,10 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build params
 	params := &codepipeline.GetPipelineInput{
@@ -212,6 +222,10 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	svc, err := CodePipelineService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Build params

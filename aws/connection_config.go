@@ -1,8 +1,10 @@
 package aws
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/schema"
+	"fmt"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/schema"
 )
 
 type awsConfig struct {
@@ -13,6 +15,9 @@ type awsConfig struct {
 	SessionToken          *string  `cty:"session_token"`
 	MaxErrorRetryAttempts *int     `cty:"max_error_retry_attempts"`
 	MinErrorRetryDelay    *int     `cty:"min_error_retry_delay"`
+	IgnoreErrorCodes      []string `cty:"ignore_error_codes"`
+	EndpointUrl           *string  `cty:"endpoint_url"`
+	S3ForcePathStyle      *bool    `cty:"s3_force_path_style"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -32,11 +37,21 @@ var ConfigSchema = map[string]*schema.Attribute{
 	"session_token": {
 		Type: schema.TypeString,
 	},
+	"ignore_error_codes": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
+	},
 	"max_error_retry_attempts": {
 		Type: schema.TypeInt,
 	},
 	"min_error_retry_delay": {
 		Type: schema.TypeInt,
+	},
+	"endpoint_url": {
+		Type: schema.TypeString,
+	},
+	"s3_force_path_style": {
+		Type: schema.TypeBool,
 	},
 }
 
@@ -50,5 +65,12 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 		return awsConfig{}
 	}
 	config, _ := connection.Config.(awsConfig)
+
+	// Setting "regions = []" in the connection config is not valid
+	if len(config.Regions) == 0 {
+		errorMessage := fmt.Sprintf("\nconnection %s has invalid value for \"regions\", it must contain at least 1 region.", connection.Name)
+		panic(errorMessage)
+	}
+
 	return config
 }

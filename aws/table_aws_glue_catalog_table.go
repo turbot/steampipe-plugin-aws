@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 		Name:        "aws_glue_catalog_table",
 		Description: "AWS Glue Catalog Table",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.AllColumns([]string{"name", "database_name"}),
-			ShouldIgnoreError: isNotFoundError([]string{"EntityNotFoundException"}),
-			Hydrate:           getGlueCatalogTable,
+			KeyColumns: plugin.AllColumns([]string{"name", "database_name"}),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+			},
+			Hydrate: getGlueCatalogTable,
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
@@ -30,7 +32,7 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 			ParentHydrate: listGlueCatalogDatabases,
 			Hydrate:       listGlueCatalogTables,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

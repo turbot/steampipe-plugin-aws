@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -21,14 +19,16 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 		Name:        "aws_pinpoint_app",
 		Description: "AWS Pinpoint App",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getPinpointApp,
+			KeyColumns: plugin.SingleColumn("id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NotFoundException"}),
+			},
+			Hydrate: getPinpointApp,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listPinpointApps,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -95,21 +95,15 @@ func tableAwsPinpointApp(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listPinpointApps")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Pinpoint is not supported in all regions.
-	// https://docs.aws.amazon.com/general/latest/gr/pinpoint.html
-	serviceId := endpoints.PinpointServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
 
 	// Create Session
 	svc, err := PinpointService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	// Page size must be greater than 0 and less than or equal to 1000
@@ -163,17 +157,6 @@ func listPinpointApps(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getPinpointApp")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-
-	// AWS Pinpoint is not supported in all regions.
-	// https://docs.aws.amazon.com/general/latest/gr/pinpoint.html
-	serviceId := endpoints.PinpointServiceID
-	validRegions := SupportedRegionsForService(ctx, d, serviceId)
-	if !helpers.StringSliceContains(validRegions, region) {
-		return nil, nil
-	}
-
 	appId := d.KeyColumnQuals["id"].GetStringValue()
 	// Empty check
 	if appId == "" {
@@ -185,6 +168,10 @@ func getPinpointApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	if err != nil {
 		plugin.Logger(ctx).Error("getPinpointApp", "connection", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	params := &pinpoint.GetAppInput{}

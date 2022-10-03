@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -16,10 +16,12 @@ func tableAwsCodeCommitRepository(_ context.Context) *plugin.Table {
 		Name:        "aws_codecommit_repository",
 		Description: "AWS CodeCommit Repository",
 		List: &plugin.ListConfig{
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameter"}),
-			Hydrate:           listCodeCommitRepositories,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter"}),
+			},
+			Hydrate: listCodeCommitRepositories,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",
@@ -100,6 +102,10 @@ func listCodeCommitRepositories(ctx context.Context, d *plugin.QueryData, _ *plu
 	if err != nil {
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// List all available repositories
 	var repositoryNames []*string
@@ -163,6 +169,10 @@ func listCodeCommitRepositoryTags(ctx context.Context, d *plugin.QueryData, h *p
 	svc, err := CodeCommitService(ctx, d)
 	if err != nil {
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 	repositoryARN := h.Item.(*codecommit.RepositoryMetadata).Arn
 

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_association",
 		Description: "AWS SSM Association",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("association_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
-			Hydrate:           getAwsSSMAssociation,
+			KeyColumns: plugin.SingleColumn("association_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AssociationDoesNotExist", "ValidationException"}),
+			},
+			Hydrate: getAwsSSMAssociation,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSSMAssociations,
@@ -32,7 +34,7 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 				{Name: "last_execution_date", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "association_id",
@@ -318,6 +320,7 @@ func associationID(item interface{}) string {
 }
 
 //// UTILITY FUNCTION
+
 // Build ssm association list call input filter
 func buildSsmAssociationFilter(quals plugin.KeyColumnQualMap) []*ssm.AssociationFilter {
 	filters := make([]*ssm.AssociationFilter, 0)

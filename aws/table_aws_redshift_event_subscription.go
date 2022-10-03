@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
@@ -16,14 +16,16 @@ func tableAwsRedshiftEventSubscription(_ context.Context) *plugin.Table {
 		Name:        "aws_redshift_event_subscription",
 		Description: "AWS Redshift Event Subscription",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("cust_subscription_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"SubscriptionNotFound"}),
-			Hydrate:           getAwsRedshiftEventSubscription,
+			KeyColumns: plugin.SingleColumn("cust_subscription_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"SubscriptionNotFound"}),
+			},
+			Hydrate: getAwsRedshiftEventSubscription,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsRedshiftEventSubscriptions,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cust_subscription_id",

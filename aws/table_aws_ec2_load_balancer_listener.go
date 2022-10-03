@@ -4,12 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,15 +20,17 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 		Name:        "aws_ec2_load_balancer_listener",
 		Description: "AWS EC2 Load Balancer Listener",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
-			Hydrate:           getEc2LoadBalancerListener,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ListenerNotFound", "LoadBalancerNotFound", "ValidationError"}),
+			},
+			Hydrate: getEc2LoadBalancerListener,
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,
 			Hydrate:       listEc2LoadBalancerListeners,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -92,21 +95,47 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 
 func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancers", "connection_error", err)
 		return nil, err
 	}
 
-	// List call
-	err = svc.DescribeLoadBalancersPages(
-		&elbv2.DescribeLoadBalancersInput{},
-		func(page *elbv2.DescribeLoadBalancersOutput, isLast bool) bool {
-			for _, loadBalancer := range page.LoadBalancers {
-				d.StreamListItem(ctx, loadBalancer)
+	// Limiting the results
+	maxLimit := int32(400)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
 			}
-			return !isLast
-		},
-	)
+		}
+	}
+
+	input := &elasticloadbalancingv2.DescribeLoadBalancersInput{
+		PageSize: aws.Int32(maxLimit),
+	}
+
+	paginator := elasticloadbalancingv2.NewDescribeLoadBalancersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeLoadBalancersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancers", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.LoadBalancers {
+			d.StreamListItem(ctx, items)
+		}
+
+	}
+
 	return nil, err
 }
 
@@ -114,45 +143,56 @@ func listEc2LoadBalancers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 func listEc2LoadBalancerListeners(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get the details of load balancer
-	loadBalancerDetails := h.Item.(*elbv2.LoadBalancer)
+	loadBalancerDetails := h.Item.(types.LoadBalancer)
 
 	// Create Session
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancerListeners", "connection_error", err)
 		return nil, err
 	}
 
-	input := &elbv2.DescribeListenersInput{
-		LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
-		PageSize:        aws.Int64(400),
-	}
-
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(400)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.PageSize {
-			if *limit < 1 {
-				input.PageSize = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.PageSize = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeListenersPages(
-		input,
-		func(page *elbv2.DescribeListenersOutput, isLast bool) bool {
-			for _, listener := range page.Listeners {
-				d.StreamLeafListItem(ctx, listener)
+	input := &elasticloadbalancingv2.DescribeListenersInput{
+		LoadBalancerArn: aws.String(string(*loadBalancerDetails.LoadBalancerArn)),
+		PageSize:        aws.Int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := elasticloadbalancingv2.NewDescribeListenersPaginator(svc, input, func(o *elasticloadbalancingv2.DescribeListenersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.listEc2LoadBalancerListeners", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.Listeners {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
+
 	return nil, err
 }
 
@@ -162,16 +202,17 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 	listenerArn := d.KeyColumnQuals["arn"].GetStringValue()
 
 	// Create service
-	svc, err := ELBv2Service(ctx, d)
+	svc, err := ELBV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.getEc2LoadBalancerListener", "connection_error", err)
 		return nil, err
 	}
 
-	params := &elbv2.DescribeListenersInput{
-		ListenerArns: []*string{aws.String(listenerArn)},
+	params := &elasticloadbalancingv2.DescribeListenersInput{
+		ListenerArns: []string{listenerArn},
 	}
 
-	op, err := svc.DescribeListeners(params)
+	op, err := svc.DescribeListeners(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +226,7 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 //// TRANSFORM FUNCTIONS ////
 
 func getEc2ApplicationLoadBalancerListenerTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*elbv2.Listener)
+	data := d.HydrateItem.(types.Listener)
 	splitID := strings.Split(string(*data.ListenerArn), "/")
 	title := splitID[2] + "-" + splitID[4]
 	return title, nil

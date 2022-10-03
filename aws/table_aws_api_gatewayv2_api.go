@@ -2,12 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -17,14 +20,16 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 		Name:        "aws_api_gatewayv2_api",
 		Description: "AWS API Gateway Version 2 API",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("api_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"NotFoundException"}),
-			Hydrate:           getAPIGatewayV2API,
+			KeyColumns: plugin.SingleColumn("api_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NotFoundException"}),
+			},
+			Hydrate: getAPIGatewayV2API,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAPIGatewayV2API,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -50,6 +55,11 @@ func tableAwsAPIGatewayV2Api(_ context.Context) *plugin.Table {
 				Name:        "api_key_selection_expression",
 				Description: "An API key selection expression. Supported only for WebSocket APIs",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "disable_execute_api_endpoint",
+				Description: "Specifies whether clients can invoke your API by using the default execute-api endpoint.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "route_selection_expression",
@@ -89,18 +99,34 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	logger := plugin.Logger(ctx)
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
-		logger.Trace("listAPIGatewayV2API", "connection error", err)
+		logger.Error("aws_api_gatewayv2_api.listAPIGatewayV2API", "connection error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(500)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	pagesLeft := true
-	params := &apigatewayv2.GetApisInput{}
+	params := &apigatewayv2.GetApisInput{
+		MaxResults: aws.String(fmt.Sprint(maxLimit)),
+	}
 
 	for pagesLeft {
-		result, err := svc.GetApis(params)
+		result, err := svc.GetApis(ctx, params)
 		if err != nil {
+			logger.Error("aws_api_gatewayv2_api.listAPIGatewayV2API", "api_error", err)
 			return nil, err
 		}
 
@@ -127,11 +153,11 @@ func listAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 //// HYDRATE FUNCTIONS
 
 func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAPIGatewayV2API")
 
 	// Create Session
-	svc, err := APIGatewayV2Service(ctx, d)
+	svc, err := APIGatewayV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_api.getAPIGatewayV2API", "service_client_error", err)
 		return nil, err
 	}
 
@@ -140,14 +166,14 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		ApiId: aws.String(id),
 	}
 
-	apiData, err := svc.GetApi(params)
+	apiData, err := svc.GetApi(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAPIGatewayV2API__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_api_gatewayv2_api.getAPIGatewayV2API", "api_error", err)
 		return nil, err
 	}
 
 	if apiData != nil {
-		api := &apigatewayv2.Api{
+		api := &types.Api{
 			Name:                      apiData.Name,
 			ApiId:                     apiData.ApiId,
 			ApiEndpoint:               apiData.ApiEndpoint,
@@ -164,8 +190,15 @@ func getAPIGatewayV2API(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 }
 
 func getAPIGatewayV2APIAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	apigatewayV2Api := h.Item.(*apigatewayv2.Api)
 	region := d.KeyColumnQualString(matrixKeyRegion)
+	id := ""
+
+	switch h.Item.(type) {
+	case *types.Api:
+		id = *h.Item.(*types.Api).ApiId
+	case types.Api:
+		id = *h.Item.(types.Api).ApiId
+	}
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
@@ -175,7 +208,7 @@ func getAPIGatewayV2APIAkas(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + *apigatewayV2Api.ApiId}
+	akas := []string{"arn:" + commonColumnData.Partition + ":apigateway:" + region + "::/apis/" + id}
 
 	return akas, nil
 }

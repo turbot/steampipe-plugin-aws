@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,14 +18,16 @@ func tableAwsSecurityhubProduct(_ context.Context) *plugin.Table {
 		Name:        "aws_securityhub_product",
 		Description: "AWS Securityhub Product",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("product_arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidAccessException"}),
-			Hydrate:           getSecurityHubProduct,
+			KeyColumns: plugin.SingleColumn("product_arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException", "InvalidInputException"}),
+			},
+			Hydrate: getSecurityHubProduct,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubProducts,
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

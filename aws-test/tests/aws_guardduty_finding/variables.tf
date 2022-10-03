@@ -59,10 +59,10 @@ locals {
 resource "null_resource" "named_test_resource" {
   depends_on = [aws_guardduty_detector.named_test_resource]
   provisioner "local-exec" {
-    command = "AWS  guardduty create-sample-findings --detector-id ${aws_guardduty_detector.named_test_resource.id} --finding-types Backdoor:EC2/DenialOfService.Tcp"
+    command = "AWS  guardduty create-sample-findings --region ${var.aws_region} --detector-id ${aws_guardduty_detector.named_test_resource.id} --finding-types Backdoor:EC2/DenialOfService.Tcp"
   }
   provisioner "local-exec" {
-    command = "aws guardduty list-findings --detector-id ${aws_guardduty_detector.named_test_resource.id} > ${local.listPath}"
+    command = "aws guardduty list-findings --region ${var.aws_region} --detector-id ${aws_guardduty_detector.named_test_resource.id} > ${local.listPath}"
   }
 }
 
@@ -74,7 +74,7 @@ data "local_file" "listInput" {
 resource "null_resource" "get_resource" {
   depends_on = [null_resource.named_test_resource]
   provisioner "local-exec" {
-    command = "aws guardduty get-findings --detector-id ${aws_guardduty_detector.named_test_resource.id} --finding-id ${jsondecode(data.local_file.listInput.content).FindingIds[0]} > ${local.getPath}"
+    command = "aws guardduty get-findings --region ${var.aws_region} --detector-id ${aws_guardduty_detector.named_test_resource.id} --finding-id ${jsondecode(data.local_file.listInput.content).FindingIds[0]} > ${local.getPath}"
   }
 }
 

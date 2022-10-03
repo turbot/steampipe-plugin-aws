@@ -1,0 +1,7 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "authorized_account_id": "{{ output.authorized_account_id.value }}",
+    "authorized_aws_region": "{{ output.authorized_aws_region.value }}"
+  }
+]

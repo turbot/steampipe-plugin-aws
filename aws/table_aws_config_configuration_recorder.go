@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 		Name:        "aws_config_configuration_recorder",
 		Description: "AWS Config Configuration Recorder",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConfigurationRecorderException"}),
-			Hydrate:           getConfigConfigurationRecorder,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConfigurationRecorderException"}),
+			},
+			Hydrate: getConfigConfigurationRecorder,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConfigurationRecorders,
@@ -28,7 +30,7 @@ func tableAwsConfigConfigurationRecorder(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

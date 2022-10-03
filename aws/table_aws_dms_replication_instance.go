@@ -3,12 +3,12 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
 //// TABLE DEFINITION
@@ -18,9 +18,11 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 		Name:        "aws_dms_replication_instance",
 		Description: "AWS DMS Replication Instance",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("arn"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
-			Hydrate:           getDmsReplicationInstance,
+			KeyColumns: plugin.SingleColumn("arn"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameterValueException", "ResourceNotFoundFault", "InvalidParameterCombinationException"}),
+			},
+			Hydrate: getDmsReplicationInstance,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDmsReplicationInstances,
@@ -43,7 +45,7 @@ func tableAwsDmsReplicationInstance(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_instance_identifier",

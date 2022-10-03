@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/wellarchitected"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,9 +20,11 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 		Name:        "aws_wellarchitected_workload",
 		Description: "AWS Well-Architected Workload",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("workload_id"),
-			ShouldIgnoreError: isNotFoundError([]string{"ResourceNotFoundException"}),
-			Hydrate:           getWellArchitectedWorkload,
+			KeyColumns: plugin.SingleColumn("workload_id"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getWellArchitectedWorkload,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listWellArchitectedWorkloads,
@@ -30,7 +32,7 @@ func tableAwsWellArchitectedWorkload(_ context.Context) *plugin.Table {
 				{Name: "workload_name", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "workload_name",

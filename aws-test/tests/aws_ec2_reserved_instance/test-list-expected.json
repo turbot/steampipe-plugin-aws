@@ -1,7 +1,0 @@
-[
-  {
-    "arn": "{{ output.resource_aka.value }}",
-    "instance_type": "{{ output.instance_type.value }}",
-    "reserved_instance_id": "{{ output.resource_name.value }}"
-  }
-]

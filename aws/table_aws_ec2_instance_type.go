@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/go-kit/types"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -19,9 +19,11 @@ func tableAwsInstanceType(_ context.Context) *plugin.Table {
 		Name:        "aws_ec2_instance_type",
 		Description: "AWS EC2 Instance Type",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("instance_type"),
-			ShouldIgnoreError: isNotFoundError([]string{"InvalidInstanceType"}),
-			Hydrate:           describeInstanceType,
+			KeyColumns: plugin.SingleColumn("instance_type"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidInstanceType"}),
+			},
+			Hydrate: describeInstanceType,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsInstanceTypesOfferings,
@@ -202,6 +204,10 @@ func listAwsInstanceTypesOfferings(ctx context.Context, d *plugin.QueryData, h *
 		region = "us-gov-east-1"
 	} else if commonColumnData.Partition == "aws-cn" {
 		region = "cn-north-1"
+	} else if commonColumnData.Partition == "aws-iso" {
+		region = "us-iso-east-1"
+	} else if commonColumnData.Partition == "aws-iso-b" {
+		region = "us-isob-east-1"
 	}
 
 	// Create Session

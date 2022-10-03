@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
@@ -15,9 +15,11 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 		Name:        "aws_config_conformance_pack",
 		Description: "AWS Config Conformance Pack",
 		Get: &plugin.GetConfig{
-			KeyColumns:        plugin.SingleColumn("name"),
-			ShouldIgnoreError: isNotFoundError([]string{"NoSuchConformancePackException"}),
-			Hydrate:           getConfigConformancePack,
+			KeyColumns: plugin.SingleColumn("name"),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"NoSuchConformancePackException"}),
+			},
+			Hydrate: getConfigConformancePack,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listConfigConformancePacks,
@@ -28,7 +30,7 @@ func tableAwsConfigConformancePack(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItem: BuildRegionList,
+		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
