@@ -201,6 +201,7 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 		allowedPrincipalServicesSet := evaluatedCondition.allowedPrincipalServicesSet
 		allowedPrincipalsArnsSet := evaluatedCondition.allowedPrincipalsArnsSet
 		allowedPrincipalsAccountsSet := evaluatedCondition.allowedPrincipalsAccountsSet
+		referencedAccountsSet := evaluatedCondition.referencedAccountsSet
 		isPublic := evaluatedCondition.isPublic
 		isShared := evaluatedCondition.isShared
 		isPrivate := evaluatedCondition.isPrivate
@@ -290,6 +291,21 @@ func evaluateStatements(statements []Statement, userAccountId string, allAvailab
 					isShared:             isShared,
 					principal:            allowedPrincipalAccount,
 					principalType:        "account",
+					resource:             resource,
+					sid:                  sid,
+				}
+
+				(*currentEvaluatedStatements) = append(*currentEvaluatedStatements, newStatement)
+			}
+
+			for referencedAccount := range referencedAccountsSet {
+				newStatement := EvaluatedStatement{
+					availablePermissions: availablePermissions.Copy(),
+					isPrivate:            isPrivate,
+					isPublic:             isPublic,
+					isShared:             isShared,
+					principal:            referencedAccount,
+					principalType:        "ref_account",
 					resource:             resource,
 					sid:                  sid,
 				}
@@ -605,12 +621,17 @@ func generateStatementsSummary(statements []EvaluatedStatement, allAvailablePerm
 			account := extractAccountFromArn(reducedStatement.principal)
 			statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
 			statementsSummary.allowedPrincipalAccountIdsSet[account] = true
+		case "ref_account":
+			statementsSummary.allowedPrincipalAccountIdsSet[reducedStatement.principal] = true
 		case "account":
 			account := extractAccount(reducedStatement.principal)
 
 			statementsSummary.allowedPrincipalsSet[reducedStatement.principal] = true
 			statementsSummary.allowedPrincipalAccountIdsSet[account] = true
 		case "service":
+			if reducedStatement.isPublic {
+				statementsSummary.allowedPrincipalAccountIdsSet["*"] = true
+			}
 			statementsSummary.allowedPrincipalServicesSet[reducedStatement.principal] = true
 		}
 
@@ -751,6 +772,7 @@ type EvaluatedCondition struct {
 	allowedPrincipalFederatedIdentitiesSet map[string]bool
 	allowedPrincipalServicesSet            map[string]bool
 	allowedPrincipalsAccountsSet           map[string]bool
+	referencedAccountsSet                  map[string]bool
 	allowedPrincipalsArnsSet               map[string]bool
 	isPrivate                              bool
 	isPublic                               bool
@@ -763,6 +785,7 @@ func (evaluatedCondition *EvaluatedCondition) Merge(other EvaluatedCondition) {
 	evaluatedCondition.allowedPrincipalServicesSet = mergeSet(evaluatedCondition.allowedPrincipalServicesSet, other.allowedPrincipalServicesSet)
 	evaluatedCondition.allowedPrincipalsArnsSet = mergeSet(evaluatedCondition.allowedPrincipalsArnsSet, other.allowedPrincipalsArnsSet)
 	evaluatedCondition.allowedPrincipalsAccountsSet = mergeSet(evaluatedCondition.allowedPrincipalsAccountsSet, other.allowedPrincipalsAccountsSet)
+	evaluatedCondition.referencedAccountsSet = mergeSet(evaluatedCondition.referencedAccountsSet, other.referencedAccountsSet)
 
 	evaluatedCondition.isPublic = evaluatedCondition.isPublic || other.isPublic
 	evaluatedCondition.isShared = evaluatedCondition.isShared || other.isShared
@@ -803,11 +826,11 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 				partialEvaluatedCondition := evaluatePrincipalArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
 				evaluatedCondition.Merge(partialEvaluatedCondition)
 				processed = true
-				// TODO: Broken
-				// case "aws:sourcearn":
-				// 	partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
-				// 	evaluatedCondition.Merge(partialEvaluatedCondition)
-				// 	processed = true
+			// TODO: Broken
+			case "aws:sourcearn":
+				partialEvaluatedCondition := evaluateSourceArnTypeCondition(evaluatedPrincipal, conditionValues.([]string), evaulatedOperator)
+				evaluatedCondition.Merge(partialEvaluatedCondition)
+				processed = true
 			}
 		}
 	}
@@ -819,8 +842,79 @@ func refineUsingConditions(evaluatedPrincipal EvaluatedPrincipal, conditions map
 	return evaluatedCondition, nil
 }
 
-// TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
 func evaluateSourceArnTypeCondition(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
+	processed := false
+	referencedAccountsSet := map[string]bool{}
+	allowedPrincipalsArnsSet := map[string]bool{}
+
+	isPublic := evaluatedPrincipal.isFederatedPublic
+	isShared := evaluatedPrincipal.isFederatedShared
+	isPrivate := false
+
+	for _, conditionValue := range conditionValues {
+		if evaulatedOperator.category != "string" && evaulatedOperator.category != "arn" {
+			continue
+		}
+
+		// value "*" means conditionAccount was invalid
+		var conditionAccount string
+
+		if evaulatedOperator.category == "arn" {
+			conditionAccount = extractAccountInPlaceFromArn(conditionValue)
+			if conditionAccount == "" {
+				continue
+			}
+		} else if evaulatedOperator.category == "string" {
+			if evaulatedOperator.isLike {
+				conditionAccount = extractAccountFromArn(conditionValue)
+				if conditionAccount == "" {
+					conditionAccount = "*"
+				}
+			} else if !strings.Contains(conditionValue, "*") || !strings.Contains(conditionValue, "?") {
+				continue
+			} else {
+				conditionAccount = extractAccountInPlaceFromArn(conditionValue)
+				if conditionAccount == "" {
+					continue
+				}
+			}
+		}
+
+		referencedAccountsSet[conditionAccount] = true
+		allowedPrincipalsArnsSet[conditionValue] = true
+
+		if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
+			isPublic = true
+		} else {
+			if conditionAccount != evaluatedPrincipal.userAccountId {
+				isShared = true
+			} else {
+				isPrivate = true
+			}
+		}
+
+		processed = true
+	}
+
+	if processed {
+		return EvaluatedCondition{
+			allowedOrganizationIdsSet:              evaluatedPrincipal.allowedOrganizationIdsSet,
+			allowedPrincipalFederatedIdentitiesSet: evaluatedPrincipal.allowedPrincipalFederatedIdentitiesSet,
+			allowedPrincipalsAccountsSet:           evaluatedPrincipal.allowedPrincipalsAccountsSet,
+			allowedPrincipalsArnsSet:               allowedPrincipalsArnsSet,
+			allowedPrincipalServicesSet:            evaluatedPrincipal.allowedPrincipalServicesSet,
+			referencedAccountsSet:                  referencedAccountsSet,
+			isPublic:                               isPublic,
+			isShared:                               isShared,
+			isPrivate:                              isPrivate,
+		}
+	}
+
+	return evaluatedPrincipal.toEvaluatedCondition()
+}
+
+// TODO: We have a problem with the following code as it evaluates the Principal which is incorrect
+func evaluateTypeConditionForAPrincipalTypeArn(evaluatedPrincipal EvaluatedPrincipal, conditionValues []string, evaulatedOperator EvaluatedOperator) EvaluatedCondition {
 	processed := false
 	allowedPrincipalsAccountsSet := map[string]bool{}
 	allowedPrincipalsArnsSet := map[string]bool{}
@@ -1195,12 +1289,7 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 				}
 			}
 
-			processed = true
-
-			if conditionValue == "*" {
-				isPublic = true
-				allowedPrincipalsAccountsSet[conditionValue] = true
-			} else if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
+			if strings.Contains(conditionValue, "*") || strings.Contains(conditionValue, "?") {
 				isPublic = true
 				allowedPrincipalsAccountsSet[conditionValue] = true
 			} else {
@@ -1212,6 +1301,7 @@ func evaluateSourceAccountTypeCondition(evaluatedPrincipal EvaluatedPrincipal, c
 				}
 			}
 
+			processed = true
 		}
 	}
 
@@ -1363,6 +1453,7 @@ func (evaluatedPrincipal EvaluatedPrincipal) toEvaluatedCondition() EvaluatedCon
 		allowedPrincipalsAccountsSet:           evaluatedPrincipal.allowedPrincipalsAccountsSet,
 		allowedPrincipalsArnsSet:               evaluatedPrincipal.allowedPrincipalsArnsSet,
 		allowedPrincipalServicesSet:            evaluatedPrincipal.allowedPrincipalServicesSet,
+		referencedAccountsSet:                  map[string]bool{},
 		isPublic:                               evaluatedPrincipal.isAwsPublic || evaluatedPrincipal.isServicePublic || evaluatedPrincipal.isFederatedPublic,
 		isShared:                               evaluatedPrincipal.isAwsShared || evaluatedPrincipal.isFederatedShared,
 		isPrivate:                              evaluatedPrincipal.isAwsPrivate,
