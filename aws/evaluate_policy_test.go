@@ -6937,13 +6937,13 @@ func testPolicyActionWhenServiceNameIsMissing(t *testing.T) {
 }
 
 func TestGlobalConditionSourceArn(t *testing.T) {
-	t.Skip("Will add in later")
 	// StringEquals
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEquals", testSourceArnConditionWhenValueIsAUserAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsACrossAccountUsingStringEquals", testSourceArnConditionWhenValueIsACrossAccountUsingStringEquals)
 	t.Run("TestSourceArnConditionWhenValueIsFullWildcardUsingStringEquals", testSourceArnConditionWhenValueIsFullWildcardUsingStringEquals)
 	t.Run("TestSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals", testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals)
 	t.Run("TestSourceArnConditionUsingStringEqualsIfExists", testSourceArnConditionUsingStringEqualsIfExists)
+	t.Skip("Will add in later")
 	// StringNotEquals
 	// StringEqualsIgnoreCase
 	t.Run("TestSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase", testSourceArnConditionWhenValueIsAUserAccountUsingStringEqualsIgnoreCase)
@@ -7220,17 +7220,17 @@ func testSourceArnConditionConditionWhenValueIsPartialWildcardUsingStringEquals(
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "private",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
 		AllowedPrincipals:                   []string{},
-		AllowedPrincipalAccountIds:          []string{},
+		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
-		AllowedPrincipalServices:            []string{},
-		IsPublic:                            false,
-		PublicAccessLevels:                  []string{},
+		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
 		PrivateAccessLevels:                 []string{},
-		PublicStatementIds:                  []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 		SharedStatementIds:                  []string{},
 	}
 
@@ -7285,17 +7285,17 @@ func testSourceArnConditionUsingStringEqualsIfExists(t *testing.T) {
 	`
 
 	expected := PolicySummary{
-		AccessLevel:                         "private",
+		AccessLevel:                         "public",
 		AllowedOrganizationIds:              []string{},
-		AllowedPrincipals:                   []string{"012345678901"},
-		AllowedPrincipalAccountIds:          []string{"012345678901"},
+		AllowedPrincipals:                   []string{},
+		AllowedPrincipalAccountIds:          []string{"*"},
 		AllowedPrincipalFederatedIdentities: []string{},
 		AllowedPrincipalServices:            []string{"ecs.amazonaws.com"},
-		IsPublic:                            false,
-		PublicAccessLevels:                  []string{},
+		IsPublic:                            true,
+		PublicAccessLevels:                  []string{"List"},
 		SharedAccessLevels:                  []string{},
-		PrivateAccessLevels:                 []string{"List"},
-		PublicStatementIds:                  []string{},
+		PrivateAccessLevels:                 []string{},
+		PublicStatementIds:                  []string{"Statement[1]"},
 		SharedStatementIds:                  []string{},
 	}
 
