@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -125,10 +124,10 @@ func getCWPeriodForGranularity(granularity string) int32 {
 	switch strings.ToUpper(granularity) {
 	case "DAILY":
 		// 24 hours
-		return int32(86400)
+		return 86400
 	case "HOURLY":
 		// 1 hour
-		return int32(3600)
+		return 3600
 	}
 	// else 5 minutes
 	return 300
@@ -136,10 +135,11 @@ func getCWPeriodForGranularity(granularity string) int32 {
 
 func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularity string, namespace string, metricName string, dimensionName string, dimensionValue string) (*cloudwatch.GetMetricStatisticsOutput, error) {
 
+	plugin.Logger(ctx).Trace("getCWMetricStatistics")
+
 	// Create Session
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCWMetricStatistics.CloudWatchClient", "connection_error", err)
 		return nil, err
 	}
 
@@ -154,11 +154,11 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 		EndTime:    aws.Time(endTime),
 		Period:     aws.Int32(period),
 		Statistics: []types.Statistic{
-			"Average",
-			"SampleCount",
-			"Sum",
-			"Minimum",
-			"Maximum",
+			types.StatisticAverage,
+			types.StatisticSampleCount,
+			types.StatisticSum,
+			types.StatisticMinimum,
+			types.StatisticMaximum,
 		},
 	}
 
@@ -173,7 +173,6 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 
 	stats, err := svc.GetMetricStatistics(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCWMetricStatistics.GetMetricStatistics", "api_error", err)
 		return nil, err
 	}
 
