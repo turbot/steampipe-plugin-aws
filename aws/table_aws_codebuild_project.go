@@ -100,7 +100,6 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Description: "Information about the build output artifacts for the build project.",
 				Hydrate:     getCodeBuildProject,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleArtifactsEmptyData),
 			},
 			{
 				Name:        "badge",
@@ -137,7 +136,6 @@ func tableAwsCodeBuildProject(_ context.Context) *plugin.Table {
 				Description: "Information about logs for the build project. A project can create logs in Amazon CloudWatch Logs, an S3 bucket or both.",
 				Hydrate:     getCodeBuildProject,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleLogConfigEmptyData),
 			},
 			{
 				Name:        "project_visibility",
@@ -345,59 +343,3 @@ func codeBuildProjectTurbotTags(_ context.Context, d *transform.TransformData) (
 	return turbotTagsMap, nil
 }
 
-func handleArtifactsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	artifact := d.HydrateItem.(types.Project).Artifacts
-	if artifact == nil {
-		return nil, nil
-	}
-	data := &ProjectArtifacts{
-		ArtifactIdentifier:   artifact.ArtifactIdentifier,
-		EncryptionDisabled:   artifact.EncryptionDisabled,
-		Name:                 artifact.Name,
-		Location:             artifact.Location,
-		OverrideArtifactName: artifact.OverrideArtifactName,
-		Path:                 artifact.Path,
-		BucketOwnerAccess:    (*string)(&artifact.BucketOwnerAccess),
-		NamespaceType:        (*string)(&artifact.NamespaceType),
-		Packaging:            (*string)(&artifact.Packaging),
-		Type:                 (*string)(&artifact.Type),
-	}
-	if artifact.BucketOwnerAccess == "" {
-		data.BucketOwnerAccess = nil
-	}
-	if artifact.NamespaceType == "" {
-		data.NamespaceType = nil
-	}
-	if artifact.Packaging == "" {
-		data.Packaging = nil
-	}
-	if artifact.Type == "" {
-		data.Type = nil
-	}
-
-	return data, nil
-}
-
-func handleLogConfigEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	logConfig := d.HydrateItem.(types.Project).LogsConfig
-	data := &ProjectLogConfig{}
-	if logConfig.CloudWatchLogs != nil {
-		data.CloudWatchLogs = logConfig.CloudWatchLogs
-	}
-	if logConfig.S3Logs != nil {
-		s3Logs := &ProjectS3Logs{
-			EncryptionDisabled: logConfig.S3Logs.EncryptionDisabled,
-			Location:           logConfig.S3Logs.Location,
-			BucketOwnerAccess:  (*string)(&logConfig.S3Logs.BucketOwnerAccess),
-			Status:             (*string)(&logConfig.S3Logs.Status),
-		}
-		if logConfig.S3Logs.Status == "" {
-			s3Logs.Status = nil
-		}
-		if logConfig.S3Logs.BucketOwnerAccess == "" {
-			s3Logs.BucketOwnerAccess = nil
-		}
-		data.S3Logs = s3Logs
-	}
-	return data, nil
-}

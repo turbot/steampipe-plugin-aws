@@ -200,25 +200,22 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "load_balancer_names",
 				Description: "One or more load balancers associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleASGLoadbalancerNamesEmptyData),
 			},
 			{
 				Name:        "target_group_arns",
 				Description: "The Amazon Resource Names (ARN) of the target groups for your load balancer.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TargetGroupARNs").Transform(handleASGTargetGroupArnsEmptyData),
+				Transform:   transform.FromField("TargetGroupARNs"),
 			},
 			{
 				Name:        "instances",
 				Description: "The EC2 instances associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleASGInstancesEmptyData),
 			},
 			{
 				Name:        "enabled_metrics",
 				Description: "The metrics enabled for the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleADGEnabledMetricsEmptyData),
 			},
 			{
 				Name:        "policies",
@@ -236,7 +233,6 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "suspended_processes",
 				Description: "The suspended processes associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleASGSuspendedProcessesEmptyData),
 			},
 			{
 				Name:        "tags_src",
@@ -428,54 +424,4 @@ func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleADGEnabledMetricsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.EnabledMetrics) > 0 {
-		return asg.EnabledMetrics, nil
-	}
-
-	return nil, nil
-}
-
-func handleASGInstancesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.Instances) > 0 {
-		return asg.Instances, nil
-	}
-
-	return nil, nil
-}
-
-func handleASGLoadbalancerNamesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.LoadBalancerNames) > 0 {
-		return asg.LoadBalancerNames, nil
-	}
-
-	return nil, nil
-}
-
-func handleASGSuspendedProcessesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.SuspendedProcesses) > 0 {
-		return asg.SuspendedProcesses, nil
-	}
-
-	return nil, nil
-}
-
-func handleASGTargetGroupArnsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.TargetGroupARNs) > 0 {
-		return asg.TargetGroupARNs, nil
-	}
-
-	return nil, nil
 }
