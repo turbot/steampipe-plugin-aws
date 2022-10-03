@@ -221,7 +221,7 @@ func getRedshiftEventSubscriptionAkas(ctx context.Context, d *plugin.QueryData, 
 func redshiftEventSubListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tagList := d.HydrateItem.(types.EventSubscription)
 
-	if tagList.Tags != nil {
+	if len(tagList.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

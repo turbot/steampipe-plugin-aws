@@ -117,6 +117,7 @@ func listElasticBeanstalkApplications(ctx context.Context, d *plugin.QueryData, 
 	// List call
 	params := &elasticbeanstalk.DescribeApplicationsInput{}
 
+	// DescribeApplications doesn't support pagination
 	op, err := svc.DescribeApplications(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elastic_beanstalk_application.listElasticBeanstalkApplications", "api_error", err)
@@ -204,12 +205,9 @@ func listAwsElasticBeanstalkApplicationTags(ctx context.Context, d *plugin.Query
 func handleElasticBeanstalkApplicationTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tagList := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
-	if tagList.ResourceTags == nil {
-		return nil, nil
-	}
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if tagList != nil {
+	if tagList != nil && len(tagList.ResourceTags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tagList.ResourceTags {
 			turbotTagsMap[*i.Key] = *i.Value

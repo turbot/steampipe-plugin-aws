@@ -223,7 +223,7 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tagList := d.HydrateItem.(types.ClusterParameterGroup)
 
-	if tagList.Tags != nil {
+	if len(tagList.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

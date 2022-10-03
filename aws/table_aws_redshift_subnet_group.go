@@ -196,13 +196,9 @@ func getRedshiftSubnetGroupAkas(ctx context.Context, d *plugin.QueryData, h *plu
 func redshiftSubnetGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterSubnetGroup := d.HydrateItem.(types.ClusterSubnetGroup)
 
-	if clusterSubnetGroup.Tags == nil {
-		return nil, nil
-	}
-
 	// Get the resource tags
 	var turbotTagsMap map[string]string
-	if clusterSubnetGroup.Tags != nil {
+	if len(clusterSubnetGroup.Tags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range clusterSubnetGroup.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

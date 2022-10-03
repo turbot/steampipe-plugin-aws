@@ -490,7 +490,7 @@ func getRedshiftClusterARN(ctx context.Context, d *plugin.QueryData, h *plugin.H
 func getRedshiftClusterTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	cluster := d.HydrateItem.(types.Cluster)
 
-	if cluster.Tags != nil {
+	if len(cluster.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range cluster.Tags {
 			turbotTagsMap[*i.Key] = *i.Value

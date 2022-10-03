@@ -306,13 +306,9 @@ func listTagsForElastiCacheCluster(ctx context.Context, d *plugin.QueryData, h *
 func clusterTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	clusterTag := d.HydrateItem.(*elasticache.ListTagsForResourceOutput)
 
-	if clusterTag.TagList == nil {
-		return nil, nil
-	}
-
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	if clusterTag.TagList != nil {
+	if len(clusterTag.TagList) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range clusterTag.TagList {
 			turbotTagsMap[*i.Key] = *i.Value

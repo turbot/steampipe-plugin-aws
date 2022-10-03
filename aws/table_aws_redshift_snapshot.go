@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -367,12 +367,13 @@ func redshiftSnapshotTurbotTags(_ context.Context, d *transform.TransformData) (
 	snapshot := d.HydrateItem.(types.Snapshot)
 
 	// Get the resource tags
-	if snapshot.Tags != nil {
+	if len(snapshot.Tags) > 0 {
 		turbotTagsMap := map[string]string{}
 		for _, i := range snapshot.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
 	}
+
 	return nil, nil
 }

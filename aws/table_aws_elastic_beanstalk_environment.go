@@ -308,20 +308,18 @@ func listElasticBeanstalkEnvironmentTags(ctx context.Context, d *plugin.QueryDat
 	return op, nil
 }
 
-//// TRANSFORM FUNCTIONS
+// // TRANSFORM FUNCTIONS
 func elasticBeanstalkEnvironmentTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.(*elasticbeanstalk.ListTagsForResourceOutput)
 
-	// Mapping the resource tags inside turbotTags
-	if tags.ResourceTags == nil {
-		return nil, nil
-	}
 	var turbotTagsMap map[string]string
-	if tags.ResourceTags != nil {
+	// Mapping the resource tags inside turbotTags
+	if len(tags.ResourceTags) > 0 {
 		turbotTagsMap = map[string]string{}
 		for _, i := range tags.ResourceTags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 	}
+
 	return turbotTagsMap, nil
 }
