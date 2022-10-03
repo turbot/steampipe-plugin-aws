@@ -184,7 +184,7 @@ func getHealthCheck(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, err
 	}
 
-	return item.HealthCheck, nil
+	return *item.HealthCheck, nil
 }
 
 func getHealthCheckStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
