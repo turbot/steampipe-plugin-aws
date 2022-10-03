@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/aws/smithy-go"
 
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 )
 
 func tableAwsRoute53Zone(_ context.Context) *plugin.Table {
@@ -254,7 +254,7 @@ func getHostedZoneTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	resp, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
 		var ae smithy.APIError
-			if errors.As(err, &ae) {
+		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "NoSuchHostedZone" {
 				return nil, nil
 			}
@@ -282,7 +282,7 @@ func getHostedZoneQueryLoggingConfigs(ctx context.Context, d *plugin.QueryData, 
 	resp, err := svc.ListQueryLoggingConfigs(ctx, params)
 	if err != nil {
 		var ae smithy.APIError
-			if errors.As(err, &ae) {
+		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "NoSuchHostedZone" {
 				return nil, nil
 			}
@@ -361,4 +361,3 @@ func route53HostedZoneTurbotTags(ctx context.Context, d *transform.TransformData
 
 	return nil, nil
 }
-

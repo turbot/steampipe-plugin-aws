@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/route53domains/types"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
+	"github.com/aws/aws-sdk-go-v2/service/route53domains/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -214,8 +214,8 @@ func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
+			if limit < 20 {
+				maxItems = int32(20)
 			} else {
 				maxItems = int32(limit)
 			}
@@ -274,7 +274,7 @@ func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Get call
 	data, err := svc.GetDomainDetail(ctx, params)
 	if err != nil {
-			plugin.Logger(ctx).Error("aws_route53_domain.getRoute53Domain", "api_error", err)
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53Domain", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -299,7 +299,7 @@ func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Get call
 	op, err := svc.ListTagsForDomain(ctx, &params)
 	if err != nil {
-			plugin.Logger(ctx).Error("aws_route53_domain.getRoute53DomainTags", "api_error", err)
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53DomainTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
