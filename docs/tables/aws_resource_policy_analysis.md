@@ -88,6 +88,14 @@ Principals are organized by the table and returned in their own columns.
 
 The table will sort statement IDs into three different categories, public for statements that grant public access, shared and private for shared and private access respectively.
 
+The table will also give the access level of Functions at each access level. This is can be either none or all of the following values:
+
+- Tagging
+- Write
+- Read
+- List
+- Permissions management
+
 ## Limitations
 
 The table evaulates a subset of conditions at present:
@@ -207,6 +215,34 @@ from
 where
   pa.account_id = r.account_id
   and pa.policy = r.policy_std
+order by
+  r.name
+```
+
+### Query all Lambda functions that have tagging and writing capabilities at any access level
+
+```sql
+select
+  r.name,
+  pa.public_access_levels,
+  pa.shared_access_levels,
+  pa.private_access_levels,
+  pa.allowed_principal_account_ids,
+  pa.allowed_principals,
+  pa.allowed_principal_services,
+  pa.allowed_organization_ids,
+  r.arn
+from
+  aws_lambda_function as r,
+  aws_resource_policy_analysis as pa
+where
+  pa.account_id = r.account_id
+  and pa.policy = r.policy_std
+  and (
+    pa.public_access_levels <@ '["Tagging", "Write"]' or
+    pa.shared_access_levels <@ '["Tagging", "Write"]' or
+    pa.private_access_levels <@ '["Tagging", "Write"]'
+  )
 order by
   r.name
 ```
