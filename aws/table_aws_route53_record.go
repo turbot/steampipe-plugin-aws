@@ -26,6 +26,9 @@ func tableAwsRoute53Record(_ context.Context) *plugin.Table {
 				{Name: "type", Require: plugin.Optional},
 			},
 			Hydrate: listRoute53Records,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"NoSuchHostedZone"}),
+			},
 		},
 		Columns: awsColumns([]*plugin.Column{
 			{
@@ -150,7 +153,7 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	input := route53.ListResourceRecordSetsInput{
-		HostedZoneId: &hostedZoneID,
+		HostedZoneId: aws.String(hostedZoneID),
 	}
 
 	equalQuals := d.KeyColumnQuals
@@ -168,36 +171,51 @@ func listRoute53Records(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	// Paginator not avilable for the in v2, till date 09/30/2022
 	// Also, API doesn't support paging. Therfore not handling limit for the function
-	op, err := svc.ListResourceRecordSets(ctx, &input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
-		return nil, err
+	for {
+		op, err := svc.ListResourceRecordSets(ctx, &input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_route53_record.listRoute53Records", "api_error", err)
+			return nil, err
+		}
+
+		for _, record := range op.ResourceRecordSets {
+			// The StartRecordName and StartRecordType input parameters only tell
+			// the API where to start when returning results, so any records/types
+			// that are greater in lexicographic order will also be returned.
+			// Since Postgres will filter on exact matches anyway, check for exact
+			// matches as an optimization to reduce the number of requests.
+
+			if input.StartRecordName != nil && *record.Name != *input.StartRecordName {
+				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
+				continue
+			}
+
+			if string(input.StartRecordType) != "" && record.Type != input.StartRecordType {
+				plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", input.StartRecordType, "record.Type", record.Type)
+				continue
+			}
+
+			d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		if op.NextRecordIdentifier != nil {
+			input.StartRecordIdentifier = op.NextRecordIdentifier
+			if op.NextRecordName != nil {
+				input.StartRecordName = op.NextRecordName
+			}
+			if string(op.NextRecordType) != "" {
+				input.StartRecordType = op.NextRecordType
+			}
+		} else {
+			break
+		}
 	}
 
-	for _, record := range op.ResourceRecordSets {
-		// The StartRecordName and StartRecordType input parameters only tell
-		// the API where to start when returning results, so any records/types
-		// that are greater in lexicographic order will also be returned.
-		// Since Postgres will filter on exact matches anyway, check for exact
-		// matches as an optimization to reduce the number of requests.
-
-		if input.StartRecordName != nil && record.Name != input.StartRecordName {
-			plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record name", "input.StartRecordName", *input.StartRecordName, "record.Name", *record.Name)
-			return nil, nil
-		}
-
-		if record.Type != input.StartRecordType {
-			plugin.Logger(ctx).Debug("aws_route53_record.listRoute53Records mismatched record type", "input.StartRecordType", input.StartRecordType, "record.Type", record.Type)
-			return nil, nil
-		}
-
-		d.StreamListItem(ctx, &recordInfo{&hostedZoneID, record})
-
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil, nil
-		}
-	}
 	return nil, nil
 }
 
