@@ -130,6 +130,10 @@ func listCodepipelinePipelines(ctx context.Context, d *plugin.QueryData, _ *plug
 		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.listCodepipelinePipelines", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -190,6 +194,10 @@ func getCodepipelinePipeline(ctx context.Context, d *plugin.QueryData, h *plugin
 		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getCodepipelinePipeline", "connection_error", err)
 		return nil, err
 	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
 	// Build params
 	params := &codepipeline.GetPipelineInput{
@@ -218,6 +226,10 @@ func getPipelineTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codepipeline_pipeline.getPipelineTags", "connection_error", err)
 		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
 	}
 
 	maxLimit := aws.Int32(100)

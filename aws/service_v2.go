@@ -13,16 +13,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
+	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/appconfig"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
+	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
@@ -32,13 +44,18 @@ import (
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 
+	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -50,6 +67,26 @@ func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
 	return noOpToken, nil
 }
 func noOpToken() error { return nil }
+
+// AccessAnalyzerClient returns the service connection for AWS IAM Access Analyzer service
+func AccessAnalyzerClient(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return accessanalyzer.NewFromConfig(*cfg), nil
+}
+
+func AccountClient(ctx context.Context, d *plugin.QueryData) (*account.Client, error) {
+	cfg, err := getClient(ctx, d, "Account")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return account.NewFromConfig(*cfg), nil
+}
 
 func ACMClient(ctx context.Context, d *plugin.QueryData) (*acm.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
@@ -75,12 +112,98 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
+func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return appconfig.NewFromConfig(*cfg), nil
+}
+
+func AuditManagerClient(ctx context.Context, d *plugin.QueryData) (*auditmanager.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "auditmanager")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return auditmanager.NewFromConfig(*cfg), nil
+}
+
 func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return backup.NewFromConfig(*cfg), nil
+}
+
+func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return cloudfront.NewFromConfig(*cfg), nil
+}
+
+func CloudTrailClient(ctx context.Context, d *plugin.QueryData) (*cloudtrail.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudTrailRegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.Client, error) {
+	cfg, err := getClient(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudwatchlogs.NewFromConfig(*cfg), nil
+}
+
+func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeartifact.NewFromConfig(*cfg), nil
+}
+
+func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.CodebuildServiceID)
+	if err != nil {
+		return nil, err
+	}
+	return codebuild.NewFromConfig(*cfg), nil
+}
+
+func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codedeploy.NewFromConfig(*cfg), nil
 }
 
 // CodePipelineClient returns the service connection for AWS CodePipeline service
@@ -98,7 +221,6 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	if err != nil {
 		return nil, err
 	}
-
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
@@ -132,6 +254,14 @@ func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
 		return nil, err
 	}
 	return dlm.NewFromConfig(*cfg), nil
+}
+
+func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return docdb.NewFromConfig(*cfg), nil
 }
 
 func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
@@ -178,6 +308,18 @@ func EcrPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Clien
 	return ecrpublic.NewFromConfig(*cfg), nil
 }
 
+func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
+	// We can query EC2 for the list of supported regions. But, if credentials
+	// are insufficient this query will retry many times, so we create a special
+	// client with a small number of retries to prevent hangs.
+	// Note - This is not cached, but usually the result of using this service will be.
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.NewFromConfig(*cfg), nil
+}
+
 func ELBClient(ctx context.Context, d *plugin.QueryData) (*elb.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -210,6 +352,25 @@ func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Clien
 	return inspector.NewFromConfig(*cfg), nil
 }
 
+func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kafka.NewFromConfig(*cfg), nil
+}
+
+func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return organizations.NewFromConfig(*cfg), nil
+}
+
 func PricingServiceClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -232,6 +393,17 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 		return nil, err
 	}
 	return rds.NewFromConfig(*cfg), nil
+}
+
+func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return redshiftserverless.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
@@ -327,21 +499,21 @@ func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Co
 
 // Get a session for the region defined in query data, but only after checking it's
 // a supported region for the given serviceID.
-// func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
-// 	region := d.KeyColumnQualString(matrixKeyRegion)
-// 	if region == "" {
-// 		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
-// 	}
-// 	validRegions := SupportedRegionsForService(ctx, d, serviceID)
-// 	if !helpers.StringSliceContains(validRegions, region) {
-// 		// We choose to ignore unsupported regions rather than returning an error
-// 		// for them - it's a better user experience. So, return a nil session rather
-// 		// than an error. The caller must handle this case.
-// 		return nil, nil
-// 	}
-// 	// Supported region, so get and return the session
-// 	return getClient(ctx, d, region)
-// }
+func getClientForQuerySupportedRegion(ctx context.Context, d *plugin.QueryData, serviceID string) (*aws.Config, error) {
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("getSessionForQueryRegion called without a region in QueryData")
+	}
+	validRegions := SupportedRegionsForService(ctx, d, serviceID)
+	if !helpers.StringSliceContains(validRegions, region) {
+		// We choose to ignore unsupported regions rather than returning an error
+		// for them - it's a better user experience. So, return a nil session rather
+		// than an error. The caller must handle this case.
+		return nil, nil
+	}
+	// Supported region, so get and return the session
+	return getClient(ctx, d, region)
+}
 
 // Helper function to get the session for a region set in query data
 func getClientForQueryRegion(ctx context.Context, d *plugin.QueryData) (*aws.Config, error) {

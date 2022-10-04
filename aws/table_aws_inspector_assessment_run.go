@@ -136,7 +136,7 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 
 	var assessmentRunArns []string
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -148,7 +148,6 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 			}
 		}
 	}
-
 
 	input := &inspector.ListAssessmentRunsInput{
 		MaxResults: aws.Int32(maxLimit),
@@ -163,26 +162,26 @@ func listInspectorAssessmentRuns(ctx context.Context, d *plugin.QueryData, _ *pl
 		filter.NamePattern = aws.String(d.KeyColumnQuals["name"].GetStringValue())
 	}
 	if d.KeyColumnQuals["state"].GetStringValue() != "" {
-	filter.States = []types.AssessmentRunState{
-		types.AssessmentRunState(d.KeyColumnQuals["state"].GetStringValue()),
-	}
+		filter.States = []types.AssessmentRunState{
+			types.AssessmentRunState(d.KeyColumnQuals["state"].GetStringValue()),
+		}
 	}
 
 	input.Filter = filter
 
-paginator := inspector.NewListAssessmentRunsPaginator(svc, input, func(o *inspector.ListAssessmentRunsPaginatorOptions) {
+	paginator := inspector.NewListAssessmentRunsPaginator(svc, input, func(o *inspector.ListAssessmentRunsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_inspector_assessment_run.listInspectorAssessmentRuns", "api_error", err)
 			return nil, err
 		}
-assessmentRunArns = append(assessmentRunArns, output.AssessmentRunArns...)
+		assessmentRunArns = append(assessmentRunArns, output.AssessmentRunArns...)
 
 	}
 

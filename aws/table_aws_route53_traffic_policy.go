@@ -144,7 +144,7 @@ func listTrafficPolicies(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	return nil, nil
 }
 
-//To fetch all available versions for a traffic policy
+// To fetch all available versions for a traffic policy
 func listTrafficPolicyVersionsAsync(ctx context.Context, d *plugin.QueryData, svc *route53.Route53, id *string, wg *sync.WaitGroup, errorCh chan error) {
 	plugin.Logger(ctx).Trace("listTrafficPolicyVersionsAsync")
 

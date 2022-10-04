@@ -7,9 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	go_kit_pack "github.com/turbot/go-kit/types"
-
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -289,7 +286,10 @@ func vpcFlowlogTurbotData(_ context.Context, d *transform.TransformData) (interf
 
 func logDestinationBucketName(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	data := d.HydrateItem.(types.FlowLog)
-	logDestination := go_kit_pack.SafeString(data.LogDestination)
+	if data.LogDestination == nil {
+		return nil, nil
+	}
+	logDestination := *data.LogDestination
 	if logDestination == "" {
 		return nil, nil
 	}

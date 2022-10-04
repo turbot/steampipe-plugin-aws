@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/amplify"
 	"github.com/aws/aws-sdk-go/service/apigateway"
@@ -31,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudcontrolapi"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/codebuild"
@@ -60,6 +58,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -75,7 +74,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/opensearchservice"
-	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/aws/aws-sdk-go/service/ram"
@@ -107,14 +105,6 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
-
-func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return accessanalyzer.New(sess), nil
-}
 
 func ACMService(ctx context.Context, d *plugin.QueryData) (*acm.ACM, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
@@ -151,6 +141,7 @@ func APIGatewayV2Service(ctx context.Context, d *plugin.QueryData) (*apigatewayv
 	return apigatewayv2.New(sess), nil
 }
 
+// ApplicationAutoScalingService returns the service connection for AWS Application Auto Scaling service
 func ApplicationAutoScalingService(ctx context.Context, d *plugin.QueryData) (*applicationautoscaling.ApplicationAutoScaling, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -218,7 +209,7 @@ func CloudControlService(ctx context.Context, d *plugin.QueryData) (*cloudcontro
 }
 
 func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.CodeBuild, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codebuild.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +217,7 @@ func CodeBuildService(ctx context.Context, d *plugin.QueryData) (*codebuild.Code
 }
 
 func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.CodeCommit, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codecommit.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +225,7 @@ func CodeCommitService(ctx context.Context, d *plugin.QueryData) (*codecommit.Co
 }
 
 func CodePipelineService(ctx context.Context, d *plugin.QueryData) (*codepipeline.CodePipeline, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, codepipeline.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
@@ -271,14 +262,6 @@ func CloudWatchLogsService(ctx context.Context, d *plugin.QueryData) (*cloudwatc
 		return nil, err
 	}
 	return cloudwatchlogs.New(sess), nil
-}
-
-func CloudTrailService(ctx context.Context, d *plugin.QueryData, region string) (*cloudtrail.CloudTrail, error) {
-	sess, err := getSessionForRegion(ctx, d, region)
-	if err != nil {
-		return nil, err
-	}
-	return cloudtrail.New(sess), nil
 }
 
 func ConfigService(ctx context.Context, d *plugin.QueryData) (*configservice.ConfigService, error) {
@@ -481,6 +464,16 @@ func GlacierService(ctx context.Context, d *plugin.QueryData) (*glacier.Glacier,
 	return glacier.New(sess), nil
 }
 
+func GlobalAcceleratorService(ctx context.Context, d *plugin.QueryData) (*globalaccelerator.GlobalAccelerator, error) {
+	// Global Accelerator is a global service that supports endpoints in multiple AWS Regions but you must specify
+	// the us-west-2 (Oregon) Region to create or update accelerators.
+	sess, err := getSession(ctx, d, "us-west-2")
+	if err != nil {
+		return nil, err
+	}
+	return globalaccelerator.New(sess), nil
+}
+
 func GlueService(ctx context.Context, d *plugin.QueryData) (*glue.Glue, error) {
 	sess, err := getSessionForQueryRegion(ctx, d)
 	if err != nil {
@@ -565,9 +558,12 @@ func LambdaService(ctx context.Context, d *plugin.QueryData) (*lambda.Lambda, er
 }
 
 func Macie2Service(ctx context.Context, d *plugin.QueryData) (*macie2.Macie2, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, "macie2")
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return macie2.New(sess), nil
 }
@@ -616,14 +612,6 @@ func OpenSearchService(ctx context.Context, d *plugin.QueryData) (*opensearchser
 		return nil, err
 	}
 	return opensearchservice.New(sess), nil
-}
-
-func OrganizationService(ctx context.Context, d *plugin.QueryData) (*organizations.Organizations, error) {
-	sess, err := getSession(ctx, d, GetDefaultAwsRegion(d))
-	if err != nil {
-		return nil, err
-	}
-	return organizations.New(sess), nil
 }
 
 func PricingService(ctx context.Context, d *plugin.QueryData) (*pricing.Pricing, error) {
@@ -716,9 +704,12 @@ func SageMakerService(ctx context.Context, d *plugin.QueryData) (*sagemaker.Sage
 }
 
 func ServerlessApplicationRepositoryService(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.ServerlessApplicationRepository, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.ServerlessrepoServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return serverlessapplicationrepository.New(sess), nil
 }
@@ -823,9 +814,12 @@ func WAFService(ctx context.Context, d *plugin.QueryData) (*waf.WAF, error) {
 }
 
 func WAFRegionalService(ctx context.Context, d *plugin.QueryData) (*wafregional.WAFRegional, error) {
-	sess, err := getSessionForQueryRegion(ctx, d)
+	sess, err := getSessionForQuerySupportedRegion(ctx, d, endpoints.WafRegionalServiceID)
 	if err != nil {
 		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
 	}
 	return wafregional.New(sess), nil
 }
@@ -1012,8 +1006,7 @@ func getSessionForRegion(ctx context.Context, d *plugin.QueryData, region string
 // GetDefaultAwsRegion returns the default region for AWS partiton
 // if not set by Env variable or in aws profile
 func GetDefaultAwsRegion(d *plugin.QueryData) string {
-	allAwsRegions := []string{
-		"af-south-1", "ap-east-1", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ca-central-1", "eu-central-1", "eu-north-1", "eu-south-1", "eu-west-1", "eu-west-2", "eu-west-3", "me-south-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "us-gov-east-1", "us-gov-west-1", "cn-north-1", "cn-northwest-1", "us-iso-east-1", "us-iso-west-1", "us-isob-east-1"}
+	allAwsRegions := getAllAwsRegions()
 
 	// have we already created and cached the service?
 	serviceCacheKey := "GetDefaultAwsRegion"
@@ -1054,7 +1047,10 @@ func GetDefaultAwsRegion(d *plugin.QueryData) string {
 				validRegions = append(validRegions, validRegion)
 			}
 		}
-		if len(validRegions) == 0 {
+
+		// Region items with wildcards that match on 0 regions should not be
+		// considered invalid
+		if len(validRegions) == 0 && !strings.ContainsAny(namePattern, "?*") {
 			invalidPatterns = append(invalidPatterns, namePattern)
 		}
 	}
