@@ -1,0 +1,21 @@
+[
+	{
+		"access_level": "public",
+		"allowed_organization_ids": [],
+		"allowed_principal_account_ids": ["012345678901"],
+		"allowed_principal_services": [
+			"cloudwatch.amazonaws.com",
+			"ec2.amazonaws.com"
+		],
+		"allowed_principals": ["012345678901"],
+		"arn": "{{ output.resource_aka.value }}",
+		"is_public": true,
+		"name": "{{ resourceName }}",
+		"private_access_levels": [],
+		"public_access_levels": ["Write"],
+		"public_statement_ids": ["PublicService"],
+		"role_id": "{{ output.resource_id.value }}",
+		"shared_access_levels": ["Write"],
+		"shared_statement_ids": ["RestrictedService"]
+	}
+]
