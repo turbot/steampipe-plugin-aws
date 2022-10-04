@@ -12,17 +12,19 @@ This table answers the following questions:
 - Is the overall access granted of the policy at a public, shared and private level?
 - How many accounts, identity providers, services or organizations are referred by the policy?
 
-The analysis table will return overall access granted and it is subdivided into three categories:0
+The analysis table will return the overall access granted and it is subdivided into three categories:
 
 - Public
 - Shared
 - Private
 
+## Public access
+
 Public access has one of the following characteristics:
 
-- A policy is public when the policy grants access to a wide range of potentially untrusted accounts due to Pricipal being set to `*`.
-- A policy is public when the policy grants an AWS Service access but has not used any conditions (aws:SourceAccount, aws:SourceArn, aws:SourceOwner) to restrict access to the service.
-- A policy is public when an the principal is set to an identity provider and that provider doesn't restrict access by using audience conditions, for example SAML:aud.
+- A policy is public when the policy grants access to a wide range of potentially untrusted accounts due to the Principal being set to `*`.
+- A policy is public when the policy grants an AWS Service access but has not used any conditions (`aws:SourceAccount`, `aws:SourceArn`, `aws:SourceOwner`) to restrict access to the service.
+- A policy is public when the Principal is set to an identity provider and that provider doesn't restrict access by using audience conditions, for example, using the condition `SAML:aud`.
 
 For example:
 
@@ -42,6 +44,8 @@ For example:
   ]
 }
 ```
+
+## Shared access
 
 Shared access has one of the following characteristics:
 
@@ -69,9 +73,11 @@ Shared access has one of the following characteristics:
   }
   ```
 
-Private access
+## Private access
 
-- A policy is private if the principals in the policy only refers to the home account where the policy is deployed.
+Private access has the characteristic
+
+- A policy is private if the policy is saved in an AWS account and the Principal in the policy only references that AWS account.
 
 For example, if the home account is `111122221111` the following policy will be returned as private:
 
@@ -104,7 +110,7 @@ The table will also give the access level of Functions at each access level. Thi
 
 ## Limitations
 
-The table evaulates a subset of conditions at present:
+The table evaluates a subset of conditions at present:
 
 - `aws:PrincipalAccount`
 - `aws:PrincipalArn`
@@ -119,7 +125,7 @@ And the following [condition operators](https://docs.aws.amazon.com/IAM/latest/U
 - [Amazon Resource Name (ARN) condition operators](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_ARN)
 
 The inverse condition operators, like `StringNotEquals` and `ArnNotLike`, are not currently evaluated.
-If a condition operator ends if `IfEquals` the table will ignre this condition in its evaulation.
+If a condition operator ends if `IfEquals` the table will ignore this condition in its evaluation.
 
 **Important Notes:**
 
@@ -187,7 +193,7 @@ order by
   r.name
 ```
 
-### Get the SIDs that grant public and shared access in all customer managed KMS keys
+### Get the SIDs that grant public and shared access for all customer managed KMS keys
 
 ```sql
 select
