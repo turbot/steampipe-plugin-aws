@@ -138,7 +138,7 @@ from
   aws_resource_policy_analysis as pa
 where
   pa.is_public = true
-  pa.account_id = r.account_id
+  and pa.account_id = r.account_id
   and pa.policy = r.policy_std
 order by
   r.name
@@ -175,6 +175,7 @@ select
   pa.allowed_principals,
   pa.allowed_principal_services,
   pa.allowed_organization_ids,
+  pa.allowed_principal_federated_identities,
   r.arn
 from
   aws_iam_role as r,
@@ -245,9 +246,9 @@ where
   pa.account_id = r.account_id
   and pa.policy = r.policy_std
   and (
-    pa.public_access_levels <@ '["Tagging", "Write"]' or
-    pa.shared_access_levels <@ '["Tagging", "Write"]' or
-    pa.private_access_levels <@ '["Tagging", "Write"]'
+    pa.public_access_levels <@ '["Tagging", "Write"]'
+    or pa.shared_access_levels <@ '["Tagging", "Write"]'
+    or pa.private_access_levels <@ '["Tagging", "Write"]'
   )
 order by
   r.name
