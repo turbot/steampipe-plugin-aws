@@ -192,7 +192,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
@@ -258,7 +258,7 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		// unsupported region check
 		return nil, nil
 	}
-	
+
 	// Build the params
 	params := &glue.GetDevEndpointInput{
 		EndpointName: aws.String(name),

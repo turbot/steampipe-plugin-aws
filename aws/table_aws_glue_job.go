@@ -182,7 +182,7 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
