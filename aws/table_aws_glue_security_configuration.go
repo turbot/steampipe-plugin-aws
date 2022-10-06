@@ -113,7 +113,6 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 			plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "api_error", err)
 			return nil, err
 		}
-		plugin.Logger(ctx).Error("aws_glue_security_configuration.PAGINATOR TEST 9999999", paginator.HasMorePages())
 		for _, configuration := range output.SecurityConfigurations {
 			d.StreamListItem(ctx, configuration)
 			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueSecurityConfigurations", "api_error", err)

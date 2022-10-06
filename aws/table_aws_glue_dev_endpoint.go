@@ -281,6 +281,7 @@ func getGlueDevEndpointArn(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpointArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
