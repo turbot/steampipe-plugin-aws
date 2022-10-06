@@ -289,7 +289,7 @@ func pipelineARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 func codepipelineTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.HydrateItem.([]types.Tag)
 
-	if len(tags) <=  0 {
+	if len(tags) <= 0 {
 		return map[string]string{}, nil
 	}
 

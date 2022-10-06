@@ -207,7 +207,7 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 		return nil, err
 	}
 
-// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -259,12 +259,12 @@ func listDmsReplicationInstances(ctx context.Context, d *plugin.QueryData, _ *pl
 	}
 	input.Filters = filter
 
-		paginator := databasemigrationservice.NewDescribeReplicationInstancesPaginator(svc, input, func(o *databasemigrationservice.DescribeReplicationInstancesPaginatorOptions) {
+	paginator := databasemigrationservice.NewDescribeReplicationInstancesPaginator(svc, input, func(o *databasemigrationservice.DescribeReplicationInstancesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {

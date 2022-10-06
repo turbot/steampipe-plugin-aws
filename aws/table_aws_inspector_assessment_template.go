@@ -140,7 +140,7 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 		return nil, nil
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(500)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -170,12 +170,12 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 		}
 	}
 
-		paginator := inspector.NewListAssessmentTemplatesPaginator(svc, input, func(o *inspector.ListAssessmentTemplatesPaginatorOptions) {
+	paginator := inspector.NewListAssessmentTemplatesPaginator(svc, input, func(o *inspector.ListAssessmentTemplatesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -185,8 +185,8 @@ func listInspectorAssessmentTemplates(ctx context.Context, d *plugin.QueryData, 
 
 		for _, items := range output.AssessmentTemplateArns {
 			d.StreamListItem(ctx, &types.AssessmentTemplate{
-					Arn: &items,
-				})
+				Arn: &items,
+			})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {

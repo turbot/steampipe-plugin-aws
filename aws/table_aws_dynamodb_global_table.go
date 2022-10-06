@@ -91,7 +91,7 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -103,7 +103,6 @@ func listDynamboDbGlobalTables(ctx context.Context, d *plugin.QueryData, _ *plug
 			}
 		}
 	}
-
 
 	input := &dynamodb.ListGlobalTablesInput{
 		Limit: aws.Int32(maxLimit),

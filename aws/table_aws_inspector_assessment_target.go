@@ -116,7 +116,7 @@ func listInspectorAssessmentTargets(ctx context.Context, d *plugin.QueryData, _ 
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
