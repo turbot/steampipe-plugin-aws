@@ -12,6 +12,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsWafRateBasedRule(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_waf_rate_based_rule",

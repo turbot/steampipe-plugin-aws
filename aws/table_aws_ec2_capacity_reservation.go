@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -268,6 +268,7 @@ func ec2CapacityReservationTagListToTurbotTags(ctx context.Context, d *transform
 }
 
 //// UTILITY FUNCTION
+
 // Build ec2 capacity reservation list call input filter
 func buildEc2CapacityReservationFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := make([]types.Filter, 0)

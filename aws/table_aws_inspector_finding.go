@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -180,8 +181,7 @@ type InspectorFindingInfo struct {
 //// LIST FUNCTION
 
 func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// Create Session
+	// Create session
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
@@ -219,11 +219,6 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input,
 		func(page *inspector.ListFindingsOutput, isLast bool) bool {
 			findingArns = append(findingArns, page.FindingArns...)
-
-			// plugin.Logger(ctx).Error("Total Number of Findings ====>>>>", len(page.FindingArns))
-			// if len(page.FindingArns) <= 500 {
-			// 	return false
-			// }
 			return !isLast
 		},
 	)
@@ -287,7 +282,6 @@ func listInspectorFindings(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Trace("getInspectorFinding")
 
 	var findingArn string
 	if h.Item != nil {
@@ -297,7 +291,7 @@ func getInspectorFinding(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		findingArn = quals["arn"].GetStringValue()
 	}
 
-	// Create Session
+	// get service
 	svc, err := InspectorService(ctx, d)
 	if err != nil {
 		return nil, err
