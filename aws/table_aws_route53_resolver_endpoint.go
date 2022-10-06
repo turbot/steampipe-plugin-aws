@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
+	"github.com/aws/aws-sdk-go-v2/service/route53resolver/types"
+
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -142,13 +144,25 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 	plugin.Logger(ctx).Trace("listAwsRoute53ResolverEndpoint")
 
 	// Create session
-	svc, err := Route53ResolverService(ctx, d)
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "client_error", err)
 		return nil, err
 	}
 
-	input := &route53resolver.ListResolverEndpointsInput{
-		MaxResults: aws.Int64(100),
+	maxItems := int32(100)
+	input := route53resolver.ListResolverEndpointsInput{}
+
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
 	}
 
 	filter := buildRoute53ResolverEndpointFilter(d.Quals)
@@ -156,35 +170,31 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 		input.Filters = filter
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := route53resolver.NewListResolverEndpointsPaginator(svc, &input, func(o *route53resolver.ListResolverEndpointsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listAwsRoute53ResolverEndpoint", "api_error", err)
+			return nil, err
+		}
+
+		for _, resolverEndpoint := range output.ResolverEndpoints {
+			d.StreamListItem(ctx, resolverEndpoint)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListResolverEndpointsPages(
-		input,
-		func(page *route53resolver.ListResolverEndpointsOutput, isLast bool) bool {
-			for _, parameter := range page.ResolverEndpoints {
-				d.StreamListItem(ctx, parameter)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -195,9 +205,10 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverEndpoint", "client_error", err)
 		return nil, err
 	}
 
@@ -206,25 +217,23 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 		ResolverEndpointId: &id,
 	}
 
-	// Get call
-	data, err := svc.GetResolverEndpoint(params)
+	// Execute get call
+	data, err := svc.GetResolverEndpoint(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsRoute53ResolverEndpoint", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.getAwsRoute53ResolverEndpoint", "api_error", err)
 		return nil, err
 	}
-
 	return data.ResolverEndpoint, nil
 }
 
-func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listResolverEndpointIpAddresses")
+func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData ) (interface{}, error) {
 
-	resolverEndpointData := h.Item.(*route53resolver.ResolverEndpoint)
+	resolverEndpointData := h.Item.(types.ResolverEndpoint)
 
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "client_error", err)
 		return nil, err
 	}
 
@@ -233,9 +242,9 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 		ResolverEndpointId: resolverEndpointData.Id,
 	}
 
-	op, err := svc.ListResolverEndpointIpAddresses(params)
+	op, err := svc.ListResolverEndpointIpAddresses(ctx, params)
 	if err != nil {
-		logger.Debug("listResolverEndpointIpAddresses", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "api_error", err)
 		return nil, err
 	}
 
@@ -243,14 +252,12 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRoute53ResolverEndpointTags")
+	resolverEndpintData := h.Item.(types.ResolverEndpoint)
 
-	resolverEndpintData := h.Item.(*route53resolver.ResolverEndpoint)
-
-	// Create Session
-	svc, err := Route53ResolverService(ctx, d)
+	// Create session
+	svc, err := Route53ResolverClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "client_error", err)
 		return nil, err
 	}
 
@@ -260,9 +267,9 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsRoute53ResolverEndpointTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_resolver_endpoint.listResolverEndpointIPAddresses", "api_error", err)
 		return nil, err
 	}
 
@@ -273,7 +280,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 
 func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")
-	tagList := d.Value.([]*route53resolver.Tag)
+		tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
@@ -292,8 +299,8 @@ func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.Transf
 //// UTILITY FUNCTION
 
 // Build route53resolver endpoint list call input filter
-func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
-	filters := make([]*route53resolver.Filter, 0)
+func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"creator_request_id": "CreatorRequestId",
@@ -308,27 +315,23 @@ func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []*route5
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := route53resolver.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			if helpers.StringSliceContains(columnsInt, columnName) { //check Int columns
 				value := getQualsValueByColumn(quals, columnName, "int64")
 				val, ok := value.(int64)
 				if ok {
-					filter.Values = []*string{aws.String(fmt.Sprint(val))}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)
 				if ok {
-					filter.Values = []*string{aws.String(val)}
-				} else {
-					filter.Values = value.([]*string)
+					filter.Values = []string{fmt.Sprint(val)}
 				}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters
