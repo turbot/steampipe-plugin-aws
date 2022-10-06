@@ -252,7 +252,14 @@ func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h
 }
 
 func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	resolverEndpintData := h.Item.(types.ResolverEndpoint)
+	route53resolverEndpointArn := ""
+	switch h.Item.(type) {
+	case types.ResolverEndpoint:
+		route53resolverEndpointArn = *h.Item.(types.ResolverEndpoint).Arn
+	case *types.ResolverEndpoint:
+		route53resolverEndpointArn = *h.Item.(*types.ResolverEndpoint).Arn
+	}
+	// resolverEndpintData := h.Item.(types.ResolverEndpoint)
 
 	// Create session
 	svc, err := Route53ResolverClient(ctx, d)
@@ -263,7 +270,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 
 	// Build the params
 	params := &route53resolver.ListTagsForResourceInput{
-		ResourceArn: resolverEndpintData.Arn,
+		ResourceArn: aws.String(route53resolverEndpointArn),
 	}
 
 	// Get call
