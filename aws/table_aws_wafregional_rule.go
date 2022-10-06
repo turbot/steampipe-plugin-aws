@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafregional"
+	"github.com/aws/aws-sdk-go-v2/service/wafregional/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -82,35 +84,33 @@ func tableAwsWAFRegionalRule(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsWAFRegionalRules")
 	// Create session
-	svc, err := WAFRegionalService(ctx, d)
+	svc, err := WAFRegionalClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "get_client_error", err)
 		return nil, err
-	}
-	if svc == nil {
-		return nil, nil
 	}
 
 	// List call
-	params := &waf.ListRulesInput{
-		Limit: aws.Int64(100),
+	params := &wafregional.ListRulesInput{
+		Limit: int32(2),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	// Minimunm limit is 0
-	// https://docs.aws.amazon.com/waf/latest/APIReference/API_waf_ListRules.html
+	// https://docs.aws.amazon.com/wafregional/latest/APIReference/API_waf_ListRules.html
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
-			params.Limit = limit
+		if *limit < int64(params.Limit) {
+			params.Limit = int32(*limit)
 		}
 	}
 
 	pagesLeft := true
 	for pagesLeft {
-		response, err := svc.ListRules(params)
+		response, err := svc.ListRules(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafregional_rule.listAwsWAFRegionalRules", "api_error", err)
 			return nil, err
 		}
 		for _, rule := range response.Rules {
@@ -135,12 +135,10 @@ func listAwsWAFRegionalRules(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsWAFRegionalRule")
-
 	// Create Session
-	svc, err := WAFRegionalService(ctx, d)
+	svc, err := WAFRegionalClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRule", "api_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -155,15 +153,17 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Build the params
-	param := &waf.GetRuleInput{
+	param := &wafregional.GetRuleInput{
 		RuleId: aws.String(id),
 	}
 
 	// Get call
-	data, err := svc.GetRule(param)
+	data, err := svc.GetRule(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "WAFNonexistentItemException" {
+		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRule", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
@@ -174,13 +174,13 @@ func getAwsWAFRegionalRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getAwsWAFRegionalRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWAFRegionalRuleAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	id := regionalRuleData(h.Item)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafregional_rule.getAwsWAFRegionalRuleAkas", "api_error", err)
 		return nil, err
 	}
 
@@ -192,9 +192,9 @@ func getAwsWAFRegionalRuleAkas(ctx context.Context, d *plugin.QueryData, h *plug
 
 func regionalRuleData(item interface{}) string {
 	switch item := item.(type) {
-	case *waf.RuleSummary:
+	case types.RuleSummary:
 		return *item.RuleId
-	case *waf.Rule:
+	case *types.Rule:
 		return *item.RuleId
 	}
 	return ""

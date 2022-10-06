@@ -44,6 +44,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
+	"github.com/aws/aws-sdk-go-v2/service/wafregional"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
@@ -357,6 +358,14 @@ func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
 		return nil, err
 	}
 	return waf.NewFromConfig(*cfg), nil
+}
+
+func WAFRegionalClient(ctx context.Context, d *plugin.QueryData) (*wafregional.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return wafregional.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
