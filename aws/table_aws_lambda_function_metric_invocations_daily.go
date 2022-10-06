@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsLambdaFunctionMetricInvocationsDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_lambda_function_metric_invocations_daily",

@@ -91,6 +91,7 @@ func tableAwsCloudwatchLogSubscriptionFilter(_ context.Context) *plugin.Table {
 }
 
 //// LIST FUNCTION
+
 func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logGroup := h.Item.(*cloudwatchlogs.LogGroup)
 

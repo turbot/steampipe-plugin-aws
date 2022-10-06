@@ -2,9 +2,12 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -58,7 +61,8 @@ func tableAwsCodeBuildSourceCredential(_ context.Context) *plugin.Table {
 
 func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CodeBuildService(ctx, d)
+	svc, err := CodeBuildClient(ctx, d)
+	plugin.Logger(ctx).Error("aws_codebuild_source_credential.listCodeBuildSourceCredentials", "connection_error", err)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +73,9 @@ func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ 
 	}
 
 	// List call
-	resp, err := svc.ListSourceCredentials(&codebuild.ListSourceCredentialsInput{})
+	resp, err := svc.ListSourceCredentials(ctx, &codebuild.ListSourceCredentialsInput{})
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_codebuild_source_credential.listCodeBuildSourceCredentials", "api_error", err)
 		return nil, err
 	}
 	for _, cred := range resp.SourceCredentialsInfos {
@@ -89,10 +94,10 @@ func listCodeBuildSourceCredentials(ctx context.Context, d *plugin.QueryData, _ 
 
 func codebuildSourceCredentialTitle(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	data := d.HydrateItem.(*codebuild.SourceCredentialsInfo)
+	data := d.HydrateItem.(types.SourceCredentialsInfo)
 
 	splitPart := strings.Split(*data.Arn, ":")
-	title := *data.ServerType + " - " + splitPart[3]
+	title := fmt.Sprint(data.ServerType) + " - " + splitPart[3]
 
 	return title, nil
 }

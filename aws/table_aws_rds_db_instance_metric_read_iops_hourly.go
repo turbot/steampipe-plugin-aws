@@ -10,6 +10,7 @@ import (
 )
 
 //// TABLE DEFINITION
+
 func tableAwsRdsInstanceMetricReadIopsHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_instance_metric_read_iops_hourly",
