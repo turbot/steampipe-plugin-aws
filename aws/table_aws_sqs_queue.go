@@ -22,7 +22,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("queue_url"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 			},
 			Hydrate: getQueueAttributes,
 		},
@@ -30,7 +30,7 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 			Hydrate: listAwsSqsQueues,
 		},
 		DefaultIgnoreConfig: &plugin.IgnoreConfig{
-			ShouldIgnoreErrorFunc: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
