@@ -188,6 +188,7 @@ func getConfigRule(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 
 	op, err := svc.DescribeConfigRules(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRule", "api_error", err)
 		return nil, err
 	}
 
@@ -216,6 +217,7 @@ func getConfigRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_rule.getConfigRuleTags", "api_error", err)
 		return nil, err
 	}
 

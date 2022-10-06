@@ -111,6 +111,7 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	for pagesLeft {
 		response, err := svc.ListRules(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_waf_rule.listAwsWAFRules", "api_error", err)
 			return nil, err
 		}
 		for _, rule := range response.Rules {
@@ -180,6 +181,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	commonAwsColumns, err := getCommonColumns(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleTags", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := commonAwsColumns.(*awsCommonColumnData)
@@ -200,6 +202,7 @@ func getAwsWAFRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rule_group.listWafRuleGroups", "api_error", err)
 		return nil, err
 	}
 
@@ -212,6 +215,7 @@ func getAwsWAFRuleAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRuleAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

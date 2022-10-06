@@ -98,6 +98,7 @@ func listConfigConfigurationRecorders(ctx context.Context, d *plugin.QueryData, 
 	// Pagination not supported as of date
 	op, err := svc.DescribeConfigurationRecorders(ctx, input)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.listConfigConfigurationRecorders", "api_error", err)
 		return nil, err
 	}
 	if op.ConfigurationRecorders != nil {
@@ -133,7 +134,7 @@ func getConfigConfigurationRecorder(ctx context.Context, d *plugin.QueryData, _ 
 
 	op, err := svc.DescribeConfigurationRecorders(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getConfigConfigurationRecorder", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorder", "api_error", err)
 		return nil, err
 	}
 
@@ -160,6 +161,7 @@ func getConfigConfigurationRecorderStatus(ctx context.Context, d *plugin.QueryDa
 
 	status, err := svc.DescribeConfigurationRecorderStatus(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getConfigConfigurationRecorderStatus", "api_error", err)
 		return nil, err
 	}
 
@@ -177,6 +179,7 @@ func getAwsConfigurationRecorderARN(ctx context.Context, d *plugin.QueryData, h 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_config_configuration_recorder.getAwsConfigurationRecorderARN", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

@@ -125,6 +125,7 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 	for pagesLeft {
 		response, err := svc.ListRateBasedRules(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_waf_rate_based_rule.listAwsWafRateBasedRules", "api_error", err)
 			return nil, err
 		}
 		for _, rule := range response.Rules {
@@ -214,6 +215,7 @@ func listAwsWafRateBasedRuleTags(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rate_based_rule.listAwsWafRateBasedRuleTags", "api_error", err)
 		return nil, err
 	}
 
