@@ -21,7 +21,7 @@ func tableAwsRDSDBParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBParameterGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBParameterGroupNotFound"}),
 			},
 			Hydrate: getRDSDBParameterGroup,
 		},

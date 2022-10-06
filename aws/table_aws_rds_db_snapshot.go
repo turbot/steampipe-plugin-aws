@@ -21,7 +21,7 @@ func tableAwsRDSDBSnapshot(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_snapshot_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"DBSnapshotNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"DBSnapshotNotFound"}),
 			},
 			Hydrate: getRDSDBSnapshot,
 		},
