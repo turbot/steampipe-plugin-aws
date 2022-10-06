@@ -4,13 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
+
 func tableAwsEc2ApplicationLoadBalancerMetricRequestCountDaily(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_application_load_balancer_metric_request_count_daily",
@@ -33,7 +35,7 @@ func tableAwsEc2ApplicationLoadBalancerMetricRequestCountDaily(_ context.Context
 }
 
 func listEc2ApplicationLoadBalancerMetricRequestCountDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	loadBalancer := h.Item.(*elbv2.LoadBalancer)
+	loadBalancer := h.Item.(types.LoadBalancer)
 	arn := strings.SplitN(*loadBalancer.LoadBalancerArn, "/", 2)[1]
 	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/ApplicationELB", "RequestCount", "LoadBalancer", arn)
 }

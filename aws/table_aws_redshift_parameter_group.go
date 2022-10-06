@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -19,12 +20,12 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterParameterGroupNotFound"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterParameterGroupNotFound"}),
 			},
-			Hydrate: getAwsRedshiftParameterGroup,
+			Hydrate: getRedshiftParameterGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsRedshiftParameterGroups,
+			Hydrate: listRedshiftParameterGroups,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -49,7 +50,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 				Name:        "parameters",
 				Description: "A list of Parameter instances. Each instance lists the parameters of one cluster parameter group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsRedshiftParameters,
+				Hydrate:     getRedshiftParameters,
 			},
 			{
 				Name:        "tags_src",
@@ -84,63 +85,72 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsRedshiftParameterGroups")
-
+func listRedshiftParameterGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.listRedshiftParameterGroups", "connection_error", err)
 		return nil, err
 	}
 
 	input := &redshift.DescribeClusterParameterGroupsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeClusterParameterGroupsPages(
-		input,
-		func(page *redshift.DescribeClusterParameterGroupsOutput, isLast bool) bool {
-			for _, parameter := range page.ParameterGroups {
-				d.StreamListItem(ctx, parameter)
+	paginator := redshift.NewDescribeClusterParameterGroupsPaginator(svc, input, func(o *redshift.DescribeClusterParameterGroupsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_redshift_parameter_group.listRedshiftParameterGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ParameterGroups {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
-func getAwsRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRedshiftParameterGroup")
-
+func getRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameterGroup", "connection_error", err)
 		return nil, err
 	}
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
+
+	// Return nil, if no input provided
+	if name == "" {
+		return nil, nil
+	}
 
 	// Build the params
 	params := &redshift.DescribeClusterParameterGroupsInput{
@@ -148,28 +158,28 @@ func getAwsRedshiftParameterGroup(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// Get call
-	data, err := svc.DescribeClusterParameterGroups(params)
+	data, err := svc.DescribeClusterParameterGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameterGroup", "api_error", err)
 		return nil, err
 	}
 
-	if data.ParameterGroups != nil && len(data.ParameterGroups) > 0 {
+	if len(data.ParameterGroups) > 0 {
 		return data.ParameterGroups[0], nil
 	}
+
 	return nil, nil
 }
 
-func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsRedshiftParameters")
-
+func getRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := RedshiftService(ctx, d)
+	svc, err := RedshiftClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameters", "connection_error", err)
 		return nil, err
 	}
 
-	name := h.Item.(*redshift.ClusterParameterGroup).ParameterGroupName
+	name := h.Item.(types.ClusterParameterGroup).ParameterGroupName
 
 	// Build the params
 	params := &redshift.DescribeClusterParametersInput{
@@ -177,8 +187,9 @@ func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Get call
-	op, err := svc.DescribeClusterParameters(params)
+	op, err := svc.DescribeClusterParameters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getRedshiftParameters", "api_error", err)
 		return nil, err
 	}
 
@@ -186,13 +197,13 @@ func getAwsRedshiftParameters(ctx context.Context, d *plugin.QueryData, h *plugi
 }
 
 func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsRedshiftParameterGroupAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	parameterData := h.Item.(*redshift.ClusterParameterGroup)
+	parameterData := h.Item.(types.ClusterParameterGroup)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_redshift_parameter_group.getAwsRedshiftParameterGroupAkas", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -210,18 +221,14 @@ func getAwsRedshiftParameterGroupAkas(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func tagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("tagListToTurbotTags")
+	tagList := d.HydrateItem.(types.ClusterParameterGroup)
 
-	tagList := d.HydrateItem.(*redshift.ClusterParameterGroup)
-
-	// Mapping the resource tags inside turbotTags
-	var turbotTagsMap map[string]string
-	if tagList != nil {
-		turbotTagsMap = map[string]string{}
+	if len(tagList.Tags) > 0 {
+		turbotTagsMap := map[string]string{}
 		for _, i := range tagList.Tags {
 			turbotTagsMap[*i.Key] = *i.Value
 		}
+		return turbotTagsMap, nil
 	}
-
-	return turbotTagsMap, nil
+	return nil, nil
 }

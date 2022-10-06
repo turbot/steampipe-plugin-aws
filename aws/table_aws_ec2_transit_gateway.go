@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -168,55 +169,64 @@ func tableAwsEc2TransitGateway(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.listEc2TransitGateways", "connection_error", err)
 		return nil, err
 	}
 
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	input := &ec2.DescribeTransitGatewaysInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	filters := buildEc2TransitGatewayFilter(d.Quals)
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["amazon_side_asn"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("options.amazon-side-asn"), Values: []*string{aws.String(fmt.Sprint(equalQuals["amazon_side_asn"].GetInt64Value()))}})
+		filters = append(filters, types.Filter{Name: aws.String("options.amazon-side-asn"), Values: []string{fmt.Sprint(equalQuals["amazon_side_asn"].GetInt64Value())}})
 	}
 
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
 
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
+	paginator := ec2.NewDescribeTransitGatewaysPaginator(svc, input, func(o *ec2.DescribeTransitGatewaysPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_transit_gateway.listEc2TransitGateways", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.TransitGateways {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
-
-	// List call
-	err = svc.DescribeTransitGatewaysPages(
-		input,
-		func(page *ec2.DescribeTransitGatewaysOutput, isLast bool) bool {
-			for _, transitGateway := range page.TransitGateways {
-				d.StreamListItem(ctx, transitGateway)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
 
 	return nil, err
 }
@@ -224,21 +234,22 @@ func listEc2TransitGateways(ctx context.Context, d *plugin.QueryData, _ *plugin.
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	transitGatewayID := d.KeyColumnQuals["transit_gateway_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.getEc2TransitGateway", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeTransitGatewaysInput{
-		TransitGatewayIds: []*string{aws.String(transitGatewayID)},
+		TransitGatewayIds: []string{transitGatewayID},
 	}
 
-	op, err := svc.DescribeTransitGateways(params)
+	op, err := svc.DescribeTransitGateways(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway.getEc2TransitGateway", "api_error", err)
 		return nil, err
 	}
 
@@ -251,12 +262,22 @@ func getEc2TransitGateway(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 //// TRANSFORM FUNCTIONS
 
 func getEc2TransitGatewayTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGateway)
-	return ec2TagsToMap(data.Tags)
+	data := d.HydrateItem.(types.TransitGateway)
+	var turbotTagsMap map[string]string
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGateway)
+	data := d.HydrateItem.(types.TransitGateway)
 	title := data.TransitGatewayId
 	if data.Tags != nil {
 		for _, i := range data.Tags {
@@ -268,10 +289,10 @@ func getEc2TransitGatewayTurbotTitle(_ context.Context, d *transform.TransformDa
 	return title, nil
 }
 
-//// UTILITY FUNCTION
+// // UTILITY FUNCTION
 // Build ec2 transit gateway list call input filter
-func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
-	filters := make([]*ec2.Filter, 0)
+func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []types.Filter {
+	filters := make([]types.Filter, 0)
 
 	filterQuals := map[string]string{
 		"propagation_default_route_table_id": "options.propagation-default-route-table-id",
@@ -287,18 +308,15 @@ func buildEc2TransitGatewayFilter(quals plugin.KeyColumnQualMap) []*ec2.Filter {
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ec2.Filter{
+			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
-				filter.Values = []*string{aws.String(val)}
-			} else {
-				v := value.([]*string)
-				filter.Values = v
+				filter.Values = []string{val}
 			}
-			filters = append(filters, &filter)
+			filters = append(filters, filter)
 		}
 	}
 	return filters
