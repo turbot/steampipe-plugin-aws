@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -87,7 +86,6 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 				Description: "The configuration of the lifecycle policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDLMLifecyclePolicy,
-				Transform:   transform.From(handlePolicyDetailsIntervalUnitEmptyData),
 			},
 
 			// Steampipe standard columns
@@ -192,36 +190,4 @@ func policyId(item interface{}) *string {
 		return item.PolicyId
 	}
 	return nil
-}
-
-// // TRANSFORM FUNCTION
-func handlePolicyDetailsIntervalUnitEmptyData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	policyDetails := d.HydrateItem.(*types.LifecyclePolicy)
-
-	if policyDetails != nil {
-		if policyDetails.PolicyDetails != nil {
-			var s []map[string]interface{}
-			var p map[string]interface{}
-			policy, _ := json.Marshal(policyDetails.PolicyDetails)
-			schedules, _ := json.Marshal(policyDetails.PolicyDetails.Schedules)
-			json.Unmarshal(policy, &p)
-			json.Unmarshal(schedules, &s)
-			var scheduleData []map[string]interface{}
-			for _, schedule := range s {
-				var retainRule map[string]interface{}
-				retainRule = schedule["RetainRule"].(map[string]interface{})
-				if retainRule["IntervalUnit"].(string) == "" {
-					retainRule["IntervalUnit"] = nil
-				}
-				schedule["RetainRule"] = retainRule
-				scheduleData = append(scheduleData, schedule)
-			}
-			p["Schedules"] = scheduleData
-			return p, nil
-		} else {
-			return policyDetails, nil
-		}
-	}
-
-	return nil, nil
 }

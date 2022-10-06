@@ -78,7 +78,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "activity_stream_mode",
 				Description: "The mode of the database activity stream.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(handleRDSDBClusterActivityStreamModeEmptyData),
 			},
 			{
 				Name:        "activity_stream_status",
@@ -192,7 +191,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "global_write_forwarding_status",
 				Description: "Specifies whether a secondary cluster in an Aurora global database has write forwarding enabled, or not.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.From(handleRDSDBGlobalWriteForwardingStatusEmptyData),
 			},
 			{
 				Name:        "hosted_zone_id",
@@ -266,7 +264,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "associated_roles",
 				Description: "A list of AWS IAM roles that are associated with the DB cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleRDSDBClusterAssociatedRoleEmptyData),
 			},
 			{
 				Name:        "availability_zones",
@@ -282,7 +279,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "members",
 				Description: "A list of instances that make up the DB cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBClusterMembers").Transform(handleRDSDBMembersEmptyData),
 			},
 			{
 				Name:        "option_group_memberships",
@@ -294,7 +290,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "domain_memberships",
 				Description: "A list of Active Directory Domain membership records associated with the DB cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleRDSDBClusterDomainMembershipEmptyData),
 			},
 			{
 				Name:        "enabled_cloudwatch_logs_exports",
@@ -312,7 +307,6 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Name:        "read_replica_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB cluster.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleRDSBDReadReplicaIdentifiersEmptyData),
 			},
 			{
 				Name:        "vpc_security_groups",
@@ -494,60 +488,6 @@ func getRDSDBClusterTurbotTags(_ context.Context, d *transform.TransformData) (i
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBClusterActivityStreamModeEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.ActivityStreamMode) > 0 {
-		return dbCluster.ActivityStreamMode, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBClusterAssociatedRoleEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.AssociatedRoles) > 0 {
-		return dbCluster.AssociatedRoles, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBClusterDomainMembershipEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.DomainMemberships) > 0 {
-		return dbCluster.DomainMemberships, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBGlobalWriteForwardingStatusEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.GlobalWriteForwardingStatus) > 0 {
-		return dbCluster.GlobalWriteForwardingStatus, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBMembersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.DBClusterMembers) > 0 {
-		return dbCluster.DBClusterMembers, nil
-	}
-	return nil, nil
-}
-
-func handleRDSBDReadReplicaIdentifiersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbCluster := d.HydrateItem.(types.DBCluster)
-
-	if len(dbCluster.ReadReplicaIdentifiers) > 0 {
-		return dbCluster.ReadReplicaIdentifiers, nil
 	}
 	return nil, nil
 }

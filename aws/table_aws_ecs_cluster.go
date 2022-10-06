@@ -76,14 +76,12 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 				Description: "The status of the capacity providers associated with the cluster.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.From(handleAttachmentStatusEmptyresult),
 			},
 			{
 				Name:        "attachments",
 				Description: "The resources attached to a cluster. When using a capacity provider with a cluster, the Auto Scaling plan that is created will be returned as a cluster attachment.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEcsCluster,
-				Transform:   transform.From(handleAttachmentsEmptyresult),
 			},
 			{
 				Name:        "capacity_providers",
@@ -279,22 +277,4 @@ func getAwsEcsClusterTurbotTags(_ context.Context, d *transform.TransformData) (
 		return turbotTagsMap, nil
 	}
 	return nil, nil
-}
-
-func handleAttachmentsEmptyresult(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	attachments := d.HydrateItem.(types.Cluster).Attachments
-	if len(attachments) <= 0 {
-		return nil, nil
-	}
-	return attachments, nil
-}
-
-func handleAttachmentStatusEmptyresult(_ context.Context, d *transform.TransformData) (interface{},
-	error) {
-	attachmentStatus := d.HydrateItem.(types.Cluster).AttachmentsStatus
-	if attachmentStatus == nil {
-		return nil, nil
-	}
-	return attachmentStatus, nil
 }

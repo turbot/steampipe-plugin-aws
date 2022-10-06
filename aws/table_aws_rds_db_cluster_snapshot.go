@@ -143,7 +143,6 @@ func tableAwsRDSDBClusterSnapshot(_ context.Context) *plugin.Table {
 				Name:        "availability_zones",
 				Description: "A list of Availability Zones (AZs) where instances in the DB cluster snapshot can be restored.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleRDSDBClusterAvailabilityZoneEmptyData),
 			},
 			{
 				Name:        "db_cluster_snapshot_attributes",
@@ -327,14 +326,6 @@ func getRDSDBClusterSnapshotTurbotTags(_ context.Context, d *transform.Transform
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBClusterAvailabilityZoneEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbClusterSnapshot := d.HydrateItem.(types.DBClusterSnapshot)
-	if len(dbClusterSnapshot.AvailabilityZones) > 0 {
-		return dbClusterSnapshot.AvailabilityZones, nil
 	}
 	return nil, nil
 }

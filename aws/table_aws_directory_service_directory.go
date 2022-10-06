@@ -97,13 +97,11 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Name:        "radius_status",
 				Description: "The status of the RADIUS MFA server connection.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("RadiusStatus").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "share_method",
 				Description: "The method used when sharing a directory to determine whether the directory should be shared within your AWS organization (ORGANIZATIONS) or with any AWS account by sending a shared directory request (HANDSHAKE).",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ShareMethod").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "share_notes",
@@ -114,7 +112,6 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Name:        "share_status",
 				Description: "Current directory status of the shared AWS Managed Microsoft AD directory.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("ShareStatus").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "short_name",

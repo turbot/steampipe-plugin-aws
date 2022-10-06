@@ -298,7 +298,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "replica_mode",
 				Description: "The mode of an Oracle read replica.",
 				Type:        proto.ColumnType_STRING,
-				Transform: transform.From(handleRDSDBInstanceReplicaModeEmptyData),
 			},
 			{
 				Name:        "secondary_availability_zone",
@@ -336,7 +335,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "associated_roles",
 				Description: "A list of AWS IAM roles that are associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform: transform.From(handleRDSDBInstanceAssociatedRolesEmptyData),
 			},
 			{
 				Name:        "certificate",
@@ -355,13 +353,11 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "db_security_groups",
 				Description: "A list of DB security group associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("DBSecurityGroups").Transform(handleRDSDBInstanceDBSecurityGroupsEmptyData),
 			},
 			{
 				Name:        "domain_memberships",
 				Description: "A list of Active Directory Domain membership records associated with the DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform: transform.From(handleRDSDBInstanceDomainMembershipsEmptyData),
 			},
 			{
 				Name:        "enabled_cloudwatch_logs_exports",
@@ -395,7 +391,6 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 				Name:        "read_replica_db_instance_identifiers",
 				Description: "A list of identifiers of the read replicas associated with this DB instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ReadReplicaDBInstanceIdentifiers").Transform(handleRDSDBInstanceReadReplicaDBInstanceIdentifiersEmptyData),
 			},
 			{
 				Name:        "status_infos",
@@ -454,7 +449,7 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -481,7 +476,7 @@ func listRDSDBInstances(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		o.StopOnDuplicateToken = true
 	})
 
-		// List call
+	// List call
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -597,51 +592,6 @@ func getRDSDBInstanceTurbotTags(_ context.Context, d *transform.TransformData) (
 			turbotTagsMap[*i.Key] = *i.Value
 		}
 		return turbotTagsMap, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBInstanceAssociatedRolesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(types.DBInstance)
-
-	if len(dbInstance.AssociatedRoles) > 0 {
-		return dbInstance.AssociatedRoles, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBInstanceDBSecurityGroupsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(types.DBInstance)
-
-	if len(dbInstance.DBSecurityGroups) > 0 {
-		return dbInstance.DBSecurityGroups, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBInstanceDomainMembershipsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(types.DBInstance)
-
-	if len(dbInstance.DomainMemberships) > 0 {
-		return dbInstance.DomainMemberships, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBInstanceReadReplicaDBInstanceIdentifiersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(types.DBInstance)
-
-	if len(dbInstance.ReadReplicaDBInstanceIdentifiers) > 0 {
-		return dbInstance.ReadReplicaDBInstanceIdentifiers, nil
-	}
-	return nil, nil
-}
-
-func handleRDSDBInstanceReplicaModeEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	dbInstance := d.HydrateItem.(types.DBInstance)
-
-	if len(dbInstance.ReplicaMode) > 0 {
-		return dbInstance.ReplicaMode, nil
 	}
 	return nil, nil
 }
