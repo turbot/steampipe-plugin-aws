@@ -290,6 +290,7 @@ func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.Transf
 }
 
 //// UTILITY FUNCTION
+
 // Build route53resolver endpoint list call input filter
 func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []*route53resolver.Filter {
 	filters := make([]*route53resolver.Filter, 0)
