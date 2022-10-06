@@ -99,7 +99,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "notification_arns",
 				Description: "SNS topic ARNs to which stack related events are published.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handlecfnStackNotificationArns),
+				Transform:   transform.FromField("NotificationARNs"),
 			},
 			{
 				Name:        "outputs",
@@ -292,16 +292,6 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 }
 
 //// TRANSFORM FUNCTIONS
-func handlecfnStackNotificationArns(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	stack := d.HydrateItem.(types.Stack)
-
-	if len(stack.NotificationARNs) > 0 {
-		return stack.NotificationARNs, nil
-	}
-
-	return nil, nil
-}
-
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string

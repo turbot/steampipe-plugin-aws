@@ -199,12 +199,12 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogTables", "api_error", err)
 			return nil, err
 		}
 		for _, table  := range output.TableList{
 			d.StreamListItem(ctx, table)
-			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogTables", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
