@@ -28,6 +28,9 @@ func tableAwsGlueJob(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listGlueJobs,
 		},
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: isNotFoundError([]string{"EntityNotFoundException"}),
+		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
