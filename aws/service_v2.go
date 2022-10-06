@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
+	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -47,6 +48,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/waf"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
@@ -105,6 +107,14 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 		return nil, err
 	}
 	return apigatewayv2.NewFromConfig(*cfg), nil
+}
+
+func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return configservice.NewFromConfig(*cfg), nil
 }
 
 func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
@@ -369,6 +379,14 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 		return nil, err
 	}
 	return sns.NewFromConfig(*cfg), nil
+}
+
+func WAFClient(ctx context.Context, d *plugin.QueryData) (*waf.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return waf.NewFromConfig(*cfg), nil
 }
 
 func Route53DomainsClient(ctx context.Context, d *plugin.QueryData) (*route53domains.Client, error) {

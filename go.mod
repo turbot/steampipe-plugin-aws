@@ -22,6 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6
 	github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16
+	github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2
 	github.com/aws/aws-sdk-go-v2/service/dax v1.11.15
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.8
@@ -41,6 +42,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
+	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/smithy-go v1.13.3
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4

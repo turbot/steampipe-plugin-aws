@@ -126,6 +126,8 @@ github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13 h1:O3kxW8YbW1tKGFMRNTCXR
 github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13/go.mod h1:FZ7nfE3W5xqY/yPu53KfFiI7W5MEpQsokUHXUv4Ekss=
 github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16 h1:aERwTws2R3Xn8uj3khpmTv5ts5+5RgUKa0d6XovzOwU=
 github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16/go.mod h1:vCAKtnnEccDGzqyB/rPZFLFN137iqVx1iS+OrmKv1/Q=
+github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1 h1:AXRaDlKTpTwZSNDJ45lFBNffVr7HgsnKJVCsIGOazfU=
+github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1/go.mod h1:gUkX23mhePjv7vi+bUA+i9YHjN3n+cowzwa+o8GeEGQ=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2 h1:nJaGBmIqOTCjTchh2O8BAAOW8bbKqlJNtYw+ZA3yyq4=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2/go.mod h1:ZMw6d2oE+YYAAoSmoLO1BhW7jIUcKvtLyiLlwHWpG1o=
 github.com/aws/aws-sdk-go-v2/service/dax v1.11.15 h1:F9hC84YW7BGYKJXOQlZ8LGjo7HXd2KSqQi6ikW59grw=
@@ -177,6 +179,8 @@ github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9 h1:yfGZ8K1dRY1R+dUEGkgQgZ
 github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9/go.mod h1:vPwuVXdRx9Gnh/te/OoV5ni89EyJEqjn5Uyx879i9fQ=
 github.com/aws/aws-sdk-go-v2/service/sns v1.17.9 h1:fc11hvtWgpXUhMlnfvB/D/dB0kkYdva1REpUZipVHIc=
 github.com/aws/aws-sdk-go-v2/service/sns v1.17.9/go.mod h1:maJ5I+CMzzSxfREF1r8mefJL8iafTiqph/NNd62iFfE=
+github.com/aws/aws-sdk-go-v2/service/waf v1.11.17 h1:uppvIS/ForUF0VgXzzXRO+eAWMPZaDwLQaifGIPFVk4=
+github.com/aws/aws-sdk-go-v2/service/waf v1.11.17/go.mod h1:lD+RVRUK7ARvACBBnPcFY9Np7OBAIlVqHPHCfDFezZ0=
 github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10 h1:Y4civ9pg5cbQkSf/YGMfFZaIPAAAK61JV+NIzO8Ri4k=
 github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10/go.mod h1:65Z/rmGw/6usiOFI0Tk4ddNUmPbjjPER1WLZwnFqxFM=
 github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 h1:pwvCchFUEnlceKIgPUouBJwK81aCkQ8UDMORfeFtW10=
