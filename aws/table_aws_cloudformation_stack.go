@@ -188,6 +188,11 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// We can not pass the MaxResult value in param so we can't limit the result per page
 	input := &cloudformation.DescribeStacksInput{}
 
@@ -228,6 +233,11 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	name := d.KeyColumnQuals["name"].GetStringValue()
 	params := &cloudformation.DescribeStacksInput{
 		StackName: aws.String(name),
@@ -235,6 +245,7 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	op, err := svc.DescribeStacks(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStack", err)
 		return nil, err
 	}
 
@@ -253,6 +264,11 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudformation_stack.getStackTemplate", "service_creation_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// template_body is the template in its original string form
@@ -276,6 +292,11 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudformation_stack.describeStackResources", "service_creation_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &cloudformation.DescribeStackResourcesInput{

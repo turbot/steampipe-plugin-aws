@@ -115,6 +115,12 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
@@ -149,12 +155,12 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_glue_catalog_connection.listGlueConnections", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
 			return nil, err
 		}
 		for _,  connection := range output.ConnectionList{
 			d.StreamListItem(ctx,connection)
-			plugin.Logger(ctx).Error("aws_glue_catalog_connection.listGlueConnections", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
@@ -187,6 +193,11 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
 	params := &glue.GetConnectionInput{
 		Name: aws.String(name),
@@ -209,6 +220,7 @@ func getGlueConnectionArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnectionArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

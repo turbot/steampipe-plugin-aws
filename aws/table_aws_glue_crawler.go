@@ -159,8 +159,15 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
@@ -184,12 +191,12 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_glue_catalog_crawler.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 			return nil, err
 		}
 		for _, crawler  := range output.Crawlers{
 			d.StreamListItem(ctx, crawler)
-			plugin.Logger(ctx).Error("aws_glue_catalog_crawler.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
@@ -197,7 +204,7 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		}
 	}
 	if err != nil {
-		plugin.Logger(ctx).Error("listGlueCrawlers", "list", err)
+		plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 		return nil, err
 	}
 
@@ -217,7 +224,13 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawler", "service_creation_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -228,7 +241,7 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Get call
 	data, err := svc.GetCrawler(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getGlueCrawler", "get", err)
+		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawler", "api_error", err)
 		return nil, err
 	}
 
@@ -243,6 +256,7 @@ func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawlerArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

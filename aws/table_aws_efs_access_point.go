@@ -120,6 +120,12 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
   maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
@@ -175,13 +181,18 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	params := &efs.DescribeAccessPointsInput{
 		AccessPointId: aws.String(accessPointID),
 	}
 
 	data, err := svc.DescribeAccessPoints(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getEfsAccessPoint_", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_efs_access_point.getEfsAccessPoint", "ERROR", err)
 		return nil, err
 	}
 

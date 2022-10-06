@@ -172,6 +172,12 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
@@ -195,12 +201,12 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
 			return nil, err
 		}
 		for _, job  := range output.Jobs{
 			d.StreamListItem(ctx, job)
-			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil,nil
@@ -233,6 +239,11 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
 	params := &glue.GetJobInput{
 		JobName: aws.String(name),
@@ -257,6 +268,11 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Build the params
 	params := &glue.GetJobBookmarkInput{
 		JobName: name,
@@ -279,6 +295,7 @@ func getGlueJobArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

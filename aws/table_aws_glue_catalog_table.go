@@ -153,7 +153,6 @@ func tableAwsGlueCatalogTable(_ context.Context) *plugin.Table {
 
 func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
-	logger.Info("aws_glue_catalog_table.listGlueCatalogTables")
 	database := h.Item.(types.Database)
 
 	// Create session
@@ -161,6 +160,11 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if err != nil {
 		logger.Error("aws_glue_catalog_table.listGlueCatalogTables", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	if d.KeyColumnQualString("catalog_id") != "" && *database.CatalogId != d.KeyColumnQualString("catalog_id") {
@@ -229,7 +233,13 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTable", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -241,7 +251,7 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Get call
 	data, err := svc.GetTable(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getGlueCatalogTable", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTable", "ERROR", err)
 		return nil, err
 	}
 	return data.Table, nil
@@ -255,6 +265,7 @@ func getGlueCatalogTableAkas(ctx context.Context, d *plugin.QueryData, h *plugin
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTableAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

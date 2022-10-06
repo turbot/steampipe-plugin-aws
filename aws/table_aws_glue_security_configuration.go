@@ -87,7 +87,7 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 		return nil, err
 	}
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	maxLimit := int32(100)
+	maxLimit := int32(1)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
@@ -110,12 +110,13 @@ func listGlueSecurityConfigurations(ctx context.Context, d *plugin.QueryData, _ 
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_security_configuration.listGlueSecurityConfigurations", "api_error", err)
 			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_glue_security_configuration.PAGINATOR TEST 9999999", paginator.HasMorePages())
 		for _, configuration := range output.SecurityConfigurations {
 			d.StreamListItem(ctx, configuration)
-			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueSecurityConfigurations", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -170,6 +171,7 @@ func getGlueSecurityConfigurationArn(ctx context.Context, d *plugin.QueryData, h
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_security_configuration.getGlueSecurityConfigurationArn", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

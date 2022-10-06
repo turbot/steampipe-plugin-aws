@@ -185,6 +185,12 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
@@ -248,6 +254,11 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+	
 	// Build the params
 	params := &glue.GetDevEndpointInput{
 		EndpointName: aws.String(name),

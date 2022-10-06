@@ -163,6 +163,12 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		plugin.Logger(ctx).Error("aws_efs_file_system.listElasticFileSystem", "service_creation_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
   maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
@@ -216,6 +222,11 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	quals := d.KeyColumnQuals
 	fileSystemID := quals["file_system_id"].GetStringValue()
 
@@ -244,6 +255,11 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+	
 	// Build param
 	param := &efs.DescribeFileSystemPolicyInput{
 		FileSystemId: fileSystem.FileSystemId,

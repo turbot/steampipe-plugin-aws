@@ -95,8 +95,15 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "service_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
   maxLimit := int32(100)
 	limit := d.QueryContext.Limit
@@ -149,7 +156,13 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabase", "service_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -160,6 +173,7 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Get call
 	data, err := svc.GetDatabase(ctx,params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabase", "api_error", err)
 		return nil, err
 	}
 
@@ -174,6 +188,7 @@ func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabaseAkas", "getCommonColumnsCached_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

@@ -44,6 +44,11 @@ func listGlueDataCatalogEncryptionSettings(ctx context.Context, d *plugin.QueryD
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+	
 	input := &glue.GetDataCatalogEncryptionSettingsInput{}
 
 	// List call
