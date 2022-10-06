@@ -193,6 +193,7 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elbv2.Client, error
 	}
 	return elbv2.NewFromConfig(*cfg), nil
 }
+
 func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -203,6 +204,7 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	}
 	return efs.NewFromConfig(*cfg), nil
 }
+
 func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -213,6 +215,7 @@ func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) 
 	}
 	return glue.NewFromConfig(*cfg), nil
 }
+
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {

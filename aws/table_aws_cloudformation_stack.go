@@ -181,41 +181,41 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-		// Create session
-		svc, err := CloudFormationClient(ctx, d)
+	// Create session
+	svc, err := CloudFormationClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "service_creation_error", err)
+		return nil, err
+	}
+
+	// We can not pass the MaxResult value in param so we can't limit the result per page
+	input := &cloudformation.DescribeStacksInput{}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		input.StackName = aws.String(equalQuals["name"].GetStringValue())
+	}
+	paginator := cloudformation.NewDescribeStacksPaginator(svc, input, func(o *cloudformation.DescribeStacksPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "service_creation_error", err)
+			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
 			return nil, err
 		}
-	
-		// We can not pass the MaxResult value in param so we can't limit the result per page
-		input := &cloudformation.DescribeStacksInput{}
-	
-		// Additonal Filter
-		equalQuals := d.KeyColumnQuals
-		if equalQuals["name"] != nil {
-			input.StackName = aws.String(equalQuals["name"].GetStringValue())
-		}
-		paginator:= cloudformation.NewDescribeStacksPaginator(svc, input ,func(o *cloudformation.DescribeStacksPaginatorOptions){
-			o.StopOnDuplicateToken=true
-		})
-		for paginator.HasMorePages() {
-			output, err := paginator.NextPage(ctx)
-			if err != nil {
-				plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
-				return nil, err
+		for _, stack := range output.Stacks {
+			d.StreamListItem(ctx, stack)
+			plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			for _, stack := range output.Stacks {
-				d.StreamListItem(ctx, stack)
-	      plugin.Logger(ctx).Error("aws_cloudformation_stack.listCloudFormationStacks", "api_error", err)
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return nil,nil
-				}
-			}
-			
 		}
-		return nil, err
+
+	}
+	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
@@ -261,7 +261,7 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 	stackTemplate, err := svc.GetTemplate(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_cloudformation_stack.getStackTemplate",err)
+		plugin.Logger(ctx).Error("aws_cloudformation_stack.getStackTemplate", err)
 		return nil, err
 	}
 
@@ -291,12 +291,12 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	return stackResources, nil
 }
 
-//// TRANSFORM FUNCTIONS
+// // TRANSFORM FUNCTIONS
 func cfnStackTagsToTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	stack := d.HydrateItem.(types.Stack)
 	var turbotTagsMap map[string]string
-	if len(stack.Tags)>0{
-    if stack.Tags != nil {
+	if len(stack.Tags) > 0 {
+		if stack.Tags != nil {
 			turbotTagsMap = map[string]string{}
 			for _, i := range stack.Tags {
 				turbotTagsMap[*i.Key] = *i.Value
