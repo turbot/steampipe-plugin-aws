@@ -200,8 +200,6 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsSSMParameter")
 
 	id := d.KeyColumnQuals["id"].GetStringValue()
 
@@ -259,7 +257,6 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 	case *types.ResolverEndpoint:
 		route53resolverEndpointArn = *h.Item.(*types.ResolverEndpoint).Arn
 	}
-	// resolverEndpintData := h.Item.(types.ResolverEndpoint)
 
 	// Create session
 	svc, err := Route53ResolverClient(ctx, d)
@@ -286,7 +283,6 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 //// TRANSFORM FUNCTIONS
 
 func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53resolverTagListToTurbotTags")
 		tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
