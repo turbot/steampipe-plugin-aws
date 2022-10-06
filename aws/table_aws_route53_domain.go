@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53domains"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53domains"
+	"github.com/aws/aws-sdk-go-v2/service/route53domains/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -198,63 +199,70 @@ func tableAwsRoute53Domain(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listRoute53Domains(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listRoute53Domains")
 
 	// Create session
-	svc, err := Route53DomainsService(ctx, d)
+	svc, err := Route53DomainsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_domain.listRoute53Domains", "client_error", err)
 		return nil, err
 	}
 
-	input := &route53domains.ListDomainsInput{
-		MaxItems: aws.Int64(100),
-	}
+	maxItems := int32(100)
+	input := route53domains.ListDomainsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxItems {
-			if *limit < 20 {
-				input.MaxItems = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 20 {
+				maxItems = int32(20)
 			} else {
-				input.MaxItems = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListDomainsPages(
-		input,
-		func(page *route53domains.ListDomainsOutput, isLast bool) bool {
-			for _, domain := range page.Domains {
-				d.StreamListItem(ctx, domain)
+	input.MaxItems = aws.Int32(maxItems)
+	paginator := route53domains.NewListDomainsPaginator(svc, &input, func(o *route53domains.ListDomainsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_route53_domain.listRoute53Domains", "api_error", err)
+			return nil, err
+		}
+
+		for _, domain := range output.Domains {
+			d.StreamListItem(ctx, domain)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-	return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getRoute53Domain")
 
 	var name string
 	if h.Item != nil {
-		name = *h.Item.(*route53domains.DomainSummary).DomainName
+		name = *h.Item.(types.DomainSummary).DomainName
 	} else {
 		name = d.KeyColumnQuals["domain_name"].GetStringValue()
 	}
+
 	// Create session
-	svc, err := Route53DomainsService(ctx, d)
+	svc, err := Route53DomainsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53Domain", "client_error", err)
 		return nil, err
 	}
 
@@ -264,42 +272,40 @@ func getRoute53Domain(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Get call
-	data, err := svc.GetDomainDetail(params)
+	data, err := svc.GetDomainDetail(ctx, params)
 	if err != nil {
-		logger.Debug("getRoute53Domain", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53Domain", "api_error", err)
 		return nil, err
 	}
 	return data, nil
 }
 
 func getRoute53DomainTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getRoute53DomainTags")
 
 	name := domainName(h.Item)
 
-	// Create Session
-	svc, err := Route53DomainsService(ctx, d)
+	// Create session
+	svc, err := Route53DomainsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53DomainTags", "client_error", err)
 		return nil, err
 	}
 
 	// Build the params
-	params := &route53domains.ListTagsForDomainInput{
+	params := route53domains.ListTagsForDomainInput{
 		DomainName: &name,
 	}
 
 	// Get call
-	op, err := svc.ListTagsForDomain(params)
+	op, err := svc.ListTagsForDomain(ctx, &params)
 	if err != nil {
-		logger.Debug("getRoute53DomainTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_route53_domain.getRoute53DomainTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
 }
 
 func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getRoute53DomainARN")
 
 	name := domainName(h.Item)
 
@@ -317,7 +323,6 @@ func getRoute53DomainARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 //// TRANSFORM FUNCTIONS
 
 func route53DomainTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("route53DomainTurbotTags")
 
 	tags := d.HydrateItem.(*route53domains.ListTagsForDomainOutput)
 
@@ -335,9 +340,9 @@ func route53DomainTurbotTags(ctx context.Context, d *transform.TransformData) (i
 
 func domainName(item interface{}) string {
 	switch item := item.(type) {
-	case *route53domains.DomainSummary:
+	case types.DomainSummary:
 		return *item.DomainName
-	case *route53domains.GetDomainDetailOutput:
+	case route53domains.GetDomainDetailOutput:
 		return *item.DomainName
 	}
 	return ""
