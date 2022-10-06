@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.20
-	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.15.12
+	github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/account v1.7.8
 	github.com/aws/aws-sdk-go-v2/service/acm v1.14.8
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.15.10
@@ -39,6 +39,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/smithy-go v1.13.3
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/golang/protobuf v1.5.2
