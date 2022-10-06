@@ -31,9 +31,11 @@ import (
 	elbv2 "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
@@ -208,6 +210,14 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 	return kafka.NewFromConfig(*cfg), nil
 }
 
+func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rds.NewFromConfig(*cfg), nil
+}
+
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, "redshift-serverless")
 	if err != nil {
@@ -217,6 +227,14 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 		return nil, nil
 	}
 	return redshiftserverless.NewFromConfig(*cfg), nil
+}
+
+func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return sagemaker.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
