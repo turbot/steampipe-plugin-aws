@@ -136,6 +136,10 @@ github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9 h1:QTPDno4J5TyfpPi3dqCZpD+
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9/go.mod h1:Req/32OLRbXpPX5TxHkwf2Ln9qclJCV6n1S7v0v+FWo=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1 h1:A2hit+4GRYOdvs2aJxGhDrrRS17zSa66M+k1IqqgUic=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1/go.mod h1:YbPg6ou7dlvFTJMmbV3zhec+A22S1Ow+ZB6k6xUs9oY=
+github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10 h1:QFLruWwQeR6LWtNwVORmbk7dfCoimNtgpUbFNNGXt6w=
+github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10/go.mod h1:DUZW0DuaDQHJVgiRl2AFiveurN9HPd+dkcSUtjWc3a4=
+github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18 h1:w+VyGXpRZvj51v8+QFjV5Be7BGUWVpYw51/XZYNYmqc=
+github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18/go.mod h1:nmnOtHoUFFGXVWyeNbqhHNbAUXibWfw4G0QuDb6+Xuo=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12 h1:y97T4mPCBDVRtUxMAWA9ZNXnTHA2p4YXFBDSkMrxr4U=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12/go.mod h1:VrUvYb3ZCeUcJMIYmCJUjfwfyIFKOnXhdyfue/MSCIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12 h1:jemAfH91rYzeDdNPDNdZHLSXxaXW5l1fcUT1+nRQ8cM=
@@ -159,6 +163,8 @@ github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15 h1:MpzLGfgsFwY+rk5rERg22DiH2
 github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15/go.mod h1:1UfKb/PiPkk/yE+nnB7XuhZl3pxPWufotyaoFSZNKlw=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
+github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10 h1:kcIrxL9JKLVbh8JSwGR3v4zsFAtybTSncY9RZtmgJXk=
+github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10/go.mod h1:Sy+CUk5vCp1B9P5MhQQEigdm3AnlxCmx6wXS7KQD/mM=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9/go.mod h1:8ZCxqSjiKCzYs8G8EDB6aaxL4IgqYSbHHuhOUY7lSbE=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2 h1:xxCS9CIRNBaXVxeRk6Oa54o1GDvwWPN2mC4ZvLt/4/Q=
