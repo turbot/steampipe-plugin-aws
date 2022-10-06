@@ -84,7 +84,7 @@ func listConfigAggregateAuthorizations(ctx context.Context, d *plugin.QueryData,
 	}
 
 	input := &configservice.DescribeAggregationAuthorizationsInput{
-		Limit: int32(2),
+		Limit: int32(100),
 	}
 
 	// If the requested number of items is less than the paging max limit

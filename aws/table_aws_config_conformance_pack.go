@@ -103,7 +103,7 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 	}
 
 	input := &configservice.DescribeConformancePacksInput{
-		Limit: int32(2),
+		Limit: int32(20),
 	}
 
 	// If the requested number of items is less than the paging max limit

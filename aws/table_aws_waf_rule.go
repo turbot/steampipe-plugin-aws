@@ -94,7 +94,7 @@ func listAwsWAFRules(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 	// List call
 	params := &waf.ListRulesInput{
-		Limit: int32(2),
+		Limit: int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -157,6 +157,7 @@ func getAwsWAFRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	// Get call
 	data, err := svc.GetRule(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rule.getAwsWAFRule", "get_client_error", err)
 		return nil, err
 	}
 

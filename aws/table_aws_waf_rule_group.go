@@ -104,7 +104,7 @@ func listWafRuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// List all rule groups
 	pagesLeft := true
 	params := &waf.ListRuleGroupsInput{
-		Limit: int32(2),
+		Limit: int32(100),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows

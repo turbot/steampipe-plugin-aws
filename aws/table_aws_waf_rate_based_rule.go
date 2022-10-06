@@ -107,7 +107,7 @@ func listAwsWafRateBasedRules(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	// List call
 	params := &waf.ListRateBasedRulesInput{
-		Limit: int32(2),
+		Limit: int32(20),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -225,6 +225,7 @@ func getAwsWafRateBasedRuleAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	c, err := getCommonColumnsCached(ctx, d, h)
 
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_waf_rate_based_rule.getAwsWafRateBasedRuleAkas", "get_client_error", err)
 		return nil, err
 	}
 
