@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
+
+type filterInfo = struct {
+	guardduty.GetFilterOutput
+	Name       string
+	DetectorId string
+}
 
 func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -94,20 +99,15 @@ func tableAwsGuardDutyFilter(_ context.Context) *plugin.Table {
 	}
 }
 
-type filterInfo = struct {
-	guardduty.GetFilterOutput
-	Name       string
-	DetectorId string
-}
-
 //// LIST FUNCTION
 
 func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.listAwsGuardDutyFilters", "get_client_error", err)
 		return nil, err
 	}
 
@@ -126,41 +126,41 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 		}
 	}
 
-	input := &guardduty.ListFiltersInput{
+	params := &guardduty.ListFiltersInput{
 		DetectorId: &id,
-		MaxResults: aws.Int64(50),
+		MaxResults: int32(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
+		if *limit < int64(params.MaxResults) {
+			params.MaxResults = int32(*limit)
 		}
 	}
 
-	// List call
-	err = svc.ListFiltersPages(
-		input,
-		func(page *guardduty.ListFiltersOutput, isLast bool) bool {
-			for _, parameter := range page.FilterNames {
-				d.StreamLeafListItem(ctx, filterInfo{
-					Name:       *parameter,
-					DetectorId: id,
-				})
+	pagesLeft := true
+	for pagesLeft {
+		response, err := svc.ListFilters(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
+			return nil, err
+		}
+		for _, item := range response.FilterNames {
+			d.StreamListItem(ctx, filterInfo{Name: item, DetectorId: id})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+		if response.NextToken != nil {
+			pagesLeft = true
+			params.NextToken = response.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
 
 	return nil, err
 }
@@ -168,16 +168,16 @@ func listAwsGuardDutyFilters(ctx context.Context, d *plugin.QueryData, h *plugin
 //// HYDRATE FUNCTION
 
 func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsGuardDutyFilter")
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilter", "get_client_error", err)
 		return nil, err
 	}
+
 	var detectorID string
 	var name string
+
 	if h.Item != nil {
 		detectorID = h.Item.(filterInfo).DetectorId
 		name = h.Item.(filterInfo).Name
@@ -198,8 +198,9 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.GetFilter(params)
+	data, err := svc.GetFilter(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilter", "api_error", err)
 		return nil, err
 	}
 
@@ -209,14 +210,13 @@ func getAwsGuardDutyFilter(ctx context.Context, d *plugin.QueryData, h *plugin.H
 //// TRANSFORM FUNCTION
 
 func getAwsGuardDutyFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGuardDutyFilterAkas")
-
 	data := h.Item.(filterInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_filter.getAwsGuardDutyFilterAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
