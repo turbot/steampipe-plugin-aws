@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -128,41 +129,41 @@ func tableAwsWafv2RegexPatternSet(_ context.Context) *plugin.Table {
 
 func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	scope := types.ScopeRegional
 
 	if region == "global" {
 		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
 	plugin.Logger(ctx).Trace("listAwsWafv2RegexPatternSets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// List all Regex Pattern Sets
 	pagesLeft := true
-	params := &wafv2.ListRegexPatternSetsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
-
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit=1
 			} else {
-				params.Limit = limit
+				maxLimit= int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListRegexPatternSetsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
 	for pagesLeft {
-		response, err := svc.ListRegexPatternSets(params)
+		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -232,7 +233,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -240,10 +241,10 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	params := &wafv2.GetRegexPatternSetInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetRegexPatternSet(params)
+	op, err := svc.GetRegexPatternSet(ctx,params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("GetRegexPatternSet", "ERROR", err)
 		return nil, err
@@ -272,7 +273,7 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -280,10 +281,10 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	regexPatternSetTags, err := svc.ListTagsForResource(param)
+	regexPatternSetTags, err := svc.ListTagsForResource(ctx,param)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +361,7 @@ func regexPatternSetData(item interface{}) map[string]string {
 		data["Arn"] = *item.RegexPatternSet.ARN
 		data["Name"] = *item.RegexPatternSet.Name
 		data["Description"] = *item.RegexPatternSet.Description
-	case *wafv2.RegexPatternSetSummary:
+	case types.RegexPatternSetSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

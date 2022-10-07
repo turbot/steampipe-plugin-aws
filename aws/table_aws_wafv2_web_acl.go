@@ -4,9 +4,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
+	"github.com/aws/smithy-go"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -173,40 +175,40 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 
 func listAwsWafv2WebAcls(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	scope := types.ScopeRegional
 
 	if region == "global" {
 		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
 	plugin.Logger(ctx).Trace("listAwsWafv2WebAcls", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	pagesLeft := true
-	params := &wafv2.ListWebACLsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
-
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListWebACLsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
 	for pagesLeft {
-		response, err := svc.ListWebACLs(params)
+		response, err := svc.ListWebACLs(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +278,7 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -284,10 +286,10 @@ func getAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	params := &wafv2.GetWebACLInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetWebACL(params)
+	op, err := svc.GetWebACL(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("GetWebACL", "ERROR", err)
 		return nil, err
@@ -316,7 +318,7 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -324,10 +326,10 @@ func listTagsForAwsWafv2WebAcl(ctx context.Context, d *plugin.QueryData, h *plug
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	webAclTags, err := svc.ListTagsForResource(param)
+	webAclTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +353,7 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -361,10 +363,10 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 		ResourceArn: aws.String(data["Arn"]),
 	}
 
-	op, err := svc.GetLoggingConfiguration(param)
+	op, err := svc.GetLoggingConfiguration(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "WAFNonexistentItemException" {
+		if a, ok := err.(smithy.APIError); ok {
+			if a.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
@@ -390,7 +392,7 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -400,10 +402,10 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 		WebACLArn: aws.String(data["Arn"]),
 	}
 
-	op, err := svc.ListResourcesForWebACL(param)
+	op, err := svc.ListResourcesForWebACL(ctx, param)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "WAFNonexistentItemException" {
+		if a, ok := err.(smithy.APIError); ok {
+			if a.ErrorCode() == "WAFNonexistentItemException" {
 				return nil, nil
 			}
 		}
@@ -463,11 +465,11 @@ func webAclRegion(ctx context.Context, d *transform.TransformData) (interface{},
 func webAclData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.WebACL:
+	case types.WebACL:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
-	case *wafv2.WebACLSummary:
+	case types.WebACLSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name

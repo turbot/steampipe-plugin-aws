@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2"
+	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -130,41 +131,41 @@ func tableAwsWafv2IpSet(_ context.Context) *plugin.Table {
 
 func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	scope := aws.String("REGIONAL")
+	scope := types.ScopeRegional
 
 	if region == "global" {
 		region = "us-east-1"
-		scope = aws.String("CLOUDFRONT")
+		scope = types.ScopeCloudfront
 	}
 	plugin.Logger(ctx).Trace("listAwsWafv2IpSets", "AWS_REGION", region)
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
 
 	// List all IP sets
 	pagesLeft := true
-	params := &wafv2.ListIPSetsInput{
-		Scope: scope,
-		Limit: aws.Int64(100),
-	}
-
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *params.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				params.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				params.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	params := &wafv2.ListIPSetsInput{
+		Scope: scope,
+		Limit: aws.Int32(maxLimit),
+	}
 
 	for pagesLeft {
-		response, err := svc.ListIPSets(params)
+		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +196,6 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	plugin.Logger(ctx).Trace("getAwsWafv2IpSet")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
-
 	var id, name, scope string
 	if h.Item != nil {
 		data := ipSetData(h.Item)
@@ -234,7 +234,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create Session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -242,10 +242,10 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	params := &wafv2.GetIPSetInput{
 		Id:    aws.String(id),
 		Name:  aws.String(name),
-		Scope: aws.String(scope),
+		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetIPSet(params)
+	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Debug("GetIPSet", "ERROR", err)
 		return nil, err
@@ -266,15 +266,15 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 		region = "us-east-1"
 	}
 	data := ipSetData(h.Item)
+	plugin.Logger(ctx).Error("listTagsForAwsWafv2IpSet.data[Arn]", string(data["Arn"]))
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
-
 	// To work with CloudFront, you must specify the Region US East (N. Virginia)
 	if locationType == "global" && region != "us-east-1" {
 		return nil, nil
 	}
 
 	// Create session
-	svc, err := WAFv2Service(ctx, d, region)
+	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
 		return nil, err
 	}
@@ -282,10 +282,10 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Build param with maximum limit set
 	param := &wafv2.ListTagsForResourceInput{
 		ResourceARN: aws.String(data["Arn"]),
-		Limit:       aws.Int64(100),
+		Limit:       aws.Int32(100),
 	}
 
-	ipSetTags, err := svc.ListTagsForResource(param)
+	ipSetTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		return nil, err
 	}
@@ -338,12 +338,12 @@ func ipSetRegion(ctx context.Context, d *transform.TransformData) (interface{}, 
 func ipSetData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case *wafv2.IPSet:
+	case *types.IPSet:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
 		data["Description"] = *item.Description
-	case *wafv2.IPSetSummary:
+	case types.IPSetSummary:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
