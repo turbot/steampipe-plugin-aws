@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -83,16 +85,14 @@ func tableAwsGuardDutyMember(_ context.Context) *plugin.Table {
 }
 
 type memberInfo = struct {
-	guardduty.Member
+	types.Member
 	DetectorId string
 }
 
 //// LIST FUNCTION
 
 func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listGuardDutyMembers")
 	detectorId := h.Item.(detectorInfo).DetectorID
-
 	equalQuals := d.KeyColumnQuals
 
 	// Minimize the API call with the given detector_id
@@ -109,13 +109,14 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_member.listGuardDutyMembers", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &guardduty.ListMembersInput{
-		MaxResults:     aws.Int64(50),
+		MaxResults:     int32(50),
 		DetectorId:     aws.String(detectorId),
 		OnlyAssociated: aws.String("false"),
 	}
@@ -123,32 +124,38 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
+		if *limit < int64(input.MaxResults) {
+			input.MaxResults = int32(*limit)
 		}
 	}
 
-	err = svc.ListMembersPages(
-		input,
-		func(page *guardduty.ListMembersOutput, isLast bool) bool {
-			for _, member := range page.Members {
-				d.StreamListItem(ctx, memberInfo{*member, detectorId})
+	pagesLeft := true
+	for pagesLeft {
+		response, err := svc.ListMembers(ctx, input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_member.listGuardDutyMembers", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, item := range response.Members {
+			d.StreamListItem(ctx, memberInfo{item, detectorId})
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+		if response.NextToken != nil {
+			pagesLeft = true
+			input.NextToken = response.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listGuardDutyMembers", "get", err)
+		plugin.Logger(ctx).Error("aws_guardduty_member.listGuardDutyMembers", "api_error", err)
 		return nil, err
 	}
 
@@ -158,8 +165,6 @@ func listGuardDutyMembers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// HYDRATE FUNCTIONS
 
 func getGuardDutyMember(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getGuardDutyMember")
-
 	detectorId := d.KeyColumnQuals["detector_id"].GetStringValue()
 	accountId := d.KeyColumnQuals["member_account_id"].GetStringValue()
 
@@ -169,24 +174,25 @@ func getGuardDutyMember(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_member.getGuardDutyMember", "get_client_error", err)
 		return nil, err
 	}
 
 	params := &guardduty.GetMembersInput{
 		DetectorId: &detectorId,
-		AccountIds: aws.StringSlice([]string{accountId}),
+		AccountIds: ([]string{accountId}),
 	}
 
-	op, err := svc.GetMembers(params)
+	op, err := svc.GetMembers(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getGuardDutyMember", "get", err)
+		plugin.Logger(ctx).Error("aws_guardduty_member.getGuardDutyMember", "api_error", err)
 		return nil, err
 	}
 
 	if len(op.Members) > 0 {
-		return memberInfo{*op.Members[0], detectorId}, nil
+		return memberInfo{*&op.Members[0], detectorId}, nil
 	}
 
 	return nil, nil
