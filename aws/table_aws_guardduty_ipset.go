@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/guardduty"
+	"github.com/aws/aws-sdk-go-v2/service/guardduty"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
+
+type ipsetInfo = struct {
+	guardduty.GetIPSetOutput
+	IPSetID    string
+	DetectorID string
+}
 
 func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -96,20 +101,15 @@ func tableAwsGuardDutyIPSet(_ context.Context) *plugin.Table {
 	}
 }
 
-type ipsetInfo = struct {
-	guardduty.GetIPSetOutput
-	IPSetID    string
-	DetectorID string
-}
-
 //// LIST FUNCTION
 
 func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	id := h.Item.(detectorInfo).DetectorID
 
 	// Create session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "get_client_error", err)
 		return nil, err
 	}
 
@@ -130,39 +130,42 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	input := &guardduty.ListIPSetsInput{
 		DetectorId: &id,
-		MaxResults: aws.Int64(50),
+		MaxResults: int32(50),
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
-			} else {
-				input.MaxResults = limit
-			}
+		if *limit < int64(input.MaxResults) {
+			input.MaxResults = int32(*limit)
 		}
 	}
 
-	// List call
-	err = svc.ListIPSetsPages(
-		input,
-		func(page *guardduty.ListIPSetsOutput, isLast bool) bool {
-			for _, parameter := range page.IpSetIds {
-				d.StreamLeafListItem(ctx, ipsetInfo{
-					IPSetID:    *parameter,
-					DetectorID: id,
-				})
+	pagesLeft := true
+	for pagesLeft {
+		response, err := svc.ListIPSets(ctx, input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_guardduty_detector.listGuardDutyDetectors", "api_error", err)
+			return nil, err
+		}
+		for _, item := range response.IpSetIds {
+			d.StreamListItem(ctx, ipsetInfo{
+				IPSetID:    item,
+				DetectorID: id,
+			})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+		if response.NextToken != nil {
+			pagesLeft = true
+			input.NextToken = response.NextToken
+		} else {
+			pagesLeft = false
+		}
+	}
 
 	return nil, err
 }
@@ -170,16 +173,16 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTION
 
 func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsGuardDutyIPSet")
-
 	// Create Session
-	svc, err := GuardDutyService(ctx, d)
+	svc, err := GuardDutyClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "get_client_error", err)
 		return nil, err
 	}
+
 	var detectorID string
 	var id string
+
 	if h.Item != nil {
 		detectorID = h.Item.(ipsetInfo).DetectorID
 		id = h.Item.(ipsetInfo).IPSetID
@@ -195,8 +198,9 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Get call
-	data, err := svc.GetIPSet(params)
+	data, err := svc.GetIPSet(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSet", "api_error", err)
 		return nil, err
 	}
 
@@ -206,14 +210,13 @@ func getAwsGuardDutyIPSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 //// TRANSFORM FUNCTION
 
 func getAwsGuardDutyIPSetAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsGuardDutyIPSetAkas")
-
 	data := h.Item.(ipsetInfo)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_guardduty_ipset.getAwsGuardDutyIPSetAkas", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
