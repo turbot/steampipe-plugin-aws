@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -186,6 +187,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.listKmsKeys", "connection_error", err)
 		return nil, err
 	}
 
@@ -212,7 +214,7 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
+			plugin.Logger(ctx).Error("aws_kms_key.listKmsKeys", "api_error", err)
 			return nil, err
 		}
 
@@ -232,13 +234,17 @@ func listKmsKeys(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getKmsKey")
-
 	keyID := d.KeyColumnQuals["id"].GetStringValue()
+
+	// Empty id check
+	if strings.TrimSpace(keyID) == "" {
+		return nil, nil
+	}
 
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getKmsKey", "connection_error", err)
 		return nil, err
 	}
 
@@ -248,7 +254,7 @@ func getKmsKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 	keyData, err := svc.DescribeKey(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getIamUser__", "ERROR", err)
+		plugin.Logger(ctx).Debug("aws_kms_key.getKmsKey", "api_error", err)
 		return nil, err
 	}
 
@@ -284,12 +290,12 @@ func getAwsKmsKeyData(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyRotationStatus")
 	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyRotationStatus", "connection_error", err)
 		return nil, err
 	}
 
@@ -307,6 +313,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 			}
 			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyRotationStatus", "api_error", err)
 	}
 	return keyData, nil
 }
@@ -317,7 +324,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
-
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "connection_error", err)
 		return nil, err
 	}
 
@@ -335,7 +342,7 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_iam_role.listIamRoles", "api_error", err)
+			plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyTagging", "api_error", err)
 			return nil, err
 		}
 		tags = append(tags, output.Tags...)
@@ -355,13 +362,12 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Trace("getAwsKmsKeyAliases")
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyAliases", "connection_error", err)
 		return nil, err
 	}
 
@@ -404,12 +410,12 @@ func kmsKeyTitle(ctx context.Context, d *transform.TransformData) (interface{}, 
 }
 
 func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsKmsKeyPolicy")
 	key := h.Item.(types.KeyListEntry)
 
 	// Create Session
 	svc, err := KMSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -426,6 +432,7 @@ func getAwsKmsKeyPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 				return &kms.GetKeyPolicyOutput{}, nil
 			}
 		}
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyPolicy", "apin_error", err)
 		return nil, err
 	}
 	return keyPolicy, nil
