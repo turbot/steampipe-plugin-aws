@@ -208,7 +208,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 
 	// List call
-	
+
 	paginator := glue.NewGetDevEndpointsPaginator(svc, input, func(o *glue.GetDevEndpointsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -219,7 +219,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)
 			return nil, err
 		}
-		for _, endpoint := range output.DevEndpoints{
+		for _, endpoint := range output.DevEndpoints {
 			d.StreamListItem(ctx, endpoint)
 			plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit

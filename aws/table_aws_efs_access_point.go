@@ -126,14 +126,14 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, nil
 	}
 
-  maxLimit := int32(100)
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 5 {
-				maxLimit=5
+				maxLimit = 5
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -145,9 +145,9 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if equalQuals["file_system_id"] != nil {
 		input.FileSystemId = aws.String(equalQuals["file_system_id"].GetStringValue())
 	}
-  paginator:=efs.NewDescribeAccessPointsPaginator(svc,input,func(o *efs.DescribeAccessPointsPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := efs.NewDescribeAccessPointsPaginator(svc, input, func(o *efs.DescribeAccessPointsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -155,15 +155,15 @@ func listEfsAccessPoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
 			return nil, err
 		}
-		for _, accessPoint  := range output.AccessPoints{
+		for _, accessPoint := range output.AccessPoints {
 			d.StreamListItem(ctx, accessPoint)
 			plugin.Logger(ctx).Error("aws_efs_access_point.listEfsAccessPoints", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	return nil, err
 }
@@ -190,7 +190,7 @@ func getEfsAccessPoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 		AccessPointId: aws.String(accessPointID),
 	}
 
-	data, err := svc.DescribeAccessPoints(ctx,params)
+	data, err := svc.DescribeAccessPoints(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_efs_access_point.getEfsAccessPoint", "ERROR", err)
 		return nil, err
@@ -213,14 +213,14 @@ func efsAccessPointTurbotTags(ctx context.Context, d *transform.TransformData) (
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string
-	
-    if tagList.Tags != nil {
-			turbotTagsMap = map[string]string{}
-			for _, i := range tagList.Tags {
-				turbotTagsMap[*i.Key] = *i.Value
-			}
+
+	if tagList.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tagList.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
 		}
-	
+	}
+
 	return turbotTagsMap, nil
 }
 

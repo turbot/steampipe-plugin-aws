@@ -180,14 +180,14 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
 	input := &glue.GetTablesInput{
-		MaxResults: aws.Int32(maxLimit),
+		MaxResults:   aws.Int32(maxLimit),
 		DatabaseName: database.Name,
 		CatalogId:    database.CatalogId,
 	}
@@ -196,9 +196,9 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	if equalQuals["catalog_id"] != nil {
 		input.CatalogId = aws.String(equalQuals["catalog_id"].GetStringValue())
 	}
-	paginator:=glue.NewGetTablesPaginator(svc,input,func(o *glue.GetTablesPaginatorOptions){
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := glue.NewGetTablesPaginator(svc, input, func(o *glue.GetTablesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -206,15 +206,15 @@ func listGlueCatalogTables(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogTables", "api_error", err)
 			return nil, err
 		}
-		for _, table  := range output.TableList{
+		for _, table := range output.TableList {
 			d.StreamListItem(ctx, table)
 			plugin.Logger(ctx).Error("aws_glue_catalog_table.listGlueCatalogTables", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	return nil, err
 }
@@ -249,7 +249,7 @@ func getGlueCatalogTable(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	}
 
 	// Get call
-	data, err := svc.GetTable(ctx,params)
+	data, err := svc.GetTable(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_catalog_table.getGlueCatalogTable", "ERROR", err)
 		return nil, err

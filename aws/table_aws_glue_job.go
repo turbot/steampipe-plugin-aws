@@ -187,9 +187,9 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -197,25 +197,25 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		MaxResults: aws.Int32(maxLimit),
 	}
 	// List call
-	paginator:=glue.NewGetJobsPaginator(svc ,input,func(o *glue.GetJobsPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
-	}) 
+	paginator := glue.NewGetJobsPaginator(svc, input, func(o *glue.GetJobsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
 			return nil, err
 		}
-		for _, job  := range output.Jobs{
+		for _, job := range output.Jobs {
 			d.StreamListItem(ctx, job)
 			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
@@ -253,7 +253,7 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	}
 
 	// Get call
-	data, err := svc.GetJob(ctx,params)
+	data, err := svc.GetJob(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "api_error", err)
 		return nil, err
@@ -282,7 +282,7 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Get call
-	data, err := svc.GetJobBookmark(ctx,params)
+	data, err := svc.GetJobBookmark(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "api_error", err)
 		return nil, err

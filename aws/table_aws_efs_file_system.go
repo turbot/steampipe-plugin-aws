@@ -6,10 +6,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/efs/types"
 	"github.com/aws/smithy-go"
-	
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -169,14 +169,14 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, nil
 	}
 
-  maxLimit := int32(100)
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit= int32(*limit)
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -189,9 +189,9 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		input.CreationToken = aws.String(equalQuals["creation_token"].GetStringValue())
 	}
 	// List call
-	paginator:=efs.NewDescribeFileSystemsPaginator(svc,input,func(o *efs.DescribeFileSystemsPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := efs.NewDescribeFileSystemsPaginator(svc, input, func(o *efs.DescribeFileSystemsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -199,15 +199,15 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			plugin.Logger(ctx).Error("aws_efs_access_point.listElasticFileSystem", "api_error", err)
 			return nil, err
 		}
-		for _, fileSystem  := range output.FileSystems{
+		for _, fileSystem := range output.FileSystems {
 			d.StreamListItem(ctx, fileSystem)
 			plugin.Logger(ctx).Error("aws_efs_access_point.listElasticFileSystem", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	return nil, err
 }
@@ -234,7 +234,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		FileSystemId: aws.String(fileSystemID),
 	}
 
-	op, err := svc.DescribeFileSystems(ctx,params)
+	op, err := svc.DescribeFileSystems(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -259,13 +259,13 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 		// unsupported region check
 		return nil, nil
 	}
-	
+
 	// Build param
 	param := &efs.DescribeFileSystemPolicyInput{
 		FileSystemId: fileSystem.FileSystemId,
 	}
 
-	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(ctx,param)
+	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(ctx, param)
 	if err != nil {
 		if a, ok := err.(smithy.APIError); ok {
 			plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "api_error", err)

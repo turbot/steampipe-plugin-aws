@@ -174,19 +174,19 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
 	input := &glue.GetCrawlersInput{}
 
 	// List call
-	
-	paginator:=glue.NewGetCrawlersPaginator(svc,input,func(o *glue.GetCrawlersPaginatorOptions) {
-		o.StopOnDuplicateToken=true
-		o.Limit=maxLimit
+
+	paginator := glue.NewGetCrawlersPaginator(svc, input, func(o *glue.GetCrawlersPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+		o.Limit = maxLimit
 	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -194,12 +194,12 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 			return nil, err
 		}
-		for _, crawler  := range output.Crawlers{
+		for _, crawler := range output.Crawlers {
 			d.StreamListItem(ctx, crawler)
 			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
 	}
@@ -239,7 +239,7 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	}
 
 	// Get call
-	data, err := svc.GetCrawler(ctx,params)
+	data, err := svc.GetCrawler(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawler", "api_error", err)
 		return nil, err

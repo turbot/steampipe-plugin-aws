@@ -127,9 +127,9 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -143,14 +143,14 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			return nil, nil
 		}
 		input.Filter = &types.GetConnectionsFilter{
-      ConnectionType: types.ConnectionType(connectionType),
-    }
+			ConnectionType: types.ConnectionType(connectionType),
+		}
 	}
 
 	// List call
-	paginator:=glue.NewGetConnectionsPaginator(svc,input,func(o *glue.GetConnectionsPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
+	paginator := glue.NewGetConnectionsPaginator(svc, input, func(o *glue.GetConnectionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
@@ -158,15 +158,15 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
 			return nil, err
 		}
-		for _,  connection := range output.ConnectionList{
-			d.StreamListItem(ctx,connection)
+		for _, connection := range output.ConnectionList {
+			d.StreamListItem(ctx, connection)
 			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
@@ -204,7 +204,7 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 
 	// Get call
-	data, err := svc.GetConnection(ctx,params)
+	data, err := svc.GetConnection(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "api_error", err)
 		return nil, err

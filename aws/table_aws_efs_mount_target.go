@@ -127,9 +127,9 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit= int32(*limit)
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -141,7 +141,7 @@ func listAwsEfsMountTargets(ctx context.Context, d *plugin.QueryData, h *plugin.
 	// List call
 	pagesLeft := true
 	for pagesLeft {
-		result, err := svc.DescribeMountTargets(ctx,params)
+		result, err := svc.DescribeMountTargets(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_efs_mount_target.listAwsEfsMountTargets", "DescribeMountTargets_error", err)
 			return nil, err
@@ -185,7 +185,7 @@ func getAwsEfsMountTarget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		MountTargetId: aws.String(mountTargetID),
 	}
 
-	op, err := svc.DescribeMountTargets(ctx,params)
+	op, err := svc.DescribeMountTargets(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTarget", "DescribeMountTargets_error", err)
 		return nil, err
@@ -216,7 +216,7 @@ func getAwsEfsMountTargetSecurityGroup(ctx context.Context, d *plugin.QueryData,
 		MountTargetId: aws.String(*data.MountTargetId),
 	}
 
-	op, err := svc.DescribeMountTargetSecurityGroups(ctx,params)
+	op, err := svc.DescribeMountTargetSecurityGroups(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_efs_mount_target.getAwsEfsMountTargetSecurityGroup", "DescribeMountTargetSecurityGroups", err)
 		return nil, err

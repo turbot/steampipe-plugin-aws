@@ -105,14 +105,14 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-  maxLimit := int32(100)
+	maxLimit := int32(100)
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -125,25 +125,25 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	if equalQuals["catalog_id"] != nil {
 		input.CatalogId = aws.String(equalQuals["catalog_id"].GetStringValue())
 	}
-  paginator:=glue.NewGetDatabasesPaginator(svc ,input,func(o *glue.GetDatabasesPaginatorOptions) {
-		o.Limit=maxLimit
-		o.StopOnDuplicateToken=true
-	}) 
+	paginator := glue.NewGetDatabasesPaginator(svc, input, func(o *glue.GetDatabasesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
 			return nil, err
 		}
-		for _, database  := range output.DatabaseList{
+		for _, database := range output.DatabaseList {
 			d.StreamListItem(ctx, database)
 			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				return nil,nil
+				return nil, nil
 			}
 		}
-		
+
 	}
 	return nil, err
 }
@@ -171,7 +171,7 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	// Get call
-	data, err := svc.GetDatabase(ctx,params)
+	data, err := svc.GetDatabase(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabase", "api_error", err)
 		return nil, err

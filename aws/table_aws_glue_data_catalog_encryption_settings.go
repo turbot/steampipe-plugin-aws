@@ -48,11 +48,11 @@ func listGlueDataCatalogEncryptionSettings(ctx context.Context, d *plugin.QueryD
 		// unsupported region check
 		return nil, nil
 	}
-	
+
 	input := &glue.GetDataCatalogEncryptionSettingsInput{}
 
 	// List call
-	result, err := svc.GetDataCatalogEncryptionSettings(ctx,input)
+	result, err := svc.GetDataCatalogEncryptionSettings(ctx, input)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_glue_data_catalog_encryption_settings.listGlueDataCatalogEncryptionSettings", "api_error", err)
