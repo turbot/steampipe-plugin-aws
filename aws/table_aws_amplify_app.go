@@ -263,5 +263,3 @@ func getAmplifyApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	return data.App, nil
 }
-
-//// TRANSFORM FUNCTION

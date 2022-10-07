@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
@@ -21,10 +22,10 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ValidationError"}),
 			},
-			Hydrate: getAwsEc2AutoscalingGroup,
+			Hydrate: getAwsEc2AutoScalingGroup,
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listAwsEc2AutoscalingGroup,
+			Hydrate: listAwsEc2AutoScalingGroup,
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -199,31 +200,28 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "load_balancer_names",
 				Description: "One or more load balancers associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromCamel().Transform(handleLoadBalancersEmptyData),
 			},
 			{
 				Name:        "target_group_arns",
 				Description: "The Amazon Resource Names (ARN) of the target groups for your load balancer.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("TargetGroupARNs").Transform(handleTargetGroupArnsEmptyData),
+				Transform:   transform.FromField("TargetGroupARNs"),
 			},
 			{
 				Name:        "instances",
 				Description: "The EC2 instances associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleInstancesEmptyData),
 			},
 			{
 				Name:        "enabled_metrics",
 				Description: "The metrics enabled for the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleEnableMetricEmptyData),
 			},
 			{
 				Name:        "policies",
 				Description: "A set of scaling policies for the specified Auto Scaling group.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAwsEc2AutoscalingGroupPolicy,
+				Hydrate:     getAwsEc2AutoScalingGroupPolicy,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -235,16 +233,13 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 				Name:        "suspended_processes",
 				Description: "The suspended processes associated with the group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(handleSuspendedProcessesEmptyData),
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the Auto Scaling Group.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags").Transform(handleASGTagsEmptyCheck),
+				Transform:   transform.FromField("Tags"),
 			},
-
-			// Steampipe Standard Columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
@@ -269,11 +264,11 @@ func tableAwsEc2ASG(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoscalingGroup", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -303,7 +298,7 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoscalingGroup", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.listAwsEc2AutoScalingGroup", "api_error", err)
 			return nil, err
 		}
 
@@ -323,14 +318,14 @@ func listAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plu
 
 //// HYDRATE FUNCTIONS
 
-func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getAwsEc2AutoScalingGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create Session
 	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroup", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutosScalingGroup", "connection_error", err)
 		return nil, err
 	}
 
@@ -352,17 +347,17 @@ func getAwsEc2AutoscalingGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 	return nil, nil
 }
 
-func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getAwsEc2AutoScalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	asg := h.Item.(types.AutoScalingGroup)
 
 	// Create Session
 	svc, err := AutoScalingClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "connection_error", err)
 		return nil, err
 	}
 
-	var policies []types.ScalingPolicy
+	var policies = make([]map[string]interface{}, 0)
 
 	// Limiting the results
 	maxLimit := int32(100)
@@ -390,20 +385,25 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoscalingGroupPolicy", "api_error", err)
+			plugin.Logger(ctx).Error("aws_ec2_autoscaling_group.getAwsEc2AutoScalingGroupPolicy", "api_error", err)
 			return nil, err
 		}
+
 		for _, policy := range output.ScalingPolicies {
-			if len(policy.Alarms) < 1 {
-				policy.Alarms = nil
+			data, _ := json.Marshal(policy)
+			var result map[string]interface{}
+			err = json.Unmarshal(data, &result)
+			if err != nil {
+				continue
 			}
-
-			if len(policy.StepAdjustments) < 1 {
-				policy.StepAdjustments = nil
+			if len(result["Alarms"].([]interface{})) == 0 {
+				result["Alarms"] = nil
 			}
-			policies = append(policies, policy)
+			if len(result["StepAdjustments"].([]interface{})) == 0 {
+				result["StepAdjustments"] = nil
+			}
+			policies = append(policies, result)
 		}
-
 	}
 
 	return policies, nil
@@ -413,10 +413,6 @@ func getAwsEc2AutoscalingGroupPolicy(ctx context.Context, d *plugin.QueryData, h
 
 func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	asg := d.HydrateItem.(types.AutoScalingGroup)
-	if len(asg.Tags) < 1 {
-		return nil, nil
-	}
-
 	var turbotTagsMap map[string]string
 	if asg.Tags == nil {
 		return nil, nil
@@ -428,63 +424,4 @@ func getASGTurbotTags(_ context.Context, d *transform.TransformData) (interface{
 	}
 
 	return &turbotTagsMap, nil
-}
-
-func handleASGTagsEmptyCheck(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-	if len(asg.Tags) < 1 {
-		return nil, nil
-	}
-
-	return asg.Tags, nil
-}
-
-func handleEnableMetricEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.EnabledMetrics) > 0 {
-		return asg.EnabledMetrics, nil
-	}
-
-	return nil, nil
-}
-
-func handleInstancesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.Instances) > 0 {
-		return asg.Instances, nil
-	}
-
-	return nil, nil
-}
-
-func handleLoadBalancersEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.LoadBalancerNames) > 0 {
-		return asg.LoadBalancerNames, nil
-	}
-
-	return nil, nil
-}
-
-func handleSuspendedProcessesEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.SuspendedProcesses) > 0 {
-		return asg.SuspendedProcesses, nil
-	}
-
-	return nil, nil
-}
-
-func handleTargetGroupArnsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	asg := d.HydrateItem.(types.AutoScalingGroup)
-
-	if len(asg.TargetGroupARNs) > 0 {
-		return asg.TargetGroupARNs, nil
-	}
-
-	return nil, nil
 }
