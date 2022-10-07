@@ -112,7 +112,7 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "connection_error", err)
 		return nil, err
 	}
 
@@ -152,6 +152,7 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
+
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -160,17 +161,12 @@ func listGlueConnections(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 		for _, connection := range output.ConnectionList {
 			d.StreamListItem(ctx, connection)
-			plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
+
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_connection.listGlueConnections", "api_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -189,7 +185,7 @@ func getGlueConnection(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_connection.getGlueConnection", "connection_error", err)
 		return nil, err
 	}
 

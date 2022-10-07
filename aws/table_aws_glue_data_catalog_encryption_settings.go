@@ -40,7 +40,7 @@ func listGlueDataCatalogEncryptionSettings(ctx context.Context, d *plugin.QueryD
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_data_catalog_encryption_settings.listGlueDataCatalogEncryptionSettings", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_data_catalog_encryption_settings.listGlueDataCatalogEncryptionSettings", "connection_error", err)
 		return nil, err
 	}
 

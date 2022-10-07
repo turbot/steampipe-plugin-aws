@@ -159,7 +159,7 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "connection_error", err)
 		return nil, err
 	}
 
@@ -188,6 +188,7 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		o.StopOnDuplicateToken = true
 		o.Limit = maxLimit
 	})
+
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -196,16 +197,11 @@ func listGlueCrawlers(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		}
 		for _, crawler := range output.Crawlers {
 			d.StreamListItem(ctx, crawler)
-			plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_crawler.listGlueCrawlers", "api_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -224,7 +220,7 @@ func getGlueCrawler(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawler", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawler", "connection_error", err)
 		return nil, err
 	}
 
@@ -256,7 +252,7 @@ func getGlueCrawlerArn(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawlerArn", "api_error", err)
+		plugin.Logger(ctx).Error("aws_glue_crawler.getGlueCrawlerArn", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

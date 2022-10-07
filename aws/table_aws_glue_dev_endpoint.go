@@ -182,7 +182,7 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "connection_error", err)
 		return nil, err
 	}
 
@@ -221,17 +221,12 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 		for _, endpoint := range output.DevEndpoints {
 			d.StreamListItem(ctx, endpoint)
-			plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)
+
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -250,7 +245,7 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpoint", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpoint", "connection_error", err)
 		return nil, err
 	}
 
@@ -281,7 +276,7 @@ func getGlueDevEndpointArn(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpointArn", "api_error", err)
+		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpointArn", "coomon_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

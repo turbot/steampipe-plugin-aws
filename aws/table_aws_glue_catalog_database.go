@@ -95,7 +95,7 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "service_error", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "connection_error", err)
 		return nil, err
 	}
 
@@ -137,15 +137,15 @@ func listGlueCatalogDatabases(ctx context.Context, d *plugin.QueryData, _ *plugi
 		}
 		for _, database := range output.DatabaseList {
 			d.StreamListItem(ctx, database)
-			plugin.Logger(ctx).Error("aws_glue_catalog_database.listGlueCatalogDatabases", "api_error", err)
+
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
 	}
-	return nil, err
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -156,7 +156,7 @@ func getGlueCatalogDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabase", "service_error", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabase", "connection_error", err)
 		return nil, err
 	}
 
@@ -188,7 +188,7 @@ func getGlueCatalogDatabaseAkas(ctx context.Context, d *plugin.QueryData, h *plu
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabaseAkas", "getCommonColumnsCached_error", err)
+		plugin.Logger(ctx).Error("aws_glue_catalog_database.getGlueCatalogDatabaseAkas", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)

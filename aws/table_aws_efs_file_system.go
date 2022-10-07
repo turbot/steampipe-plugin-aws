@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/efs/types"
@@ -160,7 +161,7 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	// Create Session
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_efs_file_system.listElasticFileSystem", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_efs_file_system.listElasticFileSystem", "connection_error", err)
 		return nil, err
 	}
 
@@ -201,15 +202,15 @@ func listElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		}
 		for _, fileSystem := range output.FileSystems {
 			d.StreamListItem(ctx, fileSystem)
-			plugin.Logger(ctx).Error("aws_efs_access_point.listElasticFileSystem", "api_error", err)
+
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
 	}
-	return nil, err
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -218,7 +219,7 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	// Create service
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_efs_file_system.listElasticFileSystem", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_efs_file_system.listElasticFileSystem", "connection_error", err)
 		return nil, err
 	}
 
@@ -236,12 +237,14 @@ func getElasticFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	op, err := svc.DescribeFileSystems(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "api_error", err)
 		return nil, err
 	}
 
 	if op.FileSystems != nil && len(op.FileSystems) > 0 {
 		return op.FileSystems[0], nil
 	}
+
 	return nil, nil
 }
 
@@ -251,7 +254,7 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create session
 	svc, err := EFSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "connection_error", err)
 		return nil, err
 	}
 
@@ -268,12 +271,12 @@ func getElasticFileSystemPolicy(ctx context.Context, d *plugin.QueryData, h *plu
 	fileSystemPolicy, err := svc.DescribeFileSystemPolicy(ctx, param)
 	if err != nil {
 		if a, ok := err.(smithy.APIError); ok {
-			plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "api_error", err)
 			if a.ErrorCode() == "PolicyNotFound" {
 				return nil, nil
 			}
 			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_efs_file_system.getElasticFileSystemPolicy", "api_error", err)
 	}
 	return fileSystemPolicy, nil
 }

@@ -172,7 +172,7 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 	// Create session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "connection_error", err)
 		return nil, err
 	}
 
@@ -201,6 +201,7 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})
+
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -209,17 +210,12 @@ func listGlueJobs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		}
 		for _, job := range output.Jobs {
 			d.StreamListItem(ctx, job)
-			plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
+
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_job.listGlueJobs", "api_error", err)
-		return nil, err
 	}
 
 	return nil, nil
@@ -238,7 +234,7 @@ func getGlueJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_job.getGlueJob", "connection_error", err)
 		return nil, err
 	}
 
@@ -267,7 +263,7 @@ func getGlueJobBookmark(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	// Create Session
 	svc, err := GlueClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobBookmark", "connection_error", err)
 		return nil, err
 	}
 
@@ -298,7 +294,7 @@ func getGlueJobArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobArn", "api_error", err)
+		plugin.Logger(ctx).Error("aws_glue_job.getGlueJobArn", "common_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
