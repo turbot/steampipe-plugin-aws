@@ -3,7 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -18,7 +19,7 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("hub_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAccessException", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException", "ResourceNotFoundException"}),
 			},
 			Hydrate: getSecurityHub,
 		},
@@ -75,16 +76,17 @@ func tableAwsSecurityHub(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubs")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "client_error", err)
 		return nil, err
 	}
 
+
 	// List call
-	resp, err := svc.DescribeHub(&securityhub.DescribeHubInput{})
+	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 
 	if err != nil {
 		plugin.Logger(ctx).Error("listSecurityHubs", "query_error", err)
@@ -99,13 +101,13 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHub")
 
 	hubArn := d.KeyColumnQuals["hub_arn"].GetStringValue()
 
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "client_error", err)
 		return nil, err
 	}
 
@@ -114,20 +116,21 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		HubArn: &hubArn,
 	}
 
-	// Get call
-	op, err := svc.DescribeHub(params)
+	// Execute get call
+	data, err := svc.DescribeHub(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHub", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)
 		return nil, err
 	}
-	return op, nil
+	return data.HubArn, nil
 }
 
 func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "service_creation_error", err)
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "client_error", err)
 		return nil, err
 	}
 
@@ -135,22 +138,22 @@ func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData
 	params := &securityhub.GetAdministratorAccountInput{}
 
 	// Get call
-	op, err := svc.GetAdministratorAccount(params)
+	data, err := svc.GetAdministratorAccount(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubAdministratorAccount", "api_error", err)
 		return nil, err
 	}
-	return op.Administrator, nil
+	return data.Administrator, nil
 }
 
 func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHubTags")
 
 	hubArn := *h.Item.(*securityhub.DescribeHubOutput).HubArn
 
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubTags", "client_error", err)
 		return nil, err
 	}
 
@@ -160,9 +163,9 @@ func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHubTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHubTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil
