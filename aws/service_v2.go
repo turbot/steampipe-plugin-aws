@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -34,10 +35,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -184,6 +187,17 @@ func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch
 	return cloudwatchlogs.NewFromConfig(*cfg), nil
 }
 
+func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cloudformation.NewFromConfig(*cfg), nil
+}
+
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, "codeartifact")
 	if err != nil {
@@ -297,6 +311,28 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancin
 		return nil, err
 	}
 	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
+}
+
+func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return efs.NewFromConfig(*cfg), nil
+}
+
+func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return glue.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
