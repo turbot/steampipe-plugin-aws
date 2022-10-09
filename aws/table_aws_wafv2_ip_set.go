@@ -137,12 +137,17 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2IpSets", "AWS_REGION", region)
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List all IP sets
@@ -167,6 +172,7 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	for pagesLeft {
 		response, err := svc.ListIPSets(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_ip_set.listAwsWafv2IpSets", "api_error", err)
 			return nil, err
 		}
 
@@ -193,8 +199,6 @@ func listAwsWafv2IpSets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2IpSet")
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	var id, name, scope string
 	if h.Item != nil {
@@ -236,7 +240,13 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Create Session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &wafv2.GetIPSetInput{
@@ -247,7 +257,7 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	op, err := svc.GetIPSet(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetIPSet", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.getAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}
 
@@ -258,15 +268,12 @@ func getAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2IpSet")
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	if region == "global" {
 		region = "us-east-1"
 	}
 	data := ipSetData(h.Item)
-	plugin.Logger(ctx).Error("listTagsForAwsWafv2IpSet.data[Arn]", string(data["Arn"]))
 	locationType := strings.Split(strings.Split(string(data["Arn"]), ":")[5], "/")[0]
 	// To work with CloudFront, you must specify the Region US East (N. Virginia)
 	if locationType == "global" && region != "us-east-1" {
@@ -276,7 +283,13 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listTagsForAwsWafv2IpSet", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
@@ -287,6 +300,7 @@ func listTagsForAwsWafv2IpSet(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	ipSetTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_ip_set.listTagsForAwsWafv2IpSet", "api_error", err)
 		return nil, err
 	}
 	return ipSetTags, nil
@@ -304,7 +318,6 @@ func ipSetLocation(_ context.Context, d *transform.TransformData) (interface{}, 
 }
 
 func ipSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("ipSetTagListToTurbotTags")
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {

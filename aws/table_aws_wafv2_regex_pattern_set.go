@@ -135,14 +135,18 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
-	plugin.Logger(ctx).Trace("listAwsWafv2RegexPatternSets", "AWS_REGION", region)
-
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "connection_error", err)
 		return nil, err
 	}
 
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+	
 	// List all Regex Pattern Sets
 	pagesLeft := true
 	maxLimit := int32(100)
@@ -165,6 +169,7 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	for pagesLeft {
 		response, err := svc.ListRegexPatternSets(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listAwsWafv2RegexPatternSets", "api_error", err)
 			return nil, err
 		}
 
@@ -191,8 +196,6 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 //// HYDRATE FUNCTIONS
 
 func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsWafv2RegexPatternSet")
-
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	var id, name, scope string
@@ -235,7 +238,13 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 	// Create Session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	params := &wafv2.GetRegexPatternSetInput{
@@ -246,7 +255,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 
 	op, err := svc.GetRegexPatternSet(ctx,params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("GetRegexPatternSet", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}
 
@@ -257,7 +266,6 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 // due to which pagination will not work properly
 // https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listTagsForAwsWafv2RegexPatternSet")
 
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
@@ -275,7 +283,13 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "connection_error", err)
 		return nil, err
+	}
+
+  if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build param with maximum limit set
@@ -286,6 +300,7 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 
 	regexPatternSetTags, err := svc.ListTagsForResource(ctx,param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
 	}
 	return regexPatternSetTags, nil
@@ -303,7 +318,6 @@ func regexPatternSetLocation(_ context.Context, d *transform.TransformData) (int
 }
 
 func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("regexPatternSetTagListToTurbotTags")
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
@@ -323,7 +337,6 @@ func regexPatternSetTagListToTurbotTags(ctx context.Context, d *transform.Transf
 }
 
 func regularExpressionObjectListToRegularExpressionList(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("regularExpressionObjectListToRegularExpressionList")
 	data := d.HydrateItem.(*wafv2.GetRegexPatternSetOutput)
 
 	if data.RegexPatternSet.RegularExpressionList == nil || len(data.RegexPatternSet.RegularExpressionList) < 1 {
