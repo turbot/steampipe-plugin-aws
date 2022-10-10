@@ -7,8 +7,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -124,13 +124,14 @@ func tableAwsElastiCacheReservedCacheNode(_ context.Context) *plugin.Table {
 
 func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_reserved_cache_node.listElastiCacheReservedCacheNodes", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &elasticache.DescribeReservedCacheNodesInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
 	if d.KeyColumnQuals["cache_node_type"] != nil {
@@ -148,36 +149,54 @@ func listElastiCacheReservedCacheNodes(ctx context.Context, d *plugin.QueryData,
 	if d.KeyColumnQuals["reserved_cache_nodes_offering_id"] != nil {
 		input.ReservedCacheNodesOfferingId = aws.String(d.KeyColumnQuals["reserved_cache_nodes_offering_id"].GetStringValue())
 	}
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
 	// List call
-	err = svc.DescribeReservedCacheNodesPages(
-		input,
-		func(page *elasticache.DescribeReservedCacheNodesOutput, isLast bool) bool {
-			for _, reservedCacheNode := range page.ReservedCacheNodes {
-				d.StreamListItem(ctx, reservedCacheNode)
+	// err = svc.DescribeReservedCacheNodesPages(
+	// 	input,
+	// 	func(page *elasticache.DescribeReservedCacheNodesOutput, isLast bool) bool {
+	// 		for _, reservedCacheNode := range page.ReservedCacheNodes {
+	// 			d.StreamListItem(ctx, reservedCacheNode)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// 			// Context may get cancelled due to manual cancellation or if the limit has been reached
+	// 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+	// 				return false
+	// 			}
+	// 		}
+	// 		return !isLast
+	// 	},
+	// )
+
+	// List call
+	paginator := elasticache.NewDescribeReservedCacheNodesPaginator(svc, input, func(o *elasticache.DescribeReservedCacheNodesPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_reserved_cache_node.listElastiCacheReservedCacheNodes", "api_error", err)
+			return nil, err
+		}
+
+		for _, reservedCacheNode := range output.ReservedCacheNodes {
+			d.StreamListItem(ctx, reservedCacheNode)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("listElastiCacheReservedCacheNodes", "DescribeReservedCacheNodesPages", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
@@ -195,8 +214,9 @@ func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_reserved_cache_node.getElastiCacheReservedCacheNode", "get_client_error", err)
 		return nil, err
 	}
 
@@ -204,9 +224,9 @@ func getElastiCacheReservedCacheNode(ctx context.Context, d *plugin.QueryData, _
 		ReservedCacheNodeId: aws.String(reservedCacheNodeId),
 	}
 
-	op, err := svc.DescribeReservedCacheNodes(params)
+	op, err := svc.DescribeReservedCacheNodes(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getElastiCacheReservedCacheNode", "DescribeReservedCacheNodes", err)
+		plugin.Logger(ctx).Error("aws_elasticache_reserved_cache_node.getElastiCacheReservedCacheNode", "api_error", err)
 		return nil, err
 	}
 

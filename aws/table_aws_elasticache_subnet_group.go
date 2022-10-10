@@ -6,8 +6,8 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -77,41 +77,48 @@ func tableAwsElastiCacheSubnetGroup(_ context.Context) *plugin.Table {
 
 func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_subnet_group.listElastiCacheSubnetGroups", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &elasticache.DescribeCacheSubnetGroupsInput{
-		MaxRecords: aws.Int64(100),
+		MaxRecords: aws.Int32(100),
 	}
 
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxRecords {
-			if *limit < 20 {
-				input.MaxRecords = aws.Int64(20)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < *input.MaxRecords {
+			if limit < 20 {
+				input.MaxRecords = aws.Int32(20)
 			} else {
-				input.MaxRecords = limit
+				input.MaxRecords = aws.Int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeCacheSubnetGroupsPages(
-		input,
-		func(page *elasticache.DescribeCacheSubnetGroupsOutput, isLast bool) bool {
-			for _, cacheSubnetGroup := range page.CacheSubnetGroups {
-				d.StreamListItem(ctx, cacheSubnetGroup)
+	paginator := elasticache.NewDescribeCacheSubnetGroupsPaginator(svc, input, func(o *elasticache.DescribeCacheSubnetGroupsPaginatorOptions) {
+		o.Limit = *input.MaxRecords
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_elasticache_subnet_group.listElastiCacheSubnetGroups", "api_error", err)
+			return nil, err
+		}
+
+		for _, cacheSubnetGroup := range output.CacheSubnetGroups {
+			d.StreamListItem(ctx, cacheSubnetGroup)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -119,11 +126,10 @@ func listElastiCacheSubnetGroups(ctx context.Context, d *plugin.QueryData, _ *pl
 //// HYDRATE FUNCTIONS
 
 func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getElastiCacheSubnetGroup")
-
 	// Create service
-	svc, err := ElastiCacheService(ctx, d)
+	svc, err := ElastiCacheClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_subnet_group.getElastiCacheSubnetGroup", "get_client_error", err)
 		return nil, err
 	}
 
@@ -134,8 +140,9 @@ func getElastiCacheSubnetGroup(ctx context.Context, d *plugin.QueryData, _ *plug
 		CacheSubnetGroupName: aws.String(cacheSubnetGroupName),
 	}
 
-	op, err := svc.DescribeCacheSubnetGroups(params)
+	op, err := svc.DescribeCacheSubnetGroups(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_elasticache_subnet_group.getElastiCacheSubnetGroup", "api_error", err)
 		return nil, err
 	}
 
