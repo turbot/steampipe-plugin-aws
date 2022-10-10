@@ -54,7 +54,7 @@ resource "aws_config_configuration_recorder" "configuration_recorder" {
 }
 
 resource "aws_iam_role" "r" {
-  name = "awsconfig-example"
+  name = var.resource_name
 
   assume_role_policy = <<POLICY
 {
@@ -118,5 +118,3 @@ output "resource_name" {
 output "resource_aka" {
   value = aws_config_conformance_pack.named_test_resource.arn
 }
-
-
