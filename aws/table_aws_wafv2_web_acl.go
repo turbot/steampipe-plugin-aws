@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2"
 	"github.com/aws/aws-sdk-go-v2/service/wafv2/types"
 	"github.com/aws/smithy-go"
@@ -406,37 +407,69 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Create session
-	svc, err := WAFV2Client(ctx, d, region)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// unsupported region check
-		return nil, nil
-	}
-	// Build param
-	param := &wafv2.ListResourcesForWebACLInput{
-		WebACLArn: aws.String(data["Arn"]),
-	}
-
-	op, err := svc.ListResourcesForWebACL(ctx, param)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
-		var ae smithy.APIError
-		if errors.As(err, &ae) {
-			if ae.ErrorCode() == "WAFNonexistentItemException" {
-				return nil, nil
-			}
+	if locationType == "global" {
+		svc, err := CloudFrontClient(ctx, d)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "connection_error", err)
+			return nil, err
 		}
-		return nil, err
-	}
+		if svc == nil {
+			// unsupported region check
+			return nil, nil
+		}
+		// Build param
+		param := &cloudfront.ListDistributionsByWebACLIdInput{
+			WebACLId: aws.String(data["ID"]),
+		}
 
-	if len(op.ResourceArns) == 0 {
-		return nil, nil
-	}
+		op, err := svc.ListDistributionsByWebACLId(ctx, param)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "WAFNonexistentItemException" {
+					return nil, nil
+				}
+			}
+			return nil, err
+		}
+		var ARNs []string
+		for i := 0; i < len(op.DistributionList.Items); i++ {
+			ARNs[i] = *op.DistributionList.Items[i].ARN
+		}
+		return ARNs, nil
+	} else {
+		svc, err := WAFV2Client(ctx, d, region)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "connection_error", err)
+			return nil, err
+		}
+		if svc == nil {
+			// unsupported region check
+			return nil, nil
+		}
+		// Build param
+		param := &wafv2.ListResourcesForWebACLInput{
+			WebACLArn: aws.String(data["Arn"]),
+		}
 
-	return op.ResourceArns, nil
+		op, err := svc.ListResourcesForWebACL(ctx, param)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "WAFNonexistentItemException" {
+					return nil, nil
+				}
+			}
+			return nil, err
+		}
+		if len(op.ResourceArns) == 0 {
+			return nil, nil
+		}
+
+		return op.ResourceArns, nil
+	}
 }
 
 //// TRANSFORM FUNCTIONS
