@@ -4,8 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
@@ -75,61 +74,66 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubInsights")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "client_error", err)
 		return nil, err
 	}
 
-	input := &securityhub.GetInsightsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetInsightsPages(
-		input,
-		func(page *securityhub.GetInsightsOutput, isLast bool) bool {
-			for _, insight := range page.Insights {
-				d.StreamListItem(ctx, insight)
+	input := &securityhub.GetInsightsInput{
+		MaxResults: int32(maxLimit),
+	}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := securityhub.NewGetInsightsPaginator(svc, input, func(o *securityhub.GetInsightsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "api_error", err)
+			return nil, err
+		}
+
+		for _, insight := range output.Insights {
+			d.StreamListItem(ctx, insight)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
+		}
+	}
+// End if
 	if err != nil {
 		// Handle error for accounts that are not subscribed to AWS Security Hub
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("listSecurityHubInsights", "list", err)
+		plugin.Logger(ctx).Error("aws_securityhub_insight.listSecurityHubInsights", "list", err)
 	}
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getSecurityHubInsight")
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
@@ -139,24 +143,25 @@ func getSecurityHubInsight(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "client_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &securityhub.GetInsightsInput{
-		InsightArns: []*string{aws.String(arn)},
+		InsightArns: []string{arn},
 	}
 
 	// Get call
-	data, err := svc.GetInsights(params)
+	data, err := svc.GetInsights(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_insight.getSecurityHubInsight", "api_error", err)
 		// Handle error for accounts that are not subscribed to AWS Security Hub
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getSecurityHubInsight", "get", err)
 	}
 	if len(data.Insights) > 0 {
 		return data.Insights[0], nil
