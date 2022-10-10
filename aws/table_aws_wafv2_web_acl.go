@@ -517,7 +517,7 @@ func webAclRegion(ctx context.Context, d *transform.TransformData) (interface{},
 func webAclData(item interface{}) map[string]string {
 	data := map[string]string{}
 	switch item := item.(type) {
-	case types.WebACL:
+	case *types.WebACL:
 		data["ID"] = *item.Id
 		data["Arn"] = *item.ARN
 		data["Name"] = *item.Name
