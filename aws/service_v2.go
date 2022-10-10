@@ -35,6 +35,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -265,6 +266,14 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancin
 		return nil, err
 	}
 	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
+}
+
+func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return eventbridge.NewFromConfig(*cfg), nil
 }
 
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
