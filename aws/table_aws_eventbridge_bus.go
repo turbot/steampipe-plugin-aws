@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
-	
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -138,7 +138,6 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 			})
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				// break
 				return nil, nil
 			}
 		}
@@ -201,7 +200,7 @@ func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	// Get call
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "api_error", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBusTags", "api_error", err)
 		return nil, err
 	}
 

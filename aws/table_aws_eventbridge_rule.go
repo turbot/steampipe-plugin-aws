@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eventbridge"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+
+	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,7 +19,7 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAwsEventBridgeRule,
 		},
@@ -123,47 +125,53 @@ func tableAwsEventBridgeRule(_ context.Context) *plugin.Table {
 func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var eventBusName string
 	if h.Item != nil {
-		eventBusName = *h.Item.(*eventbridge.DescribeEventBusOutput).Name
+		data := h.Item.(*eventbridge.DescribeEventBusOutput)
+		eventBusName = types.SafeString(data.Name)
+	} else {
+		eventBusName = d.KeyColumnQuals["name"].GetStringValue()
 	}
 
-	// Create session
-	svc, err := EventBridgeService(ctx, d)
+	// Get client
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_rule.listAwsEventBridgeRules", "get_client_error", err)
 		return nil, err
 	}
 
-	// List call
-	input := &eventbridge.ListRulesInput{
-		// Default to the maximum allowed
-		Limit: aws.Int64(100),
-	}
-	if eventBusName != "" {
-		input.EventBusName = &eventBusName
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name_prefix"] != nil {
-		input.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	for {
-		response, err := svc.ListRules(input)
+	pagesLeft := true
+	params := &eventbridge.ListRulesInput{
+		// Default to the maximum allowed
+		Limit: aws.Int32(maxLimit),
+	}
+	if eventBusName != "" {
+		params.EventBusName = &eventBusName
+	}
+
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name_prefix"] != nil {
+		params.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
+	}
+
+	for pagesLeft {
+		output, err := svc.ListRules(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_eventbridge_rule.listAwsEventBridgeRules", "api_error", err)
 			return nil, err
 		}
-		for _, rule := range response.Rules {
+		for _, rule := range output.Rules {
 			d.StreamListItem(ctx, &eventbridge.DescribeRuleOutput{
 				Name:         rule.Name,
 				Arn:          rule.Arn,
@@ -174,23 +182,23 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				break
+				return nil, nil
 			}
 		}
-		if response.NextToken == nil {
-			break
+		if output.NextToken != nil {
+			pagesLeft = true
+			params.NextToken = output.NextToken
+		} else {
+			pagesLeft = false
 		}
-		input.NextToken = response.NextToken
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeRule")
 
 	var name string
 	if h.Item != nil {
@@ -200,8 +208,9 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeRule", "get_client_error", err)
 		return nil, err
 	}
 	// Build the params
@@ -210,9 +219,9 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeRule(params)
+	data, err := svc.DescribeRule(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEventBridgeRule", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_rule.getAwsEventBridgeRule", "api_error", err)
 		return nil, err
 	}
 
@@ -220,15 +229,14 @@ func getAwsEventBridgeRule(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeTargetByRule")
 
 	eventbusname := h.Item.(*eventbridge.DescribeRuleOutput).EventBusName
 	name := h.Item.(*eventbridge.DescribeRuleOutput).Name
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeTargetByRule", "get_client_error", err)
 		return nil, err
 	}
 	// Build the params
@@ -237,8 +245,9 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 		Rule:         name,
 	}
 
-	data, err := svc.ListTargetsByRule(params)
+	data, err := svc.ListTargetsByRule(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_rule.getAwsEventBridgeTargetByRule", "api_error", err)
 		return nil, err
 	}
 
@@ -246,14 +255,13 @@ func getAwsEventBridgeTargetByRule(ctx context.Context, d *plugin.QueryData, h *
 }
 
 func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeRuleTags")
 
 	arn := h.Item.(*eventbridge.DescribeRuleOutput).Arn
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeRuleTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -263,9 +271,9 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsEventBridgeRuleTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_rule.getAwsEventBridgeRuleTags", "api_error", err)
 		return nil, err
 	}
 
