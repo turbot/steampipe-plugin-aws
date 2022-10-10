@@ -210,7 +210,7 @@ func tableAwsEcsService(_ context.Context) *plugin.Table {
 
 func listEcsServices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsClient(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecs_service.listEcsServices", "connection_error", err)
 		return nil, err
@@ -321,7 +321,7 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Create Session
-	svc, err := EcsClient(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecs_service.getEcsServiceTags", "connection_error", err)
 		return nil, err

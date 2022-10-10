@@ -143,7 +143,7 @@ func tableAwsEcsCluster(_ context.Context) *plugin.Table {
 
 func listEcsClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcsClient(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecs_cluster.listEcsClusters", "connection_error", err)
 		return nil, err
@@ -207,7 +207,7 @@ func getEcsCluster(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	// Create Session
-	svc, err := EcsClient(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecs_cluster.getEcsCluster", "connection_error", err)
 		return nil, err
@@ -240,7 +240,7 @@ func getAwsEcsClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
 	// Create service
-	svc, err := EcsClient(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecs_cluster.getAwsEcsClusterTags", "connection_error", err)
 		return nil, err

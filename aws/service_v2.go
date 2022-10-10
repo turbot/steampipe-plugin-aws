@@ -306,7 +306,7 @@ func ECRClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
 	return ecr.NewFromConfig(*cfg), nil
 }
 
-func EcsClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client,
+func ECSClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client,
 	error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
