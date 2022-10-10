@@ -37,6 +37,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
@@ -282,6 +283,14 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func IdentityStoreClient(ctx context.Context, d *plugin.QueryData) (*identitystore.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return identitystore.NewFromConfig(*cfg), nil
 }
 
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
