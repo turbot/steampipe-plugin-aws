@@ -3,9 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -160,9 +162,10 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "status",
-				Description: "The association status.",
-				Type:        proto.ColumnType_JSON,
+				Description: "The status of the association. Status can be: Pending, Success, or Failed.",
+				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsSSMAssociation,
+				Transform:   transform.FromField("Overview.Status"),
 			},
 			{
 				Name:        "targets",
@@ -197,31 +200,29 @@ func tableAwsSSMAssociation(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSSMAssociations")
 
 	// Create session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_association.listAwsSSMAssociations", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ssm.ListAssociationsInput{
-		MaxResults: aws.Int64(50),
-	}
-
-	filters := buildSsmAssociationFilter(d.Quals)
+	maxItems := int32(50)
+	input := &ssm.ListAssociationsInput{}
+	filters := buildSSMAssociationFilter(d.Quals)
 
 	quals := d.Quals
 	if quals["last_execution_date"] != nil {
-		f := &ssm.AssociationFilter{}
+		f := types.AssociationFilter{}
 		for _, q := range quals["last_execution_date"].Quals {
 			timestamp := q.Value.GetTimestampValue().AsTime()
 			switch q.Operator {
 			case ">=", ">":
-				f.Key = aws.String(ssm.AssociationFilterKeyLastExecutedAfter)
+				f.Key = types.AssociationFilterKeyLastExecutedAfter
 				f.Value = aws.String(fmt.Sprint(timestamp))
 			case "<", "<=":
-				f.Key = aws.String(ssm.AssociationFilterKeyLastExecutedBefore)
+				f.Key = types.AssociationFilterKeyLastExecutedBefore
 				f.Value = aws.String(fmt.Sprint(timestamp))
 			}
 		}
@@ -231,41 +232,48 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if len(filters) > 0 {
 		input.AssociationFilterList = filters
 	}
+
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.ListAssociationsPages(
-		input,
-		func(page *ssm.ListAssociationsOutput, isLast bool) bool {
-			for _, association := range page.Associations {
-				d.StreamListItem(ctx, association)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := ssm.NewListAssociationsPaginator(svc, input, func(o *ssm.ListAssociationsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssm_association.listAwsSSMAssociations", "api_error", err)
+			return nil, err
+		}
+
+		for _, association := range output.Associations {
+			d.StreamListItem(ctx, association)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsSSMAssociation")
 
 	var id string
 	if h.Item != nil {
@@ -274,9 +282,15 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		id = d.KeyColumnQuals["association_id"].GetStringValue()
 	}
 
+	// Empty input id check
+	if strings.TrimSpace(id) == "" {
+		return nil, nil
+	}
+
 	// Create Session
-	svc, err := SsmService(ctx, d)
+	svc, err := SSMClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_association.getAwsSSMAssociation", "connection_error", err)
 		return nil, err
 	}
 
@@ -286,21 +300,21 @@ func getAwsSSMAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	}
 
 	// Get call
-	data, err := svc.DescribeAssociation(params)
+	data, err := svc.DescribeAssociation(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getAwsSSMAssociation", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_ssm_association.getAwsSSMAssociation", "api_error", err)
 		return nil, err
 	}
-	return data.AssociationDescription, nil
+	return *data.AssociationDescription, nil
 }
 
 func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSSMAssociationARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
 	associationData := associationID(h.Item)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssm_association.getSSMAssociationARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
@@ -311,9 +325,9 @@ func getSSMAssociationARN(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func associationID(item interface{}) string {
 	switch item := item.(type) {
-	case *ssm.Association:
+	case types.Association:
 		return *item.AssociationId
-	case *ssm.AssociationDescription:
+	case types.AssociationDescription:
 		return *item.AssociationId
 	}
 	return ""
@@ -322,26 +336,26 @@ func associationID(item interface{}) string {
 //// UTILITY FUNCTION
 
 // Build ssm association list call input filter
-func buildSsmAssociationFilter(quals plugin.KeyColumnQualMap) []*ssm.AssociationFilter {
-	filters := make([]*ssm.AssociationFilter, 0)
+func buildSSMAssociationFilter(quals plugin.KeyColumnQualMap) []types.AssociationFilter {
+	filters := make([]types.AssociationFilter, 0)
 
 	filterQuals := map[string]string{
-		"association_name": ssm.AssociationFilterKeyAssociationName,
-		"instance_id":      ssm.AssociationFilterKeyInstanceId,
-		"status":           ssm.AssociationFilterKeyAssociationStatusName,
+		"association_name": string(types.AssociationFilterKeyAssociationName),
+		"instance_id":      string(types.AssociationFilterKeyInstanceId),
+		"status":           string(types.AssociationFilterKeyStatus),
 	}
 
 	for columnName, filterName := range filterQuals {
 		if quals[columnName] != nil {
-			filter := ssm.AssociationFilter{
-				Key: aws.String(filterName),
+			filter := types.AssociationFilter{
+				Key: types.AssociationFilterKey(filterName),
 			}
 
 			value := getQualsValueByColumn(quals, columnName, "string")
 			val, ok := value.(string)
 			if ok {
 				filter.Value = aws.String(val)
-				filters = append(filters, &filter)
+				filters = append(filters, filter)
 			}
 		}
 	}
