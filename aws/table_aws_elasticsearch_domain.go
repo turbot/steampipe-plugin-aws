@@ -286,7 +286,7 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 		return nil, nil
 	}
 
-	arn := h.HydrateResults["getAwsElasticsearchDomain"].(types.ElasticsearchDomainStatus).ARN
+	arn := h.HydrateResults["getAwsElasticsearchDomain"].(*types.ElasticsearchDomainStatus).ARN
 
 	// Create Session
 	svc, err := ElasticsearchClient(ctx, d)
