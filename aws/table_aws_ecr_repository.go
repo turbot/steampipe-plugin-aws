@@ -215,8 +215,6 @@ func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.
 ////  HYDRATE FUNCTIONS
 
 func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEcrRepositories")
 
 	var name string
 	if h.Item != nil {
