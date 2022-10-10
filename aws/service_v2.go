@@ -281,7 +281,7 @@ func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client,
 	return ec2.NewFromConfig(*cfg), nil
 }
 
-func EcrClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
+func ECRClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
 	error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -299,7 +299,7 @@ func EcsClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client,
 	return ecs.NewFromConfig(*cfg), nil
 }
 
-func EcrPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client,
+func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client,
 	error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {

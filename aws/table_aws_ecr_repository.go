@@ -158,7 +158,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 
 func listAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositories", "connection_error", err)
 		return nil, err
@@ -226,7 +226,7 @@ func getAwsEcrRepositories(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositories", "connection_error", err)
 		return nil, err
@@ -251,7 +251,7 @@ func listAwsEcrRepositoryTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	resourceArn := h.Item.(types.Repository).RepositoryArn
 
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.listAwsEcrRepositoryTags", "connection_error", err)
 		return nil, err
@@ -278,7 +278,7 @@ func getAwsEcrRepositoryPolicy(ctx context.Context, d *plugin.QueryData, h *plug
 	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryPolicy", "connection_error", err)
 		return nil, err
@@ -307,7 +307,7 @@ func getAwsEcrDescribeImages(ctx context.Context, d *plugin.QueryData, h *plugin
 	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImages", "connection_error", err)
 		return nil, err
@@ -338,7 +338,7 @@ func getAwsEcrDescribeImageScanningFindings(ctx context.Context, d *plugin.Query
 	}
 	images := imageDetails.(*ecr.DescribeImagesOutput)
 
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrDescribeImageScanningFindings", "connection_error", err)
 		return nil, err
@@ -403,7 +403,7 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	// Create Session
-	svc, err := EcrClient(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "connection_error", err)
 		return nil, err
