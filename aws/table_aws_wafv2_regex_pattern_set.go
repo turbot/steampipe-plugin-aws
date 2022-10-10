@@ -146,7 +146,7 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 		// unsupported region check
 		return nil, nil
 	}
-	
+
 	// List all Regex Pattern Sets
 	pagesLeft := true
 	maxLimit := int32(100)
@@ -155,9 +155,9 @@ func listAwsWafv2RegexPatternSets(ctx context.Context, d *plugin.QueryData, _ *p
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit= int32(*limit)
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -253,7 +253,7 @@ func getAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData, h *plu
 		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetRegexPatternSet(ctx,params)
+	op, err := svc.GetRegexPatternSet(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.getAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err
@@ -287,7 +287,7 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 		return nil, err
 	}
 
-  if svc == nil {
+	if svc == nil {
 		// unsupported region check
 		return nil, nil
 	}
@@ -298,7 +298,7 @@ func listTagsForAwsWafv2RegexPatternSet(ctx context.Context, d *plugin.QueryData
 		Limit:       aws.Int32(100),
 	}
 
-	regexPatternSetTags, err := svc.ListTagsForResource(ctx,param)
+	regexPatternSetTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafv2_regex_pattern_set.listTagsForAwsWafv2RegexPatternSet", "api_error", err)
 		return nil, err

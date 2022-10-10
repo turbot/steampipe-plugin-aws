@@ -391,7 +391,7 @@ func getLoggingConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin
 }
 
 func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	
+
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	if region == "global" {
@@ -419,19 +419,19 @@ func listAssociatedResources(ctx context.Context, d *plugin.QueryData, h *plugin
 	param := &wafv2.ListResourcesForWebACLInput{
 		WebACLArn: aws.String(data["Arn"]),
 	}
-	
-		op, err := svc.ListResourcesForWebACL(ctx, param)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "WAFNonexistentItemException" {
-					return nil, nil
-				}
+
+	op, err := svc.ListResourcesForWebACL(ctx, param)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_wafv2_web_acl.listAssociatedResources", "api_error", err)
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "WAFNonexistentItemException" {
+				return nil, nil
 			}
-			return nil, err
 		}
-	
+		return nil, err
+	}
+
 	if len(op.ResourceArns) == 0 {
 		return nil, nil
 	}

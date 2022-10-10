@@ -227,7 +227,7 @@ func listAwsElasticsearchDomains(ctx context.Context, d *plugin.QueryData, _ *pl
 	// List call
 	params := &elasticsearchservice.ListDomainNamesInput{}
 
-	op, err := svc.ListDomainNames(ctx,params)
+	op, err := svc.ListDomainNames(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomain", "api_error", err)
 		return nil, err
@@ -270,7 +270,7 @@ func getAwsElasticsearchDomain(ctx context.Context, d *plugin.QueryData, h *plug
 	}
 
 	// Get call
-	data, err := svc.DescribeElasticsearchDomain(ctx,params)
+	data, err := svc.DescribeElasticsearchDomain(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticsearch_domain.getAwsElasticsearchDomain", "api_error", err)
 		return nil, err
@@ -301,7 +301,7 @@ func listAwsElasticsearchDomainTags(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Get call
-	op, err := svc.ListTags(ctx,params)
+	op, err := svc.ListTags(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_elasticsearch_domain.listAwsElasticsearchDomainTags", "api_error", err)
 		return nil, err

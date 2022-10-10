@@ -32,10 +32,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -351,7 +351,7 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 	return sns.NewFromConfig(*cfg), nil
 }
 
-func WAFV2Client(ctx context.Context, d *plugin.QueryData,region string) (*wafv2.Client, error) {
+func WAFV2Client(ctx context.Context, d *plugin.QueryData, region string) (*wafv2.Client, error) {
 	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err

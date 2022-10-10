@@ -149,7 +149,6 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		region = "us-east-1"
 		scope = types.ScopeCloudfront
 	}
-	
 
 	// Create session
 	svc, err := WAFV2Client(ctx, d, region)
@@ -171,9 +170,9 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit= int32(*limit)
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -183,7 +182,7 @@ func listAwsWafv2RuleGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 
 	for pagesLeft {
-		response, err := svc.ListRuleGroups(ctx,params)
+		response, err := svc.ListRuleGroups(ctx, params)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_wafv2_rule_group.listAwsWafv2RuleGroups", "api_error", err)
 			return nil, err
@@ -270,7 +269,7 @@ func getAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		Scope: types.Scope(scope),
 	}
 
-	op, err := svc.GetRuleGroup(ctx,params)
+	op, err := svc.GetRuleGroup(ctx, params)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.getAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
@@ -314,7 +313,7 @@ func listTagsForAwsWafv2RuleGroup(ctx context.Context, d *plugin.QueryData, h *p
 		Limit:       aws.Int32(100),
 	}
 
-	ruleGroupTags, err := svc.ListTagsForResource(ctx,param)
+	ruleGroupTags, err := svc.ListTagsForResource(ctx, param)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_wafv2_rule_group.listTagsForAwsWafv2RuleGroup", "api_error", err)
 		return nil, err
@@ -334,7 +333,7 @@ func ruleGroupLocation(_ context.Context, d *transform.TransformData) (interface
 }
 
 func ruleGroupTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	
+
 	data := d.HydrateItem.(*wafv2.ListTagsForResourceOutput)
 
 	if data.TagInfoForResource.TagList == nil || len(data.TagInfoForResource.TagList) < 1 {
