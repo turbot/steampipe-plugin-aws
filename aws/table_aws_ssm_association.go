@@ -210,8 +210,20 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	maxItems := int32(50)
 	input := &ssm.ListAssociationsInput{}
-	filters := buildSSMAssociationFilter(d.Quals)
 
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
+			} else {
+				maxItems = int32(limit)
+			}
+		}
+	}
+
+	filters := buildSSMAssociationFilter(d.Quals)
 	quals := d.Quals
 	if quals["last_execution_date"] != nil {
 		f := types.AssociationFilter{}
@@ -231,18 +243,6 @@ func listAwsSSMAssociations(ctx context.Context, d *plugin.QueryData, _ *plugin.
 
 	if len(filters) > 0 {
 		input.AssociationFilterList = filters
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	if d.QueryContext.Limit != nil {
-		limit := int32(*d.QueryContext.Limit)
-		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
-		}
 	}
 
 	input.MaxResults = aws.Int32(maxItems)
