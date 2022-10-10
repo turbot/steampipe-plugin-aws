@@ -84,7 +84,6 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		return nil, err
 	}
 
-
 	// List call
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
 
@@ -122,7 +121,7 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)
 		return nil, err
 	}
-	return data.HubArn, nil
+	return data, nil
 }
 
 func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -147,7 +146,6 @@ func getSecurityHubAdministratorAccount(ctx context.Context, d *plugin.QueryData
 }
 
 func getSecurityHubTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	hubArn := *h.Item.(*securityhub.DescribeHubOutput).HubArn
 
 	// Create session
