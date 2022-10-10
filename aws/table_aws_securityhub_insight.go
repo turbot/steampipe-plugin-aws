@@ -21,7 +21,7 @@ func tableAwsSecurityHubInsight(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getSecurityHubInsight,
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ResourceNotFoundException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ResourceNotFoundException", "InvalidInputException"}),
 			},
 		},
 		List: &plugin.ListConfig{
@@ -96,7 +96,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 	}
 
 	input := &securityhub.GetInsightsInput{
-		MaxResults: int32(maxLimit),
+		MaxResults: maxLimit,
 	}
 
 	paginator := securityhub.NewGetInsightsPaginator(svc, input, func(o *securityhub.GetInsightsPaginatorOptions) {
