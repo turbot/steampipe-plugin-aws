@@ -83,9 +83,8 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, err
 	}
 
-
-// Limiting the results
-	maxLimit := int32(500)
+	// Limiting the results
+	maxLimit := int32(50)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -102,63 +101,6 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		OnlyAssociated: false,
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	// limit := d.QueryContext.Limit
-	// if d.QueryContext.Limit != nil {
-	// 	if *limit < *input.MaxResults {
-	// 		if *limit < 1 {
-	// 			input.MaxResults = aws.Int64(1)
-	// 		} else {
-	// 			input.MaxResults = limit
-	// 		}
-	// 	}
-	// }
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-
-	// if d.QueryContext.Limit != nil {
-	// 	limit := int32(*d.QueryContext.Limit)
-	// 	if limit < input.MaxResults {
-	// 		if limit < 1 {
-	// 			input.MaxResults = int32(1)
-	// 		} else {
-	// 			input.MaxResults = int32(limit)
-	// 		}
-	// 	}
-	// }
-
-
-
-
-
-	// List call
-// 	err = svc.ListMembersPages(
-// 		input,
-// 		func(page *securityhub.ListMembersOutput, isLast bool) bool {
-// 			for _, member := range page.Members {
-// 				d.StreamListItem(ctx, member)
-
-// 				// Context may get cancelled due to manual cancellation or if the limit has been reached
-// 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-// 					return false
-// 				}
-// 			}
-// 			return !isLast
-// 		},
-// 	)
-
-// 	if err != nil {
-// 		// Handle error for accounts that are not subscribed to AWS Security Hub
-// 		if strings.Contains(err.Error(), "not subscribed") {
-// 			return nil, nil
-// 		}
-// 		plugin.Logger(ctx).Error("listSecurityHubMembers", "list", err)
-// 	}
-// 	return nil, err
-// }
-
-	// maxItems := int32(100)
-	// input.MaxResults = int32(maxItems)
 	paginator := securityhub.NewListMembersPaginator(svc, input, func(o *securityhub.ListMembersPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -180,12 +122,6 @@ func listSecurityHubMembers(ctx context.Context, d *plugin.QueryData, _ *plugin.
 			}
 		}
 	}
-	// if err != nil {
-	// 	// Handle error for accounts that are not subscribed to AWS Security Hub
-	// 	if strings.Contains(err.Error(), "not subscribed") {
-	// 		return nil, nil
-	// 	}
-	// 	plugin.Logger(ctx).Error("listSecurityHubMembers", "list", err)
-	// }
+
 	return nil, nil
 }

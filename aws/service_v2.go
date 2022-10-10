@@ -368,7 +368,6 @@ func SecurityHubClient(ctx context.Context, d *plugin.QueryData) (*securityhub.C
 	return securityhub.NewFromConfig(*cfg), nil
 }
 
-
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
 
 	sessionCacheKey := fmt.Sprintf("session-v2-%s", region)
