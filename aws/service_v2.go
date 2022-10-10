@@ -280,7 +280,7 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 	return docdb.NewFromConfig(*cfg), nil
 }
 
-func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
+func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
