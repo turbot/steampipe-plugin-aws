@@ -153,6 +153,7 @@ func listGuardDutyThreatIntelSets(ctx context.Context, d *plugin.QueryData, h *p
 				return nil, nil
 			}
 		}
+
 		if response.NextToken != nil {
 			pagesLeft = true
 			input.NextToken = response.NextToken

@@ -159,6 +159,7 @@ func listAwsGuardDutyIPSets(ctx context.Context, d *plugin.QueryData, h *plugin.
 				return nil, nil
 			}
 		}
+
 		if response.NextToken != nil {
 			pagesLeft = true
 			input.NextToken = response.NextToken

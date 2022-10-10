@@ -192,7 +192,7 @@ func getGuardDutyMember(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	if len(op.Members) > 0 {
-		return memberInfo{*&op.Members[0], detectorId}, nil
+		return memberInfo{op.Members[0], detectorId}, nil
 	}
 
 	return nil, nil
