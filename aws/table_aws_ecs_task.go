@@ -259,9 +259,7 @@ type tasksInfo struct {
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listEcsTasks")
 	equalQuals := d.KeyColumnQuals
-
 	clusterArn := h.Item.(types.Cluster).ClusterArn
 
 	// Create session
@@ -325,10 +323,13 @@ func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		taskArns = append(taskArns, output.TaskArns)
 	}
 
-	for _, arn := range taskArns {
+	for _, arns := range taskArns {
+		if len(arns) == 0 {
+			continue
+		}
 		input := &ecs.DescribeTasksInput{
 			Cluster: clusterArn,
-			Tasks:   arn,
+			Tasks:   arns,
 			Include: []types.TaskField{types.TaskFieldTags},
 		}
 
