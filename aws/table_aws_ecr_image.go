@@ -99,7 +99,7 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		}
 	}
 
-		// Limiting the results
+	// Limiting the results
 	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
@@ -129,7 +129,7 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		params.RegistryId = aws.String(d.KeyColumnQuals["registry_id"].GetStringValue())
 	}
 
-		paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
+	paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
 	})

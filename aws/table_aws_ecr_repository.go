@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/smithy-go"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -413,13 +415,14 @@ func getAwsEcrRepositoryLifecyclePolicy(ctx context.Context, d *plugin.QueryData
 	// Get call
 	op, err := svc.GetLifecyclePolicy(ctx, params)
 	if err != nil {
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "LifecyclePolicyNotFoundException" {
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "LifecyclePolicyNotFoundException" {
 				return nil, nil
 			}
-			plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "api_error", err)
-			return nil, err
 		}
+		plugin.Logger(ctx).Error("aws_ecr_repository.getAwsEcrRepositoryLifecyclePolicy", "api_error", err)
+		return nil, err
 	}
 	return op, nil
 }
