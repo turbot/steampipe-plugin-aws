@@ -24,12 +24,19 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6
 	github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13
 	github.com/aws/aws-sdk-go-v2/service/codedeploy v1.14.16
+	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/configservice v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.19.2
+	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.21.10
 	github.com/aws/aws-sdk-go-v2/service/dax v1.11.15
+	github.com/aws/aws-sdk-go-v2/service/directoryservice v1.14.11
+	github.com/aws/aws-sdk-go-v2/service/dlm v1.12.4
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16
+	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.19
 	github.com/aws/aws-sdk-go-v2/service/efs v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18
@@ -38,10 +45,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
 	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
+	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
+	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
+	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
+	github.com/aws/aws-sdk-go-v2/service/rds v1.25.5
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2

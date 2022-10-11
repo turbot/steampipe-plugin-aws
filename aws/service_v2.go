@@ -30,12 +30,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
+	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
@@ -44,10 +51,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/ram"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
@@ -266,6 +277,15 @@ func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Cli
 	return codedeploy.NewFromConfig(*cfg), nil
 }
 
+// CodePipelineClient returns the service connection for AWS CodePipeline service
+func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return codepipeline.NewFromConfig(*cfg), nil
+}
+
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
@@ -275,15 +295,36 @@ func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer
 	return costexplorer.NewFromConfig(*cfg), nil
 }
 
-func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, endpoints.DaxServiceID)
+func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-	if cfg == nil {
-		return nil, nil
+	return databasemigrationservice.NewFromConfig(*cfg), nil
+}
+
+func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
 	}
 	return dax.NewFromConfig(*cfg), nil
+}
+
+func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return directoryservice.NewFromConfig(*cfg), nil
+}
+
+func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return dlm.NewFromConfig(*cfg), nil
 }
 
 func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error) {
@@ -294,7 +335,7 @@ func DocDBClient(ctx context.Context, d *plugin.QueryData) (*docdb.Client, error
 	return docdb.NewFromConfig(*cfg), nil
 }
 
-func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
+func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
@@ -302,12 +343,40 @@ func DynamoDbClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client,
 	return dynamodb.NewFromConfig(*cfg), nil
 }
 
-func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client, error) {
+func EC2Client(ctx context.Context, d *plugin.QueryData) (*ec2.Client,
+	error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 	return ec2.NewFromConfig(*cfg), nil
+}
+
+func ECRClient(ctx context.Context, d *plugin.QueryData) (*ecr.Client,
+	error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ecr.NewFromConfig(*cfg), nil
+}
+
+func ECSClient(ctx context.Context, d *plugin.QueryData) (*ecs.Client,
+	error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ecs.NewFromConfig(*cfg), nil
+}
+
+func ECRPublicClient(ctx context.Context, d *plugin.QueryData) (*ecrpublic.Client,
+	error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ecrpublic.NewFromConfig(*cfg), nil
 }
 
 func Ec2RegionsClient(ctx context.Context, d *plugin.QueryData, region string) (*ec2.Client, error) {
@@ -395,6 +464,14 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	return iam.NewFromConfig(*cfg), nil
 }
 
+func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return inspector.NewFromConfig(*cfg), nil
+}
+
 func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kafka")
 	if err != nil {
@@ -442,6 +519,30 @@ func RedshiftClient(ctx context.Context, d *plugin.QueryData) (*redshift.Client,
 		return nil, err
 	}
 	return redshift.NewFromConfig(*cfg), nil
+}
+
+func PricingServiceClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, error) {
+	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
+	if err != nil {
+		return nil, err
+	}
+	return pricing.NewFromConfig(*cfg), nil
+}
+
+func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ram.NewFromConfig(*cfg), nil
+}
+
+func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rds.NewFromConfig(*cfg), nil
 }
 
 func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshiftserverless.Client, error) {
