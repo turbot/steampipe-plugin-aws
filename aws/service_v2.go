@@ -22,6 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
+	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -41,13 +43,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/efs"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
@@ -65,6 +72,9 @@ import (
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+
+	fsxEndpoint "github.com/aws/aws-sdk-go/service/fsx"
+	lambdaEndpoint "github.com/aws/aws-sdk-go/service/lambda"
 )
 
 // https://github.com/aws/aws-sdk-go-v2/issues/543
@@ -155,6 +165,37 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 	return autoscaling.NewFromConfig(*cfg), nil
 }
 
+func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
+	// CloudControl returns GeneralServiceException in a lot of situations, which
+	// AWS SDK treats as retryable. This is frustrating because we end up retrying
+	// many times for things that will never work.
+	// So, we use a specific client configuration for CloudControl with a smaller
+	// number of retries to avoid hangs. In effect, this service IGNORES the retry
+	// configuration in aws.spc - but, good enough for something that is rarely used
+	// anyway.
+	region := d.KeyColumnQualString(matrixKeyRegion)
+	if region == "" {
+		return nil, fmt.Errorf("CloudControlService called without a region in QueryData")
+	}
+
+	// Use a service level cache since we are going around the standard
+	// getSession with its caching.
+	serviceCacheKey := fmt.Sprintf("cloudcontrol-%s", region)
+	if cachedData, ok := d.ConnectionManager.Cache.Get(serviceCacheKey); ok {
+		return cachedData.(*cloudcontrol.Client), nil
+	}
+
+	cfg, err := getClientWithMaxRetries(ctx, d, region, 4, 25*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+	svc := cloudcontrol.NewFromConfig(*cfg)
+
+	d.ConnectionManager.Cache.Set(serviceCacheKey, svc)
+
+	return svc, nil
+}
+
 func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -192,7 +233,21 @@ func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch
 	if err != nil {
 		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
 	return cloudwatchlogs.NewFromConfig(*cfg), nil
+}
+
+func CloudFormationClient(ctx context.Context, d *plugin.QueryData) (*cloudformation.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return cloudformation.NewFromConfig(*cfg), nil
 }
 
 func CodeArtifactClient(ctx context.Context, d *plugin.QueryData) (*codeartifact.Client, error) {
@@ -368,6 +423,39 @@ func ELBV2Client(ctx context.Context, d *plugin.QueryData) (*elasticloadbalancin
 	return elasticloadbalancingv2.NewFromConfig(*cfg), nil
 }
 
+func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return efs.NewFromConfig(*cfg), nil
+}
+
+func FsxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return fsx.NewFromConfig(*cfg), nil
+}
+
+func GlueClient(ctx context.Context, d *plugin.QueryData) (*glue.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return glue.NewFromConfig(*cfg), nil
+}
+
 func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -393,6 +481,28 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 		return nil, nil
 	}
 	return kafka.NewFromConfig(*cfg), nil
+}
+
+func KMSClient(ctx context.Context, d *plugin.QueryData) (*kms.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "kms")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kms.NewFromConfig(*cfg), nil
+}
+
+func LambdaClient(ctx context.Context, d *plugin.QueryData) (*lambda.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, lambdaEndpoint.EndpointsID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return lambda.NewFromConfig(*cfg), nil
 }
 
 func OrganizationClient(ctx context.Context, d *plugin.QueryData) (*organizations.Client, error) {

@@ -16,6 +16,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.23.10
 	github.com/aws/aws-sdk-go-v2/service/backup v1.17.5
+	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.10.13
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14
@@ -29,19 +31,24 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dax v1.11.15
 	github.com/aws/aws-sdk-go-v2/service/directoryservice v1.14.11
 	github.com/aws/aws-sdk-go-v2/service/dlm v1.12.4
-	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.8
+	github.com/aws/aws-sdk-go-v2/service/docdb v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.9
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.52.1
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.16
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.19
+	github.com/aws/aws-sdk-go-v2/service/efs v1.17.15
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk v1.14.18
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12
+	github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14
+	github.com/aws/aws-sdk-go-v2/service/glue v1.32.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15
+	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.24.6
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18

@@ -3,12 +3,13 @@ package aws
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/fsx/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/fsx"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -76,7 +77,6 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 				Description: "The AWS account that created the file system.",
 				Type:        proto.ColumnType_STRING,
 			},
-
 			{
 				Name:        "storage_capacity",
 				Description: "The storage capacity of the file system in gibibytes (GiB).",
@@ -161,55 +161,62 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 
 func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := FsxService(ctx, d)
+	svc, err := FsxClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listFsxFileSystem", "service_connection", err)
+		plugin.Logger(ctx).Error("aws_fsx_file_system.listFsxFileSystems", "connection_error", err)
 		return nil, err
 	}
 
 	// https://docs.aws.amazon.com/fsx/latest/APIReference/API_DescribeFileSystems.html
-	input := &fsx.DescribeFileSystemsInput{
-		MaxResults: aws.Int64(2147483647),
-	}
+	maxItems := int32(1000)
+	input := fsx.DescribeFileSystemsInput{}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.DescribeFileSystemsPages(
-		input,
-		func(page *fsx.DescribeFileSystemsOutput, isLast bool) bool {
-			for _, fileSystem := range page.FileSystems {
-				d.StreamListItem(ctx, fileSystem)
+	input.MaxResults = aws.Int32(maxItems)
+	paginator := fsx.NewDescribeFileSystemsPaginator(svc, &input, func(o *fsx.DescribeFileSystemsPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_fsx_file_system.aws_fsx_file_system.listFsxFileSystems", "api_error", err)
+			return nil, err
+		}
+
+		for _, fileSystem := range output.FileSystems {
+			d.StreamListItem(ctx, fileSystem)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
 	// Create service
-	svc, err := FsxService(ctx, d)
+	svc, err := FsxClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("getFsxFileSystem", "service_connection", err)
+		plugin.Logger(ctx).Error("aws_fsx_file_system.getFsxFileSystem", "connection_error", err)
 		return nil, err
 	}
 
@@ -222,12 +229,12 @@ func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	params := &fsx.DescribeFileSystemsInput{
-		FileSystemIds: []*string{aws.String(fileSystemID)},
+		FileSystemIds: []string{fileSystemID},
 	}
 
-	op, err := svc.DescribeFileSystems(params)
+	op, err := svc.DescribeFileSystems(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("getFsxFileSystem", err)
+		plugin.Logger(ctx).Error("aws_fsx_file_system.getFsxFileSystem", "api_error", err)
 		return nil, err
 	}
 
@@ -240,7 +247,7 @@ func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// TRANSFORM FUNCTIONS
 
 func fsxFileSystemTurbotData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	fileSystemTag := d.HydrateItem.(*fsx.FileSystem)
+	fileSystemTag := d.HydrateItem.(types.FileSystem)
 	if fileSystemTag.Tags == nil {
 		return nil, nil
 	}
@@ -257,7 +264,7 @@ func fsxFileSystemTurbotData(_ context.Context, d *transform.TransformData) (int
 }
 
 func getFsxFileSystemTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	fileSystemTitle := d.HydrateItem.(*fsx.FileSystem)
+	fileSystemTitle := d.HydrateItem.(types.FileSystem)
 
 	if fileSystemTitle.Tags != nil {
 		for _, i := range fileSystemTitle.Tags {
