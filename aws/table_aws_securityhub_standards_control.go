@@ -119,10 +119,8 @@ func listSecurityHubStandardsControls(ctx context.Context, d *plugin.QueryData, 
 	var standardsSubscriptionArn string
 	if strings.Contains(standardsArn, "standards") {
 		standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(standardsArn, "standards")[1]
-		plugin.Logger(ctx).Info("aws_securityhub_standards_control.listSecurityHubStandardsControls", "standardsSubscriptionArn value", standardsSubscriptionArn)
 	} else {
 		standardsSubscriptionArn = "arn:aws:securityhub:" + region + ":" + commonColumnData.AccountId + ":subscription" + strings.Split(standardsArn, "ruleset")[1]
-		plugin.Logger(ctx).Info("aws_securityhub_standards_control.listSecurityHubStandardsControls", "standardsSubscriptionArn value", standardsSubscriptionArn)
 	}
 
 	// Create session
