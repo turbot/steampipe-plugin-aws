@@ -141,6 +141,8 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12 h1:y97T4mPCBD
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12/go.mod h1:VrUvYb3ZCeUcJMIYmCJUjfwfyIFKOnXhdyfue/MSCIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12 h1:jemAfH91rYzeDdNPDNdZHLSXxaXW5l1fcUT1+nRQ8cM=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12/go.mod h1:X2UdAVE3dDmC83sWf9gXW3EL2mVjDCS4vRUctHz8GjM=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.14.19 h1:ZixUxhof6atH8oppf3nAuGIypDiUb+NlkoAqBWCEysU=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.14.19/go.mod h1:b6JZhhQAJ41f8eUzOHVBKWVzmz6f1BwM/7n4Gm6ET9c=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9/go.mod h1:ARVuo+lYC2ibYxny/PKC3maaWKLAg25KSq0dkSkE2WE=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 h1:4n4KCtv5SUoT5Er5XV41huuzrCqepxlW3SDI9qHQebc=
@@ -159,6 +161,10 @@ github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15 h1:MpzLGfgsFwY+rk5rERg22DiH2
 github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15/go.mod h1:1UfKb/PiPkk/yE+nnB7XuhZl3pxPWufotyaoFSZNKlw=
 github.com/aws/aws-sdk-go-v2/service/kinesis v1.15.19 h1:qVaBkJxFxm6o/9DPNnJU6L9O3V7ycEKhCvRm2BFBQTU=
 github.com/aws/aws-sdk-go-v2/service/kinesis v1.15.19/go.mod h1:9rLNg+J9SEe7rhge/YzKU3QTovlLqOmqH8akb0IB1ko=
+github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18 h1:ZK/kSPWlk2wRHLX3wybpq5IXlOYFeGqxvWN8lvyROQ8=
+github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.14.18/go.mod h1:w70FF4Ovn8aPIDDwBh5MCGcGC0FfwNAZTbd+X0320IU=
+github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14 h1:Do9v0z8mbL/l9r+mHp6f1m4UnoqMB/FAjTFuS1w0urc=
+github.com/aws/aws-sdk-go-v2/service/kinesisvideo v1.12.14/go.mod h1:q5IILMsqlpWO+aBSLKhTVwGAiBUZuNEeCN9/ovjomOo=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=

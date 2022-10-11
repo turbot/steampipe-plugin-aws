@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/firehose/types"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -141,41 +142,40 @@ func tableAwsKinesisFirehoseDeliveryStream(_ context.Context) *plugin.Table {
 
 func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
 
-	// List call
+	maxLimit := int32(1000)
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < int64(maxLimit) {
+			if *limit < 1 {
+				maxLimit=1
+			} else {
+				maxLimit = int32(*limit) 
+			}
+		}
+	}
+	// // List call
 	param := &firehose.ListDeliveryStreamsInput{
-		Limit: aws.Int64(10000),
+		Limit: aws.Int32(maxLimit),
 	}
 
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["delivery_stream_type"] != nil {
-		param.DeliveryStreamType = aws.String(equalQuals["delivery_stream_type"].GetStringValue())
+		param.DeliveryStreamType = types.DeliveryStreamType(equalQuals["delivery_stream_type"].GetStringValue())
 	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *param.Limit {
-			if *limit < 1 {
-				param.Limit = aws.Int64(1)
-			} else {
-				param.Limit = limit
-			}
-		}
-	}
-
 	for {
-		response, err := svc.ListDeliveryStreams(param)
+		response, err := svc.ListDeliveryStreams(ctx,param)
 		if err != nil {
 			return nil, err
 		}
 		for _, stream := range response.DeliveryStreamNames {
-			d.StreamListItem(ctx, &firehose.DeliveryStreamDescription{
-				DeliveryStreamName: stream,
+			d.StreamListItem(ctx, types.DeliveryStreamDescription{
+				DeliveryStreamName: &stream,
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -199,7 +199,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 
 	var streamName string
 	if h.Item != nil {
-		streamName = *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
+		streamName = *h.Item.(types.DeliveryStreamDescription).DeliveryStreamName
 	} else {
 		quals := d.KeyColumnQuals
 		streamName = quals["delivery_stream_name"].GetStringValue()
@@ -211,7 +211,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// get service
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Get call
-	data, err := svc.DescribeDeliveryStream(params)
+	data, err := svc.DescribeDeliveryStream(ctx,params)
 	if err != nil {
 		logger.Debug("describeDeliveryStream__", "ERROR", err)
 		return nil, err
@@ -235,10 +235,10 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	logger := plugin.Logger(ctx)
 	logger.Trace("listFirehoseDeliveryStreamTags")
 
-	streamName := *h.Item.(*firehose.DeliveryStreamDescription).DeliveryStreamName
+	streamName := *h.Item.(types.DeliveryStreamDescription).DeliveryStreamName
 
 	// Create Session
-	svc, err := FirehoseService(ctx, d)
+	svc, err := FirehoseClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Get call
-	op, err := svc.ListTagsForDeliveryStream(params)
+	op, err := svc.ListTagsForDeliveryStream(ctx,params)
 	if err != nil {
 		logger.Debug("listFirehoseDeliveryStreamTags", "ERROR", err)
 		return nil, err
@@ -262,7 +262,7 @@ func listFirehoseDeliveryStreamTags(ctx context.Context, d *plugin.QueryData, h 
 
 func kinesisFirehoseTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("kinesisFirehoseTagListToTurbotTags")
-	tagList := d.Value.([]*firehose.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {
 		return nil, nil

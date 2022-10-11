@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	"github.com/aws/aws-sdk-go-v2/service/kinesis/types"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -148,46 +149,49 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 
 func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
-	input := &kinesis.ListStreamsInput{
-		Limit: aws.Int64(100),
-	}
-
+	pagesLeft := true
+	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = int32(*limit)
 			}
 		}
 	}
+	input := &kinesis.ListStreamsInput{
+		Limit: aws.Int32(maxLimit),
+	}
+	for pagesLeft {
+		result, err := svc.ListStreams(ctx, input)
+		if err != nil {
+			return nil, err
+		}
 
-	// List call
-	err = svc.ListStreamsPages(
-		input,
-		func(page *kinesis.ListStreamsOutput, _ bool) bool {
-			for _, streams := range page.StreamNames {
-				d.StreamListItem(ctx, &kinesis.DescribeStreamOutput{
-					StreamDescription: &kinesis.StreamDescription{
-						StreamName: streams,
-					},
-				})
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, streams := range result.StreamNames {
+			d.StreamListItem(ctx, streams)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return *page.HasMoreStreams
-		},
-	)
+		}
+		if *result.HasMoreStreams {
+			pagesLeft = true
+			input.ExclusiveStartStreamName = &result.StreamNames[len(result.StreamNames)-1]
+		} else {
+			pagesLeft = false
+		}
+	}
+	if err != nil {
+		plugin.Logger(ctx).Error("listStreams", "ListStreams_error", err)
+	}
 
 	return nil, err
 }
@@ -207,7 +211,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// get service
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +222,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	}
 
 	// Get call
-	data, err := svc.DescribeStream(params)
+	data, err := svc.DescribeStream(ctx, params)
 	if err != nil {
 		logger.Debug("describeStream__", "ERROR", err)
 		return nil, err
@@ -234,7 +238,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +249,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeStreamSummary(params)
+	data, err := svc.DescribeStreamSummary(ctx, params)
 	if err != nil {
 		logger.Debug("describeStreamSummary__", "ERROR", err)
 		return nil, err
@@ -261,7 +265,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// Create Session
-	svc, err := KinesisService(ctx, d)
+	svc, err := KinesisClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +276,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Get call
-	op, err := svc.ListTagsForStream(params)
+	op, err := svc.ListTagsForStream(ctx, params)
 	if err != nil {
 		logger.Debug("getAwsKinesisStreamTags", "ERROR", err)
 		return nil, err
@@ -285,7 +289,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 
 func kinesisTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	plugin.Logger(ctx).Trace("kinesisTagListToTurbotTags")
-	tagList := d.Value.([]*kinesis.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {
 		return nil, nil

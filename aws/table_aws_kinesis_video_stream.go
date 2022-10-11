@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesisvideo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
+	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo/types"
 	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -104,43 +105,47 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	plugin.Logger(ctx).Trace("listKinesisVideoStreams")
 
 	// Create session
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
-
-	input := &kinesisvideo.ListStreamsInput{
-		MaxResults: aws.Int64(10000),
-	}
-
+	maxLimit := int32(1000)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
+		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+				maxLimit=1
 			} else {
-				input.MaxResults = limit
+				maxLimit = int32(*limit) 
 			}
 		}
 	}
 
+	input := &kinesisvideo.ListStreamsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+paginator:=kinesisvideo.NewListStreamsPaginator(svc,input,func(o *kinesisvideo.ListStreamsPaginatorOptions) {
+	o.Limit=maxLimit
+	o.StopOnDuplicateToken=true
+})
 	// List call
-	err = svc.ListStreamsPages(
-		input,
-		func(page *kinesisvideo.ListStreamsOutput, isLast bool) bool {
-			for _, stream := range page.StreamInfoList {
-				d.StreamListItem(ctx, stream)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
+	for paginator.HasMorePages(){
+		output, err := paginator.NextPage(ctx)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
+		return nil, err
+	}
+	for _, stream  := range output.StreamInfoList{
+		d.StreamListItem(ctx, stream)
+		plugin.Logger(ctx).Error("aws_kinesis_consumere.listKinesisConsumers", "api_error", err)
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.QueryStatus.RowsRemaining(ctx) == 0 {
+			return nil,nil
+		}
+	}
+	
+	}
 	return nil, err
 }
 
@@ -152,14 +157,14 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	var streamName string
 	if h.Item != nil {
-		streamName = *h.Item.(*kinesisvideo.StreamInfo).StreamName
+		streamName = *h.Item.(types.StreamInfo).StreamName
 	} else {
 		quals := d.KeyColumnQuals
 		streamName = quals["stream_name"].GetStringValue()
 	}
 
 	// get service
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +175,7 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeStream(params)
+	data, err := svc.DescribeStream(ctx,params)
 	if err != nil {
 		logger.Debug("describeStream__", "ERROR", err)
 		return nil, err
@@ -183,10 +188,10 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	logger := plugin.Logger(ctx)
 	logger.Trace("listKinesisVideoStreamTags")
 
-	data := h.Item.(*kinesisvideo.StreamInfo)
+	data := h.Item.(types.StreamInfo)
 
 	// Create Session
-	svc, err := KinesisVideoService(ctx, d)
+	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +202,7 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Get call
-	op, err := svc.ListTagsForStream(params)
+	op, err := svc.ListTagsForStream(ctx,params)
 	if err != nil {
 		logger.Debug("listKinesisVideoStreamTags", "ERROR", err)
 		return nil, err
