@@ -84,20 +84,25 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
 		return nil, err
 	}
 
 	commonColumnData := c.(*awsCommonColumnData)
 
 	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + streamName
-
-	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
-
 	// Create session
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
@@ -128,7 +133,6 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		}
 		for _, consumerData := range output.Consumers {
 			d.StreamListItem(ctx, consumerData)
-			plugin.Logger(ctx).Error("aws_kinesis_consumere.listKinesisConsumers", "api_error", err)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
@@ -140,9 +144,6 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisConsumer")
-
 	var arn string
 	if h.Item != nil {
 		i := h.Item.(types.Consumer)
@@ -154,7 +155,13 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Create Session
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.getAwsKinesisConsumer", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -165,7 +172,7 @@ func getAwsKinesisConsumer(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.DescribeStreamConsumer(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsKinesisConsumer", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_consumer.getAwsKinesisConsumer", "api_error", err)
 		return nil, err
 	}
 

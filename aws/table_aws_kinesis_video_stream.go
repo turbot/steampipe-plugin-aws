@@ -107,17 +107,24 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	// Create session
 	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreams", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	maxLimit := int32(1000)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -125,26 +132,25 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 	input := &kinesisvideo.ListStreamsInput{
 		MaxResults: aws.Int32(maxLimit),
 	}
-paginator:=kinesisvideo.NewListStreamsPaginator(svc,input,func(o *kinesisvideo.ListStreamsPaginatorOptions) {
-	o.Limit=maxLimit
-	o.StopOnDuplicateToken=true
-})
+	paginator := kinesisvideo.NewListStreamsPaginator(svc, input, func(o *kinesisvideo.ListStreamsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
-	for paginator.HasMorePages(){
+	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
-		return nil, err
-	}
-	for _, stream  := range output.StreamInfoList{
-		d.StreamListItem(ctx, stream)
-		plugin.Logger(ctx).Error("aws_kinesis_consumere.listKinesisConsumers", "api_error", err)
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil,nil
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreams", "api_error", err)
+			return nil, err
 		}
-	}
-	
+		for _, stream := range output.StreamInfoList {
+			d.StreamListItem(ctx, stream)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
 	}
 	return nil, err
 }
@@ -152,9 +158,6 @@ paginator:=kinesisvideo.NewListStreamsPaginator(svc,input,func(o *kinesisvideo.L
 //// HYDRATE FUNCTIONS
 
 func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisVideoStream")
-
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(types.StreamInfo).StreamName
@@ -166,7 +169,13 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// get service
 	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.getKinesisVideoStream", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -175,9 +184,9 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	// Get call
-	data, err := svc.DescribeStream(ctx,params)
+	data, err := svc.DescribeStream(ctx, params)
 	if err != nil {
-		logger.Debug("describeStream__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.getKinesisVideoStream", "api_error", err)
 		return nil, err
 	}
 	return data.StreamInfo, nil
@@ -185,15 +194,18 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 // API call for fetching tags
 func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listKinesisVideoStreamTags")
-
-	data := h.Item.(types.StreamInfo)
+	data := h.Item.(*types.StreamInfo)
 
 	// Create Session
 	svc, err := KinesisVideoClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreamTags", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -202,9 +214,9 @@ func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	// Get call
-	op, err := svc.ListTagsForStream(ctx,params)
+	op, err := svc.ListTagsForStream(ctx, params)
 	if err != nil {
-		logger.Debug("listKinesisVideoStreamTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_video_stream.listKinesisVideoStreamTags", "api_error", err)
 		return nil, err
 	}
 	return op, nil

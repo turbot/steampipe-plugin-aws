@@ -152,8 +152,15 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	// Create session
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_stream.listStreams", "connection_error", err)
 		return nil, err
 	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
+	}
+
 	pagesLeft := true
 	maxLimit := int32(100)
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -173,6 +180,7 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	for pagesLeft {
 		result, err := svc.ListStreams(ctx, input)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesis_stream.listStreams", "api_error", err)
 			return nil, err
 		}
 
@@ -196,7 +204,7 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		}
 	}
 	if err != nil {
-		plugin.Logger(ctx).Error("listStreams", "ListStreams_error", err)
+		plugin.Logger(ctx).Error("aws_kinesis_stream.listStreams", "api_error", err)
 	}
 
 	return nil, err
@@ -205,9 +213,6 @@ func listStreams(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 //// HYDRATE FUNCTIONS
 
 func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("describeStream")
-
 	var streamName string
 	if h.Item != nil {
 		streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
@@ -219,7 +224,13 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// get service
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_stream.describeStream", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -230,7 +241,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 	// Get call
 	data, err := svc.DescribeStream(ctx, params)
 	if err != nil {
-		logger.Debug("describeStream__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_stream.describeStream", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -238,15 +249,18 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 // API call for Stream Summary
 func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("describeStreamSummary")
-
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// get service
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_stream.describeStreamSummary", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -257,7 +271,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.DescribeStreamSummary(ctx, params)
 	if err != nil {
-		logger.Debug("describeStreamSummary__", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_stream.describeStreamSummary", "api_error", err)
 		return nil, err
 	}
 	return data, nil
@@ -265,15 +279,18 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 // API call for fetching tag list
 func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsKinesisStreamTags")
-
 	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
 
 	// Create Session
 	svc, err := KinesisClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesis_stream.getAwsKinesisStreamTags", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -284,7 +301,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	op, err := svc.ListTagsForStream(ctx, params)
 	if err != nil {
-		logger.Debug("getAwsKinesisStreamTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesis_stream.getAwsKinesisStreamTags", "api_error", err)
 		return nil, err
 	}
 
@@ -294,7 +311,6 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 //// TRANSFORM FUNCTIONS
 
 func kinesisTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("kinesisTagListToTurbotTags")
 	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {

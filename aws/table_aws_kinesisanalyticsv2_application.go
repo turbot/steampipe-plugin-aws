@@ -130,7 +130,13 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	// Create session
 	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// List call
@@ -153,6 +159,7 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	for pagesLeft {
 		result, err := svc.ListApplications(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)
 			return nil, err
 		}
 
@@ -174,7 +181,7 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 	}
 
 	if err != nil {
-		plugin.Logger(ctx).Error("listKinesisAnalyticsV2Applications", "ListApplications_error", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.listKinesisAnalyticsV2Applications", "api_error", err)
 	}
 
 	return nil, err
@@ -183,9 +190,6 @@ func listKinesisAnalyticsV2Applications(ctx context.Context, d *plugin.QueryData
 //// HYDRATE FUNCTIONS
 
 func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisAnalyticsV2Application")
-
 	var applicationName string
 	if h.Item != nil {
 		i := h.Item.(types.ApplicationSummary)
@@ -197,7 +201,13 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	// Create Session
 	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2Application", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -208,7 +218,7 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 	// Get call
 	data, err := svc.DescribeApplication(ctx, params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2Application", "DescribeApplication_error", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2Application", "api_error", err)
 		return nil, err
 	}
 
@@ -216,15 +226,17 @@ func getKinesisAnalyticsV2Application(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getKinesisAnalyticsV2ApplicationTags")
-
 	arn := applicationArn(h.Item)
-	plugin.Logger(ctx).Error("ARN=", arn)
 	// Create Session
 	svc, err := KinesisAnalyticsV2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2ApplicationTags", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		// unsupported region check
+		return nil, nil
 	}
 
 	// Build the params
@@ -235,7 +247,7 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 	// Get call
 	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Debug("getKinesisAnalyticsV2ApplicationTags", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_kinesisanalyticsv2_application.getKinesisAnalyticsV2ApplicationTags", "api_error", err)
 		return nil, err
 	}
 
@@ -245,7 +257,6 @@ func getKinesisAnalyticsV2ApplicationTags(ctx context.Context, d *plugin.QueryDa
 //// TRANSFORM FUNCTIONS
 
 func kinesisAnalyticsV2ApplicationTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("kinesisAnalyticsV2ApplicationTagListToTurbotTags")
 	tagList := d.Value.([]types.Tag)
 
 	if tagList == nil {
