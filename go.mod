@@ -36,6 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/neptune v1.17.12
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9

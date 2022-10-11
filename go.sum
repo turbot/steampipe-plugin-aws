@@ -167,6 +167,8 @@ github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmv
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9/go.mod h1:8ZCxqSjiKCzYs8G8EDB6aaxL4IgqYSbHHuhOUY7lSbE=
+github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19 h1:1KQhU01IDvg4fohFIBGlITT4OM/Q99QY6FRj23M1MUg=
+github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19/go.mod h1:tTgBdzibiIxq4r4+ZopTWLk4rh9U5imMsdKPALItjH8=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1 h1:OKQIQ0QhEBmGr2LfT952meIZz3ujrPYnxH+dO/5ldnI=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1/go.mod h1:NffjpNsMUFXp6Ok/PahrktAncoekWrywvmIK83Q2raE=
 github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9 h1:yfGZ8K1dRY1R+dUEGkgQgZsDkK77aRSHTNjFbXvsFVg=
