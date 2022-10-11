@@ -189,12 +189,12 @@ func getKinesisVideoStream(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		plugin.Logger(ctx).Error("aws_kinesis_video_stream.getKinesisVideoStream", "api_error", err)
 		return nil, err
 	}
-	return data.StreamInfo, nil
+	return *data.StreamInfo, nil
 }
 
 // API call for fetching tags
 func listKinesisVideoStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*types.StreamInfo)
+	data := h.Item.(types.StreamInfo)
 
 	// Create Session
 	svc, err := KinesisVideoClient(ctx, d)
