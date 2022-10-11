@@ -120,31 +120,6 @@ func listSecurityHubActionTargets(ctx context.Context, d *plugin.QueryData, _ *p
 
 	return nil, nil
 }
-// 	err = svc.DescribeActionTargetsPages(
-// 		input,
-// 		func(page *securityhub.DescribeActionTargetsOutput, isLast bool) bool {
-// 			for _, actionTarget := range page.ActionTargets {
-// 				d.StreamListItem(ctx, actionTarget)
-
-// 				// Context may get cancelled due to manual cancellation or if the limit has been reached
-// 				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-// 					return false
-// 				}
-// 			}
-// 			return !isLast
-// 		},
-// 	)
-
-// 	if err != nil {
-// 		// Handle unsupported and inactive region exceptions
-// 		if strings.Contains(err.Error(), "not subscribed") {
-// 			return nil, nil
-// 		}
-// 		plugin.Logger(ctx).Error("listSecurityHubActionTargets", "list", err)
-// 	}
-
-// 	return nil, err
-// }
 
 //// HYDRATE FUNCTIONS
 
@@ -161,7 +136,6 @@ func getSecurityHubActionTarget(ctx context.Context, d *plugin.QueryData, h *plu
 
 	// Build the params
 	params := &securityhub.DescribeActionTargetsInput{
-		// ActionTargetArns: aws.StringSlice([]string{arn}),
 		ActionTargetArns: []string{arn},
 	}
 
