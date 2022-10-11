@@ -78,7 +78,7 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	streamData := *h.Item.(*kinesis.DescribeStreamOutput)
+	streamName := h.Item.(string)
 	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
@@ -89,7 +89,7 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	commonColumnData := c.(*awsCommonColumnData)
 
-	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + *streamData.StreamDescription.StreamName
+	arn := "arn:" + commonColumnData.Partition + ":kinesis:" + region + ":" + commonColumnData.AccountId + ":stream" + "/" + streamName
 
 	plugin.Logger(ctx).Trace("StreamArn", "arn", arn)
 
@@ -104,9 +104,9 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
 			if *limit < 1 {
-				maxLimit=1
+				maxLimit = 1
 			} else {
-				maxLimit = int32(*limit) 
+				maxLimit = int32(*limit)
 			}
 		}
 	}
@@ -115,27 +115,27 @@ func listKinesisConsumers(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		StreamARN:  &arn,
 		MaxResults: aws.Int32(maxLimit),
 	}
-paginator:=kinesis.NewListStreamConsumersPaginator(svc, input, func(o *kinesis.ListStreamConsumersPaginatorOptions) {
-	o.Limit=maxLimit
-	o.StopOnDuplicateToken=true
-})
+	paginator := kinesis.NewListStreamConsumersPaginator(svc, input, func(o *kinesis.ListStreamConsumersPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-for paginator.HasMorePages() {
-	output, err := paginator.NextPage(ctx)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
-		return nil, err
-	}
-	for _, consumerData  := range output.Consumers{
-		d.StreamListItem(ctx, consumerData)
-		plugin.Logger(ctx).Error("aws_kinesis_consumere.listKinesisConsumers", "api_error", err)
-		// Context can be cancelled due to manual cancellation or the limit has been hit
-		if d.QueryStatus.RowsRemaining(ctx) == 0 {
-			return nil,nil
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_kinesis_consumer.listKinesisConsumers", "api_error", err)
+			return nil, err
 		}
+		for _, consumerData := range output.Consumers {
+			d.StreamListItem(ctx, consumerData)
+			plugin.Logger(ctx).Error("aws_kinesis_consumere.listKinesisConsumers", "api_error", err)
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
 	}
-	
-}
 	return nil, err
 }
 

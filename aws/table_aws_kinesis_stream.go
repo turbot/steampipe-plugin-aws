@@ -33,7 +33,6 @@ func tableAwsKinesisStream(_ context.Context) *plugin.Table {
 				Name:        "stream_name",
 				Description: "The name of the stream being described.",
 				Type:        pb.ColumnType_STRING,
-				Transform:   transform.FromField("StreamDescription.StreamName"),
 			},
 			{
 				Name:        "stream_arn",
@@ -204,7 +203,7 @@ func describeStream(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	var streamName string
 	if h.Item != nil {
-		streamName = *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+		streamName = h.Item.(string)
 	} else {
 		quals := d.KeyColumnQuals
 		streamName = quals["stream_name"].GetStringValue()
@@ -235,7 +234,7 @@ func describeStreamSummary(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	logger := plugin.Logger(ctx)
 	logger.Trace("describeStreamSummary")
 
-	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+	streamName := getKinesisStreamName(h.Item)
 
 	// get service
 	svc, err := KinesisClient(ctx, d)
@@ -262,7 +261,7 @@ func getAwsKinesisStreamTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	logger := plugin.Logger(ctx)
 	logger.Trace("getAwsKinesisStreamTags")
 
-	streamName := *h.Item.(*kinesis.DescribeStreamOutput).StreamDescription.StreamName
+	streamName := getKinesisStreamName(h.Item)
 
 	// Create Session
 	svc, err := KinesisClient(ctx, d)
@@ -305,4 +304,14 @@ func kinesisTagListToTurbotTags(ctx context.Context, d *transform.TransformData)
 	}
 
 	return turbotTagsMap, nil
+}
+
+func getKinesisStreamName(data any) string  {
+	switch item := data.(type){
+	case *kinesis.DescribeStreamOutput:
+		return *item.StreamDescription.StreamName
+	case string:
+		return item
+	}
+	return ""
 }
