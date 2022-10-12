@@ -20,6 +20,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.20.0
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.8
+	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.21.6
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.14
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.13.6
 	github.com/aws/aws-sdk-go-v2/service/codebuild v1.19.13
@@ -52,13 +53,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.16.8
 	github.com/aws/aws-sdk-go-v2/service/ram v1.16.18
-	github.com/aws/aws-sdk-go-v2/service/rds v1.25.5
+	github.com/aws/aws-sdk-go-v2/service/rds v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.26.10
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.12.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/s3control v1.21.9
+	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.46.0
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.19.10
 	github.com/aws/aws-sdk-go-v2/service/waf v1.11.17

@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
@@ -65,6 +66,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -130,14 +132,6 @@ func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
 
-func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return configservice.NewFromConfig(*cfg), nil
-}
-
 func AppConfigClient(ctx context.Context, d *plugin.QueryData) (*appconfig.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -163,6 +157,14 @@ func AutoScalingClient(ctx context.Context, d *plugin.QueryData) (*autoscaling.C
 		return nil, err
 	}
 	return autoscaling.NewFromConfig(*cfg), nil
+}
+
+func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return backup.NewFromConfig(*cfg), nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
@@ -196,14 +198,6 @@ func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol
 	return svc, nil
 }
 
-func BackupClient(ctx context.Context, d *plugin.QueryData) (*backup.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return backup.NewFromConfig(*cfg), nil
-}
-
 func CloudFrontClient(ctx context.Context, d *plugin.QueryData) (*cloudfront.Client, error) {
 	cfg, err := getClient(ctx, d, GetDefaultAwsRegion(d))
 	if err != nil {
@@ -226,6 +220,14 @@ func CloudTrailRegionsClient(ctx context.Context, d *plugin.QueryData, region st
 		return nil, err
 	}
 	return cloudtrail.NewFromConfig(*cfg), nil
+}
+
+func CloudWatchClient(ctx context.Context, d *plugin.QueryData) (*cloudwatch.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return cloudwatch.NewFromConfig(*cfg), nil
 }
 
 func CloudWatchLogsClient(ctx context.Context, d *plugin.QueryData) (*cloudwatchlogs.Client, error) {
@@ -284,6 +286,14 @@ func CodePipelineClient(ctx context.Context, d *plugin.QueryData) (*codepipeline
 		return nil, err
 	}
 	return codepipeline.NewFromConfig(*cfg), nil
+}
+
+func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return configservice.NewFromConfig(*cfg), nil
 }
 
 // CostExplorerClient returns the connection client for AWS Cost Explorer service
@@ -554,6 +564,14 @@ func RedshiftServerlessClient(ctx context.Context, d *plugin.QueryData) (*redshi
 		return nil, nil
 	}
 	return redshiftserverless.NewFromConfig(*cfg), nil
+}
+
+func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return sagemaker.NewFromConfig(*cfg), nil
 }
 
 func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Client, error) {
