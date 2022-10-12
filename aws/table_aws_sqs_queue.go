@@ -3,13 +3,14 @@ package aws
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	sqsTypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
+
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
 //// TABLE DEFINITION
@@ -21,12 +22,15 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("queue_url"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 			},
 			Hydrate: getQueueAttributes,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSqsQueues,
+		},
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"AWS.SimpleQueueService.NonExistentQueue"}),
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -155,48 +159,54 @@ func tableAwsSqsQueue(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listAwsSqsQueues")
 
-	// Create session
-	svc, err := SQSService(ctx, d)
+	// Get client
+	svc, err := SQSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sqs_queue.listAwsSqsQueues", "get_client_error", err)
 		return nil, err
 	}
 
 	input := &sqs.ListQueuesInput{
-		MaxResults: aws.Int64(1000),
+		MaxResults: aws.Int32(1000),
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				input.MaxResults = aws.Int32(1)
 			} else {
-				input.MaxResults = limit
+				input.MaxResults = aws.Int32(limit)
 			}
 		}
 	}
+	paginator := sqs.NewListQueuesPaginator(svc, input, func(o *sqs.ListQueuesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	err = svc.ListQueuesPages(
-		input,
-		func(page *sqs.ListQueuesOutput, lastPage bool) bool {
-			for _, queueURL := range page.QueueUrls {
-				d.StreamListItem(ctx, &sqs.GetQueueAttributesOutput{
-					Attributes: map[string]*string{
-						"QueueUrl": queueURL,
-					},
-				})
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_sqs_queue.listAwsSqsQueues", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, queueURL := range output.QueueUrls {
+			d.StreamListItem(ctx, &sqs.GetQueueAttributesOutput{
+				Attributes: map[string]string{
+					"QueueUrl": queueURL,
+				},
+			})
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !lastPage
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -204,7 +214,6 @@ func listAwsSqsQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 //// HYDRATE FUNCTIONS
 
 func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getQueueAttributes")
 
 	var queueURL string
 	if h.Item != nil {
@@ -214,47 +223,57 @@ func getQueueAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		queueURL = d.KeyColumnQuals["queue_url"].GetStringValue()
 	}
 
-	// Create session
-	svc, err := SQSService(ctx, d)
+	if queueURL == "" {
+		return nil, nil
+	}
+
+	// Get client
+	svc, err := SQSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sqs_queue.getQueueAttributes", "get_client_error", err)
 		return nil, err
 	}
 
-	input := &sqs.GetQueueAttributesInput{
+	// Build params
+	params := &sqs.GetQueueAttributesInput{
 		QueueUrl:       aws.String(queueURL),
-		AttributeNames: []*string{aws.String("All")},
+		AttributeNames: []sqsTypes.QueueAttributeName{sqsTypes.QueueAttributeName("All")},
 	}
 
-	op, err := svc.GetQueueAttributes(input)
+	op, err := svc.GetQueueAttributes(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sqs_queue.getQueueAttributes", "api_error", err)
 		return nil, err
 	}
 
 	// Add QueueUrl info to the output as it is missing from GetQueueAttributesOutput
-	op.Attributes["QueueUrl"] = aws.String(queueURL)
+	op.Attributes["QueueUrl"] = queueURL
 
 	return op, nil
 }
 
 func listQueueTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listQueueTags")
+
 	queueAttributesOutput := h.Item.(*sqs.GetQueueAttributesOutput)
 
-	// Create session
-	svc, err := SQSService(ctx, d)
+	// Get client
+	svc, err := SQSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sqs_queue.listQueueTags", "get_client_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	param := &sqs.ListQueueTagsInput{
-		QueueUrl: queueAttributesOutput.Attributes["QueueUrl"],
+		QueueUrl: aws.String(queueAttributesOutput.Attributes["QueueUrl"]),
 	}
 
-	queueTags, err := svc.ListQueueTags(param)
+	queueTags, err := svc.ListQueueTags(ctx, param)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_sqs_queue.listQueueTags", "api_error", err)
 		return nil, err
 	}
+
 	return queueTags, nil
 }
 
