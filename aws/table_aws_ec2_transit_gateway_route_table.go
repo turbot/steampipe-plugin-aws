@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +22,7 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_route_table_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidRouteTableID.NotFound", "InvalidRouteTableId.Unavailable", "InvalidRouteTableId.Malformed"}),
 			},
 			Hydrate: getEc2TransitGatewayRouteTable,
 		},
@@ -32,6 +33,9 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 				{Name: "state", Require: plugin.Optional},
 				{Name: "default_association_route_table", Require: plugin.Optional},
 				{Name: "default_propagation_route_table", Require: plugin.Optional},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAction"}),
 			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
@@ -98,64 +102,73 @@ func tableAwsEc2TransitGatewayRouteTable(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.listEc2TransitGatewayRouteTable", "connection_error", err)
 		return nil, err
 	}
 
-	input := &ec2.DescribeTransitGatewayRouteTablesInput{
-		MaxResults: aws.Int64(1000),
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 5 {
+				maxLimit = 5
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
-	filters := []*ec2.Filter{}
+	input := &ec2.DescribeTransitGatewayRouteTablesInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	filters := []types.Filter{}
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["transit_gateway_id"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("transit-gateway-id"), Values: []*string{aws.String(equalQuals["transit_gateway_id"].GetStringValue())}})
+		filters = append(filters, types.Filter{Name: aws.String("transit-gateway-id"), Values: []string{equalQuals["transit_gateway_id"].GetStringValue()}})
 	}
 	if equalQuals["state"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("state"), Values: []*string{aws.String(equalQuals["state"].GetStringValue())}})
+		filters = append(filters, types.Filter{Name: aws.String("state"), Values: []string{equalQuals["state"].GetStringValue()}})
 	}
 	if equalQuals["default_association_route_table"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("default-association-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_association_route_table"].GetBoolValue()))}})
+		filters = append(filters, types.Filter{Name: aws.String("default-association-route-table"), Values: []string{fmt.Sprint(equalQuals["default_association_route_table"].GetBoolValue())}})
 	}
 	if equalQuals["default_propagation_route_table"] != nil {
-		filters = append(filters, &ec2.Filter{Name: aws.String("default-propagation-route-table"), Values: []*string{aws.String(fmt.Sprint(equalQuals["default_propagation_route_table"].GetBoolValue()))}})
+		filters = append(filters, types.Filter{Name: aws.String("default-propagation-route-table"), Values: []string{fmt.Sprint(equalQuals["default_propagation_route_table"].GetBoolValue())}})
 	}
 
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
 
-	// Limiting the results
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 5 {
-				input.MaxResults = aws.Int64(5)
-			} else {
-				input.MaxResults = limit
-			}
-		}
-	}
+	paginator := ec2.NewDescribeTransitGatewayRouteTablesPaginator(svc, input, func(o *ec2.DescribeTransitGatewayRouteTablesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
 	// List call
-	err = svc.DescribeTransitGatewayRouteTablesPages(
-		input,
-		func(page *ec2.DescribeTransitGatewayRouteTablesOutput, isLast bool) bool {
-			for _, transitGatewayRouteTable := range page.TransitGatewayRouteTables {
-				d.StreamListItem(ctx, transitGatewayRouteTable)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.listEc2TransitGatewayRouteTable", "api_error", err)
+			return nil, err
+		}
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+		for _, items := range output.TransitGatewayRouteTables {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+
+	}
 
 	return nil, err
 }
@@ -163,21 +176,23 @@ func listEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _
 //// HYDRATE FUNCTIONS
 
 func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
+
 	routeTableID := d.KeyColumnQuals["transit_gateway_route_table_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.getEc2TransitGatewayRouteTable", "api_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeTransitGatewayRouteTablesInput{
-		TransitGatewayRouteTableIds: []*string{aws.String(routeTableID)},
+		TransitGatewayRouteTableIds: []string{routeTableID},
 	}
 
-	op, err := svc.DescribeTransitGatewayRouteTables(params)
+	op, err := svc.DescribeTransitGatewayRouteTables(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.getEc2TransitGatewayRouteTable", "api_error", err)
 		return nil, err
 	}
 
@@ -188,12 +203,12 @@ func getEc2TransitGatewayRouteTable(ctx context.Context, d *plugin.QueryData, _ 
 }
 
 func getAwsEc2TransitGatewayRouteTableTurbotData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2TransitGatewayRouteTableTurbotData")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	transitGatewayRouteTable := h.Item.(*ec2.TransitGatewayRouteTable)
+	transitGatewayRouteTable := h.Item.(types.TransitGatewayRouteTable)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_route_table.getAwsEc2TransitGatewayRouteTableTurbotData", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -207,12 +222,22 @@ func getAwsEc2TransitGatewayRouteTableTurbotData(ctx context.Context, d *plugin.
 //// TRANSFORM FUNCTIONS
 
 func getEc2TransitGatewayRouteTableTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGatewayRouteTable)
-	return ec2TagsToMap(data.Tags)
+	data := d.HydrateItem.(types.TransitGatewayRouteTable)
+	var turbotTagsMap map[string]string
+	if data.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range data.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
 }
 
 func getEc2TransitGatewayRouteTableTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.TransitGatewayRouteTable)
+	data := d.HydrateItem.(types.TransitGatewayRouteTable)
 	title := data.TransitGatewayRouteTableId
 	if data.Tags != nil {
 		for _, i := range data.Tags {

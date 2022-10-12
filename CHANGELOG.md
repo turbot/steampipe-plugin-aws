@@ -1,3 +1,79 @@
+## v0.78.0 [2022-09-23]
+
+_What's new?_
+
+- New tables added
+  - [aws_account_alternate_contact](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_account_alternate_contact) ([#1310](https://github.com/turbot/steampipe-plugin-aws/pull/1310))
+  - [aws_account_contact](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_account_contact) ([#1310](https://github.com/turbot/steampipe-plugin-aws/pull/1310))
+  - [aws_msk_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_msk_cluster) ([#1291](https://github.com/turbot/steampipe-plugin-aws/pull/1291))
+  - [aws_msk_serverless_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_msk_serverless_cluster) ([#1291](https://github.com/turbot/steampipe-plugin-aws/pull/1291))
+
+_Enhancements_
+
+- Updated index doc **Configuring AWS Credentials** section to use consistent profile and account names. ([#1209](https://github.com/turbot/steampipe-plugin-aws/pull/1209)) (Thanks to [@michael-ullrich-1010](https://github.com/michael-ullrich-1010) for the contribution!)
+- Improved plugin error message when the `regions` config argument is set to an invalid value `[]`.
+
+_Bug fixes_
+
+- `aws_macie2_classification_job` table now checks for supported regions.
+
+## v0.77.0 [2022-09-15]
+
+_What's new?_
+
+- New tables added
+  - [aws_appconfig_application](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appconfig_application) ([#1253](https://github.com/turbot/steampipe-plugin-aws/pull/1253))
+  - [aws_codeartifact_domain](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codeartifact_domain) ([#1184](https://github.com/turbot/steampipe-plugin-aws/pull/1184))
+  - [aws_codeartifact_repository](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codeartifact_repository) ([#1268](https://github.com/turbot/steampipe-plugin-aws/pull/1268))
+  - [aws_codedeploy_app](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codedeploy_app) ([#1295](https://github.com/turbot/steampipe-plugin-aws/pull/1295))
+  - [aws_redshiftserverless_namespace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshiftserverless_namespace) ([#1305](https://github.com/turbot/steampipe-plugin-aws/pull/1305))
+  - [aws_redshiftserverless_workgroup](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_redshiftserverless_workgroup) ([#1304](https://github.com/turbot/steampipe-plugin-aws/pull/1304))
+
+_Enhancements_
+
+- Added `access_key_last_used_date`, `access_key_last_used_region` columns and `access_key_last_used_service` to `aws_iam_access_key` table. ([#1281](https://github.com/turbot/steampipe-plugin-aws/pull/1281))
+- Added `vpc_endpoint_connections` column to `aws_vpc_endpoint_service` table. ([#1104](https://github.com/turbot/steampipe-plugin-aws/pull/1104))
+- Updated the following tables to use [AWS SDK Go v2](https://github.com/aws/aws-sdk-go-v2):
+  - `aws_vpc_route_table`
+
+_Bug fixes_
+
+- `aws_dynamodb_table_export` table queries no longer fail when passing in `arn` get key column.
+- `aws_ec2_transit_gateway`, `aws_ec2_transit_gateway_route`, `aws_ec2_transit_gateway_route_table`, and `aws_ec2_transit_gateway_vpc_attachment` tables should not error in me-central-1 region. ([#1282](https://github.com/turbot/steampipe-plugin-aws/pull/1282))
+- `aws_vpc_eip` table now handles EIPs in EC2-Classic properly. ([#1308](https://github.com/turbot/steampipe-plugin-aws/pull/1308))
+- `aws_wafregional_rule` table now properly checks for supported regions. ([#1306](https://github.com/turbot/steampipe-plugin-aws/pull/1306))
+
+_Deprecated_
+
+- Deprecated `verification_token` column in `aws_ses_email_identity` table since there is no verification token for email identities. This column will be removed in a future version.
+
+## v0.76.0 [2022-09-09]
+
+_What's new?_
+
+- New tables added
+  - [aws_cloudwatch_log_subscription_filter](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudwatch_log_subscription_filter) ([#1243](https://github.com/turbot/steampipe-plugin-aws/pull/1243))
+  - [aws_dax_subnet_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_dax_subnet_group) ([#1298](https://github.com/turbot/steampipe-plugin-aws/pull/1298))
+  - [aws_docdb_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_docdb_cluster) ([#1019](https://github.com/turbot/steampipe-plugin-aws/pull/1019))
+  - [aws_globalaccelerator_accelerator](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_accelerator) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091)) (Thanks to [@nmische](https://github.com/nmische) for the contribution!)
+  - [aws_globalaccelerator_endpoint_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_endpoint_group) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091))
+  - [aws_globalaccelerator_listener](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_globalaccelerator_listener) ([#1091](https://github.com/turbot/steampipe-plugin-aws/pull/1091))
+
+_Enhancements_
+
+- Added column `code` to `aws_lambda_function` table. ([#1293](https://github.com/turbot/steampipe-plugin-aws/pull/1293))
+- Updated the `title` column of `aws_kms_key` table to first use the key alias if available, else fall back to the key ID. ([#1246](https://github.com/turbot/steampipe-plugin-aws/pull/1246))
+
+_Bug fixes_
+
+- Fixed the `url_config` column in `aws_lambda_function` table to return `null` instead of an access denied exception errors for US Government cloud regions. ([#1285](https://github.com/turbot/steampipe-plugin-aws/pull/1285))
+- Fixed the `sns_topic_arn` column in `aws_backup_vault` table to correctly return a value instead of `null`. ([#1280](https://github.com/turbot/steampipe-plugin-aws/pull/1280))
+- Fixed all the tables of CodeBuild and Serverless Application Repository services to return empty rows instead of an error for unsupported regions. ([#1289](https://github.com/turbot/steampipe-plugin-aws/pull/1289))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.7](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v417-2022-09-08) which fixes incorrect cache hits in multi-region queries which use the `region` column in the where clause. ([#387](https://github.com/turbot/steampipe-plugin-gcp/pull/387))
+
 ## v0.75.1 [2022-08-31]
 
 _Dependencies_

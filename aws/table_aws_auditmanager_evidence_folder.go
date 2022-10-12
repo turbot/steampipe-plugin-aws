@@ -4,9 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/auditmanager"
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager"
+	"github.com/aws/aws-sdk-go-v2/service/auditmanager/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -150,61 +151,58 @@ func tableAwsAuditManagerEvidenceFolder(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.listAuditManagerEvidenceFolders", "client_error", err)
 		return nil, err
 	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
 
+	maxItems := int32(100)
 	// Get assessment details
-	assessmentID := *h.Item.(*auditmanager.AssessmentMetadataItem).Id
-
-	input := &auditmanager.GetEvidenceFoldersByAssessmentInput{
-		MaxResults: aws.Int64(1000),
+	assessmentID := *h.Item.(types.AssessmentMetadataItem).Id
+	params := &auditmanager.GetEvidenceFoldersByAssessmentInput{
+		AssessmentId: &assessmentID,
 	}
 
-	input.AssessmentId = &assessmentID
-	// Limiting the results
-	limit := d.QueryContext.Limit
+	// Reduce the basic request limit down if the user has only requested a small number of rows
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = types.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.MaxResults = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	// List call
-	err = svc.GetEvidenceFoldersByAssessmentPages(
-		input,
-		func(page *auditmanager.GetEvidenceFoldersByAssessmentOutput, isLast bool) bool {
-			for _, folder := range page.EvidenceFolders {
-				d.StreamListItem(ctx, folder)
+	params.MaxResults = &maxItems
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	paginator := auditmanager.NewGetEvidenceFoldersByAssessmentPaginator(svc, params, func(o *auditmanager.GetEvidenceFoldersByAssessmentPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
+			// for the regions where the  Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
+			if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
-	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
-	if err != nil {
-		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
-			return nil, nil
+			plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.listAuditManagerEvidenceFolders", "api_error", err)
+			return nil, err
 		}
-		plugin.Logger(ctx).Error("listAuditManagerEvidenceFolders", "err", err)
-		return nil, err
+
+		for _, folder := range output.EvidenceFolders {
+			d.StreamListItem(ctx, folder)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
 	}
 
 	return nil, nil
@@ -213,15 +211,11 @@ func listAuditManagerEvidenceFolders(ctx context.Context, d *plugin.QueryData, h
 //// HYDRATE FUNCTIONS
 
 func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// Create session
-	svc, err := AuditManagerService(ctx, d)
+	// Create Session
+	svc, err := AuditManagerClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolder", "client_error", err)
 		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
 	}
 
 	assessmentID := d.KeyColumnQuals["assessment_id"].GetStringValue()
@@ -236,7 +230,7 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 	}
 
 	// Get call
-	data, err := svc.GetEvidenceFolder(params)
+	data, err := svc.GetEvidenceFolder(ctx, params)
 
 	// User with Admin access gets the error as ‘AccessDeniedException: Please complete AWS Audit Manager setup from home page to enable this action in this account’
 	// for the regions where the Audit Manager setup is not complete, this suppresses the value from the regions where the setup is completed.
@@ -244,21 +238,21 @@ func getAuditManagerEvidenceFolder(ctx context.Context, d *plugin.QueryData, _ *
 		if strings.Contains(err.Error(), "Please complete AWS Audit Manager setup") {
 			return nil, nil
 		}
-		plugin.Logger(ctx).Error("getAuditManagerEvidenceFolder", "err", err)
+		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolder", "api_error", err)
 		return nil, err
 	}
 
-	return data.EvidenceFolder, nil
+	return *data.EvidenceFolder, nil
 }
 
 func getAuditManagerEvidenceFolderARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAuditManagerEvidenceFolderARN")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	evidenceFolderID := *h.Item.(*auditmanager.AssessmentEvidenceFolder).Id
+	evidenceFolderID := *h.Item.(types.AssessmentEvidenceFolder).Id
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	c, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_auditmanager_evidence_folder.getAuditManagerEvidenceFolderARN", "common_data_error", err)
 		return nil, err
 	}
 	commonColumnData := c.(*awsCommonColumnData)
