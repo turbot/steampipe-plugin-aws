@@ -46,8 +46,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
+	"github.com/aws/aws-sdk-go-v2/service/workspaces"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -390,6 +391,17 @@ func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchi
 		return nil, err
 	}
 	return wellarchitected.NewFromConfig(*cfg), nil
+}
+
+func WorkspacesClient(ctx context.Context, d *plugin.QueryData) (*workspaces.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "workspaces")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return workspaces.NewFromConfig(*cfg), nil
 }
 
 func getClient(ctx context.Context, d *plugin.QueryData, region string) (*aws.Config, error) {
