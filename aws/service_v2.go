@@ -50,6 +50,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -392,6 +393,14 @@ func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
 		return nil, err
 	}
 	return sns.NewFromConfig(*cfg), nil
+}
+
+func SSOAdminClient(ctx context.Context, d *plugin.QueryData) (*ssoadmin.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return ssoadmin.NewFromConfig(*cfg), nil
 }
 
 func WellArchitectedClient(ctx context.Context, d *plugin.QueryData) (*wellarchitected.Client, error) {
