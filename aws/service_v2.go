@@ -44,6 +44,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 
@@ -361,6 +362,17 @@ func SecretsManagerClient(ctx context.Context, d *plugin.QueryData) (*secretsman
 		return nil, err
 	}
 	return secretsmanager.NewFromConfig(*cfg), nil
+}
+
+func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, "serverlessrepo")
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return serverlessapplicationrepository.NewFromConfig(*cfg), nil
 }
 
 func SNSClient(ctx context.Context, d *plugin.QueryData) (*sns.Client, error) {
