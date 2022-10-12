@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/turbot/go-kit/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -20,6 +20,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate:       listEcsTasks,
 			ParentHydrate: listEcsClusters,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFoundException", "ServiceNotFoundException", "InvalidParameterException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "container_instance_arn",
@@ -249,112 +252,102 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 }
 
 type tasksInfo struct {
-	ecs.Task
+	types.Task
 	ServiceName string
 }
 
 //// LIST FUNCTION
 
 func listEcsTasks(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listEcsTasks")
 	equalQuals := d.KeyColumnQuals
+	clusterArn := h.Item.(types.Cluster).ClusterArn
 
 	// Create session
-	svc, err := EcsService(ctx, d)
+	svc, err := ECSClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ecs_task.listEcsTasks", "connection_error", err)
 		return nil, err
 	}
 
 	var serviceName string
 
-	clusterArn := h.Item.(*ecs.Cluster).ClusterArn
-
 	// Prepare input parameters
-	input := ecs.ListTasksInput{
-		MaxResults: types.Int64(100),
-		Cluster:    clusterArn,
-	}
+	input := ecs.ListTasksInput{Cluster: clusterArn}
 
 	if equalQuals["service_name"] != nil {
 		serviceName = equalQuals["service_name"].GetStringValue()
-		input.ServiceName = types.String(serviceName)
+		input.ServiceName = aws.String(serviceName)
 	}
 	if equalQuals["container_instance_arn"] != nil {
 		containerInstanceArn := equalQuals["container_instance_arn"].GetStringValue()
-		input.ContainerInstance = types.String(containerInstanceArn)
+		input.ContainerInstance = aws.String(containerInstanceArn)
 	}
 	if equalQuals["desired_status"] != nil {
 		desiredStatus := equalQuals["desired_status"].GetStringValue()
-		input.DesiredStatus = types.String(desiredStatus)
+		input.DesiredStatus = types.DesiredStatus(desiredStatus)
 	}
 	if equalQuals["launch_type"] != nil {
 		launchType := equalQuals["launch_type"].GetStringValue()
-		input.LaunchType = types.String(launchType)
+		input.LaunchType = types.LaunchType(launchType)
 	}
 
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	var taskArns [][]*string
+	input.MaxResults = &maxLimit
+	var taskArns [][]string
 
-	// execute list call
-	err = svc.ListTasksPages(
-		&input,
-		func(page *ecs.ListTasksOutput, isLast bool) bool {
-			if len(page.TaskArns) != 0 {
-				taskArns = append(taskArns, page.TaskArns)
-			}
-			return !isLast
-		},
-	)
+	paginator := ecs.NewListTasksPaginator(svc, &input, func(o *ecs.ListTasksPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-	if err != nil {
-		plugin.Logger(ctx).Error("listECSTasks", "ListTasksPages_error", err)
-		if a, ok := err.(awserr.Error); ok {
-			if a.Code() == "ServiceNotFoundException" {
-				return nil, nil
-			} else if a.Code() == "InvalidParameterException" {
-				return nil, nil
-			} else if a.Code() == "ClusterNotFoundException" {
-				return nil, nil
-			}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecs_task.listEcsTasks", "list_tasks_api_error", err)
+			return nil, err
 		}
-		return nil, err
+
+		taskArns = append(taskArns, output.TaskArns)
 	}
 
-	for _, arn := range taskArns {
+	for _, arns := range taskArns {
+		if len(arns) == 0 {
+			continue
+		}
 		input := &ecs.DescribeTasksInput{
 			Cluster: clusterArn,
-			Tasks:   arn,
-			Include: []*string{aws.String("TAGS")},
+			Tasks:   arns,
+			Include: []types.TaskField{types.TaskFieldTags},
 		}
 
-		result, err := svc.DescribeTasks(input)
+		result, err := svc.DescribeTasks(ctx, input)
 
 		if err != nil {
-			plugin.Logger(ctx).Error("listECSTasks", "DescribeTasks_error", err)
+			plugin.Logger(ctx).Error("aws_ecs_task.listEcsTasks", "describe_tasks_api_error", err)
 			return nil, err
 		}
 
 		for _, task := range result.Tasks {
-			d.StreamListItem(ctx, tasksInfo{*task, serviceName})
+			d.StreamListItem(ctx, tasksInfo{task, serviceName})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
 	}
 
 	return nil, nil
@@ -372,13 +365,12 @@ func extractClusterName(ctx context.Context, d *transform.TransformData) (interf
 func ecsTaskTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	task := d.HydrateItem.(tasksInfo).Task
 
-	if task.Tags == nil {
-		return nil, nil
-	}
-
-	turbotTagsMap := map[string]string{}
-	for _, i := range task.Tags {
-		turbotTagsMap[*i.Key] = *i.Value
+	var turbotTagsMap map[string]string
+	if len(task.Tags) > 0 {
+		turbotTagsMap = map[string]string{}
+		for _, i := range task.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
 	}
 
 	return turbotTagsMap, nil

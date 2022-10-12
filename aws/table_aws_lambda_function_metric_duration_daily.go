@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -33,6 +33,6 @@ func tableAwsLambdaFunctionMetricDurationDaily(_ context.Context) *plugin.Table 
 }
 
 func listLambdaFunctionMetricDurationDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lambdaFunctionConfiguration := h.Item.(*lambda.FunctionConfiguration)
+	lambdaFunctionConfiguration := h.Item.(types.FunctionConfiguration)
 	return listCWMetricStatistics(ctx, d, "DAILY", "AWS/Lambda", "Duration", "FunctionName", *lambdaFunctionConfiguration.FunctionName)
 }
