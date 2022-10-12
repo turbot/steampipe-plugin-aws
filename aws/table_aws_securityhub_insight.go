@@ -120,7 +120,7 @@ func listSecurityHubInsights(ctx context.Context, d *plugin.QueryData, _ *plugin
 			}
 		}
 	}
-// End if
+	// End if
 	if err != nil {
 		// Handle error for accounts that are not subscribed to AWS Security Hub
 		if strings.Contains(err.Error(), "not subscribed") {

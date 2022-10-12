@@ -176,7 +176,6 @@ func listAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ 
 		o.StopOnDuplicateToken = true
 	})
 
-
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -224,7 +223,7 @@ func getAwsRoute53ResolverEndpoint(ctx context.Context, d *plugin.QueryData, _ *
 	return data.ResolverEndpoint, nil
 }
 
-func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData ) (interface{}, error) {
+func listResolverEndpointIPAddresses(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	resolverEndpointData := h.Item.(types.ResolverEndpoint)
 
@@ -283,7 +282,7 @@ func getAwsRoute53ResolverEndpointTags(ctx context.Context, d *plugin.QueryData,
 //// TRANSFORM FUNCTIONS
 
 func route53resolverTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-		tagList := d.Value.([]types.Tag)
+	tagList := d.Value.([]types.Tag)
 
 	// Mapping the resource tags inside turbotTags
 	var turbotTagsMap map[string]string

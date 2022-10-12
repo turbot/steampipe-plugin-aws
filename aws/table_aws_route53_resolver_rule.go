@@ -178,7 +178,7 @@ func listAwsRoute53ResolverRules(ctx context.Context, d *plugin.QueryData, _ *pl
 
 	// List call
 	input.MaxResults = aws.Int32(maxItems)
-	paginator := route53resolver.NewListResolverRulesPaginator(svc, &input,func(o *route53resolver.ListResolverRulesPaginatorOptions) {
+	paginator := route53resolver.NewListResolverRulesPaginator(svc, &input, func(o *route53resolver.ListResolverRulesPaginatorOptions) {
 		o.Limit = maxItems
 		o.StopOnDuplicateToken = true
 	})
