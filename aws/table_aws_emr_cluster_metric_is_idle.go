@@ -3,7 +3,7 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/emr"
+	"github.com/aws/aws-sdk-go-v2/service/emr/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -33,6 +33,6 @@ func tableAwsEmrClusterMetricIsIdle(_ context.Context) *plugin.Table {
 }
 
 func listEmrClusterMetricIsIdle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	data := h.Item.(*emr.ClusterSummary)
+	data := h.Item.(types.ClusterSummary)
 	return listCWMetricStatistics(ctx, d, "5_MIN", "AWS/ElasticMapReduce", "IsIdle", "JobFlowId", *data.Id)
 }
