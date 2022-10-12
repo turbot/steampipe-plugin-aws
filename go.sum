@@ -94,8 +94,9 @@ github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 h1:/K482T5A3623WJgWT8
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17/go.mod h1:pRwaTYCJemADaqCbUAxltMoHKata7hmB5PjEXeu0kfg=
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24 h1:wj5Rwc05hvUSvKuOF29IYb9QrCLjU+rHAy/x/o0DK2c=
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24/go.mod h1:jULHjqqjDlbyTa7pfM7WICATnOv+iOhjletM3N0Xbu8=
-github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.5 h1:tEEHn+PGAxRVqMPEhtU8oCSW/1Ge3zP5nUgPrGQNUPs=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.5/go.mod h1:aIwFF3dUk95ocCcA3zfk3nhz0oLkpzHFWuMp8l/4nNs=
+github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14 h1:ZSIPAkAsCCjYrhqfw2+lNzWDzxzHXEckFkTePL5RSWQ=
+github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14/go.mod h1:AyGgqiKv9ECM6IZeNQtdT8NnMvUb3/2wokeq2Fgryto=
 github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.16.0 h1:rPv8ZiaTIwLp4JOCQAQcgPx7i2a7FTRY7lnyrNS0HbU=
 github.com/aws/aws-sdk-go-v2/service/accessanalyzer v1.16.0/go.mod h1:l5+hat25VFsG9jpsXrtEYqw6Ih3pLaC5I4+8hrng7F4=
 github.com/aws/aws-sdk-go-v2/service/account v1.7.8 h1:2llwVUyIICO36Rut8+YN+SBr8X6aijy2iK4k2pC0JfQ=
@@ -168,12 +169,16 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12 h1:y97T4mPCBD
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.12/go.mod h1:VrUvYb3ZCeUcJMIYmCJUjfwfyIFKOnXhdyfue/MSCIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12 h1:jemAfH91rYzeDdNPDNdZHLSXxaXW5l1fcUT1+nRQ8cM=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.12/go.mod h1:X2UdAVE3dDmC83sWf9gXW3EL2mVjDCS4vRUctHz8GjM=
+github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.15 h1:Gfz/Tb8RVsqJ/Djq8y+be/aN/XzcgRgeSovFZKq1vqM=
+github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.15/go.mod h1:Z3NK4pbNBv7d+lzo2TGOMZG87eSddtbrgdzktAwzZpY=
 github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14 h1:81m+pUui8TrxAjrhSXweBt6G2G9him4S8la+yH9YBq4=
 github.com/aws/aws-sdk-go-v2/service/fsx v1.24.14/go.mod h1:pjzNrKeJc+qRfGYCPsFuPc7/P5zM3DL1dpxtGbrTfWs=
 github.com/aws/aws-sdk-go-v2/service/glue v1.32.0 h1:7Kacs7LCbDmMSwW5nHk4OExP9JlYK5P9r3iQ853yoOE=
 github.com/aws/aws-sdk-go-v2/service/glue v1.32.0/go.mod h1:aupHsCJmK66t1MQ542c6qBSuJYEA2IwKmwi4M3jdT1M=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9 h1:pVHvEz+KIsTwRKufwvGZr90X/YJ7swVshaBZNY4ESIY=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.9/go.mod h1:ARVuo+lYC2ibYxny/PKC3maaWKLAg25KSq0dkSkE2WE=
+github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5 h1:FjeDPNsb1ihheLCMVBnTk69lPzfsmkNB9UxVNeCkTGY=
+github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5/go.mod h1:MyA+RETJsENr1HnRLuaaPtOiubiSHtHtoHNHPeaX/k0=
 github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15 h1:gKxgS8oV6+Bo1AQiyIBepmGQoqvU8o4Ys/C71qSHUr0=
 github.com/aws/aws-sdk-go-v2/service/inspector v1.12.15/go.mod h1:XgCB+HTKD7s+beHujnMeyWnNkMV2c3H6Wf3zSjFiPJ8=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 h1:4n4KCtv5SUoT5Er5XV41huuzrCqepxlW3SDI9qHQebc=

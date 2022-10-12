@@ -49,9 +49,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -438,10 +440,19 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if cfg == nil {
 		return nil, nil
 	}
 	return efs.NewFromConfig(*cfg), nil
+}
+
+func EventBridgeClient(ctx context.Context, d *plugin.QueryData) (*eventbridge.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return eventbridge.NewFromConfig(*cfg), nil
 }
 
 func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
@@ -472,6 +483,14 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 		return nil, err
 	}
 	return iam.NewFromConfig(*cfg), nil
+}
+
+func IdentityStoreClient(ctx context.Context, d *plugin.QueryData) (*identitystore.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return identitystore.NewFromConfig(*cfg), nil
 }
 
 func InspectorClient(ctx context.Context, d *plugin.QueryData) (*inspector.Client, error) {
