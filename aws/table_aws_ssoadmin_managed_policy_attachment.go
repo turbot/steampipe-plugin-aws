@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -58,8 +59,6 @@ func tableAwsSsoAdminManagedPolicyAttachment(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSsoAdminManagedPolicyAttachments")
-
 	permissionSetArn := d.KeyColumnQuals["permission_set_arn"].GetStringValue()
 	instanceArn, err := getSsoInstanceArnFromResourceArn(permissionSetArn)
 	if err != nil {
@@ -67,57 +66,64 @@ func listSsoAdminManagedPolicyAttachments(ctx context.Context, d *plugin.QueryDa
 	}
 
 	// Create session
-	svc, err := SSOAdminService(ctx, d)
+	svc, err := SSOAdminClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssoadmin_managed_policy_attachment.listSsoAdminManagedPolicyAttachments", "connection_error", err)
 		return nil, err
+	}
+
+		// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
 	}
 
 	params := &ssoadmin.ListManagedPoliciesInPermissionSetInput{
 		InstanceArn:      aws.String(instanceArn),
 		PermissionSetArn: aws.String(permissionSetArn),
-		MaxResults:       aws.Int64(100),
+		MaxResults:       aws.Int32(maxLimit),
 	}
 
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 1 {
-				params.MaxResults = aws.Int64(1)
-			} else {
-				params.MaxResults = limit
+	paginator := ssoadmin.NewListManagedPoliciesInPermissionSetPaginator(svc, params, func(o *ssoadmin.ListManagedPoliciesInPermissionSetPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssoadmin_managed_policy_attachment.listSsoAdminManagedPolicyAttachments", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.AttachedManagedPolicies {
+			d.StreamListItem(ctx, &ManagedPolicyAttachment{
+					InstanceArn:           &instanceArn,
+					PermissionSetArn:      &permissionSetArn,
+					AttachedManagedPolicy: items,
+				})
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
 		}
 	}
 
-	plugin.Logger(ctx).Trace("listSsoAdminManagedPolicyAttachments:ListManagedPoliciesInPermissionSetInput", "params", params)
-	err = svc.ListManagedPoliciesInPermissionSetPages(params,
-		func(page *ssoadmin.ListManagedPoliciesInPermissionSetOutput, isLast bool) bool {
-			for _, attachedManagedPolicy := range page.AttachedManagedPolicies {
-				item := &ManagedPolicyAttachment{
-					InstanceArn:           &instanceArn,
-					PermissionSetArn:      &permissionSetArn,
-					AttachedManagedPolicy: attachedManagedPolicy,
-				}
-				d.StreamListItem(ctx, item)
-
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
-			}
-			return !isLast
-		},
-	)
-
-	plugin.Logger(ctx).Trace("listSsoAdminManagedPolicyAttachments:return", "err", err)
 	return nil, err
 }
 
 type ManagedPolicyAttachment struct {
 	InstanceArn           *string
 	PermissionSetArn      *string
-	AttachedManagedPolicy *ssoadmin.AttachedManagedPolicy
+	AttachedManagedPolicy types.AttachedManagedPolicy
 }
 
 //// UTILITY FUNCTIONS

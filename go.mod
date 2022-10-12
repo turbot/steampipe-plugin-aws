@@ -41,6 +41,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository v1.11.17
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.9
+	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.16.11
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.23.0
 	github.com/aws/smithy-go v1.13.3
