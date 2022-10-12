@@ -165,6 +165,7 @@ func listAwsEventBridgeRules(ctx context.Context, d *plugin.QueryData, h *plugin
 		params.NamePrefix = aws.String(equalQuals["name_prefix"].GetStringValue())
 	}
 
+	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
 		output, err := svc.ListRules(ctx, params)
 		if err != nil {
@@ -280,14 +281,6 @@ func getAwsEventBridgeRuleTags(ctx context.Context, d *plugin.QueryData, h *plug
 	return op, nil
 }
 
-func getNamePrefixValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.KeyColumnQuals["name_prefix"].GetStringValue() != "" {
-		return d.KeyColumnQuals["name_prefix"].GetStringValue(), nil
-	} else {
-		return h.Item.(*eventbridge.DescribeRuleOutput).Name, nil
-	}
-}
-
 //// TRANSFORM FUNCTIONS
 
 func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
@@ -308,4 +301,14 @@ func eventBridgeTagListToTurbotTags(ctx context.Context, d *transform.TransformD
 	}
 
 	return turbotTagsMap, nil
+}
+
+//// UTILITY FUNCTIONS
+
+func getNamePrefixValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	if d.KeyColumnQuals["name_prefix"].GetStringValue() != "" {
+		return d.KeyColumnQuals["name_prefix"].GetStringValue(), nil
+	} else {
+		return h.Item.(*eventbridge.DescribeRuleOutput).Name, nil
+	}
 }

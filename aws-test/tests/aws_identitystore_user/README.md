@@ -1,3 +1,7 @@
 # Tests: aws_identitystore_user
 
-The SSO is enabled only on the Management Account in us-east-2 region. Please make sure you have the right access to run this test.
+The tests for `aws_identitystore_user` require manual setup (Terraform is unable to create all required resources due to AWS API limitations):
+
+* Enable AWS SSO: https://docs.aws.amazon.com/singlesignon/latest/userguide/step1.html
+* Create an Identity Store user: https://docs.aws.amazon.com/singlesignon/latest/userguide/addusers.html
+  * Username: TestUser

@@ -96,7 +96,7 @@ func listIdentityStoreGroups(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 	params := &identitystore.ListGroupsInput{
 		IdentityStoreId: aws.String(identityStoreId),
-		MaxResults: aws.Int32(maxLimit),
+		MaxResults:      aws.Int32(maxLimit),
 	}
 	paginator := identitystore.NewListGroupsPaginator(svc, params, func(o *identitystore.ListGroupsPaginatorOptions) {
 		o.StopOnDuplicateToken = true

@@ -123,6 +123,7 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 		params.NamePrefix = aws.String(equalQuals["event_bus_name"].GetStringValue())
 	}
 
+	// API doesn't support aws-go-sdk-v2 paginator as of date
 	for pagesLeft {
 		output, err := svc.ListEventBuses(ctx, params)
 		if err != nil {
