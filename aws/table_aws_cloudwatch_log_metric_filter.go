@@ -3,8 +3,10 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -102,13 +104,14 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 
 func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.listCloudwatchLogMetricFilters", "client_error", err)
 		return nil, err
 	}
 
 	input := &cloudwatchlogs.DescribeMetricFiltersInput{
-		Limit: aws.Int64(50),
+		Limit: aws.Int32(4),
 	}
 
 	// Additonal Filter
@@ -126,33 +129,42 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 		input.MetricNamespace = aws.String(equalQuals["metric_transformation_namespace"].GetStringValue())
 	}
 
+	maxItems := int32(50)
+
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
-	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxItems {
+			if limit < 1 {
+				maxItems = int32(1)
 			} else {
-				input.Limit = limit
+				maxItems = int32(limit)
 			}
 		}
 	}
 
-	err = svc.DescribeMetricFiltersPages(
-		input,
-		func(page *cloudwatchlogs.DescribeMetricFiltersOutput, isLast bool) bool {
-			for _, metricFilter := range page.MetricFilters {
-				d.StreamListItem(ctx, metricFilter)
+	paginator := cloudwatchlogs.NewDescribeMetricFiltersPaginator(svc, input, func(o *cloudwatchlogs.DescribeMetricFiltersPaginatorOptions) {
+		o.Limit = maxItems
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context can be cancelled due to manual cancellation or the limit has been hit
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.listCloudwatchLogMetricFilters", "api_error", err)
+			return nil, err
+		}
+
+		for _, metricFilter := range output.MetricFilters {
+			d.StreamListItem(ctx, metricFilter)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
 	return nil, err
 }
@@ -160,13 +172,12 @@ func listCloudwatchLogMetricFilters(ctx context.Context, d *plugin.QueryData, _ 
 //// HYDRATE FUNCTIONS
 
 func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter")
-
 	name := d.KeyColumnQuals["name"].GetStringValue()
 
 	// Create session
-	svc, err := CloudWatchLogsService(ctx, d)
+	svc, err := CloudWatchLogsClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.getCloudwatchLogMetricFilter", "client_error", err)
 		return nil, err
 	}
 
@@ -175,14 +186,14 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 	}
 
 	// execute list call
-	op, err := svc.DescribeMetricFilters(params)
+	op, err := svc.DescribeMetricFilters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.getCloudwatchLogMetricFilter", "api_error", err)
 		return nil, err
 	}
 
 	for _, metricFilter := range op.MetricFilters {
 		if *metricFilter.FilterName == name {
-			plugin.Logger(ctx).Trace("getCloudwatchLogMetricFilter", "FilterName", metricFilter)
 			return metricFilter, nil
 		}
 	}
@@ -190,13 +201,13 @@ func getCloudwatchLogMetricFilter(ctx context.Context, d *plugin.QueryData, _ *p
 }
 
 func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getCloudwatchLogGroup")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	metricFilter := h.Item.(*cloudwatchlogs.MetricFilter)
+	metricFilter := h.Item.(types.MetricFilter)
 
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_metric_filter.getCloudwatchLogMetricFilter", "api_error", err)
 		return nil, err
 	}
 	commonColumnData := commonData.(*awsCommonColumnData)
@@ -210,8 +221,7 @@ func getCloudwatchLogMetricFilterAkas(ctx context.Context, d *plugin.QueryData, 
 //// TRANSFORM FUNCTIONS
 
 func logMetricTransformationsData(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("logMetricTransformationsData")
-	metricFilterData := d.HydrateItem.(*cloudwatchlogs.MetricFilter)
+	metricFilterData := d.HydrateItem.(types.MetricFilter)
 
 	if metricFilterData.MetricTransformations != nil && len(metricFilterData.MetricTransformations) > 0 {
 		if d.Param.(string) == "MetricName" {
