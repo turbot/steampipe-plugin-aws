@@ -151,7 +151,7 @@ resource "aws_iam_role" "iam_emr_profile_role" {
 EOF
 }
 resource "aws_iam_instance_profile" "emr_profile" {
-  name  = "var.resource_name"
+  name  = var.resource_name
   role = aws_iam_role.iam_emr_profile_role.name
 }
 resource "aws_iam_role_policy" "iam_emr_profile_policy" {
@@ -222,7 +222,7 @@ resource "aws_main_route_table_association" "test_association" {
   route_table_id = aws_route_table.test_route_table.id
 }
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
+  key_name   = var.resource_name
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6B60dQX19dOO0wmNnPf27NJBXQhuVAsFcshY7YqTmNA1dfl0lXvJFSF0nVTvaxtE2854gmvygm/yafopG33zJeH+k2ZrblivkEuH0NNajKMp2mBumkk8RiTVvU1ET4m6Z1jZaK0dTSeV2k6gUk7Wmvo4+6RIu+wdAtwGGGcSq4HJ4M0G1CGHruBywMdOs5CklqRn7BRMh2aexowDachlabUKRFwTf7OCjDcoCWHo+o4kHV7NDEdhFzrE2fxXttt054kd5CMZOEOB9p01pAqSPrxFv3S/BpiXuhmjwsUsIdfHIgFrFhNY/M4+KhTa3pI69NqsigReotTEzk2QwHyHSjsRwfzeJNRgI8iqGIdYr3+t6zCKswyzgV0hqalZhXtpVUEBbumJAKWy+VzTnOXUQ5zEVvabTxi3dsW9zMGofjwhiC75x97RE7U/ZEanRM+0Avr8e3c3ob4NLf9JOwbvB/jYvS6j/nuwJ5H6igT3Oj0oDiknh2WtOgH/BKKaCq5Nyl15Df65i0PNgKRcLy+x0fubYUtsCOMPpQTfztSYGjbvAhAOrH2LJF0i2dTD3PcVw6R6uDpJSw9QkzdD+2ofxnqjGPUeKR3mraGOXt2hZe9F9bvvdZScDfdAoyBUYTO2/sxsQFobRtdiEk2up+mNIx9QXMXO2dOgtNUYZKc1DdQ== clara@turbot.com"
 }
 
