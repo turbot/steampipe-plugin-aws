@@ -147,7 +147,7 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	}
 
 	input := &eks.ListClustersInput{
-		MaxResults: aws.Int32(1),
+		MaxResults: aws.Int32(100),
 	}
 
 	if d.QueryContext.Limit != nil {
@@ -183,8 +183,6 @@ func listEksClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 				return nil, nil
 			}
 		}
-
-		plugin.Logger(ctx).Info("HAS MORE PAGES IN EKS CLUSTER", "api_error", err)
 	}
 
 	return nil, err
