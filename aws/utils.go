@@ -12,8 +12,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -120,7 +120,7 @@ func base64DecodedData(_ context.Context, d *transform.TransformData) (interface
 // Transform function for sagemaker resources tags
 func sageMakerTurbotTags(_ context.Context, d *transform.TransformData) (interface{},
 	error) {
-	tags := d.HydrateItem.([]*sagemaker.Tag)
+	tags := d.HydrateItem.([]sagemakerTypes.Tag)
 
 	if tags != nil {
 		turbotTagsMap := map[string]string{}
@@ -217,12 +217,18 @@ func handleEmptySliceAndMap(ctx context.Context, d *transform.TransformData) (an
 
 	reflectVal := reflect.ValueOf(d.Value)
 	switch reflectVal.Kind() {
+	// To handle empty array to null change in aws sdk V1 to V2 migration
 	case reflect.Slice, reflect.Map:
 		if reflectVal.Len() == 0 {
 			return nil, nil
 		}
 	case reflect.Struct:
 		if reflectVal == reflect.Zero(reflectVal.Type()) {
+			return nil, nil
+		}
+	case reflect.String:
+		// To handle empty string to null change in aws sdk V1 to V2 migration
+		if reflectVal.String() == "" {
 			return nil, nil
 		}
 	}

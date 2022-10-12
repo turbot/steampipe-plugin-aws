@@ -7,8 +7,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dax"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/dax/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
 
@@ -21,12 +22,15 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("cluster_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"ClusterNotFoundFault", "ServiceLinkedRoleNotFoundFault"}),
 			},
 			Hydrate: getDaxCluster,
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listDaxClusters,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameterValueException"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "cluster_name",
@@ -160,8 +164,9 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "connection error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -169,36 +174,34 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, nil
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 20 {
+				maxLimit = 20
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	pagesLeft := true
 	params := &dax.DescribeClustersInput{
-		MaxResults: aws.Int64(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// Additonal Filter
 	equalQuals := d.KeyColumnQuals
 	if equalQuals["cluster_name"] != nil {
-		params.ClusterNames = []*string{aws.String(equalQuals["cluster_name"].GetStringValue())}
-	}
-
-	// If the requested number of items is less than the paging max limit
-	// set the limit to that instead
-	limit := d.QueryContext.Limit
-	if d.QueryContext.Limit != nil {
-		if *limit < *params.MaxResults {
-			if *limit < 20 {
-				params.MaxResults = aws.Int64(20)
-			} else {
-				params.MaxResults = limit
-			}
-		}
+		params.ClusterNames = []string{equalQuals["cluster_name"].GetStringValue()}
 	}
 
 	for pagesLeft {
-		result, err := svc.DescribeClusters(params)
+		result, err := svc.DescribeClusters(ctx, params)
 		if err != nil {
-			if strings.Contains(err.Error(), "InvalidParameterValueException") {
-				return nil, nil
-			}
+			plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "api_error", err)
 			return nil, err
 		}
 
@@ -227,8 +230,9 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxCluster", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -240,11 +244,12 @@ func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 	name := quals["cluster_name"].GetStringValue()
 
 	params := &dax.DescribeClustersInput{
-		ClusterNames: []*string{aws.String(name)},
+		ClusterNames: []string{name},
 	}
 
-	op, err := svc.DescribeClusters(params)
+	op, err := svc.DescribeClusters(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxCluster", "api_error", err)
 		return nil, err
 	}
 
@@ -255,13 +260,13 @@ func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 }
 
 func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getDaxClusterTags")
 
-	clusterArn := *h.Item.(*dax.Cluster).ClusterArn
+	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
 	// Create Session
-	svc, err := DaxService(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxClusterTags", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -273,11 +278,12 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		ResourceName: &clusterArn,
 	}
 
-	clusterdata, err := svc.ListTags(params)
+	clusterdata, err := svc.ListTags(ctx, params)
 	if err != nil {
 		if strings.Contains(err.Error(), "ClusterNotFoundFault") {
 			return nil, nil
 		}
+		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxClusterTags", "api_error", err)
 		return nil, err
 	}
 
