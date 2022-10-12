@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -23,6 +23,9 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityHubFindingAggregators,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAccessException"}),
+			},
 		},
 		GetMatrixItemFunc: BuildRegionList,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -65,63 +68,72 @@ func tableAwsSecurityHubFindingAggregator(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listSecurityHubFindingAggregators(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listSecurityHubFindingAggregators")
 
 	// Create session
-	svc, err := SecurityHubService(ctx, d)
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.listSecurityHubFindingAggregators", "client_error", err)
 		return nil, err
 	}
 
-	input := &securityhub.ListFindingAggregatorsInput{
-		MaxResults: aws.Int64(100),
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			if *limit < 1 {
-				input.MaxResults = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.MaxResults = limit
+				maxLimit = limit
 			}
 		}
 	}
-	// List call
-	err = svc.ListFindingAggregatorsPages(
-		input,
-		func(page *securityhub.ListFindingAggregatorsOutput, isLast bool) bool {
-			for _, aggregator := range page.FindingAggregators {
-				d.StreamListItem(ctx, aggregator)
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	input := &securityhub.ListFindingAggregatorsInput{
+		MaxResults: maxLimit,
+	}
+	// List Call
+	paginator := securityhub.NewListFindingAggregatorsPaginator(svc, input, func(o *securityhub.ListFindingAggregatorsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.listSecurityHubFindingAggregators", "api_error", err)
+			return nil, err
+		}
+
+		for _, aggregator := range output.FindingAggregators {
+			d.StreamListItem(ctx, aggregator)
+
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
+		}
+	}
 
+	// End if
 	if err != nil {
-		// Handeled error for not subscribed region
+		// Handle error for accounts that are not subscribed to AWS Security Hub
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
 
 func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getSecurityHubFindingAggregator")
 
 	var aggregatorArn string
 	if h.Item != nil {
-		aggregatorArn = *h.Item.(*securityhub.FindingAggregator).FindingAggregatorArn
+		// aggregatorArn = *h.Item.(*securityhub.FindingAggregator).FindingAggregatorArn
+		aggregatorArn = *h.Item.(types.FindingAggregator).FindingAggregatorArn
 	} else {
 		aggregatorArn = d.KeyColumnQuals["arn"].GetStringValue()
 	}
@@ -131,9 +143,10 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
-	// get service
-	svc, err := SecurityHubService(ctx, d)
+	// Create session
+	svc, err := SecurityHubClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "client_error", err)
 		return nil, err
 	}
 
@@ -143,9 +156,9 @@ func getSecurityHubFindingAggregator(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	// Get call
-	op, err := svc.GetFindingAggregator(params)
+	op, err := svc.GetFindingAggregator(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Debug("getSecurityHubFindingAggregator", "ERROR", err)
+		plugin.Logger(ctx).Error("aws_securityhub_finding_aggregator.getSecurityHubFindingAggregator", "api_error", err)
 		if strings.Contains(err.Error(), "not subscribed") {
 			return nil, nil
 		}
