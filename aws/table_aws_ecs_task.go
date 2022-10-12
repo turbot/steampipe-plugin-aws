@@ -37,8 +37,9 @@ func tableAwsEcsTask(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 				{
-					Name:    "service_name",
-					Require: plugin.Optional,
+					Name:       "service_name",
+					Require:    plugin.Optional,
+					CacheMatch: "exact",
 				},
 			},
 		},
