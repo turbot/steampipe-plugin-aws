@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"errors"
-	// "fmt"
 	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
