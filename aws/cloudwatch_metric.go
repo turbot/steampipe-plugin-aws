@@ -137,6 +137,7 @@ func listCWMetricStatistics(ctx context.Context, d *plugin.QueryData, granularit
 	// Create Session
 	svc, err := CloudWatchClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("listCWMetricStatistics", "connection_error", err)
 		return nil, err
 	}
 
