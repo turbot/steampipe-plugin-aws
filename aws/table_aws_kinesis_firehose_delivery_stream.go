@@ -182,7 +182,7 @@ func listFirehoseDeliveryStreams(ctx context.Context, d *plugin.QueryData, _ *pl
 		}
 		for _, stream := range response.DeliveryStreamNames {
 			d.StreamListItem(ctx, types.DeliveryStreamDescription{
-				DeliveryStreamName: &stream,
+				DeliveryStreamName: aws.String(stream),
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -237,7 +237,7 @@ func describeFirehoseDeliveryStream(ctx context.Context, d *plugin.QueryData, h 
 		plugin.Logger(ctx).Error("aws_kinesis_firehose_delivery_stream.describeFirehoseDeliveryStream", "api_error", err)
 		return nil, err
 	}
-	return data.DeliveryStreamDescription, nil
+	return *data.DeliveryStreamDescription, nil
 }
 
 // API call for fetching tag list

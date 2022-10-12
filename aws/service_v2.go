@@ -36,6 +36,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/glacier"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
@@ -296,6 +297,14 @@ func FirehoseClient(ctx context.Context, d *plugin.QueryData) (*firehose.Client,
 		return nil, err
 	}
 	return firehose.NewFromConfig(*cfg), nil
+}
+
+func GlacierClient(ctx context.Context, d *plugin.QueryData) (*glacier.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return glacier.NewFromConfig(*cfg), nil
 }
 
 func KinesisClient(ctx context.Context, d *plugin.QueryData) (*kinesis.Client, error) {
