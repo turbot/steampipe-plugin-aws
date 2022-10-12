@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 )
@@ -88,7 +89,7 @@ func tableAwsEcrImage(_ context.Context) *plugin.Table {
 
 func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	repositoryName := h.Item.(*ecr.Repository).RepositoryName
+	repositoryName := h.Item.(types.Repository).RepositoryName
 
 	repoName := d.KeyColumnQuals["repository_name"].GetStringValue()
 
@@ -98,8 +99,21 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		}
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
+			} else {
+				maxLimit = limit
+			}
+		}
+	}
+
 	// Create Session
-	svc, err := EcrService(ctx, d)
+	svc, err := ECRClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImages", "connection_error", err)
 		return nil, err
@@ -108,31 +122,34 @@ func listAwsEcrImages(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Build the params
 	params := &ecr.DescribeImagesInput{
 		RepositoryName: repositoryName,
-		MaxResults:     aws.Int64(100),
+		MaxResults:     aws.Int32(maxLimit),
 	}
 
 	if d.KeyColumnQuals["registry_id"].GetStringValue() != "" {
 		params.RegistryId = aws.String(d.KeyColumnQuals["registry_id"].GetStringValue())
 	}
 
-	err = svc.DescribeImagesPages(
-		params,
-		func(page *ecr.DescribeImagesOutput, isLast bool) bool {
-			for _, image := range page.ImageDetails {
-				d.StreamListItem(ctx, image)
+	paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 
-				// Context may get cancelled due to manual cancellation or if the limit has been reached
-				if d.QueryStatus.RowsRemaining(ctx) == 0 {
-					return false
-				}
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImages", "api_error", err)
+			return nil, err
+		}
+
+		for _, items := range output.ImageDetails {
+			d.StreamListItem(ctx, items)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.QueryStatus.RowsRemaining(ctx) == 0 {
+				return nil, nil
 			}
-			return !isLast
-		},
-	)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImages", "api_error", err)
-		return nil, err
+		}
 	}
 
 	return nil, nil
