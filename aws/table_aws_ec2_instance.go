@@ -91,6 +91,36 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DisableApiTermination.Value"),
 			},
 			{
+				Name:        "ami_launch_index",
+				Description: "The AMI launch index, which can be used to find this instance in the launch group.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
+				Name:        "architecture",
+				Description: "The architecture of the image.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "boot_mode",
+				Description: "The boot mode of the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "capacity_reservation_id",
+				Description: "The ID of the Capacity Reservation.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "capacity_reservation_specification",
+				Description: "Information about the Capacity Reservation targeting option.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "client_token",
+				Description: "The idempotency token you provided when you launched the instance, if applicable.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "cpu_options_core_count",
 				Description: "The number of CPU cores for the instance.",
 				Type:        proto.ColumnType_INT,
@@ -105,6 +135,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "ebs_optimized",
 				Description: "Indicates whether the instance is optimized for Amazon EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal I/O performance. This optimization isn't available with all instance types.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "ena_support",
+				Description: "Specifies whether enhanced networking with ENA is enabled.",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
@@ -159,11 +194,6 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "metadata_options",
-				Description: "The metadata options for the instance.",
-				Type:        proto.ColumnType_JSON,
-			},
-			{
 				Name:        "outpost_arn",
 				Description: "The Amazon Resource Name (ARN) of the Outpost, if applicable.",
 				Type:        proto.ColumnType_STRING,
@@ -185,6 +215,16 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Description: "The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Placement.Tenancy"),
+			},
+			{
+				Name:        "platform",
+				Description: "The value is 'Windows' for Windows instances; otherwise blank.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "platform_details",
+				Description: "The platform details value for the instance.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "private_ip_address",
@@ -242,6 +282,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("State.Code"),
 			},
 			{
+				Name:        "state_transition_reason",
+				Description: "The reason for the most recent state transition.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "state_transition_time",
 				Description: "The date and time, the instance state was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -250,6 +295,21 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 			{
 				Name:        "subnet_id",
 				Description: "The ID of the subnet in which the instance is running.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "tpm_support",
+				Description: "If the instance is configured for NitroTPM support, the value is v2.0.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "usage_operation",
+				Description: "The usage operation value for the instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "usage_operation_update_time",
+				Description: "The time that the usage operation was last updated.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -270,6 +330,11 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "block_device_mappings",
+				Description: "Block device mapping entries for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "elastic_gpu_associations",
 				Description: "The Elastic GPU associated with the instance.",
 				Type:        proto.ColumnType_JSON,
@@ -280,13 +345,28 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "block_device_mappings",
-				Description: "Block device mapping entries for the instance.",
+				Name:        "enclave_options",
+				Description: "Indicates whether the instance is enabled for Amazon Web Services Nitro Enclaves.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "hibernation_options",
+				Description: "Indicates whether the instance is enabled for hibernation.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "metadata_options",
+				Description: "The metadata options for the instance.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "network_interfaces",
 				Description: "The network interfaces for the instance.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "private_dns_name_options",
+				Description: "The options for the instance hostname.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
