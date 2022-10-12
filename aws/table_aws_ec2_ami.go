@@ -2,13 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -20,7 +22,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("image_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidAMIID.NotFound", "InvalidAMIID.Unavailable", "InvalidAMIID.Malformed"}),
 			},
 			Hydrate: getEc2Ami,
 		},
@@ -117,6 +119,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Name:        "platform",
 				Description: "This value is set to windows for Windows AMIs; otherwise, it is blank.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Platform").NullIfZero(),
 			},
 			{
 				Name:        "platform_details",
@@ -173,7 +176,7 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Description: "The users and groups that have the permissions for creating instances from the AMI.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2AmiLaunchPermissionData,
-				Transform:   transform.FromField("LaunchPermissions"),
+				Transform:   transform.From(handleLaunchPermissionsEmptyData),
 			},
 			{
 				Name:        "tags_src",
@@ -209,12 +212,11 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	plugin.Logger(ctx).Trace("listEc2Amis", "AWS_REGION", region)
 
 	// Create Session
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.listEc2Amis", "connection_error", err)
 		return nil, err
 	}
 
@@ -225,7 +227,11 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		input.Filters = filters
 	}
 
-	resp, err := svc.DescribeImages(input)
+	resp, err := svc.DescribeImages(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.listEc2Amis", "api_error", err)
+		return nil, err
+	}
 	for _, image := range resp.Images {
 		d.StreamListItem(ctx, image)
 
@@ -234,27 +240,29 @@ func listEc2Amis(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 			return nil, nil
 		}
 	}
+
 	return nil, err
 }
 
 //// HYDRATE FUNCTIONS
 
 func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	region := d.KeyColumnQualString(matrixKeyRegion)
 	imageID := d.KeyColumnQuals["image_id"].GetStringValue()
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.getEc2Ami", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(imageID)},
+		ImageIds: []string{imageID},
 	}
 
-	op, err := svc.DescribeImages(params)
+	op, err := svc.DescribeImages(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.getEc2Ami", "api_error", err)
 		return nil, err
 	}
 
@@ -264,24 +272,31 @@ func getEc2Ami(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	return nil, nil
 }
 
+type LaunchPermissions struct {
+	Group                 *string
+	OrganizationArn       *string
+	OrganizationalUnitArn *string
+	UserId                *string
+}
+
 func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2AmiLaunchPermissionData")
-	region := d.KeyColumnQualString(matrixKeyRegion)
-	image := h.Item.(*ec2.Image)
+	image := h.Item.(types.Image)
 
 	// create service
-	svc, err := Ec2Service(ctx, d, region)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.getAwsEc2AmiLaunchPermissionData", "connection_error", err)
 		return nil, err
 	}
 
 	params := &ec2.DescribeImageAttributeInput{
 		ImageId:   image.ImageId,
-		Attribute: aws.String(ec2.ImageAttributeNameLaunchPermission),
+		Attribute: types.ImageAttributeNameLaunchPermission,
 	}
 
-	imageData, err := svc.DescribeImageAttribute(params)
+	imageData, err := svc.DescribeImageAttribute(ctx, params)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_ami.getAwsEc2AmiLaunchPermissionData", "api_error", err)
 		return nil, err
 	}
 
@@ -289,9 +304,8 @@ func getAwsEc2AmiLaunchPermissionData(ctx context.Context, d *plugin.QueryData, 
 }
 
 func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("getAwsEc2AmiAkas")
 	region := d.KeyColumnQualString(matrixKeyRegion)
-	image := h.Item.(*ec2.Image)
+	image := h.Item.(types.Image)
 	getCommonColumnsCached := plugin.HydrateFunc(getCommonColumns).WithCache()
 	commonData, err := getCommonColumnsCached(ctx, d, h)
 	if err != nil {
@@ -308,12 +322,50 @@ func getAwsEc2AmiAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 //// TRANSFORM FUNCTIONS
 
 func getEc2AmiTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	image := d.HydrateItem.(*ec2.Image)
-	return ec2TagsToMap(image.Tags)
+	image := d.HydrateItem.(types.Image)
+	var turbotTagsMap map[string]string
+	if image.Tags == nil {
+		return nil, nil
+	}
+
+	turbotTagsMap = map[string]string{}
+	for _, i := range image.Tags {
+		turbotTagsMap[*i.Key] = *i.Value
+	}
+
+	return &turbotTagsMap, nil
+}
+
+func handleLaunchPermissionsEmptyData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+
+	imageData := d.HydrateItem.(*ec2.DescribeImageAttributeOutput)
+
+	if len(imageData.LaunchPermissions) < 1 {
+		return nil, nil
+	}
+
+	var launchPermissions []LaunchPermissions
+
+	for _, permission := range imageData.LaunchPermissions {
+
+		launchPermission := &LaunchPermissions{
+			OrganizationArn:       permission.OrganizationArn,
+			OrganizationalUnitArn: permission.OrganizationalUnitArn,
+			UserId:                permission.UserId,
+		}
+		if permission.Group == "" {
+			launchPermission.Group = nil
+		} else {
+			launchPermission.Group = aws.String(fmt.Sprint(permission.Group))
+		}
+
+		launchPermissions = append(launchPermissions, *launchPermission)
+	}
+	return launchPermissions, nil
 }
 
 func getEc2AmiTurbotTitle(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	data := d.HydrateItem.(*ec2.Image)
+	data := d.HydrateItem.(types.Image)
 
 	title := data.ImageId
 	if data.Name != nil {
