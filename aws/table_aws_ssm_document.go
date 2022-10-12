@@ -40,7 +40,6 @@ func tableAwsSSMDocument(_ context.Context) *plugin.Table {
 					+-----------------------+
 					| owner                 |
 					+-----------------------+
-					| 013122550996          |
 					| AlertLogic            |
 					| Amazon                |
 					| Dynatrace             |
