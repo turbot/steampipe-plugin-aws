@@ -303,7 +303,7 @@ func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databas
 	return databasemigrationservice.NewFromConfig(*cfg), nil
 }
 
-func DaxClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
+func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
@@ -434,7 +434,7 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	return efs.NewFromConfig(*cfg), nil
 }
 
-func FsxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
+func FSxClient(ctx context.Context, d *plugin.QueryData) (*fsx.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, fsxEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err

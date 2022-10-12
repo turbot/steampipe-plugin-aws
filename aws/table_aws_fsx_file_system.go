@@ -161,7 +161,7 @@ func tableAwsFsxFileSystem(_ context.Context) *plugin.Table {
 
 func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := FsxClient(ctx, d)
+	svc, err := FSxClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_fsx_file_system.listFsxFileSystems", "connection_error", err)
 		return nil, err
@@ -214,7 +214,7 @@ func listFsxFileSystems(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getFsxFileSystem(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create service
-	svc, err := FsxClient(ctx, d)
+	svc, err := FSxClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_fsx_file_system.getFsxFileSystem", "connection_error", err)
 		return nil, err

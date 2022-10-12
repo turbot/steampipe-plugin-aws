@@ -164,7 +164,7 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxClient(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dax_cluster.listDaxClusters", "connection error", err)
 		return nil, err
@@ -230,7 +230,7 @@ func listDaxClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 func getDaxCluster(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 
 	// Create Session
-	svc, err := DaxClient(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxCluster", "connection_error", err)
 		return nil, err
@@ -264,7 +264,7 @@ func getDaxClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	clusterArn := *h.Item.(types.Cluster).ClusterArn
 
 	// Create Session
-	svc, err := DaxClient(ctx, d)
+	svc, err := DAXClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_dax_cluster.getDaxClusterTags", "connection_error", err)
 		return nil, err
