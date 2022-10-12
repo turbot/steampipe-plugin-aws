@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisvideo/types"
-	pb "github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
@@ -32,53 +32,53 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 			{
 				Name:        "stream_name",
 				Description: "The name of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "stream_arn",
 				Description: "The Amazon Resource Name (ARN) of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("StreamARN"),
 			},
 			{
 				Name:        "status",
 				Description: "The status of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "version",
 				Description: "The version of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "kms_key_id",
 				Description: "The ID of the AWS Key Management Service (AWS KMS) key that Kinesis Video Streams uses to encrypt data on the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_time",
 				Description: "A time stamp that indicates when the stream was created.",
-				Type:        pb.ColumnType_TIMESTAMP,
+				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
 				Name:        "data_retention_in_hours",
 				Description: "How long the stream retains data, in hours.",
-				Type:        pb.ColumnType_INT,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "device_name",
 				Description: "The name of the device that is associated with the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "media_type",
 				Description: "The MediaType of the stream.",
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Hydrate:     listKinesisVideoStreamTags,
 			},
 
@@ -86,13 +86,13 @@ func tableAwsKinesisVideoStream(_ context.Context) *plugin.Table {
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
-				Type:        pb.ColumnType_STRING,
+				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("StreamName"),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
-				Type:        pb.ColumnType_JSON,
+				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("StreamARN").Transform(arnToAkas),
 			},
 		}),
@@ -150,7 +150,6 @@ func listKinesisVideoStreams(ctx context.Context, d *plugin.QueryData, _ *plugin
 				return nil, nil
 			}
 		}
-
 	}
 	return nil, err
 }
