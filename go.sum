@@ -158,6 +158,8 @@ github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15 h1:MpzLGfgsFwY+rk5rERg22DiH2
 github.com/aws/aws-sdk-go-v2/service/kafka v1.17.15/go.mod h1:1UfKb/PiPkk/yE+nnB7XuhZl3pxPWufotyaoFSZNKlw=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17 h1:XMYHc24lhxNr0SDLtGELpdXb3m7RyqPcq5FnQIxG4mM=
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.12.17/go.mod h1:syXhqQV9llxfKxGdzv+rPDkSfSApNl2te4nICjCvSfw=
+github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0 h1:4dnMXC5HDrGKJ84gnIYBE5SsrDj1w7frMPbYCSD9MjA=
+github.com/aws/aws-sdk-go-v2/service/networkfirewall v1.20.0/go.mod h1:r80Jezlc9aM2OqNM1XjLmiIx+w6IjBoSvkgjQPZxuYs=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8 h1:ay2kKjWoadTWcvMBmvpnsrzQxf/Ic+yYDeyPK8HN3Dk=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.16.8/go.mod h1:2LqaphiwM7jerVTmN/7Yv5fSaobVKqX1BSwgMFE9rmA=
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.2.9 h1:YamSUuJG+iaOUfZE4WCJOnesdhf4Lx9MENcXS384/4w=
