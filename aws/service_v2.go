@@ -50,11 +50,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
-  "github.com/aws/aws-sdk-go-v2/service/fsx"
+	"github.com/aws/aws-sdk-go-v2/service/fsx"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
-  "github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
@@ -440,8 +440,8 @@ func EFSClient(ctx context.Context, d *plugin.QueryData) (*efs.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-  	
-  if cfg == nil {
+
+	if cfg == nil {
 		return nil, nil
 	}
 	return efs.NewFromConfig(*cfg), nil
@@ -484,7 +484,6 @@ func IAMClient(ctx context.Context, d *plugin.QueryData) (*iam.Client, error) {
 	}
 	return iam.NewFromConfig(*cfg), nil
 }
-
 
 func IdentityStoreClient(ctx context.Context, d *plugin.QueryData) (*identitystore.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
