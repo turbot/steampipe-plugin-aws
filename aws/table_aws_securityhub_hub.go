@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 
@@ -86,10 +87,12 @@ func listSecurityHubs(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 	// List call
 	resp, err := svc.DescribeHub(ctx, &securityhub.DescribeHubInput{})
-
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "query_error", err)
-		return nil, nil
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_securityhub_hub.listSecurityHubs", "api_error", err)
+		return nil, err
 	}
 
 	d.StreamListItem(ctx, resp)
@@ -118,6 +121,9 @@ func getSecurityHub(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Execute get call
 	data, err := svc.DescribeHub(ctx, params)
 	if err != nil {
+		if strings.Contains(err.Error(), "is not subscribed to AWS Security Hub") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_securityhub_hub.getSecurityHub", "api_error", err)
 		return nil, err
 	}
