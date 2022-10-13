@@ -299,7 +299,7 @@ func listOpenSearchDomainTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	if h.HydrateResults["getOpenSearchDomain"] == nil {
 		return nil, nil
 	}
-	arn := h.HydrateResults["getOpenSearchDomain"].(types.DomainStatus).ARN
+	arn := h.HydrateResults["getOpenSearchDomain"].(*types.DomainStatus).ARN
 
 	// Create Session
 	svc, err := OpenSearchClient(ctx, d)

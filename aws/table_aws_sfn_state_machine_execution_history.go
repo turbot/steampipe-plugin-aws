@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/aws/aws-sdk-go/service/sfn"
-	"github.com/turbot/go-kit/types"
+  "github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/sfn/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -227,7 +227,7 @@ func tableAwsStepFunctionsStateMachineExecutionHistory(_ context.Context) *plugi
 }
 
 type historyInfo struct {
-	sfn.HistoryEvent
+	types.HistoryEvent
 	ExecutionArn string
 }
 
@@ -235,40 +235,41 @@ type historyInfo struct {
 
 func listStepFunctionsStateMachineExecutionHistories(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "connection_error", err)
 		return nil, err
 	}
 
-	stateMachineArn := h.Item.(*sfn.StateMachineListItem).StateMachineArn
-	var executions []sfn.ExecutionListItem
-
-	input := &sfn.ListExecutionsInput{
-		MaxResults:      types.Int64(1000),
-		StateMachineArn: stateMachineArn,
-	}
-
+	stateMachineArn := h.Item.(types.StateMachineListItem).StateMachineArn
+	var executions []types.ExecutionListItem
+	maxLimit := int32(1000)
 	// If the requested number of items is less than the paging max limit
 	// set the limit to that instead
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.MaxResults {
-			input.MaxResults = limit
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
 		}
 	}
-
+	input := &sfn.ListExecutionsInput{
+		MaxResults:      int32(maxLimit),
+		StateMachineArn: stateMachineArn,
+	}
+  paginator:=sfn.NewListExecutionsPaginator(svc,input,func(o *sfn.ListExecutionsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
 	// List call
-	err = svc.ListExecutionsPages(
-		input,
-		func(page *sfn.ListExecutionsOutput, isLast bool) bool {
-			for _, execution := range page.Executions {
-				executions = append(executions, *execution)
-			}
-			return !isLast
-		},
-	)
-
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, execution := range output.Executions {
+			executions = append(executions, execution)
+		}
+	}
 	if err != nil {
 		plugin.Logger(ctx).Error("listStepFunctionsStateMachineExecutionHistories", "ListExecutionsPages_error", err)
 		return nil, err
@@ -321,26 +322,26 @@ func getRowDataForExecutionHistoryAsync(ctx context.Context, d *plugin.QueryData
 
 func getRowDataForExecutionHistory(ctx context.Context, d *plugin.QueryData, arn string) ([]historyInfo, error) {
 	// Create session
-	svc, err := StepFunctionsService(ctx, d)
+	svc, err := StepFunctionsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "connection_error", err)
 		return nil, err
 	}
 
 	params := &sfn.GetExecutionHistoryInput{
-		ExecutionArn: types.String(arn),
+		ExecutionArn:aws.String(arn),
 	}
 
 	var items []historyInfo
 
-	listHistory, err := svc.GetExecutionHistory(params)
+	listHistory, err := svc.GetExecutionHistory(ctx,params)
 	if err != nil {
 		plugin.Logger(ctx).Error("getRowDataForExecutionHistory", "GetExecutionHistory_error", err)
 		return nil, err
 	}
 
 	for _, event := range listHistory.Events {
-		items = append(items, historyInfo{*event, arn})
+		items = append(items, historyInfo{event, arn})
 	}
 
 	return items, nil
@@ -354,7 +355,7 @@ func executionHistoryArn(ctx context.Context, d *transform.TransformData) (inter
 
 	// For State Machine, ARN format is arn:aws:states:us-east-1:632902152528:stateMachine:HelloWorld
 	// For State Machine Execution, ARN format is arn:aws:states:us-east-1:632902152528:execution:HelloWorld:a44bc846-3601-fd75-63f7-60ac06a4ef97
-	akas := []string{strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(*history.Id))}
+	akas := []string{strings.Replace(history.ExecutionArn, "execution", "executionHistory", 1) + ":" + strconv.Itoa(int(history.Id))}
 
 	return akas, nil
 }
