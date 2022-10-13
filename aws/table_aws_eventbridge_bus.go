@@ -3,8 +3,9 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eventbridge"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
@@ -17,7 +18,7 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: isNotFoundError([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: isNotFoundErrorV2([]string{"InvalidParameter", "ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getAwsEventBridgeBus,
 		},
@@ -85,52 +86,52 @@ func tableAwsEventBridgeBus(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("listAwsEventBridgeBuses")
-
-	// Create session
-	svc, err := EventBridgeService(ctx, d)
+	// Get client
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
-		logger.Error("listAwsEventBridgeBuses", "error_EventBridgeService", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "get_client_error", err)
 		return nil, err
 	}
 
-	// List call
-	input := eventbridge.ListEventBusesInput{
-		// Default to the maximum allowed
-		Limit: aws.Int64(100),
-	}
-
-	equalQuals := d.KeyColumnQuals
-	if equalQuals["name"] != nil {
-		input.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
-	}
-
-	// For case when listAwsEventBridgeBuses is used as parent hydrate in aws_eventbridge_rule table
-	if equalQuals["name"] == nil && equalQuals["event_bus_name"] != nil {
-		input.NamePrefix = aws.String(equalQuals["event_bus_name"].GetStringValue())
-	}
-
-	// Reduce the basic request limit down if the user has only requested a small number of rows
-	limit := d.QueryContext.Limit
+	// Limiting the results
+	maxLimit := int32(100)
 	if d.QueryContext.Limit != nil {
-		if *limit < *input.Limit {
-			if *limit < 1 {
-				input.Limit = aws.Int64(1)
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			if limit < 1 {
+				maxLimit = 1
 			} else {
-				input.Limit = limit
+				maxLimit = limit
 			}
 		}
 	}
 
-	for {
-		response, err := svc.ListEventBuses(&input)
+	pagesLeft := true
+	params := &eventbridge.ListEventBusesInput{
+		// Default to the maximum allowed
+		Limit: aws.Int32(maxLimit),
+	}
+
+	// Additonal Filter
+	equalQuals := d.KeyColumnQuals
+	if equalQuals["name"] != nil {
+		params.NamePrefix = aws.String(equalQuals["name"].GetStringValue())
+	}
+
+	// For case when listAwsEventBridgeBuses is used as parent hydrate in aws_eventbridge_rule table
+	if equalQuals["name"] == nil && equalQuals["event_bus_name"] != nil {
+		params.NamePrefix = aws.String(equalQuals["event_bus_name"].GetStringValue())
+	}
+
+	// API doesn't support aws-go-sdk-v2 paginator as of date
+	for pagesLeft {
+		output, err := svc.ListEventBuses(ctx, params)
 		if err != nil {
-			logger.Error("listAwsEventBridgeBuses", "error_ListEventBuses", err)
+			plugin.Logger(ctx).Error("aws_eventbridge_bus.listAwsEventBridgeBuses", "api_error", err)
 			return nil, err
 		}
 
-		for _, bus := range response.EventBuses {
+		for _, bus := range output.EventBuses {
 			d.StreamListItem(ctx, &eventbridge.DescribeEventBusOutput{
 				Name:   bus.Name,
 				Arn:    bus.Arn,
@@ -138,14 +139,16 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 			})
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {
-				break
+				return nil, nil
 			}
 		}
 
-		if response.NextToken == nil {
-			break
+		if output.NextToken != nil {
+			pagesLeft = true
+			params.NextToken = output.NextToken
+		} else {
+			pagesLeft = false
 		}
-		input.NextToken = response.NextToken
 	}
 
 	return nil, nil
@@ -154,26 +157,25 @@ func listAwsEventBridgeBuses(ctx context.Context, d *plugin.QueryData, _ *plugin
 //// HYDRATE FUNCTIONS
 
 func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeBus")
+
+	// Create Session
+	svc, err := EventBridgeClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "get_client_error", err)
+		return nil, err
+	}
 
 	arn := d.KeyColumnQuals["arn"].GetStringValue()
 
-	// Create Session
-	svc, err := EventBridgeService(ctx, d)
-	if err != nil {
-		logger.Error("getAwsEventBridgeBus", "error_EventBridgeService", err)
-		return nil, err
-	}
 	// Build the params
 	params := &eventbridge.DescribeEventBusInput{
 		Name: &arn,
 	}
 
 	// Get call
-	data, err := svc.DescribeEventBus(params)
+	data, err := svc.DescribeEventBus(ctx, params)
 	if err != nil {
-		logger.Error("getAwsEventBridgeBus", "error_DescribeEventBus", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBus", "api_error", err)
 		return nil, err
 	}
 
@@ -181,15 +183,13 @@ func getAwsEventBridgeBus(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	logger := plugin.Logger(ctx)
-	logger.Trace("getAwsEventBridgeBusTags")
 
 	arn := h.Item.(*eventbridge.DescribeEventBusOutput).Arn
 
 	// Create Session
-	svc, err := EventBridgeService(ctx, d)
+	svc, err := EventBridgeClient(ctx, d)
 	if err != nil {
-		logger.Error("getAwsEventBridgeBusTags", "error_EventBridgeService", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBusTags", "get_client_error", err)
 		return nil, err
 	}
 
@@ -199,9 +199,9 @@ func getAwsEventBridgeBusTags(ctx context.Context, d *plugin.QueryData, h *plugi
 	}
 
 	// Get call
-	op, err := svc.ListTagsForResource(params)
+	op, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
-		logger.Error("getAwsEventBridgeBusTags", "error_ListTagsForResource", err)
+		plugin.Logger(ctx).Error("aws_eventbridge_bus.getAwsEventBridgeBusTags", "api_error", err)
 		return nil, err
 	}
 

@@ -2,18 +2,17 @@ package aws
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/inspector"
+	"github.com/aws/aws-sdk-go-v2/service/inspector/types"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 type ExclusionInfo = struct {
-	inspector.Exclusion
+	types.Exclusion
 	AssessmentRunArn string
 }
 
@@ -82,11 +81,11 @@ func tableAwsInspectorExclusion(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	plugin.Logger(ctx).Trace("listInspectorExclusions")
 
 	// Create Session
-	svc, err := InspectorService(ctx, d)
+	svc, err := InspectorClient(ctx, d)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_inspector_exclusion.listInspectorExclusions", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -95,7 +94,7 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	// Exclusion is a sub resource of an assessment run, we need the assessment run ARN to list these.
-	runArn := *h.Item.(*inspector.AssessmentRun).Arn
+	runArn := *h.Item.(types.AssessmentRun).Arn
 	equalQuals := d.KeyColumnQuals
 
 	// Minimize the API call with the given assessment run ARN
@@ -104,34 +103,37 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 			if equalQuals["assessment_run_arn"].GetStringValue() != "" && equalQuals["assessment_run_arn"].GetStringValue() != runArn {
 				return nil, nil
 			}
-		} else if len(getListValues(equalQuals["assessment_run_arn"].GetListValue())) > 0 {
-			if !strings.Contains(fmt.Sprint(getListValues(equalQuals["assessment_run_arn"].GetListValue())), runArn) {
-				return nil, nil
-			}
 		}
 	}
 
+	input := &inspector.ListExclusionsInput{
+		AssessmentRunArn: &runArn,
+		MaxResults:       aws.Int32(500),
+	}
+
+	paginator := inspector.NewListExclusionsPaginator(svc, input, func(o *inspector.ListExclusionsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
 	// List all available exclusions
-	var exclusions []*string
-	err = svc.ListExclusionsPages(
-		&inspector.ListExclusionsInput{
-			AssessmentRunArn: &runArn,
-			MaxResults:       aws.Int64(500),
-		},
-		func(page *inspector.ListExclusionsOutput, isLast bool) bool {
-			exclusions = append(exclusions, page.ExclusionArns...)
-			return !isLast
-		},
-	)
-	if err != nil {
-		return nil, err
+	var exclusions []string
+
+	// List call
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_exclusion.listInspectorExclusions", "api_error", err)
+			return nil, err
+		}
+
+		exclusions = append(exclusions, output.ExclusionArns...)
 	}
 
 	passedExclusions := 0
 	exclusionsLeft := true
 	for exclusionsLeft {
 		// DescribeExclusions API can take maximum 100 number of exclusions ARNs at a time.
-		var arns []*string
+		var arns []string
 		if len(exclusions) > passedExclusions {
 			if (len(exclusions) - passedExclusions) >= 100 {
 				arns = exclusions[passedExclusions : passedExclusions+100]
@@ -148,12 +150,13 @@ func listInspectorExclusions(ctx context.Context, d *plugin.QueryData, h *plugin
 		}
 
 		// Get details for all available exclusions
-		result, err := svc.DescribeExclusions(params)
+		result, err := svc.DescribeExclusions(ctx, params)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_inspector_exclusion.listInspectorExclusions.DescribeExclusions", "api_error", err)
 			return nil, err
 		}
 		for _, exclusion := range result.Exclusions {
-			d.StreamListItem(ctx, ExclusionInfo{*exclusion, runArn})
+			d.StreamListItem(ctx, ExclusionInfo{exclusion, runArn})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.QueryStatus.RowsRemaining(ctx) == 0 {

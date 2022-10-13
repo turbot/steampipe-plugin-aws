@@ -155,8 +155,8 @@ func getIamAccessKeyLastUsed(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Create Session
 	svc, err := IAMClient(ctx, d)
 	if err != nil {
-	  plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "client_error", err)
-	  return nil, err
+		plugin.Logger(ctx).Error("aws_iam_access_key.getIamAccessKeyLastUsed", "client_error", err)
+		return nil, err
 	}
 
 	accessKey := h.Item.(types.AccessKeyMetadata)
